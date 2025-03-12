@@ -1,20 +1,52 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { Provider as PaperProvider } from "react-native-paper";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+
+import MainNavigator from "./src/navigation/MainNavigator";
+import { theme } from "./src/constants/theme";
+import { useUserStore } from "./src/store/useUserStore";
+
+// Splash Screen während des Ladens anzeigen
+SplashScreen.preventAutoHideAsync();
 
 export default function App() {
+  const [appReady, setAppReady] = useState(false);
+  const loadUserData = useUserStore((state) => state.loadUserData);
+
+  useEffect(() => {
+    // Daten laden, wenn die App startet
+    async function prepare() {
+      try {
+        // User-Daten laden
+        await loadUserData();
+
+        // Beliebige andere Vorbereitungen hier
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppReady(true);
+        SplashScreen.hideAsync();
+      }
+    }
+
+    prepare();
+  }, [loadUserData]);
+
+  if (!appReady) {
+    return null;
+  }
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <PaperProvider theme={theme}>
+        <NavigationContainer>
+          <MainNavigator />
+          <StatusBar style="auto" />
+        </NavigationContainer>
+      </PaperProvider>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

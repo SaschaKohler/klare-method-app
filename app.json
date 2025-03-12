@@ -13,7 +13,13 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.deinname.klaremethode",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "UIBackgroundModes": ["fetch", "remote-notification"],
+        "UIViewControllerBasedStatusBarAppearance": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -23,6 +29,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": ["expo-asset", "expo-font"]
   }
 }
