@@ -122,15 +122,14 @@ export const useUserStore = create<UserState>((set, get) => ({
     // Wenn online und eingeloggt, synchronisiere mit Supabase
     if (isOnline && user) {
       try {
-        // Prüfe, ob der Eintrag bereits existiert
+        // Prüfe, ob der Eintrag bereits existiert - ohne .single() zu verwenden
         const { data } = await supabase
           .from("life_wheel_areas")
           .select("id")
           .eq("user_id", user.id)
-          .eq("name", areaId)
-          .single();
+          .eq("name", areaId);
 
-        if (data) {
+        if (data && data.length > 0) {
           // Update
           await supabase
             .from("life_wheel_areas")
@@ -139,7 +138,7 @@ export const useUserStore = create<UserState>((set, get) => ({
               target_value: targetValue,
               updated_at: new Date().toISOString(),
             })
-            .eq("id", data.id);
+            .eq("id", data[0].id);
         } else {
           // Insert
           await supabase.from("life_wheel_areas").insert({
@@ -166,12 +165,11 @@ export const useUserStore = create<UserState>((set, get) => ({
       if (sessionData.session) {
         set({ isOnline: true });
 
-        // 2. Hole Benutzerdaten aus Supabase
-        const { data: userData, error: userError } = await supabase
+        // 2. Hole Benutzerdaten aus Supabase - GEÄNDERT: Verwende kein .single()
+        const { data: userDataArray, error: userError } = await supabase
           .from("users")
           .select("*")
-          .eq("id", sessionData.session.user.id)
-          .single();
+          .eq("id", sessionData.session.user.id);
 
         if (userError) throw userError;
 
@@ -192,8 +190,9 @@ export const useUserStore = create<UserState>((set, get) => ({
         if (moduleError) throw moduleError;
 
         // 5. Setze Benutzerdaten und Lebensrad-Daten
-        if (userData) {
-          const completedModules = moduleData.map((m) => m.module_id);
+        if (userDataArray && userDataArray.length > 0) {
+          const userData = userDataArray[0];
+          const completedModules = moduleData?.map((m) => m.module_id) || [];
           set({
             user: {
               id: userData.id,
@@ -205,6 +204,48 @@ export const useUserStore = create<UserState>((set, get) => ({
               completedModules,
             },
           });
+        } else {
+          // Benutzer existiert nicht in der Datenbank, erstelle ihn
+          const user = {
+            id: sessionData.session.user.id,
+            name: sessionData.session.user.user_metadata?.name || "Benutzer",
+            email: sessionData.session.user.email || "",
+            progress: 0,
+            streak: 0,
+            lastActive: new Date().toISOString(),
+            completedModules: [],
+          };
+
+          // Setze den Benutzer im Store
+          set({ user });
+
+          // Erstelle den Benutzer in der Datenbank
+          try {
+            await supabase.from("users").insert({
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              progress: user.progress,
+              streak: user.streak,
+              last_active: user.lastActive,
+              created_at: new Date().toISOString(),
+            });
+
+            // Initialisiere die Standard-Lebensrad-Einträge
+            const defaultWheelAreas = get().lifeWheelAreas;
+            const wheelInserts = defaultWheelAreas.map((area) => ({
+              user_id: user.id,
+              name: area.id,
+              current_value: area.currentValue,
+              target_value: area.targetValue,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }));
+
+            await supabase.from("life_wheel_areas").insert(wheelInserts);
+          } catch (insertError) {
+            console.error("Fehler beim Erstellen des Benutzers:", insertError);
+          }
         }
 
         if (wheelData && wheelData.length > 0) {
@@ -391,16 +432,35 @@ export const useUserStore = create<UserState>((set, get) => ({
     if (!user) return;
 
     try {
-      // 1. Aktualisiere Benutzerdaten
-      await supabase
+      // 1. Aktualisiere Benutzerdaten - Überprüfe zuerst, ob der Benutzer existiert
+      const { data: existingUsers } = await supabase
         .from("users")
-        .update({
+        .select("id")
+        .eq("id", user.id);
+
+      if (existingUsers && existingUsers.length > 0) {
+        // Benutzer existiert - Update
+        await supabase
+          .from("users")
+          .update({
+            name: user.name,
+            progress: user.progress,
+            streak: user.streak,
+            last_active: user.lastActive,
+          })
+          .eq("id", user.id);
+      } else {
+        // Benutzer existiert nicht - Insert
+        await supabase.from("users").insert({
+          id: user.id,
           name: user.name,
+          email: user.email,
           progress: user.progress,
           streak: user.streak,
           last_active: user.lastActive,
-        })
-        .eq("id", user.id);
+          created_at: new Date().toISOString(),
+        });
+      }
 
       // 2. Synchronisiere Lebensrad-Daten
       for (const area of lifeWheelAreas) {
@@ -408,10 +468,9 @@ export const useUserStore = create<UserState>((set, get) => ({
           .from("life_wheel_areas")
           .select("id")
           .eq("user_id", user.id)
-          .eq("name", area.id)
-          .single();
+          .eq("name", area.id);
 
-        if (data) {
+        if (data && data.length > 0) {
           // Update
           await supabase
             .from("life_wheel_areas")
@@ -420,7 +479,7 @@ export const useUserStore = create<UserState>((set, get) => ({
               target_value: area.targetValue,
               updated_at: new Date().toISOString(),
             })
-            .eq("id", data.id);
+            .eq("id", data[0].id);
         } else {
           // Insert
           await supabase.from("life_wheel_areas").insert({
