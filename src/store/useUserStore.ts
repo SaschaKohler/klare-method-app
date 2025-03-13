@@ -337,6 +337,47 @@ export const useUserStore = create<UserState>((set, get) => ({
       if (error) throw error;
 
       if (data.user) {
+        // Nach erfolgreicher Anmeldung, überprüfe ob der Benutzer in der users-Tabelle existiert
+        const { data: userData, error: userError } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", data.user.id)
+          .single();
+
+        if (userError && userError.code !== "PGRST116") {
+          // PGRST116 bedeutet "Kein Ergebnis gefunden"
+          throw userError;
+        }
+
+        // Falls kein Benutzereintrag gefunden wurde, erstelle einen
+        if (!userData) {
+          // Erstelle Benutzer in der users-Tabelle
+          const { error: createError } = await supabase.from("users").insert({
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.user_metadata?.name || "Benutzer",
+            progress: 0,
+            streak: 0,
+            last_active: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+          });
+
+          if (createError) throw createError;
+
+          // Initialisiere auch die Lebensrad-Einträge
+          const defaultWheelAreas = get().lifeWheelAreas;
+          const wheelInserts = defaultWheelAreas.map((area) => ({
+            user_id: data.user!.id,
+            name: area.id,
+            current_value: area.currentValue,
+            target_value: area.targetValue,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }));
+
+          await supabase.from("life_wheel_areas").insert(wheelInserts);
+        }
+
         // Lade Benutzerdaten nach erfolgreicher Anmeldung
         await get().loadUserData();
       }
@@ -350,6 +391,7 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   signUp: async (email, password, name) => {
     try {
+      // 1. Registrierung bei Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -358,7 +400,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       if (error) throw error;
 
       if (data.user) {
-        // Erstelle Benutzer in der users-Tabelle
+        // 2. Erstelle Benutzer in der users-Tabelle
         const { error: profileError } = await supabase.from("users").insert({
           id: data.user.id,
           email,
@@ -371,7 +413,7 @@ export const useUserStore = create<UserState>((set, get) => ({
 
         if (profileError) throw profileError;
 
-        // Setze Benutzer im Store
+        // 3. Setze Benutzer im Store
         set({
           user: {
             id: data.user.id,
@@ -385,7 +427,7 @@ export const useUserStore = create<UserState>((set, get) => ({
           isOnline: true,
         });
 
-        // Initialisiere Lebensrad-Einträge für den Benutzer
+        // 4. Initialisiere Lebensrad-Einträge für den Benutzer
         const defaultWheelAreas = get().lifeWheelAreas;
 
         // Erstelle für jeden Bereich einen Eintrag in der Datenbank
