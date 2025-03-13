@@ -51,11 +51,13 @@ const TabNavigator = () => {
         name="Home"
         component={HomeScreen}
         options={{ headerShown: false }}
+        testID="tab-home"
       />
       <Tab.Screen
         name="Learn"
         component={LearnScreen}
         options={{ headerShown: false }}
+        testID="tab-learn"
       />
       <Tab.Screen
         name="Profile"

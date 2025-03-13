@@ -1,5 +1,5 @@
-appId: com.yourcompany.klaremethodeapp # Ersetze mit deiner tatsächlichen App-ID
+appId: com.deinname.klaremethode # Ersetze mit deiner tatsächlichen App-ID
 ---
 - launchApp
-- assertVisible: "KLARE Kongruenz-Methode"
-- assertVisible: "Kongruenz-Fortschritt"
+- assertVisible: "Guten Morgen"
+- assertVisible: "Ihr Kongruenz-Fortschritt"

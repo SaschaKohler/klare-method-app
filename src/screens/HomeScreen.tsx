@@ -219,6 +219,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               key={step.id}
               style={[styles.klareStep, { backgroundColor: `${step.color}10` }]}
+              testID={`klare-step-${step.id.toLowerCase()}`} // Hinzugefügtes testID-Attribut
               onPress={() =>
                 navigation.navigate(
                   "KlareMethod" as never,
