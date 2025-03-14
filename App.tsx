@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { Provider as PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import KlareLogo from "./src/components/KlareLogo";
 
 import MainNavigator from "./src/navigation/MainNavigator";
 import { theme } from "./src/constants/theme";
@@ -36,7 +38,11 @@ export default function App() {
   }, [loadUserData]);
 
   if (!appReady) {
-    return null;
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+        <KlareLogo size={60} spacing={12} animated={true} pulsate={true} />
+      </View>
+    );
   }
 
   return (

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <!-- SK Logo mit Farbverlauf von Primary (#6366F1) zu Accent (#EC4899) -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#EC4899" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Kreishintergrund -->
+  <circle cx="60" cy="60" r="55" fill="url(#gradient)" />
+  
+  <!-- SK Text -->
+  <text x="60" y="75" font-family="Arial, sans-serif" font-size="45" font-weight="bold" text-anchor="middle" fill="white">SK</text>
+  
+  <!-- Reflektierender unterer Teil -->
+  <path d="M15,80 Q60,120 105,80 L105,90 Q60,130 15,90 Z" fill="white" fill-opacity="0.2" />
+</svg>

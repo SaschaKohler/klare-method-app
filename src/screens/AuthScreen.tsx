@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserStore } from "../store/useUserStore";
 import { klareColors } from "../constants/theme";
+import KlareLogo from "../components/KlareLogo";
 
 export default function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
@@ -59,6 +60,19 @@ export default function AuthScreen() {
         style={styles.keyboardAvoid}
       >
         <View style={styles.content}>
+          {/* KLARE Logo */}
+          <View style={styles.logoContainer}>
+            <KlareLogo
+              size={40}
+              spacing={8}
+              animated={true}
+              pulsate={true}
+              style={{ marginTop: 8 }}
+            />
+          </View>
+          {/* <View style={styles.logoContainer}> */}
+          {/*   <KlareLogo size={30} spacing={8} animated={true} /> */}
+          {/* </View> */}
           <Title style={styles.title}>KLARE Methode</Title>
           <Text style={styles.subtitle}>
             {isLogin
@@ -139,6 +153,10 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: "center",
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 20,
   },
   title: {
     fontSize: 28,

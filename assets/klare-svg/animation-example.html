@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KLARE-Methode Intro Animation</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .animation-container {
+      position: relative;
+      height: 300px;
+      margin: 40px 0;
+      overflow: hidden;
+    }
+    
+    .letter {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      height: 150px;
+      width: auto;
+    }
+    
+    .circle {
+      position: absolute;
+      height: 100px;
+      width: 100px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    
+    .center-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      height: 80px;
+      width: 80px;
+      opacity: 0;
+      z-index: 10;
+    }
+    
+    /* Positionen für die Kreise */
+    .circle:nth-child(1) {
+      top: 20px;
+      left: 50px;
+      animation: pulse 2s infinite alternate;
+    }
+    
+    .circle:nth-child(2) {
+      top: 180px;
+      left: 80px;
+      animation: pulse 2.5s infinite alternate-reverse;
+    }
+    
+    .circle:nth-child(3) {
+      top: 100px;
+      left: 300px;
+      animation: pulse 3s infinite alternate;
+    }
+    
+    .circle:nth-child(4) {
+      top: 200px;
+      left: 400px;
+      animation: pulse 3.5s infinite alternate-reverse;
+    }
+    
+    .circle:nth-child(5) {
+      top: 30px;
+      left: 380px;
+      animation: pulse 2.8s infinite alternate;
+    }
+    
+    @keyframes pulse {
+      0% {
+        transform: scale(0.8);
+        opacity: 0.4;
+      }
+      100% {
+        transform: scale(1.2);
+        opacity: 0.7;
+      }
+    }
+    
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    button {
+      padding: 10px 15px;
+      background-color: #6366F1;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    button:hover {
+      background-color: #4F46E5;
+    }
+    
+    .instructions {
+      margin-top: 30px;
+      text-align: left;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    h1, h2 {
+      color: #6366F1;
+    }
+    
+    code {
+      background-color: #f0f0f0;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>KLARE-Methode Intro Animation</h1>
+    
+    <div class="animation-container" id="animationContainer">
+      <!-- Hintergrundkreise -->
+      <img src="K-circle.svg" class="circle" alt="K Kreis" />
+      <img src="L-circle.svg" class="circle" alt="L Kreis" />
+      <img src="A-circle.svg" class="circle" alt="A Kreis" />
+      <img src="R-circle.svg" class="circle" alt="R Kreis" />
+      <img src="E-circle.svg" class="circle" alt="E Kreis" />
+      
+      <!-- Hauptbuchstaben -->
+      <img src="K-letter.svg" class="letter" alt="K" id="letterK" />
+      <img src="L-letter.svg" class="letter" alt="L" id="letterL" />
+      <img src="A-letter.svg" class="letter" alt="A" id="letterA" />
+      <img src="R-letter.svg" class="letter" alt="R" id="letterR" />
+      <img src="E-letter.svg" class="letter" alt="E" id="letterE" />
+      
+      <!-- SK Logo -->
+      <img src="SK-logo.svg" class="center-logo" id="skLogo" alt="SK Logo" />
+    </div>
+    
+    <div class="controls">
+      <button onclick="playAnimation()">Animation abspielen</button>
+      <button onclick="resetAnimation()">Zurücksetzen</button>
+    </div>
+    
+    <div class="instructions">
+      <h2>Anleitung zur Einbindung in CapCut oder andere Video-Apps</h2>
+      
+      <p>Diese Beispiel-Animation zeigt, wie die SVG-Elemente der KLARE-Methode animiert werden können.</p>
+      
+      <h3>So setzt du diese Animation für deine Instagram Reels um:</h3>
+      <ol>
+        <li>Für CapCut: Importiere die SVGs und setze ähnliche Animationen um</li>
+        <li>Für After Effects: Nutze die SVGs als Vektoren und wende ähnliche Effekte an</li>
+        <li>Oder: Nimm diese Animation per Bildschirmaufnahme auf und nutze sie direkt</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    // Elemente für die Animation
+    const letters = [
+      document.getElementById('letterK'),
+      document.getElementById('letterL'),
+      document.getElementById('letterA'),
+      document.getElementById('letterR'),
+      document.getElementById('letterE')
+    ];
+    
+    const circles = document.querySelectorAll('.circle');
+    const skLogo = document.getElementById('skLogo');
+    
+    // Animation abspielen
+    function playAnimation() {
+      resetAnimation();
+      
+      // Hintergrundkreise einblenden
+      circles.forEach((circle, index) => {
+        setTimeout(() => {
+          circle.style.opacity = "0.6";
+        }, 300);
+      });
+      
+      // Buchstaben nacheinander einblenden
+      letters.forEach((letter, index) => {
+        setTimeout(() => {
+          letter.style.opacity = "1";
+        }, 800 + (index * 500));
+      });
+      
+      // SK Logo am Ende einblenden
+      setTimeout(() => {
+        skLogo.style.opacity = "1";
+      }, 3500);
+    }
+    
+    // Animation zurücksetzen
+    function resetAnimation() {
+      letters.forEach(letter => {
+        letter.style.opacity = "0";
+      });
+      
+      circles.forEach(circle => {
+        circle.style.opacity = "0";
+      });
+      
+      skLogo.style.opacity = "0";
+    }
+    
+    // Animation automatisch beim Laden starten
+    window.onload = function() {
+      setTimeout(playAnimation, 1000);
+    };
+  </script>
+</body>
+</html>

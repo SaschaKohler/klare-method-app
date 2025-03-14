@@ -23,6 +23,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { klareColors } from "../constants/theme";
 import { useUserStore } from "../store/useUserStore";
 import { klareSteps } from "../data/klareMethodData";
+import KlareLogo from "../components/KlareLogo";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -126,18 +127,31 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header mit Begrüßung */}
+        {/* Header mit Begrüßung und KLARE Logo */}
         <View style={styles.headerContainer}>
           <View>
             <Text style={styles.greeting}>{getGreeting()}</Text>
             <Text style={styles.userName}>{user?.name || "Sascha"}</Text>
           </View>
-          <Avatar.Text
-            size={50}
-            label={user?.name?.charAt(0) || "S"}
-            style={{ backgroundColor: klareColors.k }}
-          />
+          <TouchableOpacity>
+            <Avatar.Text
+              size={50}
+              label={user?.name?.charAt(0) || "S"}
+              style={{ backgroundColor: klareColors.k }}
+            />
+          </TouchableOpacity>
         </View>
+
+        {/* {/* KLARE Logo */} */}
+        {/* <View style={styles.logoContainer}> */}
+        {/*   <KlareLogo  */}
+        {/*     size={40}  */}
+        {/*     spacing={8}  */}
+        {/*     animated={true}  */}
+        {/*     pulsate={true}  */}
+        {/*     style={{marginTop: 8}}  */}
+        {/*   /> */}
+        {/* </View> */}
 
         {/* Fortschrittsübersicht */}
         <Card style={styles.progressCard}>
@@ -392,6 +406,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 32,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
   },
   headerContainer: {
     flexDirection: "row",

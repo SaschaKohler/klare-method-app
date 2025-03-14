@@ -37,6 +37,7 @@ import { RootStackParamList } from "../types/navigation";
 import { useUserStore } from "../store/useUserStore";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import KlareLogo from "../components/KlareLogo";
 
 type KlareMethodScreenRouteProp = RouteProp<RootStackParamList, "KlareMethod">;
 
@@ -259,11 +260,24 @@ export default function KlareMethodScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Die KLARE Kongruenz-Methode</Text>
-        <Text style={styles.subtitle}>
-          Entdecken Sie den 5-Schritte-Prozess zur Erreichung vollständiger
-          Kongruenz
-        </Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Die KLARE Kongruenz-Methode</Text>
+          <Text style={styles.subtitle}>
+            Entdecken Sie den 5-Schritte-Prozess zur Erreichung vollständiger
+            Kongruenz
+          </Text>
+        </View>
+        
+        {/* KLARE Logo */}
+        <View style={styles.logoContainer}>
+          <KlareLogo 
+            size={35} 
+            spacing={5} 
+            animated={true} 
+            pulsate={autoRotate} 
+            onPress={toggleAutoRotate} 
+          />
+        </View>
 
         {/* KLARE Methode Navigation */}
         <View style={styles.stepsNavigation}>
@@ -641,6 +655,14 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 32,
+  },
+  titleContainer: {
+    marginBottom: 8,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
   },
   title: {
     fontSize: Platform.OS === "ios" ? 28 : 24,

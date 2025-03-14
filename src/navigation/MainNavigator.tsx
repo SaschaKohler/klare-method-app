@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useUserStore } from "../store/useUserStore";
 import { ActivityIndicator, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import CustomHeader from "../components/CustomHeader";
 
 // Screens
 import HomeScreen from "../screens/HomeScreen";
@@ -29,46 +30,49 @@ const Tab = createBottomTabNavigator();
 const TabNavigator = () => {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
+    screenOptions={({ route }) => ({
+    tabBarIcon: ({ focused, color, size }) => {
+    let iconName;
 
-          if (route.name === "Home") {
-            iconName = focused ? "home" : "home-outline";
-          } else if (route.name === "Learn") {
-            iconName = focused ? "book" : "book-outline";
-          } else if (route.name === "Profile") {
-            iconName = focused ? "person" : "person-outline";
-          }
+    if (route.name === "Home") {
+    iconName = focused ? "home" : "home-outline";
+    } else if (route.name === "Learn") {
+    iconName = focused ? "book" : "book-outline";
+    } else if (route.name === "Profile") {
+    iconName = focused ? "person" : "person-outline";
+    }
 
-          return <Ionicons name={iconName as any} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: "#6366F1",
-        tabBarInactiveTintColor: "gray",
-      })}
+    return <Ionicons name={iconName as any} size={size} color={color} />;
+    },
+    tabBarActiveTintColor: "#6366F1",
+    tabBarInactiveTintColor: "gray",
+    })}
     >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
         options={{
-          headerShown: false,
-          tabBarAccessibilityLabel: "Home Tab", // Richtige Position innerhalb des options-Objekts
+          title: "Home",
+          tabBarAccessibilityLabel: "Home Tab",
+          header: (props) => <CustomHeader />,
         }}
       />
       <Tab.Screen
         name="Learn"
         component={LearnScreen}
         options={{
-          headerShown: false,
-          tabBarAccessibilityLabel: "Learn Tab", // Richtige Position innerhalb des options-Objekts
+          title: "Lernen",
+          tabBarAccessibilityLabel: "Learn Tab",
+          header: (props) => <CustomHeader title="Lerninhalte" />,
         }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
-          headerShown: false,
-          tabBarAccessibilityLabel: "Profile Tab", // Füge auch hier eine testID hinzu
+          title: "Profil",
+          tabBarAccessibilityLabel: "Profile Tab",
+          header: (props) => <CustomHeader title="Mein Profil" />,
         }}
       />
     </Tab.Navigator>
@@ -104,12 +108,23 @@ const MainNavigator = () => {
           <Stack.Screen
             name="KlareMethod"
             component={KlareMethodScreen}
-            options={{ title: "KLARE Methode", headerBackTitle: "Zurück" }}
+            options={{
+              headerShown: false,
+            }}
           />
           <Stack.Screen
             name="LifeWheel"
             component={LifeWheelScreen}
-            options={{ title: "Lebensrad", headerBackTitle: "Zurück" }}
+            options={{
+              title: "Lebensrad",
+              header: (props) => (
+                <CustomHeader
+                  title="Lebensrad"
+                  showBack
+                  onBackPress={() => props.navigation.goBack()}
+                />
+              ),
+            }}
           />
         </>
       ) : (
