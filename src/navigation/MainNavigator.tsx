@@ -50,19 +50,26 @@ const TabNavigator = () => {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ headerShown: false }}
-        testID="tab-home"
+        options={{
+          headerShown: false,
+          tabBarAccessibilityLabel: "Home Tab", // Richtige Position innerhalb des options-Objekts
+        }}
       />
       <Tab.Screen
         name="Learn"
         component={LearnScreen}
-        options={{ headerShown: false }}
-        testID="tab-learn"
+        options={{
+          headerShown: false,
+          tabBarAccessibilityLabel: "Learn Tab", // Richtige Position innerhalb des options-Objekts
+        }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ headerShown: false }}
+        options={{
+          headerShown: false,
+          tabBarAccessibilityLabel: "Profile Tab", // Füge auch hier eine testID hinzu
+        }}
       />
     </Tab.Navigator>
   );

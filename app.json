@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "klare-methode-app",
-    "slug": "klare-methode-app",
+    "name": "klare-method-app",
+    "slug": "klare-method-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -30,6 +30,12 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-asset", "expo-font"]
+    "plugins": ["expo-asset", "expo-font"],
+    "extra": {
+      "eas": {
+        "projectId": "591be403-f400-4534-abaf-e93049778a60"
+      }
+    },
+    "owner": "blisha1"
   }
 }

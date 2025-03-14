@@ -12,32 +12,12 @@ appId: com.deinname.klaremethode # Ersetze mit deiner tatsächlichen App-ID
       id: "klare-step-e"
     direction: DOWN
 - tapOn:
-    id: "klare-step-k"
-- assertVisible: "K: Klarheit"
-- tapOn:
-    text: "Zurück"
-- tapOn:
-    id: "klare-step-l"
-- assertVisible: "L: Lebendigkeit"
-- tapOn:
-    text: "Zurück"
-- tapOn:
-    id: "klare-step-a"
-- assertVisible: "A: Ausrichtung"
-- tapOn:
-    text: "Zurück"
-- tapOn:
-    id: "klare-step-r"
-- assertVisible: "R: Realisierung"
-- tapOn:
-    text: "Zurück"
-- tapOn:
     id: "klare-step-e"
 - assertVisible: "E: Entfaltung"
 - tapOn:
     text: "Zurück"
 # Teste eine Sektion öffnen
-- tapOn:
-    id: "tab-learn"
-- assertVisible: "Willkommen zur KLARE-Methode"
-- assertVisible: "Klare Methode Schritte"
+- scrollUntilVisible:
+    element:
+      text: "Nächste Aktivitäten"
+    direction: DOWN

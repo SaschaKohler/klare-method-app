@@ -1,0 +1,7 @@
+appId: com.deinname.klaremethode # Ersetze mit deiner tatsächlichen App-ID
+---
+- launchApp
+
+- tapOn: "Learn Tab"
+- assertVisible: "KLARE Methode Schritte" # oder was immer auf diesem Screen angezeigt wird
+

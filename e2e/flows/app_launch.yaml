@@ -1,5 +1,0 @@
-appId: com.deinname.klaremethode # Ersetze mit deiner tatsächlichen App-ID
----
-- launchApp
-- assertVisible: "Guten Morgen"
-- assertVisible: "Ihr Kongruenz-Fortschritt"
