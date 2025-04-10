@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ImageBackground,
+  Animated,
 } from "react-native";
 import {
   Text,
@@ -16,6 +17,7 @@ import {
   ProgressBar,
   Divider,
   List,
+  Chip,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -29,9 +31,24 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const user = useUserStore((state) => state.user);
   const lifeWheelAreas = useUserStore((state) => state.lifeWheelAreas);
+  const getModuleProgress = useUserStore((state) => state.getModuleProgress);
+  const getDaysInProgram = useUserStore((state) => state.getDaysInProgram);
+  const getCurrentStage = useUserStore((state) => state.getCurrentStage);
+  const getNextStage = useUserStore((state) => state.getNextStage);
+  const getAvailableModules = useUserStore((state) => state.getAvailableModules);
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [todayTip, setTodayTip] = useState("");
+  
+  // Animation für Stage-Fortschritt
+  const translateY = React.useRef(new Animated.Value(50)).current;
+  const opacity = React.useRef(new Animated.Value(0)).current;
+
+  // Aktuelle Stage und Fortschritt
+  const currentStage = getCurrentStage();
+  const nextStage = getNextStage();
+  const daysInProgram = getDaysInProgram(); 
+  const availableModules = getAvailableModules();
 
   // Tipps des Tages
   const dailyTips = [
@@ -44,6 +61,15 @@ export default function HomeScreen() {
     "Üben Sie bewusst, innere und äußere Kongruenz in einer herausfordernden Situation.",
   ];
 
+  // Berechne den Fortschritt für jeden KLARE-Schritt
+  const stepProgress = {
+    K: getModuleProgress("K"),
+    L: getModuleProgress("L"),
+    A: getModuleProgress("A"),
+    R: getModuleProgress("R"),
+    E: getModuleProgress("E"),
+  };
+
   // Aktualisiert die Uhrzeit jede Minute
   useEffect(() => {
     const timer = setInterval(() => {
@@ -51,6 +77,22 @@ export default function HomeScreen() {
     }, 60000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Animation für Stage-Fortschritt
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
 
   // Wählt einen Tipp des Tages basierend auf dem Datum
@@ -96,33 +138,58 @@ export default function HomeScreen() {
       .slice(0, 2);
   };
 
-  // Mock-Daten für die nächsten Aktivitäten
-  const nextActivities = [
-    {
-      id: "activity-1",
+  // Bestimme die nächsten Aktivitäten basierend auf verfügbaren Modulen
+  const getNextActivities = () => {
+    const activities = [];
+    
+    // Tägliche Aktivität hinzufügen
+    activities.push({
+      id: "activity-daily",
       title: "Tägliche Kongruenz-Praxis",
       description: "5-Minuten Übung für mehr Kongruenz",
       type: "daily",
       step: "R",
-    },
-    {
-      id: "activity-2",
-      title: "Lebensrad aktualisieren",
-      description: "Wöchentliche Überprüfung Ihrer Fortschritte",
-      type: "weekly",
-      step: "K",
-    },
-    {
-      id: "activity-3",
-      title: "L - Lebendigkeit vertiefen",
-      description: "Modul 2: Blockaden identifizieren",
-      type: "module",
-      step: "L",
-    },
-  ];
+    });
+    
+    // Wöchentliche Aktivität hinzufügen
+    if (daysInProgram % 7 === 0 || daysInProgram % 7 === 6) {
+      activities.push({
+        id: "activity-weekly",
+        title: "Lebensrad aktualisieren",
+        description: "Wöchentliche Überprüfung Ihrer Fortschritte",
+        type: "weekly",
+        step: "K",
+      });
+    }
+    
+    // Nächstes verfügbares Modul finden
+    for (const step of klareSteps) {
+      const moduleIds = availableModules.filter(id => id.startsWith(step.id.toLowerCase()));
+      if (moduleIds.length > 0) {
+        activities.push({
+          id: `activity-module-${step.id}`,
+          title: `${step.id} - ${step.title} fortsetzen`,
+          description: `Nächstes verfügbares Modul in dieser Phase`,
+          type: "module",
+          step: step.id,
+        });
+        break;
+      }
+    }
+    
+    return activities.slice(0, 3); // Maximal 3 Aktivitäten anzeigen
+  };
 
-  // Berechnet die Streak-Tage (für dieses Beispiel gefaked)
-  const streakDays = user?.streak || 5;
+  const nextActivities = getNextActivities();
+
+  // Berechnet die Streak-Tage
+  const streakDays = user?.streak || daysInProgram;
+
+  // Formatiere ein Datum benutzerfreundlich
+  const formatDate = (date) => {
+    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+    return date.toLocaleDateString('de-DE', options);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -142,16 +209,45 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* {/* KLARE Logo */} */}
-        {/* <View style={styles.logoContainer}> */}
-        {/*   <KlareLogo  */}
-        {/*     size={40}  */}
-        {/*     spacing={8}  */}
-        {/*     animated={true}  */}
-        {/*     pulsate={true}  */}
-        {/*     style={{marginTop: 8}}  */}
-        {/*   /> */}
-        {/* </View> */}
+        {/* Zeitliche Progression Card */}
+        <Animated.View
+          style={{
+            opacity,
+            transform: [{ translateY }],
+            marginBottom: 24,
+          }}
+        >
+          <Card style={styles.progressionCard}>
+            <Card.Content>
+              <View style={styles.progressionHeader}>
+                <View style={styles.progressionTitleContainer}>
+                  <Ionicons name="time-outline" size={20} color={klareColors.k} />
+                  <Text style={styles.progressionTitle}>KLARE Programm - Tag {daysInProgram}</Text>
+                </View>
+                <Chip compact style={styles.progressChip}>Phase {currentStage ? currentStage.id : "1"}</Chip>
+              </View>
+              
+              {currentStage && (
+                <>
+                  <Text style={styles.stageName}>{currentStage.name}</Text>
+                  <Text style={styles.stageDescription}>{currentStage.description}</Text>
+                  
+                  {nextStage && (
+                    <View style={styles.nextStagePreview}>
+                      <Text style={styles.nextStageLabel}>Nächste Phase:</Text>
+                      <Text style={styles.nextStageName}>{nextStage.name}</Text>
+                      {nextStage.requiredDays > daysInProgram && (
+                        <Text style={styles.daysUntilText}>
+                          in {nextStage.requiredDays - daysInProgram} Tagen
+                        </Text>
+                      )}
+                    </View>
+                  )}
+                </>
+              )}
+            </Card.Content>
+          </Card>
+        </Animated.View>
 
         {/* Fortschrittsübersicht */}
         <Card style={styles.progressCard}>
@@ -190,15 +286,17 @@ export default function HomeScreen() {
 
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{streakDays}</Text>
+                <Text style={styles.statValue}>{daysInProgram}</Text>
                 <Text style={styles.statLabel}>Tage</Text>
               </View>
 
               <View style={styles.statDivider}></View>
 
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>12/36</Text>
-                <Text style={styles.statLabel}>Übungen</Text>
+                <Text style={styles.statValue}>
+                  {availableModules.length}/35
+                </Text>
+                <Text style={styles.statLabel}>Module</Text>
               </View>
 
               <View style={styles.statDivider}></View>
@@ -233,7 +331,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               key={step.id}
               style={[styles.klareStep, { backgroundColor: `${step.color}10` }]}
-              testID={`klare-step-${step.id.toLowerCase()}`} // Hinzugefügtes testID-Attribut
+              testID={`klare-step-${step.id.toLowerCase()}`}
               onPress={() =>
                 navigation.navigate(
                   "KlareMethod" as never,
@@ -261,7 +359,7 @@ export default function HomeScreen() {
               <Text style={styles.klareStepName}>{step.title}</Text>
               <View style={styles.klareStepProgress}>
                 <ProgressBar
-                  progress={[0.85, 0.4, 0.2, 0, 0][index]}
+                  progress={stepProgress[step.id]}
                   color={step.color}
                   style={styles.klareStepProgressBar}
                 />
@@ -367,6 +465,18 @@ export default function HomeScreen() {
                   mode="contained"
                   style={{ backgroundColor: stepInfo?.color || klareColors.k }}
                   labelStyle={{ color: "white" }}
+                  onPress={() => {
+                    if (activity.type === "module") {
+                      navigation.navigate(
+                        "KlareMethod" as never,
+                        { step: activity.step } as never
+                      );
+                    } else if (activity.type === "daily") {
+                      // Tägliche Übung starten
+                    } else if (activity.type === "weekly") {
+                      navigation.navigate("LifeWheel" as never);
+                    }
+                  }}
                 >
                   Starten
                 </Button>
@@ -407,11 +517,6 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 32,
   },
-  logoContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
   headerContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -426,6 +531,63 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: klareColors.text,
+  },
+  progressionCard: {
+    borderRadius: 12,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: klareColors.k,
+    elevation: 2,
+  },
+  progressionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  progressionTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  progressionTitle: {
+    fontSize: 15,
+    fontWeight: "bold",
+    marginLeft: 8,
+    color: klareColors.text,
+  },
+  progressChip: {
+    backgroundColor: `${klareColors.k}15`,
+  },
+  stageName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: klareColors.k,
+    marginBottom: 4,
+  },
+  stageDescription: {
+    fontSize: 14,
+    color: klareColors.text,
+    marginBottom: 12,
+  },
+  nextStagePreview: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#F1F1F1",
+  },
+  nextStageLabel: {
+    fontSize: 12,
+    color: klareColors.textSecondary,
+  },
+  nextStageName: {
+    fontSize: 14,
+    fontWeight: "500",
+    marginVertical: 2,
+  },
+  daysUntilText: {
+    fontSize: 12,
+    color: klareColors.textSecondary,
+    fontStyle: "italic",
   },
   progressCard: {
     marginBottom: 24,

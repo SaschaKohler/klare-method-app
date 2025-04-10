@@ -11,6 +11,7 @@ import CustomHeader from "../components/CustomHeader";
 // Screens
 import HomeScreen from "../screens/HomeScreen";
 import KlareMethodScreen from "../screens/KlareMethodScreen";
+import ModuleScreen from "../screens/ModuleScreen";
 import LifeWheelScreen from "../screens/LifeWheelScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import LearnScreen from "../screens/LearnScreen";
@@ -30,23 +31,23 @@ const Tab = createBottomTabNavigator();
 const TabNavigator = () => {
   return (
     <Tab.Navigator
-    screenOptions={({ route }) => ({
-    tabBarIcon: ({ focused, color, size }) => {
-    let iconName;
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
 
-    if (route.name === "Home") {
-    iconName = focused ? "home" : "home-outline";
-    } else if (route.name === "Learn") {
-    iconName = focused ? "book" : "book-outline";
-    } else if (route.name === "Profile") {
-    iconName = focused ? "person" : "person-outline";
-    }
+          if (route.name === "Home") {
+            iconName = focused ? "home" : "home-outline";
+          } else if (route.name === "Learn") {
+            iconName = focused ? "book" : "book-outline";
+          } else if (route.name === "Profile") {
+            iconName = focused ? "person" : "person-outline";
+          }
 
-    return <Ionicons name={iconName as any} size={size} color={color} />;
-    },
-    tabBarActiveTintColor: "#6366F1",
-    tabBarInactiveTintColor: "gray",
-    })}
+          return <Ionicons name={iconName as any} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: "#6366F1",
+        tabBarInactiveTintColor: "gray",
+      })}
     >
       <Tab.Screen
         name="Home"
@@ -108,6 +109,13 @@ const MainNavigator = () => {
           <Stack.Screen
             name="KlareMethod"
             component={KlareMethodScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="ModuleScreen"
+            component={ModuleScreen}
             options={{
               headerShown: false,
             }}

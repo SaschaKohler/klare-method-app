@@ -1,14 +1,14 @@
+// src/types/navigation.ts
 export type RootStackParamList = {
-  Root: undefined;
+  Main: undefined;
+  Auth: undefined;
   KlareMethod: { step?: "K" | "L" | "A" | "R" | "E" };
-  Module: { moduleId: string };
-  Exercise: { exerciseId: string };
-  LifeWheelDetail: undefined;
+  ModuleScreen: { stepId: "K" | "L" | "A" | "R" | "E" };
+  LifeWheel: undefined;
 };
 
 export type RootTabParamList = {
   Home: undefined;
   Learn: undefined;
-  LifeWheel: undefined;
   Profile: undefined;
 };
