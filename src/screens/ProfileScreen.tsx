@@ -8,17 +8,24 @@ import {
   Switch,
   List,
   Divider,
+  useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserStore } from "../store/useUserStore";
-import { klareColors } from "../constants/theme";
+import { useThemeStore } from "../store/useThemeStore";
+import { lightKlareColors, darkKlareColors } from "../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
+import ThemeToggle from "../components/ThemeToggle";
 
 export default function ProfileScreen() {
   const user = useUserStore((state) => state.user);
   const signOut = useUserStore((state) => state.signOut);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+  
+  const theme = useTheme();
+  const { getActiveTheme } = useThemeStore();
+  const isDarkMode = getActiveTheme();
+  const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
 
   const handleLogout = () => {
     Alert.alert("Abmelden", "Möchtest du dich wirklich abmelden?", [
@@ -35,7 +42,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Avatar.Text
@@ -43,8 +50,12 @@ export default function ProfileScreen() {
             label={user?.name?.charAt(0) || "U"}
             style={{ backgroundColor: klareColors.k }}
           />
-          <Text style={styles.username}>{user?.name || "Benutzer"}</Text>
-          <Text style={styles.email}>{user?.email}</Text>
+          <Text style={[styles.username, { color: theme.colors.text }]}>
+            {user?.name || "Benutzer"}
+          </Text>
+          <Text style={[styles.email, { color: theme.colors.text }]}>
+            {user?.email}
+          </Text>
         </View>
 
         <Card style={styles.card}>
@@ -67,16 +78,10 @@ export default function ProfileScreen() {
               <Divider />
 
               <List.Item
-                title="Dunkelmodus"
-                left={() => <List.Icon icon="moon-outline" />}
-                right={() => (
-                  <Switch
-                    value={darkModeEnabled}
-                    onValueChange={setDarkModeEnabled}
-                    color={klareColors.k}
-                  />
-                )}
+                title="Erscheinungsbild"
+                left={() => <List.Icon icon={isDarkMode ? "moon" : "sunny"} />}
               />
+              <ThemeToggle showLabel={false} />
 
               <Divider />
 
@@ -99,30 +104,36 @@ export default function ProfileScreen() {
 
               <View style={styles.progressContainer}>
                 <View style={styles.progressItem}>
-                  <View style={styles.progressCircle}>
-                    <Text style={styles.progressCircleText}>
+                  <View style={[styles.progressCircle, { backgroundColor: `${klareColors.k}15` }]}>
+                    <Text style={[styles.progressCircleText, { color: klareColors.k }]}>
                       {user?.progress || 0}%
                     </Text>
                   </View>
-                  <Text style={styles.progressText}>Gesamtfortschritt</Text>
+                  <Text style={[styles.progressText, { color: theme.colors.text }]}>
+                    Gesamtfortschritt
+                  </Text>
                 </View>
 
                 <View style={styles.progressItem}>
-                  <View style={styles.progressCircle}>
-                    <Text style={styles.progressCircleText}>
+                  <View style={[styles.progressCircle, { backgroundColor: `${klareColors.k}15` }]}>
+                    <Text style={[styles.progressCircleText, { color: klareColors.k }]}>
                       {user?.streak || 0}
                     </Text>
                   </View>
-                  <Text style={styles.progressText}>Streak</Text>
+                  <Text style={[styles.progressText, { color: theme.colors.text }]}>
+                    Streak
+                  </Text>
                 </View>
 
                 <View style={styles.progressItem}>
-                  <View style={styles.progressCircle}>
-                    <Text style={styles.progressCircleText}>
+                  <View style={[styles.progressCircle, { backgroundColor: `${klareColors.k}15` }]}>
+                    <Text style={[styles.progressCircleText, { color: klareColors.k }]}>
                       {user?.completedModules?.length || 0}
                     </Text>
                   </View>
-                  <Text style={styles.progressText}>Module</Text>
+                  <Text style={[styles.progressText, { color: theme.colors.text }]}>
+                    Module
+                  </Text>
                 </View>
               </View>
 
@@ -186,7 +197,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: klareColors.background,
   },
   scrollContent: {
     padding: 16,
@@ -199,13 +209,11 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 20,
     fontWeight: "bold",
-    color: klareColors.text,
     marginTop: 12,
     marginBottom: 4,
   },
   email: {
     fontSize: 14,
-    color: klareColors.textSecondary,
   },
   card: {
     marginBottom: 16,
@@ -223,19 +231,16 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: `${klareColors.k}15`,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 8,
   },
   progressCircleText: {
-    fontSize: 8,
+    fontSize: 18,
     fontWeight: "bold",
-    color: klareColors.k,
   },
   progressText: {
     fontSize: 12,
-    color: klareColors.textSecondary,
   },
   logoutButton: {
     marginVertical: 24,

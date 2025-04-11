@@ -1,5 +1,5 @@
 // src/screens/ModuleScreen.tsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import {
   Text,
@@ -25,6 +25,8 @@ import { useUserStore } from "../store/useUserStore";
 import ModuleContentComponent from "../components/modules/ModuleContent";
 import ModuleExercise from "../components/modules/ModuleExercise";
 import ModuleQuiz from "../components/modules/ModuleQuiz";
+import { darkKlareColors, lightKlareColors } from "../constants/theme";
+import createModuleScreenStyles from "../constants/moduleScreenStyles";
 // import ModuleVideoComponent from "../components/modules/ModuleVideo";
 
 const ModuleScreen = () => {
@@ -32,7 +34,13 @@ const ModuleScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const theme = useTheme();
+  const isDarkMode = theme.dark;
+  const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
 
+  const styles = useMemo(
+    () => createModuleScreenStyles(theme, klareColors),
+    [theme, klareColors],
+  );
   // Extract route parameters
   const { stepId, moduleId } = route.params as {
     stepId?: string;

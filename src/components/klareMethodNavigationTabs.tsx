@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
-import { Text } from "react-native-paper";
+import { Text, useTheme } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
+import createKlareMethodNavigationTabsStyles from "../constants/klareMethodNavigationTabsStyles";
+import { darkKlareColors, lightKlareColors, theme } from "../constants/theme";
 
 type TabType =
   | "overview"
@@ -52,6 +54,13 @@ const KlareMethodNavigationTabs: React.FC<KlareMethodNavigationTabsProps> = ({
       label: "Module",
     },
   ];
+  const theme = useTheme();
+  const isDarkMode = theme.dark;
+  const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
+  const styles = useMemo(
+    () => createKlareMethodNavigationTabsStyles(theme, klareColors),
+    [theme, klareColors],
+  );
 
   return (
     <View style={styles.tabContainer}>

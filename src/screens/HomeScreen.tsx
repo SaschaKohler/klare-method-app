@@ -1,5 +1,5 @@
 // src/screens/HomeScreen.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   StyleSheet,
   View,
@@ -18,14 +18,21 @@ import {
   Divider,
   List,
   Chip,
+  useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { klareColors } from "../constants/theme";
+import {
+  lightKlareColors,
+  darkKlareColors,
+  klareColors,
+} from "../constants/theme";
 import { useUserStore } from "../store/useUserStore";
+import { useThemeStore } from "../store/useThemeStore";
 import { klareSteps } from "../data/klareMethodData";
 import KlareLogo from "../components/KlareLogo";
+import createStyles from "../constants/createStyles";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -35,11 +42,23 @@ export default function HomeScreen() {
   const getDaysInProgram = useUserStore((state) => state.getDaysInProgram);
   const getCurrentStage = useUserStore((state) => state.getCurrentStage);
   const getNextStage = useUserStore((state) => state.getNextStage);
-  const getAvailableModules = useUserStore((state) => state.getAvailableModules);
+  const getAvailableModules = useUserStore(
+    (state) => state.getAvailableModules,
+  );
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [todayTip, setTodayTip] = useState("");
-  
+
+  // Theme handling
+  const theme = useTheme();
+  const { getActiveTheme } = useThemeStore();
+  const isDarkMode = getActiveTheme();
+  const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
+  const styles = useMemo(
+    () => createStyles(theme, klareColors),
+    [theme, klareColors],
+  );
+
   // Animation für Stage-Fortschritt
   const translateY = React.useRef(new Animated.Value(50)).current;
   const opacity = React.useRef(new Animated.Value(0)).current;
@@ -47,7 +66,7 @@ export default function HomeScreen() {
   // Aktuelle Stage und Fortschritt
   const currentStage = getCurrentStage();
   const nextStage = getNextStage();
-  const daysInProgram = getDaysInProgram(); 
+  const daysInProgram = getDaysInProgram();
   const availableModules = getAvailableModules();
 
   // Tipps des Tages
@@ -141,7 +160,7 @@ export default function HomeScreen() {
   // Bestimme die nächsten Aktivitäten basierend auf verfügbaren Modulen
   const getNextActivities = () => {
     const activities = [];
-    
+
     // Tägliche Aktivität hinzufügen
     activities.push({
       id: "activity-daily",
@@ -150,7 +169,7 @@ export default function HomeScreen() {
       type: "daily",
       step: "R",
     });
-    
+
     // Wöchentliche Aktivität hinzufügen
     if (daysInProgram % 7 === 0 || daysInProgram % 7 === 6) {
       activities.push({
@@ -161,10 +180,12 @@ export default function HomeScreen() {
         step: "K",
       });
     }
-    
+
     // Nächstes verfügbares Modul finden
     for (const step of klareSteps) {
-      const moduleIds = availableModules.filter(id => id.startsWith(step.id.toLowerCase()));
+      const moduleIds = availableModules.filter((id) =>
+        id.startsWith(step.id.toLowerCase()),
+      );
       if (moduleIds.length > 0) {
         activities.push({
           id: `activity-module-${step.id}`,
@@ -176,7 +197,7 @@ export default function HomeScreen() {
         break;
       }
     }
-    
+
     return activities.slice(0, 3); // Maximal 3 Aktivitäten anzeigen
   };
 
@@ -187,18 +208,24 @@ export default function HomeScreen() {
 
   // Formatiere ein Datum benutzerfreundlich
   const formatDate = (date) => {
-    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-    return date.toLocaleDateString('de-DE', options);
+    const options = { day: "2-digit", month: "2-digit", year: "numeric" };
+    return date.toLocaleDateString("de-DE", options);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header mit Begrüßung und KLARE Logo */}
         <View style={styles.headerContainer}>
           <View>
-            <Text style={styles.greeting}>{getGreeting()}</Text>
-            <Text style={styles.userName}>{user?.name || "Sascha"}</Text>
+            <Text style={[styles.greeting, { color: theme.colors.text }]}>
+              {getGreeting()}
+            </Text>
+            <Text style={[styles.userName, { color: theme.colors.text }]}>
+              {user?.name || "Sascha"}
+            </Text>
           </View>
           <TouchableOpacity>
             <Avatar.Text
@@ -217,27 +244,85 @@ export default function HomeScreen() {
             marginBottom: 24,
           }}
         >
-          <Card style={styles.progressionCard}>
+          <Card
+            style={[styles.progressionCard, { borderLeftColor: klareColors.k }]}
+          >
             <Card.Content>
               <View style={styles.progressionHeader}>
                 <View style={styles.progressionTitleContainer}>
-                  <Ionicons name="time-outline" size={20} color={klareColors.k} />
-                  <Text style={styles.progressionTitle}>KLARE Programm - Tag {daysInProgram}</Text>
+                  <Ionicons
+                    name="time-outline"
+                    size={20}
+                    color={klareColors.k}
+                  />
+                  <Text
+                    style={[
+                      styles.progressionTitle,
+                      { color: theme.colors.text },
+                    ]}
+                  >
+                    KLARE Programm - Tag {daysInProgram}
+                  </Text>
                 </View>
-                <Chip compact style={styles.progressChip}>Phase {currentStage ? currentStage.id : "1"}</Chip>
+                <Chip
+                  compact
+                  style={[
+                    styles.progressChip,
+                    { backgroundColor: `${klareColors.k}15` },
+                  ]}
+                >
+                  Phase {currentStage ? currentStage.id : "1"}
+                </Chip>
               </View>
-              
+
               {currentStage && (
                 <>
-                  <Text style={styles.stageName}>{currentStage.name}</Text>
-                  <Text style={styles.stageDescription}>{currentStage.description}</Text>
-                  
+                  <Text style={[styles.stageName, { color: klareColors.k }]}>
+                    {currentStage.name}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.stageDescription,
+                      { color: theme.colors.text },
+                    ]}
+                  >
+                    {currentStage.description}
+                  </Text>
+
                   {nextStage && (
-                    <View style={styles.nextStagePreview}>
-                      <Text style={styles.nextStageLabel}>Nächste Phase:</Text>
-                      <Text style={styles.nextStageName}>{nextStage.name}</Text>
+                    <View
+                      style={[
+                        styles.nextStagePreview,
+                        {
+                          borderTopColor: isDarkMode
+                            ? theme.colors.backdrop
+                            : "#F1F1F1",
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.nextStageLabel,
+                          { color: theme.colors.text },
+                        ]}
+                      >
+                        Nächste Phase:
+                      </Text>
+                      <Text
+                        style={[
+                          styles.nextStageName,
+                          { color: theme.colors.text },
+                        ]}
+                      >
+                        {nextStage.name}
+                      </Text>
                       {nextStage.requiredDays > daysInProgram && (
-                        <Text style={styles.daysUntilText}>
+                        <Text
+                          style={[
+                            styles.daysUntilText,
+                            { color: klareColors.textSecondary },
+                          ]}
+                        >
                           in {nextStage.requiredDays - daysInProgram} Tagen
                         </Text>
                       )}
@@ -256,56 +341,130 @@ export default function HomeScreen() {
 
             <View style={styles.progressContainer}>
               <View style={styles.progressItem}>
-                <Text style={styles.progressLabel}>Gesamtfortschritt</Text>
+                <Text
+                  style={[
+                    styles.progressLabel,
+                    { color: klareColors.textSecondary },
+                  ]}
+                >
+                  Gesamtfortschritt
+                </Text>
                 <View style={styles.progressBarContainer}>
                   <ProgressBar
                     progress={user?.progress ? user.progress / 100 : 0.35}
                     color={klareColors.k}
                     style={styles.progressBar}
                   />
-                  <Text style={styles.progressPercentage}>
+                  <Text
+                    style={[
+                      styles.progressPercentage,
+                      { color: theme.colors.text },
+                    ]}
+                  >
                     {user?.progress || 35}%
                   </Text>
                 </View>
               </View>
 
               <View style={styles.progressItem}>
-                <Text style={styles.progressLabel}>Lebensrad ⌀</Text>
+                <Text
+                  style={[
+                    styles.progressLabel,
+                    { color: klareColors.textSecondary },
+                  ]}
+                >
+                  Lebensrad ⌀
+                </Text>
                 <View style={styles.progressBarContainer}>
                   <ProgressBar
                     progress={calculateLifeWheelAverage() / 10}
                     color={klareColors.a}
                     style={styles.progressBar}
                   />
-                  <Text style={styles.progressPercentage}>
+                  <Text
+                    style={[
+                      styles.progressPercentage,
+                      { color: theme.colors.text },
+                    ]}
+                  >
                     {calculateLifeWheelAverage()}/10
                   </Text>
                 </View>
               </View>
             </View>
 
-            <View style={styles.statsContainer}>
+            <View
+              style={[
+                styles.statsContainer,
+                { borderTopColor: isDarkMode ? theme.colors.backdrop : "#eee" },
+              ]}
+            >
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{daysInProgram}</Text>
-                <Text style={styles.statLabel}>Tage</Text>
+                <Text style={[styles.statValue, { color: theme.colors.text }]}>
+                  {daysInProgram}
+                </Text>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    { color: klareColors.textSecondary },
+                  ]}
+                >
+                  Tage
+                </Text>
               </View>
 
-              <View style={styles.statDivider}></View>
+              <View
+                style={[
+                  styles.statDivider,
+                  {
+                    backgroundColor: isDarkMode
+                      ? theme.colors.backdrop
+                      : "#eee",
+                  },
+                ]}
+              ></View>
 
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>
+                <Text style={[styles.statValue, { color: theme.colors.text }]}>
                   {availableModules.length}/35
                 </Text>
-                <Text style={styles.statLabel}>Module</Text>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    { color: klareColors.textSecondary },
+                  ]}
+                >
+                  Module
+                </Text>
               </View>
 
-              <View style={styles.statDivider}></View>
+              <View
+                style={[
+                  styles.statDivider,
+                  {
+                    backgroundColor: isDarkMode
+                      ? theme.colors.backdrop
+                      : "#eee",
+                  },
+                ]}
+              ></View>
 
               <View style={styles.statItem}>
                 <View style={styles.streakContainer}>
-                  <Text style={styles.statValue}>{streakDays}🔥</Text>
+                  <Text
+                    style={[styles.statValue, { color: theme.colors.text }]}
+                  >
+                    {streakDays}🔥
+                  </Text>
                 </View>
-                <Text style={styles.statLabel}>Streak</Text>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    { color: klareColors.textSecondary },
+                  ]}
+                >
+                  Streak
+                </Text>
               </View>
             </View>
           </Card.Content>
@@ -324,7 +483,9 @@ export default function HomeScreen() {
         </Card>
 
         {/* KLARE Methode Schritte */}
-        <Text style={styles.sectionTitle}>KLARE Methode</Text>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          KLARE Methode
+        </Text>
 
         <View style={styles.klareContainer}>
           {klareSteps.map((step, index) => (
@@ -356,7 +517,11 @@ export default function HomeScreen() {
                   {step.id}
                 </Text>
               </View>
-              <Text style={styles.klareStepName}>{step.title}</Text>
+              <Text
+                style={[styles.klareStepName, { color: theme.colors.text }]}
+              >
+                {step.title}
+              </Text>
               <View style={styles.klareStepProgress}>
                 <ProgressBar
                   progress={stepProgress[step.id]}
@@ -369,7 +534,9 @@ export default function HomeScreen() {
         </View>
 
         {/* Fokus-Bereiche */}
-        <Text style={styles.sectionTitle}>Ihre Fokus-Bereiche</Text>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          Ihre Fokus-Bereiche
+        </Text>
 
         <Card style={styles.card}>
           <Card.Content>
@@ -401,12 +568,21 @@ export default function HomeScreen() {
         </Card>
 
         {/* Nächste Aktivitäten */}
-        <Text style={styles.sectionTitle}>Nächste Aktivitäten</Text>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          Nächste Aktivitäten
+        </Text>
 
         {nextActivities.map((activity) => {
           const stepInfo = klareSteps.find((step) => step.id === activity.step);
           return (
-            <Card key={activity.id} style={[styles.card, styles.activityCard]}>
+            <Card
+              key={activity.id}
+              style={[
+                styles.card,
+                styles.activityCard,
+                { borderLeftColor: klareColors.k },
+              ]}
+            >
               <Card.Content>
                 <View style={styles.activityHeader}>
                   <View style={styles.activityTypeContainer}>
@@ -431,7 +607,12 @@ export default function HomeScreen() {
                         color={klareColors.k}
                       />
                     )}
-                    <Text style={styles.activityType}>
+                    <Text
+                      style={[
+                        styles.activityType,
+                        { color: klareColors.textSecondary },
+                      ]}
+                    >
                       {activity.type === "daily"
                         ? "Täglich"
                         : activity.type === "weekly"
@@ -455,7 +636,12 @@ export default function HomeScreen() {
                 </View>
 
                 <Title style={styles.activityTitle}>{activity.title}</Title>
-                <Text style={styles.activityDescription}>
+                <Text
+                  style={[
+                    styles.activityDescription,
+                    { color: klareColors.textSecondary },
+                  ]}
+                >
                   {activity.description}
                 </Text>
               </Card.Content>
@@ -469,7 +655,7 @@ export default function HomeScreen() {
                     if (activity.type === "module") {
                       navigation.navigate(
                         "KlareMethod" as never,
-                        { step: activity.step } as never
+                        { step: activity.step } as never,
                       );
                     } else if (activity.type === "daily") {
                       // Tägliche Übung starten
@@ -508,256 +694,3 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: klareColors.background,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  headerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  greeting: {
-    fontSize: 16,
-    color: klareColors.textSecondary,
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: klareColors.text,
-  },
-  progressionCard: {
-    borderRadius: 12,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: klareColors.k,
-    elevation: 2,
-  },
-  progressionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  progressionTitleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  progressionTitle: {
-    fontSize: 15,
-    fontWeight: "bold",
-    marginLeft: 8,
-    color: klareColors.text,
-  },
-  progressChip: {
-    backgroundColor: `${klareColors.k}15`,
-  },
-  stageName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: klareColors.k,
-    marginBottom: 4,
-  },
-  stageDescription: {
-    fontSize: 14,
-    color: klareColors.text,
-    marginBottom: 12,
-  },
-  nextStagePreview: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#F1F1F1",
-  },
-  nextStageLabel: {
-    fontSize: 12,
-    color: klareColors.textSecondary,
-  },
-  nextStageName: {
-    fontSize: 14,
-    fontWeight: "500",
-    marginVertical: 2,
-  },
-  daysUntilText: {
-    fontSize: 12,
-    color: klareColors.textSecondary,
-    fontStyle: "italic",
-  },
-  progressCard: {
-    marginBottom: 24,
-    borderRadius: 12,
-  },
-  progressContainer: {
-    marginVertical: 12,
-  },
-  progressItem: {
-    marginBottom: 12,
-  },
-  progressLabel: {
-    fontSize: 14,
-    color: klareColors.textSecondary,
-    marginBottom: 4,
-  },
-  progressBarContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  progressBar: {
-    flex: 1,
-    height: 8,
-    borderRadius: 4,
-  },
-  progressPercentage: {
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: "bold",
-    color: klareColors.text,
-  },
-  statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-  },
-  statItem: {
-    alignItems: "center",
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: klareColors.text,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: klareColors.textSecondary,
-  },
-  statDivider: {
-    width: 1,
-    height: "80%",
-    backgroundColor: "#eee",
-  },
-  streakContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: klareColors.text,
-    marginBottom: 16,
-    marginTop: 8,
-  },
-  klareContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginBottom: 24,
-  },
-  klareStep: {
-    width: "48%",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  klareStepHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  klareStepIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
-  },
-  klareStepLetter: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  klareStepName: {
-    fontSize: 14,
-    marginBottom: 8,
-    color: klareColors.text,
-  },
-  klareStepProgress: {
-    marginTop: 4,
-  },
-  klareStepProgressBar: {
-    height: 4,
-    borderRadius: 2,
-  },
-  card: {
-    marginBottom: 16,
-    borderRadius: 12,
-  },
-  activityCard: {
-    borderLeftWidth: 3,
-    borderLeftColor: klareColors.k,
-  },
-  activityHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  activityTypeContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  activityType: {
-    fontSize: 12,
-    color: klareColors.textSecondary,
-    marginLeft: 4,
-  },
-  activityStepBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  activityTitle: {
-    fontSize: 16,
-  },
-  activityDescription: {
-    color: klareColors.textSecondary,
-  },
-  tipCard: {
-    marginBottom: 24,
-    overflow: "hidden",
-  },
-  tipBackground: {
-    padding: 0,
-    overflow: "hidden",
-    backgroundColor: klareColors.k,
-  },
-  tipContent: {
-    padding: 16,
-  },
-  tipIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  tipTitle: {
-    color: "white",
-    marginBottom: 8,
-  },
-  tipText: {
-    color: "white",
-    fontSize: 14,
-    lineHeight: 22,
-  },
-});

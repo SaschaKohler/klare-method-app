@@ -1,5 +1,11 @@
 // src/screens/KlareMethodScreen.tsx
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import {
   StyleSheet,
   View,
@@ -7,7 +13,6 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import {
@@ -16,18 +21,19 @@ import {
   Title,
   Paragraph,
   Button,
-  Divider,
   List,
   Chip,
   useTheme,
-  SegmentedButtons,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { klareSteps, KlareStep } from "../data/klareMethodData";
-import { klareColors } from "../constants/theme";
-import { getModulesByStep } from "../data/klareMethodModules";
+import {
+  darkKlareColors,
+  klareColors,
+  lightKlareColors,
+} from "../constants/theme";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -40,13 +46,10 @@ import { RootStackParamList } from "../types/navigation";
 import { useUserStore } from "../store/useUserStore";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import KlareLogo from "../components/KlareLogo";
-import {
-  loadModuleContent,
-  loadModulesByStep,
-  ModuleContent,
-} from "../lib/contentService";
+import { loadModulesByStep, ModuleContent } from "../lib/contentService";
 import KlareMethodNavigationTabs from "../components/klareMethodNavigationTabs";
+import createStyles from "../constants/createStyles";
+import createKlareMethodScreenStyles from "../constants/klareMethodScreenStyles";
 
 type KlareMethodScreenRouteProp = RouteProp<RootStackParamList, "KlareMethod">;
 
@@ -145,6 +148,17 @@ const supportingQuestions: Record<string, string[]> = {
   ],
 };
 
+// Add dark theme modifications in KLARE colors
+export const klareColorsDark = {
+  ...klareColors,
+  background: "#121212", // Very dark background
+  surface: "#1E1E1E", // Dark surface color
+  text: "#E0E0E0", // Light text for dark background
+  textSecondary: "#A0A0A0", // Secondary text for dark background
+  border: "#333333", // Dark border color
+  accent: "#BB86FC", // Purple accent for dark theme
+};
+
 export default function KlareMethodScreen() {
   const navigation = useNavigation();
   const route = useRoute<KlareMethodScreenRouteProp>();
@@ -168,13 +182,18 @@ export default function KlareMethodScreen() {
   ) as KlareStep;
 
   const theme = useTheme();
+  const isDarkMode = theme.dark; // Check if dark mode is enabled
+  const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const insets = useSafeAreaInsets();
-
   // Animationswerte
   const backgroundColorProgress = useSharedValue(0);
   const iconSizeProgress = useSharedValue(1);
   const contentOpacity = useSharedValue(0);
 
+  const styles = useMemo(
+    () => createKlareMethodScreenStyles(theme, klareColors),
+    [theme, klareColors],
+  );
   // Module für den aktiven Schritt laden
   useEffect(() => {
     const fetchModules = async () => {
@@ -502,13 +521,15 @@ export default function KlareMethodScreen() {
                 <View style={styles.moduleHeader}>
                   <View>
                     <Text style={styles.moduleType}>
-                      {module.type === "video"
+                      {module.content_type === "video"
                         ? "Video"
-                        : module.type === "text"
+                        : module.content_type === "theory"
                           ? "Theorie"
-                          : module.type === "exercise"
-                            ? "Übung"
-                            : "Quiz"}
+                          : module.content_type === "intro"
+                            ? "Intro"
+                            : module.content_type === "exercise"
+                              ? "Übung"
+                              : "Quiz"}
                     </Text>
                     <Title
                       style={[
@@ -525,7 +546,7 @@ export default function KlareMethodScreen() {
                       <Ionicons
                         name="lock-closed"
                         size={20}
-                        color={klareColors.textSecondary}
+                        color={styles.stepName}
                       />
                     </View>
                   )}
@@ -600,7 +621,10 @@ export default function KlareMethodScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar
+        style={isDarkMode ? "light" : "dark"}
+        backgroundColor={isDarkMode ? klareColorsDark.background : "white"}
+      />
       <View style={styles.header}>
         <View style={styles.headerLeftContainer}>
           <TouchableOpacity
@@ -696,226 +720,3 @@ export default function KlareMethodScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: klareColors.background,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  headerLeftContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  backButton: {
-    marginRight: 12,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  scrollContent: {
-    padding: 12,
-  },
-  contentContainer: {
-    flex: 1,
-  },
-  tabBar: {
-    margin: 16,
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  stepsNavigation: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  stepButton: {
-    alignItems: "center",
-    borderRadius: 12,
-    padding: 8,
-    borderWidth: 2,
-    width: (Dimensions.get("window").width - 80) / 5,
-  },
-  stepIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  stepLetter: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 2,
-  },
-  stepName: {
-    fontSize: 12,
-    textAlign: "center",
-  },
-  sectionContainer: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: Platform.OS === "ios" ? "600" : "bold",
-    color: klareColors.text,
-    marginBottom: 12,
-  },
-  description: {
-    lineHeight: 22,
-    marginBottom: 16,
-  },
-  infoCard: {
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  infoTitle: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  transformationItem: {
-    marginBottom: 16,
-    borderLeftWidth: 2,
-    paddingLeft: 12,
-  },
-  transformationFrom: {
-    marginBottom: 8,
-  },
-  transformationArrow: {
-    alignItems: "center",
-    marginVertical: 4,
-  },
-  transformationTo: {
-    marginTop: 8,
-  },
-  transformationText: {
-    marginTop: 4,
-    fontSize: 14,
-  },
-  transformationTextBold: {
-    fontWeight: "bold",
-  },
-  exerciseItem: {
-    paddingVertical: 6,
-  },
-  exerciseIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  questionItem: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  questionIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    backgroundColor: "white",
-  },
-  questionText: {
-    flex: 1,
-    fontStyle: "italic",
-    fontSize: 14,
-  },
-  buttonContainer: {
-    marginTop: 16,
-    alignItems: "center",
-  },
-  actionButton: {
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    ...Platform.select({
-      ios: {
-        borderRadius: 20,
-      },
-    }),
-  },
-  moduleCard: {
-    marginBottom: 8,
-    borderRadius: 8,
-    elevation: 1, // Android shadow
-    shadowOpacity: 0.1, // iOS shadow
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
-  },
-  lockedModule: {
-    opacity: 0.7,
-    backgroundColor: "#f8f8f8",
-  },
-  moduleHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 4,
-  },
-  moduleType: {
-    fontSize: 11,
-    color: klareColors.textSecondary,
-    marginBottom: 1,
-  },
-  moduleTitle: {
-    fontSize: 15,
-    marginBottom: 2,
-  },
-  moduleDescription: {
-    fontSize: 13,
-    marginBottom: 8,
-    lineHeight: 18,
-  },
-  lockedText: {
-    color: klareColors.textSecondary,
-  },
-  lockIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#f0f0f0",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  moduleFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 2,
-  },
-  moduleDuration: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  moduleDurationText: {
-    fontSize: 12,
-    marginLeft: 3,
-    color: klareColors.textSecondary,
-  },
-  lockedChip: {
-    backgroundColor: "#f0f0f0",
-  },
-  lockedChipText: {
-    color: klareColors.textSecondary,
-  },
-});

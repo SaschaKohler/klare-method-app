@@ -59,12 +59,12 @@ const TabNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="Learn"
-        component={LearnScreen}
+        name="LifeWheel"
+        component={LifeWheelScreen}
         options={{
-          title: "Lernen",
-          tabBarAccessibilityLabel: "Learn Tab",
-          header: (props) => <CustomHeader title="Lerninhalte" />,
+          title: "Lebensrad",
+          tabBarAccessibilityLabel: "Life Tab",
+          header: (props) => <CustomHeader title="Lebensrad" />,
         }}
       />
       <Tab.Screen

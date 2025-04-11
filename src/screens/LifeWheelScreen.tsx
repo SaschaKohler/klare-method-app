@@ -1,5 +1,5 @@
 // src/screens/LifeWheelScreen.tsx
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   StyleSheet,
   View,
@@ -24,12 +24,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useUserStore } from "../store/useUserStore";
-import { klareColors } from "../constants/theme";
+import {
+  darkKlareColors,
+  klareColors,
+  lightKlareColors,
+} from "../constants/theme";
 import LifeWheelChart from "../components/lifewheel/LifeWheelChart";
 import Slider from "@react-native-community/slider";
 import { BlurView } from "expo-blur";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import createLifeWheelScreenStyles from "../constants/lifeWheelScreenStyles";
 
 export default function LifeWheelScreen() {
   const navigation = useNavigation();
@@ -39,6 +44,12 @@ export default function LifeWheelScreen() {
   );
   const saveUserData = useUserStore((state) => state.saveUserData);
   const theme = useTheme();
+  const isDarkMode = theme.dark;
+  const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
+  const styles = useMemo(
+    () => createLifeWheelScreenStyles(theme, klareColors),
+    [theme, klareColors],
+  );
   const insets = useSafeAreaInsets();
 
   const [showTargetValues, setShowTargetValues] = useState(false);
@@ -434,161 +445,3 @@ export default function LifeWheelScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: klareColors.background,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  header: {
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: klareColors.text,
-    marginBottom: 8,
-    ...Platform.select({
-      ios: {
-        fontWeight: "800",
-      },
-    }),
-  },
-  subtitle: {
-    fontSize: 16,
-    color: klareColors.textSecondary,
-  },
-  card: {
-    marginBottom: 16,
-    borderRadius: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-      },
-    }),
-  },
-  chartContainer: {
-    alignItems: "center",
-    marginVertical: 8,
-  },
-  toggleContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 16,
-    ...Platform.select({
-      ios: {
-        paddingVertical: 8,
-      },
-    }),
-  },
-  sliderContainer: {
-    marginBottom: 24,
-  },
-  sliderLabelContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  sliderLabel: {
-    color: klareColors.textSecondary,
-  },
-  sliderValue: {
-    fontWeight: "bold",
-    color: klareColors.text,
-  },
-  slider: {
-    width: "100%",
-    height: 40,
-    ...Platform.select({
-      ios: {
-        height: 36,
-      },
-    }),
-  },
-  sliderMarkers: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 10,
-    marginTop: -5,
-  },
-  sliderMarkerText: {
-    color: klareColors.textSecondary,
-    fontSize: 12,
-  },
-  saveButton: {
-    backgroundColor: klareColors.k,
-    marginBottom: 16,
-    ...Platform.select({
-      ios: {
-        display: "none", // Verwenden stattdessen den Floating Button auf iOS
-      },
-    }),
-  },
-  floatingSaveContainer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    alignItems: "center",
-  },
-  blurView: {
-    borderRadius: 20,
-    overflow: "hidden",
-    padding: 6,
-  },
-  floatingSaveButton: {
-    backgroundColor: klareColors.k,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-  },
-  insightsToggle: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 12,
-    marginBottom: 16,
-  },
-  insightsToggleText: {
-    marginRight: 8,
-    fontWeight: "600",
-    color: klareColors.k,
-  },
-  insightSection: {
-    marginBottom: 16,
-  },
-  insightTitle: {
-    fontWeight: "bold",
-    fontSize: 16,
-    marginBottom: 8,
-    ...Platform.select({
-      ios: {
-        fontWeight: "600",
-      },
-    }),
-  },
-  insightItem: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 8,
-  },
-  insightDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 8,
-    marginTop: 4,
-  },
-  insightText: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-});
