@@ -20,6 +20,7 @@ import {
   IconButton,
   useTheme,
 } from "react-native-paper";
+import { HeaderBar, KlareCard } from "../components/common";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -255,7 +256,12 @@ export default function LifeWheelScreen() {
   // iOS-optimierte Ansicht rendert BlurViews und verbesserte UI-Elemente
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
+      <HeaderBar 
+        title="Lebensrad"
+        showBackButton
+        onBackPress={() => navigation.goBack()}
+      />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -268,55 +274,78 @@ export default function LifeWheelScreen() {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.header}>
-            <Text style={styles.title}>Lebensrad</Text>
-            <Text style={styles.subtitle}>
-              Bewerten Sie verschiedene Bereiche Ihres Lebens, um Klarheit zu
-              gewinnen.
-            </Text>
-          </View>
+          <Text style={styles.subtitle}>
+            Bewerte verschiedene Bereiche deines Lebens, um Klarheit zu gewinnen.
+          </Text>
 
           {/* Lebensrad Chart */}
-          <Card style={styles.card} mode="elevated">
-            <Card.Content>
-              <View style={styles.chartContainer}>
-                <LifeWheelChart
-                  showTargetValues={showTargetValues}
-                  onAreaPress={handleAreaPress}
-                />
-              </View>
+          <KlareCard>
+            <View style={styles.chartContainer}>
+              <LifeWheelChart
+                showTargetValues={showTargetValues}
+                onAreaPress={handleAreaPress}
+              />
+            </View>
 
-              <View style={styles.toggleContainer}>
-                <Text>Zielwerte anzeigen</Text>
-                <Switch
-                  value={showTargetValues}
-                  onValueChange={setShowTargetValues}
-                  color={klareColors.a}
-                  ios_backgroundColor="#eee"
-                />
-              </View>
-            </Card.Content>
-          </Card>
+            <View style={styles.toggleContainer}>
+              <Text style={styles.toggleText}>Zielwerte anzeigen</Text>
+              <Switch
+                value={showTargetValues}
+                onValueChange={setShowTargetValues}
+                color={klareColors.a}
+                ios_backgroundColor="rgba(255, 255, 255, 0.1)"
+              />
+            </View>
+          </KlareCard>
 
           {/* Bereichsdetails und Slider */}
           {selectedArea && (
-            <Card style={styles.card} mode="elevated">
-              <Card.Title
-                title={selectedArea.name}
-                right={(props) => (
-                  <IconButton
-                    {...props}
-                    icon="close"
-                    onPress={() => setSelectedAreaId(null)}
-                  />
-                )}
-              />
-              <Card.Content>
+            <KlareCard>
+              <View style={styles.areaHeader}>
+                <Text style={styles.areaTitle}>{selectedArea.name}</Text>
+                <TouchableOpacity onPress={() => setSelectedAreaId(null)}>
+                  <Ionicons name="close" size={24} color={klareColors.text} />
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.sliderContainer}>
+                <View style={styles.sliderLabelContainer}>
+                  <Text style={styles.sliderLabel}>Aktueller Wert</Text>
+                  <Text style={styles.sliderValue}>
+                    {selectedArea.currentValue}/10
+                  </Text>
+                </View>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={1}
+                  maximumValue={10}
+                  step={1}
+                  value={selectedArea.currentValue}
+                  onValueChange={(value) =>
+                    handleValueChange(
+                      selectedArea.id,
+                      value,
+                      selectedArea.targetValue,
+                    )
+                  }
+                  minimumTrackTintColor={klareColors.k}
+                  maximumTrackTintColor="rgba(255, 255, 255, 0.2)"
+                  thumbTintColor={klareColors.k}
+                />
+                {/* iOS-Style für Wert-Labels unter dem Slider */}
+                <View style={styles.sliderMarkers}>
+                  <Text style={styles.sliderMarkerText}>1</Text>
+                  <Text style={styles.sliderMarkerText}>5</Text>
+                  <Text style={styles.sliderMarkerText}>10</Text>
+                </View>
+              </View>
+
+              {showTargetValues && (
                 <View style={styles.sliderContainer}>
                   <View style={styles.sliderLabelContainer}>
-                    <Text style={styles.sliderLabel}>Aktueller Wert</Text>
+                    <Text style={styles.sliderLabel}>Zielwert</Text>
                     <Text style={styles.sliderValue}>
-                      {selectedArea.currentValue}/10
+                      {selectedArea.targetValue}/10
                     </Text>
                   </View>
                   <Slider
@@ -324,67 +353,33 @@ export default function LifeWheelScreen() {
                     minimumValue={1}
                     maximumValue={10}
                     step={1}
-                    value={selectedArea.currentValue}
+                    value={selectedArea.targetValue}
                     onValueChange={(value) =>
                       handleValueChange(
                         selectedArea.id,
+                        selectedArea.currentValue,
                         value,
-                        selectedArea.targetValue,
                       )
                     }
-                    minimumTrackTintColor={klareColors.k}
-                    maximumTrackTintColor="#ccc"
-                    thumbTintColor={klareColors.k}
+                    minimumTrackTintColor={klareColors.a}
+                    maximumTrackTintColor="rgba(255, 255, 255, 0.2)"
+                    thumbTintColor={klareColors.a}
                   />
-                  {/* iOS-Style für Wert-Labels unter dem Slider */}
                   <View style={styles.sliderMarkers}>
                     <Text style={styles.sliderMarkerText}>1</Text>
                     <Text style={styles.sliderMarkerText}>5</Text>
                     <Text style={styles.sliderMarkerText}>10</Text>
                   </View>
                 </View>
-
-                {showTargetValues && (
-                  <View style={styles.sliderContainer}>
-                    <View style={styles.sliderLabelContainer}>
-                      <Text style={styles.sliderLabel}>Zielwert</Text>
-                      <Text style={styles.sliderValue}>
-                        {selectedArea.targetValue}/10
-                      </Text>
-                    </View>
-                    <Slider
-                      style={styles.slider}
-                      minimumValue={1}
-                      maximumValue={10}
-                      step={1}
-                      value={selectedArea.targetValue}
-                      onValueChange={(value) =>
-                        handleValueChange(
-                          selectedArea.id,
-                          selectedArea.currentValue,
-                          value,
-                        )
-                      }
-                      minimumTrackTintColor={klareColors.a}
-                      maximumTrackTintColor="#ccc"
-                      thumbTintColor={klareColors.a}
-                    />
-                    <View style={styles.sliderMarkers}>
-                      <Text style={styles.sliderMarkerText}>1</Text>
-                      <Text style={styles.sliderMarkerText}>5</Text>
-                      <Text style={styles.sliderMarkerText}>10</Text>
-                    </View>
-                  </View>
-                )}
-              </Card.Content>
-            </Card>
+              )}
+            </KlareCard>
           )}
 
           {/* Speichern Button */}
           {hasChanges && (
             <Button
               mode="contained"
-              style={styles.saveButton}
+              style={[styles.saveButton, { backgroundColor: klareColors.k }]}
               onPress={handleSave}
               icon="content-save"
             >
@@ -410,7 +405,113 @@ export default function LifeWheelScreen() {
           </TouchableOpacity>
 
           {/* Einsichten */}
-          {showInsights && renderInsights()}
+          {showInsights && (
+            <KlareCard>
+              <Text style={styles.cardTitle}>Erkenntnisse</Text>
+              
+              {(() => {
+                const { lowAreas, gapAreas, strengthAreas } = generateInsights();
+                return (
+                  <View>
+                    {lowAreas.length > 0 && (
+                      <View style={styles.insightSection}>
+                        <Text style={styles.insightTitle}>
+                          Bereiche mit Entwicklungspotenzial:
+                        </Text>
+                        {lowAreas.map((area) => (
+                          <View key={`low-${area.id}`} style={styles.insightItem}>
+                            <View
+                              style={[
+                                styles.insightDot,
+                                { backgroundColor: klareColors.k },
+                              ]}
+                            />
+                            <Text style={styles.insightText}>
+                              <Text style={{ fontWeight: "bold" }}>{area.name}</Text>:
+                              Dieser Bereich könnte besondere Aufmerksamkeit erfordern
+                              (Wert: {area.currentValue}/10).
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+
+                    {gapAreas.length > 0 && showTargetValues && (
+                      <View style={styles.insightSection}>
+                        <Text style={styles.insightTitle}>Größte Diskrepanzen:</Text>
+                        {gapAreas.map((area) => (
+                          <View key={`gap-${area.id}`} style={styles.insightItem}>
+                            <View
+                              style={[
+                                styles.insightDot,
+                                { backgroundColor: klareColors.a },
+                              ]}
+                            />
+                            <Text style={styles.insightText}>
+                              <Text style={{ fontWeight: "bold" }}>{area.name}</Text>:
+                              Hier besteht eine große Lücke zwischen Ist (
+                              {area.currentValue}) und Soll ({area.targetValue}).
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+
+                    {strengthAreas.length > 0 && (
+                      <View style={styles.insightSection}>
+                        <Text style={styles.insightTitle}>Stärkebereiche:</Text>
+                        {strengthAreas.map((area) => (
+                          <View key={`strength-${area.id}`} style={styles.insightItem}>
+                            <View
+                              style={[
+                                styles.insightDot,
+                                { backgroundColor: klareColors.e },
+                              ]}
+                            />
+                            <Text style={styles.insightText}>
+                              <Text style={{ fontWeight: "bold" }}>{area.name}</Text>:
+                              Dies ist ein Stärkebereich (Wert: {area.currentValue}/10).
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+
+                    {lowAreas.length === 0 &&
+                      gapAreas.length === 0 &&
+                      strengthAreas.length === 0 && (
+                        <Text style={styles.insightText}>
+                          Keine besonderen Erkenntnisse aus den aktuellen Werten.
+                        </Text>
+                      )}
+
+                    <Divider style={{ marginVertical: 16 }} />
+
+                    <View>
+                      <Text style={styles.insightTitle}>Nächste Schritte</Text>
+                      <Text style={styles.insightText}>
+                        Verwende die KLARE Methode, um an den Bereichen mit der
+                        größten Diskrepanz zu arbeiten. Beginne mit dem Schritt "K -
+                        Klarheit", um deine tatsächlichen Bedürfnisse zu identifizieren.
+                      </Text>
+                      <Button
+                        mode="contained"
+                        style={{ marginTop: 16, backgroundColor: klareColors.k }}
+                        onPress={() =>
+                          navigation.navigate(
+                            "KlareMethod" as never,
+                            { step: "K" } as never,
+                          )
+                        }
+                      >
+                        Zur KLARE Methode
+                      </Button>
+                    </View>
+                  </View>
+                );
+              })()}
+            </KlareCard>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -419,10 +520,10 @@ export default function LifeWheelScreen() {
         <View
           style={[styles.floatingSaveContainer, { bottom: insets.bottom + 16 }]}
         >
-          <BlurView intensity={90} tint="light" style={styles.blurView}>
+          <BlurView intensity={90} tint="dark" style={styles.blurView}>
             <Button
               mode="contained"
-              style={styles.floatingSaveButton}
+              style={[styles.floatingSaveButton, { backgroundColor: klareColors.k }]}
               onPress={handleSave}
               icon="content-save"
             >
@@ -444,35 +545,17 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 32,
   },
-  header: {
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: klareColors.text,
-    marginBottom: 8,
-    ...Platform.select({
-      ios: {
-        fontWeight: "800",
-      },
-    }),
-  },
   subtitle: {
     fontSize: 16,
     color: klareColors.textSecondary,
+    marginBottom: 20,
+    paddingHorizontal: 4,
   },
-  card: {
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: klareColors.text,
     marginBottom: 16,
-    borderRadius: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-      },
-    }),
   },
   chartContainer: {
     alignItems: "center",
@@ -488,6 +571,20 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
       },
     }),
+  },
+  toggleText: {
+    color: klareColors.text,
+  },
+  areaHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  areaTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: klareColors.text,
   },
   sliderContainer: {
     marginBottom: 24,
@@ -525,7 +622,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   saveButton: {
-    backgroundColor: klareColors.k,
     marginBottom: 16,
     ...Platform.select({
       ios: {
@@ -545,7 +641,6 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   floatingSaveButton: {
-    backgroundColor: klareColors.k,
     borderRadius: 16,
     paddingHorizontal: 16,
   },
@@ -568,6 +663,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
     marginBottom: 8,
+    color: klareColors.text,
     ...Platform.select({
       ios: {
         fontWeight: "600",
@@ -590,5 +686,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     lineHeight: 20,
+    color: klareColors.text,
   },
 });

@@ -8,6 +8,7 @@ import {
   HelperText,
   ActivityIndicator,
 } from "react-native-paper";
+import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserStore } from "../store/useUserStore";
 import { klareColors } from "../constants/theme";
@@ -55,6 +56,7 @@ export default function AuthScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoid}
@@ -62,17 +64,16 @@ export default function AuthScreen() {
         <View style={styles.content}>
           {/* KLARE Logo */}
           <View style={styles.logoContainer}>
-            <KlareLogo
-              size={40}
-              spacing={8}
-              animated={true}
-              pulsate={true}
-              style={{ marginTop: 8 }}
-            />
+            <View style={styles.logoBackground}>
+              <KlareLogo
+                size={50}
+                spacing={10}
+                animated={true}
+                pulsate={true}
+                style={{ marginTop: 8 }}
+              />
+            </View>
           </View>
-          {/* <View style={styles.logoContainer}> */}
-          {/*   <KlareLogo size={30} spacing={8} animated={true} /> */}
-          {/* </View> */}
           <Title style={styles.title}>KLARE Methode</Title>
           <Text style={styles.subtitle}>
             {isLogin
@@ -88,6 +89,14 @@ export default function AuthScreen() {
               style={styles.input}
               mode="outlined"
               autoCapitalize="words"
+              theme={{
+                colors: {
+                  primary: klareColors.k,
+                  background: klareColors.cardBackground,
+                  text: klareColors.text,
+                  placeholder: klareColors.textSecondary,
+                }
+              }}
             />
           )}
 
@@ -99,6 +108,14 @@ export default function AuthScreen() {
             mode="outlined"
             keyboardType="email-address"
             autoCapitalize="none"
+            theme={{
+              colors: {
+                primary: klareColors.k,
+                background: klareColors.cardBackground,
+                text: klareColors.text,
+                placeholder: klareColors.textSecondary,
+              }
+            }}
           />
 
           <TextInput
@@ -108,10 +125,18 @@ export default function AuthScreen() {
             style={styles.input}
             mode="outlined"
             secureTextEntry
+            theme={{
+              colors: {
+                primary: klareColors.k,
+                background: klareColors.cardBackground,
+                text: klareColors.text,
+                placeholder: klareColors.textSecondary,
+              }
+            }}
           />
 
           {error && (
-            <HelperText type="error" visible={!!error}>
+            <HelperText type="error" visible={!!error} style={styles.errorText}>
               {error}
             </HelperText>
           )}
@@ -130,6 +155,7 @@ export default function AuthScreen() {
             mode="text"
             onPress={() => setIsLogin(!isLogin)}
             style={styles.toggleButton}
+            labelStyle={{ color: klareColors.text }}
           >
             {isLogin
               ? "Neues Konto erstellen"
@@ -151,33 +177,54 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: 24,
     justifyContent: "center",
   },
   logoContainer: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 30,
+  },
+  logoBackground: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: klareColors.k,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 5,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: "bold",
     textAlign: "center",
-    color: klareColors.k,
-    marginBottom: 10,
+    color: klareColors.text,
+    marginBottom: 16,
   },
   subtitle: {
     textAlign: "center",
-    marginBottom: 32,
+    marginBottom: 40,
     color: klareColors.textSecondary,
+    fontSize: 16,
+    lineHeight: 22,
   },
   input: {
-    marginBottom: 16,
+    marginBottom: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  errorText: {
+    color: '#ff6b6b',
   },
   button: {
-    marginTop: 24,
+    marginTop: 30,
     backgroundColor: klareColors.k,
+    borderRadius: 10,
+    paddingVertical: 6,
   },
   toggleButton: {
-    marginTop: 16,
+    marginTop: 20,
   },
 });
