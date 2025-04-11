@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import {
   Text,
-  Card,
   Title,
   Paragraph,
   Button,
@@ -22,6 +21,7 @@ import {
   useTheme,
   SegmentedButtons,
 } from "react-native-paper";
+import { HeaderBar, KlareCard } from "../components/common";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -297,46 +297,44 @@ export default function KlareMethodScreen() {
           "Entfaltung ist das Ergebnis vollständiger Kongruenz in allen Lebensbereichen. Hier erleben Sie mühelose Manifestation Ihrer Ziele, anhaltende Erfüllung und kontinuierliches Wachstum auf natürliche Weise."}
       </Paragraph>
 
-      <Card style={styles.infoCard}>
-        <Card.Content>
-          <Title style={[styles.infoTitle, { color: activeStep.color }]}>
-            Worum geht es im Schritt {activeStepId}?
-          </Title>
-          {activeStepId === "K" && (
-            <Paragraph>
-              Der K-Schritt hilft Ihnen, Ihre aktuelle Situation ehrlich zu
-              erkennen und anzunehmen. Sie werden Ihr Lebensrad analysieren und
-              Inkongruenzen identifizieren.
-            </Paragraph>
-          )}
-          {activeStepId === "L" && (
-            <Paragraph>
-              Der L-Schritt aktiviert Ihre natürlichen Energiequellen und hilft
-              Ihnen, Blockaden zu überwinden, die Ihren natürlichen Energiefluss
-              behindern.
-            </Paragraph>
-          )}
-          {activeStepId === "A" && (
-            <Paragraph>
-              Der A-Schritt bringt alle Ihre Lebensbereiche in Einklang und
-              schafft eine kohärente Vision, die alle Aspekte Ihres Lebens
-              integriert.
-            </Paragraph>
-          )}
-          {activeStepId === "R" && (
-            <Paragraph>
-              Der R-Schritt überführt Ihre Erkenntnisse in konkretes,
-              nachhaltiges Handeln durch bewusste Gewohnheiten und Routinen.
-            </Paragraph>
-          )}
-          {activeStepId === "E" && (
-            <Paragraph>
-              Der E-Schritt führt zur mühelosen Entfaltung durch vollständige
-              Kongruenz in allen Lebensbereichen und kontinuierlichem Wachstum.
-            </Paragraph>
-          )}
-        </Card.Content>
-      </Card>
+      <KlareCard style={styles.infoCard} showAccent accentColor={activeStep.color}>
+        <Text style={[styles.infoTitle, { color: activeStep.color }]}>
+          Worum geht es im Schritt {activeStepId}?
+        </Text>
+        {activeStepId === "K" && (
+          <Text style={styles.cardText}>
+            Der K-Schritt hilft dir, deine aktuelle Situation ehrlich zu
+            erkennen und anzunehmen. Du wirst dein Lebensrad analysieren und
+            Inkongruenzen identifizieren.
+          </Text>
+        )}
+        {activeStepId === "L" && (
+          <Text style={styles.cardText}>
+            Der L-Schritt aktiviert deine natürlichen Energiequellen und hilft
+            dir, Blockaden zu überwinden, die deinen natürlichen Energiefluss
+            behindern.
+          </Text>
+        )}
+        {activeStepId === "A" && (
+          <Text style={styles.cardText}>
+            Der A-Schritt bringt alle deine Lebensbereiche in Einklang und
+            schafft eine kohärente Vision, die alle Aspekte deines Lebens
+            integriert.
+          </Text>
+        )}
+        {activeStepId === "R" && (
+          <Text style={styles.cardText}>
+            Der R-Schritt überführt deine Erkenntnisse in konkretes,
+            nachhaltiges Handeln durch bewusste Gewohnheiten und Routinen.
+          </Text>
+        )}
+        {activeStepId === "E" && (
+          <Text style={styles.cardText}>
+            Der E-Schritt führt zur mühelosen Entfaltung durch vollständige
+            Kongruenz in allen Lebensbereichen und kontinuierlichem Wachstum.
+          </Text>
+        )}
+      </KlareCard>
 
       <View style={styles.buttonContainer}>
         <Button
@@ -601,28 +599,23 @@ export default function KlareMethodScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
-      <View style={styles.header}>
-        <View style={styles.headerLeftContainer}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={24} color={klareColors.text} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>KLARE Methode</Text>
-        </View>
-
-        <TouchableOpacity onPress={toggleAutoRotate}>
-          <Ionicons
-            name={autoRotate ? "pause-circle-outline" : "play-circle-outline"}
-            size={24}
-            color={klareColors.text}
-          />
-        </TouchableOpacity>
-      </View>
+      <HeaderBar
+        title="KLARE Methode"
+        showBackButton
+        rightIcon={{
+          name: autoRotate ? "pause-circle-outline" : "play-circle-outline",
+          onPress: toggleAutoRotate
+        }}
+      />
 
       {/* KLARE Methode Navigation */}
       <View style={styles.stepsNavigation}>
+        <Animated.View 
+          style={[
+            styles.stepsNavigationBg, 
+            animatedHeaderStyle
+          ]} 
+        />
         {klareSteps.map((step) => {
           const isActive = step.id === activeStepId;
           return (
@@ -631,7 +624,7 @@ export default function KlareMethodScreen() {
               style={[
                 styles.stepButton,
                 {
-                  backgroundColor: isActive ? `${step.color}20` : "transparent",
+                  backgroundColor: isActive ? `${step.color}20` : "rgba(255, 255, 255, 0.05)",
                   borderColor: isActive ? step.color : "transparent",
                 },
               ]}
@@ -740,7 +733,15 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "rgba(255, 255, 255, 0.05)",
+    position: "relative",
+  },
+  stepsNavigationBg: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   stepButton: {
     alignItems: "center",
@@ -778,14 +779,21 @@ const styles = StyleSheet.create({
   description: {
     lineHeight: 22,
     marginBottom: 16,
+    color: klareColors.text,
   },
   infoCard: {
-    borderRadius: 12,
+    borderRadius: 20,
     marginBottom: 16,
   },
   infoTitle: {
-    fontSize: 16,
-    marginBottom: 8,
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+  cardText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: klareColors.text,
   },
   transformationItem: {
     marginBottom: 16,

@@ -1,5 +1,5 @@
 // src/screens/HomeScreen.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -7,18 +7,19 @@ import {
   TouchableOpacity,
   ImageBackground,
   Animated,
+  StatusBar,
+  Platform,
 } from "react-native";
 import {
   Text,
-  Card,
-  Title,
   Button,
-  Avatar,
   ProgressBar,
   Divider,
   List,
   Chip,
 } from "react-native-paper";
+import { HeaderBar, KlareCard } from "../components/common";
+import KlareStepCard from "../components/KlareStepCard";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -192,317 +193,188 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header mit Begrüßung und KLARE Logo */}
-        <View style={styles.headerContainer}>
-          <View>
-            <Text style={styles.greeting}>{getGreeting()}</Text>
-            <Text style={styles.userName}>{user?.name || "Sascha"}</Text>
-          </View>
-          <TouchableOpacity>
-            <Avatar.Text
-              size={50}
-              label={user?.name?.charAt(0) || "S"}
-              style={{ backgroundColor: klareColors.k }}
-            />
-          </TouchableOpacity>
-        </View>
+    <SafeAreaView style={styles.container} edges={['right', 'left']}>
+      <StatusBar 
+        barStyle="light-content" 
+        backgroundColor={klareColors.statusBarColor}
+      />
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <HeaderBar 
+          showAvatar
+          avatarLetter={user?.name?.charAt(0) || "S"}
+          greeting={getGreeting()}
+          userName={user?.name || "Sascha"}
+          showSearch
+          onSearchPress={() => {/* Handle search */}}
+        />
 
-        {/* Zeitliche Progression Card */}
-        <Animated.View
-          style={{
-            opacity,
-            transform: [{ translateY }],
-            marginBottom: 24,
-          }}
-        >
-          <Card style={styles.progressionCard}>
-            <Card.Content>
-              <View style={styles.progressionHeader}>
-                <View style={styles.progressionTitleContainer}>
-                  <Ionicons name="time-outline" size={20} color={klareColors.k} />
-                  <Text style={styles.progressionTitle}>KLARE Programm - Tag {daysInProgram}</Text>
+        {/* Hero section with "What's bothering you today?" */}
+        <View style={styles.heroSection}>
+          <View style={styles.verticalAccent} />
+          <Text style={styles.heroTitle}>
+            Was beschäftigt{'\n'}Dich <Text style={{color: klareColors.k}}>heute?</Text>
+          </Text>
+          <View style={styles.accentLine} />
+        </View>
+        
+        {/* KLARE Journey Section */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Deine KLARE Reise</Text>
+          
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalScrollContent}
+          >
+            {klareSteps.map((step) => (
+              <KlareStepCard
+                key={step.id}
+                step={step}
+                progress={stepProgress[step.id]}
+                isActive={activeTab === step.id}
+                onPress={() =>
+                  navigation.navigate(
+                    "KlareMethod" as never,
+                    { step: step.id } as never,
+                  )
+                }
+              />
+            ))}
+          </ScrollView>
+        </View>
+        
+        {/* Today for you section */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Heute für dich</Text>
+          
+          {nextActivities.length > 0 && (
+            <KlareCard 
+              showAccent 
+              accentColor={klareColors.k}
+              onPress={() => {
+                const activity = nextActivities[0];
+                if (activity.type === "module") {
+                  navigation.navigate(
+                    "KlareMethod" as never,
+                    { step: activity.step } as never
+                  );
+                } else if (activity.type === "daily") {
+                  // Start daily exercise
+                } else if (activity.type === "weekly") {
+                  navigation.navigate("LifeWheel" as never);
+                }
+              }}
+            >
+              <View style={styles.cardHeader}>
+                <View style={[
+                  styles.tag, 
+                  { backgroundColor: `${klareColors.k}20` }
+                ]}>
+                  <Text style={styles.tagText}>Tägliche Praxis</Text>
                 </View>
-                <Chip compact style={styles.progressChip}>Phase {currentStage ? currentStage.id : "1"}</Chip>
+                
+                <Text style={styles.duration}>15 Minuten</Text>
               </View>
               
-              {currentStage && (
-                <>
-                  <Text style={styles.stageName}>{currentStage.name}</Text>
-                  <Text style={styles.stageDescription}>{currentStage.description}</Text>
-                  
-                  {nextStage && (
-                    <View style={styles.nextStagePreview}>
-                      <Text style={styles.nextStageLabel}>Nächste Phase:</Text>
-                      <Text style={styles.nextStageName}>{nextStage.name}</Text>
-                      {nextStage.requiredDays > daysInProgram && (
-                        <Text style={styles.daysUntilText}>
-                          in {nextStage.requiredDays - daysInProgram} Tagen
-                        </Text>
-                      )}
-                    </View>
-                  )}
-                </>
-              )}
-            </Card.Content>
-          </Card>
+              <Text style={styles.cardTitle}>Kongruenz-Check</Text>
+              
+              <Text style={styles.cardDescription}>
+                Erlebe mehr Klarheit und inneren Frieden, indem du deine Gedanken, Gefühle und Handlungen in Einklang bringst.
+              </Text>
+              
+              <TouchableOpacity style={styles.primaryButton}>
+                <Text style={styles.buttonText}>Jetzt starten</Text>
+                <Ionicons name="arrow-forward" size={18} color="white" style={{marginLeft: 8}} />
+              </TouchableOpacity>
+            </KlareCard>
+          )}
+        </View>
+        
+        {/* Life Wheel Preview */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Dein Lebensrad</Text>
+          
+          <KlareCard>
+            <View style={styles.wheelVisualization}>
+              <View style={[styles.wheelLayer, { width: '100%', height: '100%', borderColor: 'rgba(167, 139, 250, 0.2)' }]} />
+              <View style={[styles.wheelLayer, { width: '80%', height: '80%', borderColor: 'rgba(245, 158, 11, 0.2)' }]} />
+              <View style={[styles.wheelLayer, { width: '60%', height: '60%', borderColor: 'rgba(236, 72, 153, 0.2)' }]} />
+              <View style={[styles.wheelLayer, { width: '40%', height: '40%', borderColor: 'rgba(16, 185, 129, 0.2)' }]} />
+              
+              <View style={styles.wheelCenter}>
+                <Text style={styles.wheelValue}>{calculateLifeWheelAverage()}</Text>
+              </View>
+            </View>
+            
+            <Text style={styles.wheelText}>
+              Aktueller Durchschnittswert aller Lebensbereiche
+            </Text>
+            
+            <TouchableOpacity 
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate("LifeWheel" as never)}
+            >
+              <Text style={styles.secondaryButtonText}>Details anzeigen</Text>
+            </TouchableOpacity>
+          </KlareCard>
+        </View>
+        
+        {/* Tip of the Day */}
+        <View style={styles.tipCardContainer}>
+          <TouchableOpacity activeOpacity={0.9} style={styles.tipCard}>
+            <View style={[styles.circleDecoration, styles.circleLarge]} />
+            <View style={[styles.circleDecoration, styles.circleSmall]} />
+            
+            <View style={styles.tipIcon}>
+              <Ionicons name="bulb-outline" size={24} color="white" />
+            </View>
+            
+            <Text style={styles.tipTitle}>Tipp des Tages</Text>
+            
+            <Text style={styles.tipText}>{todayTip}</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {/* Stats Summary */}
+        <Animated.View
+          style={[
+            styles.statsSummary,
+            {
+              opacity,
+              transform: [{ translateY: translateY.interpolate({
+                inputRange: [0, 50],
+                outputRange: [0, 20]
+              }) }],
+            }
+          ]}
+        >
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{daysInProgram}</Text>
+            <Text style={styles.statLabel}>Tage</Text>
+          </View>
+
+          <View style={styles.statDivider}></View>
+
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>
+              {availableModules.length}/35
+            </Text>
+            <Text style={styles.statLabel}>Module</Text>
+          </View>
+
+          <View style={styles.statDivider}></View>
+
+          <View style={styles.statItem}>
+            <View style={styles.streakContainer}>
+              <Text style={styles.statValue}>{streakDays}🔥</Text>
+            </View>
+            <Text style={styles.statLabel}>Streak</Text>
+          </View>
         </Animated.View>
 
-        {/* Fortschrittsübersicht */}
-        <Card style={styles.progressCard}>
-          <Card.Content>
-            <Title>Ihr Kongruenz-Fortschritt</Title>
-
-            <View style={styles.progressContainer}>
-              <View style={styles.progressItem}>
-                <Text style={styles.progressLabel}>Gesamtfortschritt</Text>
-                <View style={styles.progressBarContainer}>
-                  <ProgressBar
-                    progress={user?.progress ? user.progress / 100 : 0.35}
-                    color={klareColors.k}
-                    style={styles.progressBar}
-                  />
-                  <Text style={styles.progressPercentage}>
-                    {user?.progress || 35}%
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.progressItem}>
-                <Text style={styles.progressLabel}>Lebensrad ⌀</Text>
-                <View style={styles.progressBarContainer}>
-                  <ProgressBar
-                    progress={calculateLifeWheelAverage() / 10}
-                    color={klareColors.a}
-                    style={styles.progressBar}
-                  />
-                  <Text style={styles.progressPercentage}>
-                    {calculateLifeWheelAverage()}/10
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.statsContainer}>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{daysInProgram}</Text>
-                <Text style={styles.statLabel}>Tage</Text>
-              </View>
-
-              <View style={styles.statDivider}></View>
-
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>
-                  {availableModules.length}/35
-                </Text>
-                <Text style={styles.statLabel}>Module</Text>
-              </View>
-
-              <View style={styles.statDivider}></View>
-
-              <View style={styles.statItem}>
-                <View style={styles.streakContainer}>
-                  <Text style={styles.statValue}>{streakDays}🔥</Text>
-                </View>
-                <Text style={styles.statLabel}>Streak</Text>
-              </View>
-            </View>
-          </Card.Content>
-
-          <Card.Actions>
-            <Button
-              icon="chart-bar"
-              mode="outlined"
-              onPress={() => navigation.navigate("LifeWheel" as never)}
-              style={{ borderColor: klareColors.k }}
-              labelStyle={{ color: klareColors.k }}
-            >
-              Lebensrad ansehen
-            </Button>
-          </Card.Actions>
-        </Card>
-
-        {/* KLARE Methode Schritte */}
-        <Text style={styles.sectionTitle}>KLARE Methode</Text>
-
-        <View style={styles.klareContainer}>
-          {klareSteps.map((step, index) => (
-            <TouchableOpacity
-              key={step.id}
-              style={[styles.klareStep, { backgroundColor: `${step.color}10` }]}
-              testID={`klare-step-${step.id.toLowerCase()}`}
-              onPress={() =>
-                navigation.navigate(
-                  "KlareMethod" as never,
-                  { step: step.id } as never,
-                )
-              }
-            >
-              <View style={styles.klareStepHeader}>
-                <View
-                  style={[
-                    styles.klareStepIconContainer,
-                    { backgroundColor: `${step.color}25` },
-                  ]}
-                >
-                  <Ionicons
-                    name={step.iconName as any}
-                    size={20}
-                    color={step.color}
-                  />
-                </View>
-                <Text style={[styles.klareStepLetter, { color: step.color }]}>
-                  {step.id}
-                </Text>
-              </View>
-              <Text style={styles.klareStepName}>{step.title}</Text>
-              <View style={styles.klareStepProgress}>
-                <ProgressBar
-                  progress={stepProgress[step.id]}
-                  color={step.color}
-                  style={styles.klareStepProgressBar}
-                />
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Fokus-Bereiche */}
-        <Text style={styles.sectionTitle}>Ihre Fokus-Bereiche</Text>
-
-        <Card style={styles.card}>
-          <Card.Content>
-            <List.Section>
-              {findLowestAreas().map((area) => (
-                <List.Item
-                  key={area.id}
-                  title={area.name}
-                  description={`Aktueller Wert: ${area.currentValue}/10`}
-                  left={(props) => (
-                    <List.Icon
-                      {...props}
-                      icon="alert-circle-outline"
-                      color={klareColors.r}
-                    />
-                  )}
-                  onPress={() => navigation.navigate("LifeWheel" as never)}
-                />
-              ))}
-            </List.Section>
-
-            <Button
-              mode="text"
-              onPress={() => navigation.navigate("LifeWheel" as never)}
-            >
-              Alle Lebensbereiche ansehen
-            </Button>
-          </Card.Content>
-        </Card>
-
-        {/* Nächste Aktivitäten */}
-        <Text style={styles.sectionTitle}>Nächste Aktivitäten</Text>
-
-        {nextActivities.map((activity) => {
-          const stepInfo = klareSteps.find((step) => step.id === activity.step);
-          return (
-            <Card key={activity.id} style={[styles.card, styles.activityCard]}>
-              <Card.Content>
-                <View style={styles.activityHeader}>
-                  <View style={styles.activityTypeContainer}>
-                    {activity.type === "daily" && (
-                      <Ionicons
-                        name="today-outline"
-                        size={20}
-                        color={klareColors.k}
-                      />
-                    )}
-                    {activity.type === "weekly" && (
-                      <Ionicons
-                        name="calendar-outline"
-                        size={20}
-                        color={klareColors.k}
-                      />
-                    )}
-                    {activity.type === "module" && (
-                      <Ionicons
-                        name="school-outline"
-                        size={20}
-                        color={klareColors.k}
-                      />
-                    )}
-                    <Text style={styles.activityType}>
-                      {activity.type === "daily"
-                        ? "Täglich"
-                        : activity.type === "weekly"
-                          ? "Wöchentlich"
-                          : "Modul"}
-                    </Text>
-                  </View>
-
-                  {stepInfo && (
-                    <View
-                      style={[
-                        styles.activityStepBadge,
-                        { backgroundColor: `${stepInfo.color}15` },
-                      ]}
-                    >
-                      <Text style={{ color: stepInfo.color }}>
-                        {stepInfo.id}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-
-                <Title style={styles.activityTitle}>{activity.title}</Title>
-                <Text style={styles.activityDescription}>
-                  {activity.description}
-                </Text>
-              </Card.Content>
-
-              <Card.Actions>
-                <Button
-                  mode="contained"
-                  style={{ backgroundColor: stepInfo?.color || klareColors.k }}
-                  labelStyle={{ color: "white" }}
-                  onPress={() => {
-                    if (activity.type === "module") {
-                      navigation.navigate(
-                        "KlareMethod" as never,
-                        { step: activity.step } as never
-                      );
-                    } else if (activity.type === "daily") {
-                      // Tägliche Übung starten
-                    } else if (activity.type === "weekly") {
-                      navigation.navigate("LifeWheel" as never);
-                    }
-                  }}
-                >
-                  Starten
-                </Button>
-              </Card.Actions>
-            </Card>
-          );
-        })}
-
-        {/* Tipp des Tages */}
-        <Card style={[styles.card, styles.tipCard]} mode="elevated">
-          <ImageBackground
-            source={{
-              uri: "https://via.placeholder.com/400x200/6366F1/FFFFFF?text=Hintergrund",
-            }}
-            style={styles.tipBackground}
-            imageStyle={{ opacity: 0.3, borderRadius: 12 }}
-          >
-            <Card.Content style={styles.tipContent}>
-              <View style={styles.tipIconContainer}>
-                <Ionicons name="bulb-outline" size={24} color="white" />
-              </View>
-              <Title style={styles.tipTitle}>Tipp des Tages</Title>
-              <Text style={styles.tipText}>{todayTip}</Text>
-            </Card.Content>
-          </ImageBackground>
-        </Card>
       </ScrollView>
     </SafeAreaView>
   );
@@ -515,117 +387,354 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 100, // Extra padding for bottom tab bar
   },
+  // Header styles
   headerContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 24,
+    paddingTop: Platform.OS === 'android' ? 12 : 0,
+  },
+  userInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: klareColors.k,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  avatarText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   greeting: {
-    fontSize: 16,
+    fontSize: 14,
     color: klareColors.textSecondary,
   },
   userName: {
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontWeight: "600",
     color: klareColors.text,
   },
-  progressionCard: {
-    borderRadius: 12,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: klareColors.k,
-    elevation: 2,
+  searchButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    flexDirection: "row",
+    alignItems: "center",
   },
-  progressionHeader: {
+  searchButtonText: {
+    color: klareColors.text,
+  },
+  
+  // Hero section styles
+  heroSection: {
+    padding: 16,
+    paddingTop: 24,
+    marginBottom: 16,
+    position: 'relative',
+  },
+  verticalAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 30,
+    width: 4,
+    height: 80,
+    backgroundColor: klareColors.k,
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
+  },
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: klareColors.text,
+    lineHeight: 40,
+    marginBottom: 8,
+  },
+  accentLine: {
+    height: 3,
+    width: 80,
+    backgroundColor: klareColors.l,
+    marginVertical: 16,
+    borderRadius: 2,
+  },
+  
+  // Section container
+  sectionContainer: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: klareColors.text,
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  horizontalScrollContent: {
+    paddingRight: 16,
+  },
+  
+  // KLARE Cards
+  klareCard: {
+    width: 170,
+    minHeight: 220,
+    backgroundColor: klareColors.cardBackground,
+    borderRadius: 20,
+    marginRight: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: klareColors.cardBorder,
+  },
+  klareCardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 12,
+  },
+  klareIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  minutes: {
+    color: klareColors.textSecondary,
+    fontSize: 12,
+  },
+  klareLetter: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  klareTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: klareColors.text,
     marginBottom: 8,
   },
-  progressionTitleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  progressionTitle: {
-    fontSize: 15,
-    fontWeight: "bold",
-    marginLeft: 8,
-    color: klareColors.text,
-  },
-  progressChip: {
-    backgroundColor: `${klareColors.k}15`,
-  },
-  stageName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: klareColors.k,
-    marginBottom: 4,
-  },
-  stageDescription: {
-    fontSize: 14,
-    color: klareColors.text,
-    marginBottom: 12,
-  },
-  nextStagePreview: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#F1F1F1",
-  },
-  nextStageLabel: {
-    fontSize: 12,
+  klareDescription: {
+    fontSize: 13,
     color: klareColors.textSecondary,
-  },
-  nextStageName: {
-    fontSize: 14,
-    fontWeight: "500",
-    marginVertical: 2,
-  },
-  daysUntilText: {
-    fontSize: 12,
-    color: klareColors.textSecondary,
-    fontStyle: "italic",
-  },
-  progressCard: {
-    marginBottom: 24,
-    borderRadius: 12,
-  },
-  progressContainer: {
-    marginVertical: 12,
-  },
-  progressItem: {
-    marginBottom: 12,
-  },
-  progressLabel: {
-    fontSize: 14,
-    color: klareColors.textSecondary,
-    marginBottom: 4,
+    marginBottom: 16,
+    lineHeight: 18,
+    flex: 1,
   },
   progressBarContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    marginTop: 'auto',
   },
   progressBar: {
-    flex: 1,
-    height: 8,
-    borderRadius: 4,
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 2,
+    overflow: 'hidden',
+    marginBottom: 8,
+    position: 'relative',
   },
-  progressPercentage: {
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: "bold",
+  progressFill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    borderRadius: 2,
+  },
+  progressLabels: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  progressText: {
+    fontSize: 12,
+    color: klareColors.textSecondary,
+  },
+  progressValue: {
+    fontSize: 12,
     color: klareColors.text,
+    fontWeight: '600',
   },
-  statsContainer: {
+  
+  // Today's activity card
+  todayCard: {
+    backgroundColor: klareColors.cardBackground,
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: klareColors.cardBorder,
+    marginBottom: 8,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  tag: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  tagText: {
+    color: klareColors.k,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  duration: {
+    color: klareColors.textSecondary,
+    fontSize: 14,
+  },
+  cardTitle: {
+    fontSize: 22,
+    fontWeight: "600",
+    color: klareColors.text,
+    marginBottom: 8,
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: klareColors.textSecondary,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  primaryButton: {
+    backgroundColor: klareColors.k,
+    padding: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  
+  // Life wheel card
+  lifeWheelCard: {
+    backgroundColor: klareColors.cardBackground,
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: klareColors.cardBorder,
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  wheelVisualization: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: 16,
+    position: 'relative',
+  },
+  wheelLayer: {
+    position: 'absolute',
+    borderRadius: 100,
+    borderWidth: 20,
+    borderStyle: 'solid',
+  },
+  wheelCenter: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: klareColors.k,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 5,
+  },
+  wheelValue: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  wheelText: {
+    fontSize: 14,
+    color: klareColors.textSecondary,
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  secondaryButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 12,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: "center",
+  },
+  secondaryButtonText: {
+    color: klareColors.text,
+    fontWeight: '500',
+  },
+  
+  // Tip card
+  tipCardContainer: {
+    padding: 0,
+    marginBottom: 32,
+  },
+  tipCard: {
+    backgroundColor: klareColors.k,
+    borderRadius: 20,
+    padding: 20,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  circleDecoration: {
+    position: 'absolute',
+    borderRadius: 100,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  circleLarge: {
+    right: -20,
+    top: -20,
+    width: 120,
+    height: 120,
+  },
+  circleSmall: {
+    left: -10,
+    bottom: -30,
+    width: 80,
+    height: 80,
+  },
+  tipIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  tipTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: 'white',
+    marginBottom: 8,
+  },
+  tipText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    lineHeight: 20,
+  },
+  
+  // Stats summary
+  statsSummary: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
+    marginVertical: 24,
+    paddingVertical: 16,
+    backgroundColor: klareColors.cardBackground,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: klareColors.cardBorder,
   },
   statItem: {
     alignItems: "center",
@@ -638,126 +747,16 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 12,
     color: klareColors.textSecondary,
+    marginTop: 4,
   },
   statDivider: {
     width: 1,
-    height: "80%",
-    backgroundColor: "#eee",
+    height: "60%",
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignSelf: 'center',
   },
   streakContainer: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: klareColors.text,
-    marginBottom: 16,
-    marginTop: 8,
-  },
-  klareContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginBottom: 24,
-  },
-  klareStep: {
-    width: "48%",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  klareStepHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  klareStepIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 8,
-  },
-  klareStepLetter: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  klareStepName: {
-    fontSize: 14,
-    marginBottom: 8,
-    color: klareColors.text,
-  },
-  klareStepProgress: {
-    marginTop: 4,
-  },
-  klareStepProgressBar: {
-    height: 4,
-    borderRadius: 2,
-  },
-  card: {
-    marginBottom: 16,
-    borderRadius: 12,
-  },
-  activityCard: {
-    borderLeftWidth: 3,
-    borderLeftColor: klareColors.k,
-  },
-  activityHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  activityTypeContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  activityType: {
-    fontSize: 12,
-    color: klareColors.textSecondary,
-    marginLeft: 4,
-  },
-  activityStepBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  activityTitle: {
-    fontSize: 16,
-  },
-  activityDescription: {
-    color: klareColors.textSecondary,
-  },
-  tipCard: {
-    marginBottom: 24,
-    overflow: "hidden",
-  },
-  tipBackground: {
-    padding: 0,
-    overflow: "hidden",
-    backgroundColor: klareColors.k,
-  },
-  tipContent: {
-    padding: 16,
-  },
-  tipIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  tipTitle: {
-    color: "white",
-    marginBottom: 8,
-  },
-  tipText: {
-    color: "white",
-    fontSize: 14,
-    lineHeight: 22,
   },
 });
