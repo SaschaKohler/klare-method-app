@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import {
@@ -15,40 +14,29 @@ import {
   Title,
   Paragraph,
   Button,
-  Divider,
   List,
   Chip,
   useTheme,
-  SegmentedButtons,
+  Card,
 } from "react-native-paper";
 import { HeaderBar, KlareCard } from "../components/common";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { klareSteps, KlareStep } from "../data/klareMethodData";
 import { klareColors } from "../constants/theme";
-import { getModulesByStep } from "../data/klareMethodModules";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  interpolateColor,
-  withSequence,
-  withDelay,
-} from "react-native-reanimated";
+import { Animated } from "react-native";
 import { RootStackParamList } from "../types/navigation";
 import { useUserStore } from "../store/useUserStore";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import KlareLogo from "../components/KlareLogo";
-import {
-  loadModuleContent,
-  loadModulesByStep,
-  ModuleContent,
-} from "../lib/contentService";
+import { loadModulesByStep, ModuleContent } from "../lib/contentService";
 import KlareMethodNavigationTabs from "../components/klareMethodNavigationTabs";
 
 type KlareMethodScreenRouteProp = RouteProp<RootStackParamList, "KlareMethod">;
+type KlareMethodScreenNavigationProp =
+  NativeStackNavigationProp<RootStackParamList>;
 
 // Tabs für verschiedene Inhaltstypen
 type TabType =
@@ -146,7 +134,7 @@ const supportingQuestions: Record<string, string[]> = {
 };
 
 export default function KlareMethodScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<KlareMethodScreenNavigationProp>();
   const route = useRoute<KlareMethodScreenRouteProp>();
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -170,10 +158,18 @@ export default function KlareMethodScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
-  // Animationswerte
-  const backgroundColorProgress = useSharedValue(0);
-  const iconSizeProgress = useSharedValue(1);
-  const contentOpacity = useSharedValue(0);
+  // Hilfsfunktion zur Konvertierung von Hex zu RGBA
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  // Animationswerte - using standard React Native Animated
+  const backgroundOpacity = React.useRef(new Animated.Value(0)).current;
+  const iconSizeProgress = React.useRef(new Animated.Value(1)).current;
+  const contentOpacity = React.useRef(new Animated.Value(0)).current;
 
   // Module für den aktiven Schritt laden
   useEffect(() => {
@@ -201,48 +197,65 @@ export default function KlareMethodScreen() {
     // Reset to overview tab on step change
     setActiveTab("overview");
 
+    // Reset animations
+    backgroundOpacity.setValue(0);
+    iconSizeProgress.setValue(1);
+    contentOpacity.setValue(0);
+
     // Background transition
-    backgroundColorProgress.value = 0;
-    backgroundColorProgress.value = withTiming(1, { duration: 500 });
+    Animated.timing(backgroundOpacity, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: false, // We need to animate backgroundColor
+    }).start();
 
     // Icon pulse animation
-    iconSizeProgress.value = withSequence(
-      withTiming(1.2, { duration: 300 }),
-      withTiming(1, { duration: 300 }),
-    );
+    Animated.sequence([
+      Animated.timing(iconSizeProgress, {
+        toValue: 1.2,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(iconSizeProgress, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
 
     // Content fade in
-    contentOpacity.value = 0;
-    contentOpacity.value = withDelay(200, withTiming(1, { duration: 400 }));
+    Animated.timing(contentOpacity, {
+      toValue: 1,
+      duration: 400,
+      delay: 200,
+      useNativeDriver: true,
+    }).start();
 
     // Vibration feedback für iOS
     if (Platform.OS === "ios" && window.navigator?.vibrate) {
       window.navigator.vibrate(10);
     }
-  }, [activeStepId, backgroundColorProgress, iconSizeProgress, contentOpacity]);
+  }, [activeStepId, backgroundOpacity, iconSizeProgress, contentOpacity]);
 
-  // Animierte Styles
-  const animatedHeaderStyle = useAnimatedStyle(() => {
-    return {
-      backgroundColor: interpolateColor(
-        backgroundColorProgress.value,
-        [0, 1],
-        ["rgba(255, 255, 255, 0.8)", `${activeStep.color}20`],
-      ),
-    };
-  });
+  // Animierte Styles - using standard React Native Animated interpolation
+  const animatedHeaderStyle = {
+    backgroundColor: backgroundOpacity.interpolate({
+      inputRange: [0, 1],
+      outputRange: ["transparent", hexToRgba(activeStep.color, 0.2)],
+    }),
+  };
 
-  const animatedIconContainerStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: iconSizeProgress.value }],
-    };
-  });
+  const animatedIconContainerStyle = {
+    transform: [
+      {
+        scale: iconSizeProgress,
+      },
+    ],
+  };
 
-  const animatedContentStyle = useAnimatedStyle(() => {
-    return {
-      opacity: contentOpacity.value,
-    };
-  });
+  const animatedContentStyle = {
+    opacity: contentOpacity,
+  };
 
   // Auto-Rotation durch die Schritte
   useEffect(() => {
@@ -273,10 +286,9 @@ export default function KlareMethodScreen() {
 
   // Navigation zur Übung
   const navigateToModules = useCallback(() => {
-    navigation.navigate(
-      "ModuleScreen" as never,
-      { stepId: activeStepId } as never,
-    );
+    navigation.navigate("ModuleScreen", {
+      stepId: activeStepId,
+    });
   }, [navigation, activeStepId]);
 
   // Render Methoden für verschiedene Tabs
@@ -297,7 +309,11 @@ export default function KlareMethodScreen() {
           "Entfaltung ist das Ergebnis vollständiger Kongruenz in allen Lebensbereichen. Hier erleben Sie mühelose Manifestation Ihrer Ziele, anhaltende Erfüllung und kontinuierliches Wachstum auf natürliche Weise."}
       </Paragraph>
 
-      <KlareCard style={styles.infoCard} showAccent accentColor={activeStep.color}>
+      <KlareCard
+        style={styles.infoCard}
+        showAccent
+        accentColor={activeStep.color}
+      >
         <Text style={[styles.infoTitle, { color: activeStep.color }]}>
           Worum geht es im Schritt {activeStepId}?
         </Text>
@@ -340,7 +356,8 @@ export default function KlareMethodScreen() {
         <Button
           mode="contained"
           icon="school-outline"
-          style={[styles.actionButton, { backgroundColor: activeStep.color }]}
+          style={styles.actionButton}
+          buttonColor={activeStep.color}
           onPress={navigateToModules}
         >
           Module starten
@@ -364,7 +381,7 @@ export default function KlareMethodScreen() {
           <View style={styles.transformationFrom}>
             <Chip
               style={{
-                backgroundColor: `${activeStep.color}15`,
+                backgroundColor: hexToRgba(activeStep.color, 0.08),
                 ...Platform.select({
                   ios: {
                     height: 30,
@@ -387,7 +404,7 @@ export default function KlareMethodScreen() {
           <View style={styles.transformationTo}>
             <Chip
               style={{
-                backgroundColor: `${activeStep.color}15`,
+                backgroundColor: hexToRgba(activeStep.color, 0.08),
                 ...Platform.select({
                   ios: {
                     height: 30,
@@ -425,7 +442,7 @@ export default function KlareMethodScreen() {
               <View
                 style={[
                   styles.exerciseIcon,
-                  { backgroundColor: `${activeStep.color}25` },
+                  { backgroundColor: hexToRgba(activeStep.color, 0.14) },
                 ]}
               >
                 <Text style={{ color: activeStep.color }}>{index + 1}</Text>
@@ -440,7 +457,8 @@ export default function KlareMethodScreen() {
         <Button
           mode="contained"
           icon="school-outline"
-          style={[styles.actionButton, { backgroundColor: activeStep.color }]}
+          style={styles.actionButton}
+          buttonColor={activeStep.color}
           onPress={navigateToModules}
         >
           Alle Übungen anzeigen
@@ -458,7 +476,7 @@ export default function KlareMethodScreen() {
           key={index}
           style={[
             styles.questionItem,
-            { backgroundColor: `${activeStep.color}10` },
+            { backgroundColor: hexToRgba(activeStep.color, 0.06) },
           ]}
         >
           <View
@@ -555,9 +573,10 @@ export default function KlareMethodScreen() {
                     <Button
                       mode="outlined"
                       compact
-                      style={{ borderColor: activeStep.color, height: 20 }}
+                      style={{ height: 20 }}
+                      textColor={activeStep.color}
+                      buttonColor="transparent"
                       labelStyle={{
-                        color: activeStep.color,
                         fontSize: 11,
                         marginVertical: 0,
                       }}
@@ -586,7 +605,8 @@ export default function KlareMethodScreen() {
           <Button
             mode="contained"
             icon="apps"
-            style={[styles.actionButton, { backgroundColor: activeStep.color }]}
+            style={styles.actionButton}
+            buttonColor={activeStep.color}
             onPress={navigateToModules}
           >
             Alle Module ansehen
@@ -604,17 +624,14 @@ export default function KlareMethodScreen() {
         showBackButton
         rightIcon={{
           name: autoRotate ? "pause-circle-outline" : "play-circle-outline",
-          onPress: toggleAutoRotate
+          onPress: toggleAutoRotate,
         }}
       />
 
       {/* KLARE Methode Navigation */}
       <View style={styles.stepsNavigation}>
-        <Animated.View 
-          style={[
-            styles.stepsNavigationBg, 
-            animatedHeaderStyle
-          ]} 
+        <Animated.View
+          style={[styles.stepsNavigationBg, animatedHeaderStyle]}
         />
         {klareSteps.map((step) => {
           const isActive = step.id === activeStepId;
@@ -624,7 +641,9 @@ export default function KlareMethodScreen() {
               style={[
                 styles.stepButton,
                 {
-                  backgroundColor: isActive ? `${step.color}20` : "rgba(255, 255, 255, 0.05)",
+                  backgroundColor: isActive
+                    ? hexToRgba(step.color, 0.12)
+                    : "rgba(255, 255, 255, 0.05)",
                   borderColor: isActive ? step.color : "transparent",
                 },
               ]}
@@ -635,7 +654,7 @@ export default function KlareMethodScreen() {
               <Animated.View
                 style={[
                   styles.stepIconContainer,
-                  { backgroundColor: `${step.color}30` },
+                  { backgroundColor: hexToRgba(step.color, 0.18) },
                   isActive && animatedIconContainerStyle,
                 ]}
               >

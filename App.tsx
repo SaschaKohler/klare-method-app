@@ -1,3 +1,5 @@
+import "react-native-reanimated";
+
 import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
@@ -39,7 +41,14 @@ export default function App() {
 
   if (!appReady) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#fff",
+        }}
+      >
         <KlareLogo size={60} spacing={12} animated={true} pulsate={true} />
       </View>
     );

@@ -4,6 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { KlareStep } from '../data/klareMethodData';
 import { klareColors } from '../constants/theme';
 
+// Helper function to convert hex to rgba
+const hexToRgba = (hex: string, alpha: number) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 interface KlareStepCardProps {
   step: KlareStep;
   progress: number;
@@ -50,7 +58,7 @@ const KlareStepCard: React.FC<KlareStepCardProps> = ({
         <View
           style={[
             styles.iconContainer,
-            { backgroundColor: `${step.color}20` },
+            { backgroundColor: hexToRgba(step.color, 0.12) },
           ]}
         >
           <Ionicons

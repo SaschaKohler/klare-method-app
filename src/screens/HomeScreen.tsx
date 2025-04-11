@@ -1,54 +1,59 @@
 // src/screens/HomeScreen.tsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
   ScrollView,
   TouchableOpacity,
-  ImageBackground,
-  Animated,
   StatusBar,
   Platform,
 } from "react-native";
-import {
-  Text,
-  Button,
-  ProgressBar,
-  Divider,
-  List,
-  Chip,
-} from "react-native-paper";
+import { Animated } from "react-native";
+import { Text } from "react-native-paper";
 import { HeaderBar, KlareCard } from "../components/common";
 import KlareStepCard from "../components/KlareStepCard";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../types/navigation";
+
+type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 import { Ionicons } from "@expo/vector-icons";
 import { klareColors } from "../constants/theme";
 import { useUserStore } from "../store/useUserStore";
 import { klareSteps } from "../data/klareMethodData";
-import KlareLogo from "../components/KlareLogo";
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<HomeScreenNavigationProp>();
   const user = useUserStore((state) => state.user);
   const lifeWheelAreas = useUserStore((state) => state.lifeWheelAreas);
   const getModuleProgress = useUserStore((state) => state.getModuleProgress);
   const getDaysInProgram = useUserStore((state) => state.getDaysInProgram);
   const getCurrentStage = useUserStore((state) => state.getCurrentStage);
   const getNextStage = useUserStore((state) => state.getNextStage);
-  const getAvailableModules = useUserStore((state) => state.getAvailableModules);
+  const getAvailableModules = useUserStore(
+    (state) => state.getAvailableModules,
+  );
+
+  // Helper function to convert hex to rgba
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [todayTip, setTodayTip] = useState("");
-  
-  // Animation für Stage-Fortschritt
+
+  // Animation für Stage-Fortschritt - using standard React Native Animated
   const translateY = React.useRef(new Animated.Value(50)).current;
   const opacity = React.useRef(new Animated.Value(0)).current;
 
   // Aktuelle Stage und Fortschritt
   const currentStage = getCurrentStage();
   const nextStage = getNextStage();
-  const daysInProgram = getDaysInProgram(); 
+  const daysInProgram = getDaysInProgram();
   const availableModules = getAvailableModules();
 
   // Tipps des Tages
@@ -82,17 +87,18 @@ export default function HomeScreen() {
 
   // Animation für Stage-Fortschritt
   useEffect(() => {
+    // Use standard React Native animations instead of Reanimated
     Animated.parallel([
       Animated.timing(translateY, {
         toValue: 0,
         duration: 800,
-        useNativeDriver: true,
+        useNativeDriver: true
       }),
       Animated.timing(opacity, {
         toValue: 1,
         duration: 800,
-        useNativeDriver: true,
-      }),
+        useNativeDriver: true
+      })
     ]).start();
   }, []);
 
@@ -118,6 +124,15 @@ export default function HomeScreen() {
       return "Guten Abend";
     }
   };
+  // Create animation styles using standard React Native Animated API
+  const animatedStatsSummaryStyle = {
+    opacity,
+    transform: [
+      {
+        translateY
+      }
+    ]
+  };
 
   // Berechnet den durchschnittlichen Wert aller Lebensbereiche
   const calculateLifeWheelAverage = () => {
@@ -142,7 +157,7 @@ export default function HomeScreen() {
   // Bestimme die nächsten Aktivitäten basierend auf verfügbaren Modulen
   const getNextActivities = () => {
     const activities = [];
-    
+
     // Tägliche Aktivität hinzufügen
     activities.push({
       id: "activity-daily",
@@ -151,7 +166,7 @@ export default function HomeScreen() {
       type: "daily",
       step: "R",
     });
-    
+
     // Wöchentliche Aktivität hinzufügen
     if (daysInProgram % 7 === 0 || daysInProgram % 7 === 6) {
       activities.push({
@@ -162,10 +177,12 @@ export default function HomeScreen() {
         step: "K",
       });
     }
-    
+
     // Nächstes verfügbares Modul finden
     for (const step of klareSteps) {
-      const moduleIds = availableModules.filter(id => id.startsWith(step.id.toLowerCase()));
+      const moduleIds = availableModules.filter((id) =>
+        id.startsWith(step.id.toLowerCase()),
+      );
       if (moduleIds.length > 0) {
         activities.push({
           id: `activity-module-${step.id}`,
@@ -177,7 +194,7 @@ export default function HomeScreen() {
         break;
       }
     }
-    
+
     return activities.slice(0, 3); // Maximal 3 Aktivitäten anzeigen
   };
 
@@ -188,44 +205,47 @@ export default function HomeScreen() {
 
   // Formatiere ein Datum benutzerfreundlich
   const formatDate = (date) => {
-    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-    return date.toLocaleDateString('de-DE', options);
+    const options = { day: "2-digit", month: "2-digit", year: "numeric" };
+    return date.toLocaleDateString("de-DE", options);
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['right', 'left']}>
-      <StatusBar 
-        barStyle="light-content" 
+    <SafeAreaView style={styles.container} edges={["right", "left"]}>
+      <StatusBar
+        barStyle="light-content"
         backgroundColor={klareColors.statusBarColor}
       />
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <HeaderBar 
+        <HeaderBar
           showAvatar
           avatarLetter={user?.name?.charAt(0) || "S"}
           greeting={getGreeting()}
           userName={user?.name || "Sascha"}
           showSearch
-          onSearchPress={() => {/* Handle search */}}
+          onSearchPress={() => {
+            /* Handle search */
+          }}
         />
 
         {/* Hero section with "What's bothering you today?" */}
         <View style={styles.heroSection}>
           <View style={styles.verticalAccent} />
           <Text style={styles.heroTitle}>
-            Was beschäftigt{'\n'}Dich <Text style={{color: klareColors.k}}>heute?</Text>
+            Was beschäftigt{"\n"}Dich{" "}
+            <Text style={{ color: klareColors.k }}>heute?</Text>
           </Text>
           <View style={styles.accentLine} />
         </View>
-        
+
         {/* KLARE Journey Section */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Deine KLARE Reise</Text>
-          
-          <ScrollView 
-            horizontal 
+
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalScrollContent}
           >
@@ -236,121 +256,154 @@ export default function HomeScreen() {
                 progress={stepProgress[step.id]}
                 isActive={false}
                 onPress={() =>
-                  navigation.navigate(
-                    "KlareMethod" as never,
-                    { step: step.id } as never,
-                  )
+                  navigation.navigate("KlareMethod", {
+                    step: step.id as "K" | "L" | "A" | "R" | "E",
+                  })
                 }
               />
             ))}
           </ScrollView>
         </View>
-        
+
         {/* Today for you section */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Heute für dich</Text>
-          
+
           {nextActivities.length > 0 && (
-            <KlareCard 
-              showAccent 
+            <KlareCard
+              showAccent
               accentColor={klareColors.k}
               onPress={() => {
                 const activity = nextActivities[0];
                 if (activity.type === "module") {
-                  navigation.navigate(
-                    "KlareMethod" as never,
-                    { step: activity.step } as never
-                  );
+                  navigation.navigate("KlareMethod", {
+                    step: activity.step as "K" | "L" | "A" | "R" | "E",
+                  });
                 } else if (activity.type === "daily") {
                   // Start daily exercise
                 } else if (activity.type === "weekly") {
-                  navigation.navigate("LifeWheel" as never);
+                  navigation.navigate("LifeWheel");
                 }
               }}
             >
               <View style={styles.cardHeader}>
-                <View style={[
-                  styles.tag, 
-                  { backgroundColor: `${klareColors.k}20` }
-                ]}>
+                <View
+                  style={[
+                    styles.tag,
+                    { backgroundColor: hexToRgba(klareColors.k, 0.12) },
+                  ]}
+                >
                   <Text style={styles.tagText}>Tägliche Praxis</Text>
                 </View>
-                
+
                 <Text style={styles.duration}>15 Minuten</Text>
               </View>
-              
+
               <Text style={styles.cardTitle}>Kongruenz-Check</Text>
-              
+
               <Text style={styles.cardDescription}>
-                Erlebe mehr Klarheit und inneren Frieden, indem du deine Gedanken, Gefühle und Handlungen in Einklang bringst.
+                Erlebe mehr Klarheit und inneren Frieden, indem du deine
+                Gedanken, Gefühle und Handlungen in Einklang bringst.
               </Text>
-              
+
               <TouchableOpacity style={styles.primaryButton}>
                 <Text style={styles.buttonText}>Jetzt starten</Text>
-                <Ionicons name="arrow-forward" size={18} color="white" style={{marginLeft: 8}} />
+                <Ionicons
+                  name="arrow-forward"
+                  size={18}
+                  color="white"
+                  style={{ marginLeft: 8 }}
+                />
               </TouchableOpacity>
             </KlareCard>
           )}
         </View>
-        
+
         {/* Life Wheel Preview */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Dein Lebensrad</Text>
-          
+
           <KlareCard>
             <View style={styles.wheelVisualization}>
-              <View style={[styles.wheelLayer, { width: '100%', height: '100%', borderColor: 'rgba(167, 139, 250, 0.2)' }]} />
-              <View style={[styles.wheelLayer, { width: '80%', height: '80%', borderColor: 'rgba(245, 158, 11, 0.2)' }]} />
-              <View style={[styles.wheelLayer, { width: '60%', height: '60%', borderColor: 'rgba(236, 72, 153, 0.2)' }]} />
-              <View style={[styles.wheelLayer, { width: '40%', height: '40%', borderColor: 'rgba(16, 185, 129, 0.2)' }]} />
-              
+              <View
+                style={[
+                  styles.wheelLayer,
+                  {
+                    width: "100%",
+                    height: "100%",
+                    borderColor: "rgba(167, 139, 250, 0.2)",
+                  },
+                ]}
+              />
+              <View
+                style={[
+                  styles.wheelLayer,
+                  {
+                    width: "80%",
+                    height: "80%",
+                    borderColor: "rgba(245, 158, 11, 0.2)",
+                  },
+                ]}
+              />
+              <View
+                style={[
+                  styles.wheelLayer,
+                  {
+                    width: "60%",
+                    height: "60%",
+                    borderColor: "rgba(236, 72, 153, 0.2)",
+                  },
+                ]}
+              />
+              <View
+                style={[
+                  styles.wheelLayer,
+                  {
+                    width: "40%",
+                    height: "40%",
+                    borderColor: "rgba(16, 185, 129, 0.2)",
+                  },
+                ]}
+              />
+
               <View style={styles.wheelCenter}>
-                <Text style={styles.wheelValue}>{calculateLifeWheelAverage()}</Text>
+                <Text style={styles.wheelValue}>
+                  {calculateLifeWheelAverage()}
+                </Text>
               </View>
             </View>
-            
+
             <Text style={styles.wheelText}>
               Aktueller Durchschnittswert aller Lebensbereiche
             </Text>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => navigation.navigate("LifeWheel" as never)}
+              onPress={() => navigation.navigate("LifeWheel")}
             >
               <Text style={styles.secondaryButtonText}>Details anzeigen</Text>
             </TouchableOpacity>
           </KlareCard>
         </View>
-        
+
         {/* Tip of the Day */}
         <View style={styles.tipCardContainer}>
           <TouchableOpacity activeOpacity={0.9} style={styles.tipCard}>
             <View style={[styles.circleDecoration, styles.circleLarge]} />
             <View style={[styles.circleDecoration, styles.circleSmall]} />
-            
+
             <View style={styles.tipIcon}>
               <Ionicons name="bulb-outline" size={24} color="white" />
             </View>
-            
+
             <Text style={styles.tipTitle}>Tipp des Tages</Text>
-            
+
             <Text style={styles.tipText}>{todayTip}</Text>
           </TouchableOpacity>
         </View>
-        
+
         {/* Stats Summary */}
-        <Animated.View
-          style={[
-            styles.statsSummary,
-            {
-              opacity,
-              transform: [{ translateY: translateY.interpolate({
-                inputRange: [0, 50],
-                outputRange: [0, 20]
-              }) }],
-            }
-          ]}
-        >
+        <Animated.View style={[styles.statsSummary, animatedStatsSummaryStyle]}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{daysInProgram}</Text>
             <Text style={styles.statLabel}>Tage</Text>
@@ -359,9 +412,7 @@ export default function HomeScreen() {
           <View style={styles.statDivider}></View>
 
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>
-              {availableModules.length}/35
-            </Text>
+            <Text style={styles.statValue}>{availableModules.length}/35</Text>
             <Text style={styles.statLabel}>Module</Text>
           </View>
 
@@ -374,7 +425,6 @@ export default function HomeScreen() {
             <Text style={styles.statLabel}>Streak</Text>
           </View>
         </Animated.View>
-
       </ScrollView>
     </SafeAreaView>
   );
@@ -395,7 +445,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 24,
-    paddingTop: Platform.OS === 'android' ? 12 : 0,
+    paddingTop: Platform.OS === "android" ? 12 : 0,
   },
   userInfo: {
     flexDirection: "row",
@@ -411,9 +461,9 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   avatarText: {
-    color: 'white',
+    color: "white",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   greeting: {
     fontSize: 14,
@@ -435,16 +485,14 @@ const styles = StyleSheet.create({
   searchButtonText: {
     color: klareColors.text,
   },
-  
-  // Hero section styles
   heroSection: {
     padding: 16,
     paddingTop: 24,
     marginBottom: 16,
-    position: 'relative',
+    position: "relative",
   },
   verticalAccent: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     top: 30,
     width: 4,
@@ -467,7 +515,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     borderRadius: 2,
   },
-  
+
   // Section container
   sectionContainer: {
     marginBottom: 24,
@@ -482,7 +530,7 @@ const styles = StyleSheet.create({
   horizontalScrollContent: {
     paddingRight: 16,
   },
-  
+
   // KLARE Cards
   klareCard: {
     width: 170,
@@ -530,18 +578,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   progressBarContainer: {
-    marginTop: 'auto',
+    marginTop: "auto",
   },
   progressBar: {
     height: 4,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: "rgba(255,255,255,0.1)",
     borderRadius: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 8,
-    position: 'relative',
+    position: "relative",
   },
   progressFill: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     top: 0,
     bottom: 0,
@@ -558,9 +606,9 @@ const styles = StyleSheet.create({
   progressValue: {
     fontSize: 12,
     color: klareColors.text,
-    fontWeight: '600',
+    fontWeight: "600",
   },
-  
+
   // Today's activity card
   todayCard: {
     backgroundColor: klareColors.cardBackground,
@@ -584,7 +632,7 @@ const styles = StyleSheet.create({
   tagText: {
     color: klareColors.k,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   duration: {
     color: klareColors.textSecondary,
@@ -611,11 +659,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   buttonText: {
-    color: 'white',
-    fontWeight: '600',
+    color: "white",
+    fontWeight: "600",
     fontSize: 16,
   },
-  
+
   // Life wheel card
   lifeWheelCard: {
     backgroundColor: klareColors.cardBackground,
@@ -631,17 +679,17 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 100,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: "rgba(255, 255, 255, 0.1)",
     justifyContent: "center",
     alignItems: "center",
     marginVertical: 16,
-    position: 'relative',
+    position: "relative",
   },
   wheelLayer: {
-    position: 'absolute',
+    position: "absolute",
     borderRadius: 100,
     borderWidth: 20,
-    borderStyle: 'solid',
+    borderStyle: "solid",
   },
   wheelCenter: {
     width: 50,
@@ -653,9 +701,9 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   wheelValue: {
-    color: 'white',
+    color: "white",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   wheelText: {
     fontSize: 14,
@@ -664,17 +712,17 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   secondaryButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     padding: 12,
     borderRadius: 12,
-    width: '100%',
+    width: "100%",
     alignItems: "center",
   },
   secondaryButtonText: {
     color: klareColors.text,
-    fontWeight: '500',
+    fontWeight: "500",
   },
-  
+
   // Tip card
   tipCardContainer: {
     padding: 0,
@@ -684,13 +732,13 @@ const styles = StyleSheet.create({
     backgroundColor: klareColors.k,
     borderRadius: 20,
     padding: 20,
-    overflow: 'hidden',
-    position: 'relative',
+    overflow: "hidden",
+    position: "relative",
   },
   circleDecoration: {
-    position: 'absolute',
+    position: "absolute",
     borderRadius: 100,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
   },
   circleLarge: {
     right: -20,
@@ -708,7 +756,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
@@ -716,15 +764,15 @@ const styles = StyleSheet.create({
   tipTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: 'white',
+    color: "white",
     marginBottom: 8,
   },
   tipText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: "rgba(255, 255, 255, 0.9)",
     lineHeight: 20,
   },
-  
+
   // Stats summary
   statsSummary: {
     flexDirection: "row",
@@ -752,8 +800,8 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: "60%",
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    alignSelf: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    alignSelf: "center",
   },
   streakContainer: {
     flexDirection: "row",
