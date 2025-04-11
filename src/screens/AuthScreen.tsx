@@ -64,103 +64,95 @@ export default function AuthScreen() {
         <View style={styles.content}>
           {/* KLARE Logo */}
           <View style={styles.logoContainer}>
-            <View style={styles.logoBackground}>
-              <KlareLogo
-                size={50}
-                spacing={10}
-                animated={true}
-                pulsate={true}
-                style={{ marginTop: 8 }}
-              />
-            </View>
+            <KlareLogo
+              size={50}
+              spacing={10}
+              animated={true}
+              pulsate={true}
+              style={{ marginTop: 8 }}
+            />
           </View>
-          <Title style={styles.title}>KLARE Methode</Title>
-          <Text style={styles.subtitle}>
-            {isLogin
-              ? "Melde dich an, um deine Kongruenz-Reise fortzusetzen"
-              : "Erstelle ein Konto, um deine Kongruenz-Reise zu beginnen"}
-          </Text>
+          
+          <View style={styles.heroSection}>
+            <Text style={styles.title}>KLARE Methode</Text>
+            <View style={styles.accentLine} />
+            <Text style={styles.subtitle}>
+              {isLogin
+                ? "Melde dich an, um deine Kongruenz-Reise fortzusetzen"
+                : "Erstelle ein Konto, um deine Kongruenz-Reise zu beginnen"}
+            </Text>
+          </View>
 
-          {!isLogin && (
+          <View style={styles.formContainer}>
+            {!isLogin && (
+              <TextInput
+                label="Name"
+                value={name}
+                onChangeText={setName}
+                style={styles.input}
+                mode="outlined"
+                autoCapitalize="words"
+                outlineColor="rgba(255, 255, 255, 0.2)"
+                activeOutlineColor={klareColors.k}
+                textColor={klareColors.text}
+                theme={{ colors: { background: klareColors.cardBackground } }}
+              />
+            )}
+
             <TextInput
-              label="Name"
-              value={name}
-              onChangeText={setName}
+              label="E-Mail"
+              value={email}
+              onChangeText={setEmail}
               style={styles.input}
               mode="outlined"
-              autoCapitalize="words"
-              theme={{
-                colors: {
-                  primary: klareColors.k,
-                  background: klareColors.cardBackground,
-                  text: klareColors.text,
-                  placeholder: klareColors.textSecondary,
-                }
-              }}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              outlineColor="rgba(255, 255, 255, 0.2)"
+              activeOutlineColor={klareColors.k}
+              textColor={klareColors.text}
+              theme={{ colors: { background: klareColors.cardBackground } }}
             />
-          )}
 
-          <TextInput
-            label="E-Mail"
-            value={email}
-            onChangeText={setEmail}
-            style={styles.input}
-            mode="outlined"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            theme={{
-              colors: {
-                primary: klareColors.k,
-                background: klareColors.cardBackground,
-                text: klareColors.text,
-                placeholder: klareColors.textSecondary,
-              }
-            }}
-          />
+            <TextInput
+              label="Passwort"
+              value={password}
+              onChangeText={setPassword}
+              style={styles.input}
+              mode="outlined"
+              secureTextEntry
+              outlineColor="rgba(255, 255, 255, 0.2)"
+              activeOutlineColor={klareColors.k}
+              textColor={klareColors.text}
+              theme={{ colors: { background: klareColors.cardBackground } }}
+            />
 
-          <TextInput
-            label="Passwort"
-            value={password}
-            onChangeText={setPassword}
-            style={styles.input}
-            mode="outlined"
-            secureTextEntry
-            theme={{
-              colors: {
-                primary: klareColors.k,
-                background: klareColors.cardBackground,
-                text: klareColors.text,
-                placeholder: klareColors.textSecondary,
-              }
-            }}
-          />
+            {error && (
+              <HelperText type="error" style={styles.errorText} visible={!!error}>
+                {error}
+              </HelperText>
+            )}
 
-          {error && (
-            <HelperText type="error" visible={!!error} style={styles.errorText}>
-              {error}
-            </HelperText>
-          )}
+            <Button
+              mode="contained"
+              onPress={handleAuth}
+              style={styles.button}
+              loading={loading}
+              disabled={loading || !email || !password}
+            >
+              {isLogin ? "Anmelden" : "Registrieren"}
+            </Button>
 
-          <Button
-            mode="contained"
-            onPress={handleAuth}
-            style={styles.button}
-            loading={loading}
-            disabled={loading || !email || !password}
-          >
-            {isLogin ? "Anmelden" : "Registrieren"}
-          </Button>
-
-          <Button
-            mode="text"
-            onPress={() => setIsLogin(!isLogin)}
-            style={styles.toggleButton}
-            labelStyle={{ color: klareColors.text }}
-          >
-            {isLogin
-              ? "Neues Konto erstellen"
-              : "Bereits registriert? Anmelden"}
-          </Button>
+            <Button
+              mode="text"
+              onPress={() => setIsLogin(!isLogin)}
+              style={styles.toggleButton}
+              textColor={klareColors.l}
+            >
+              {isLogin
+                ? "Neues Konto erstellen"
+                : "Bereits registriert? Anmelden"}
+            </Button>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -177,54 +169,58 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 24,
+    padding: 20,
     justifyContent: "center",
   },
   logoContainer: {
     alignItems: "center",
-    marginBottom: 30,
+    marginBottom: 20,
   },
-  logoBackground: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: klareColors.k,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 5,
+  heroSection: {
+    alignItems: "center",
+    marginBottom: 30,
   },
   title: {
     fontSize: 32,
     fontWeight: "bold",
     textAlign: "center",
     color: klareColors.text,
-    marginBottom: 16,
+    marginBottom: 10,
+  },
+  accentLine: {
+    height: 3,
+    width: 60,
+    backgroundColor: klareColors.k,
+    marginVertical: 12,
+    borderRadius: 2,
   },
   subtitle: {
     textAlign: "center",
-    marginBottom: 40,
-    color: klareColors.textSecondary,
     fontSize: 16,
+    marginTop: 8,
+    color: klareColors.textSecondary,
     lineHeight: 22,
   },
+  formContainer: {
+    width: "100%",
+    maxWidth: 400,
+    alignSelf: "center",
+  },
   input: {
-    marginBottom: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    marginBottom: 16,
+    backgroundColor: klareColors.cardBackground,
   },
   errorText: {
-    color: '#ff6b6b',
+    color: "#ff6b6b",
+    marginBottom: 16,
   },
   button: {
-    marginTop: 30,
+    marginTop: 24,
     backgroundColor: klareColors.k,
-    borderRadius: 10,
+    borderRadius: 12,
     paddingVertical: 6,
   },
   toggleButton: {
-    marginTop: 20,
+    marginTop: 16,
   },
 });
