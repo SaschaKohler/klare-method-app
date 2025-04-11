@@ -234,7 +234,7 @@ export default function HomeScreen() {
                 key={step.id}
                 step={step}
                 progress={stepProgress[step.id]}
-                isActive={activeTab === step.id}
+                isActive={false}
                 onPress={() =>
                   navigation.navigate(
                     "KlareMethod" as never,
