@@ -16,6 +16,9 @@ import LifeWheelScreen from "../screens/LifeWheelScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import LearnScreen from "../screens/LearnScreen";
 import AuthScreen from "../screens/AuthScreen";
+import JournalScreen from "../screens/JournalScreen";
+import JournalEditorScreen from "../screens/JournalEditorScreen";
+import JournalViewerScreen from "../screens/JournalViewerScreen";
 
 // Definiere die Stack-Parameter
 export type RootStackParamList = {
@@ -23,6 +26,14 @@ export type RootStackParamList = {
   Auth: undefined;
   KlareMethod: { step?: "K" | "L" | "A" | "R" | "E" };
   LifeWheel: undefined;
+  Journal: undefined;
+  JournalEditor: {
+    templateId?: string;
+    date?: string;
+  };
+  JournalViewer: {
+    entryId: string;
+  };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -65,6 +76,15 @@ const TabNavigator = () => {
           title: "Lebensrad",
           tabBarAccessibilityLabel: "Life Tab",
           header: (props) => <CustomHeader title="Lebensrad" />,
+        }}
+      />
+      <Tab.Screen
+        name="Journal"
+        component={JournalScreen}
+        options={{
+          title: "Journal",
+          tabBarAccessibilityLabel: "Journal Tab",
+          headerShown: false,
         }}
       />
       <Tab.Screen
@@ -133,6 +153,16 @@ const MainNavigator = () => {
                 />
               ),
             }}
+          />
+          <Stack.Screen
+            name="JournalEditor"
+            component={JournalEditorScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="JournalViewer"
+            component={JournalViewerScreen}
+            options={{ headerShown: false }}
           />
         </>
       ) : (
