@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { View, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
+import React, { useMemo, useState } from "react";
+import {
+  View,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Pressable,
+} from "react-native";
 import {
   Text,
   TextInput,
@@ -7,177 +14,644 @@ import {
   Title,
   HelperText,
   ActivityIndicator,
+  useTheme,
+  TouchableRipple,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserStore } from "../store/useUserStore";
-import { klareColors } from "../constants/theme";
+import {
+  darkKlareColors,
+  klareColors,
+  lightKlareColors,
+} from "../constants/theme";
 import KlareLogo from "../components/KlareLogo";
+import createAuthScreenStyles from "../constants/authScreenStyle";
+import { useThemeStore } from "../store/useThemeStore";
+import { Ionicons } from "@expo/vector-icons";
+import { MotiView, MotiText, AnimatePresence } from "moti";
+import { MotiPressable } from "moti/interactions";
+
+// Auth states
+type AuthViewState = "welcome" | "signin" | "signup" | "forgot";
+
+// Social auth providers
+type SocialProvider = "facebook" | "instagram" | "apple" | "twitter";
 
 export default function AuthScreen() {
-  const [isLogin, setIsLogin] = useState(true);
+  // Auth state
+  const [currentView, setCurrentView] = useState<AuthViewState>("welcome");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Theme setup
+  const theme = useTheme();
+  const { getActiveTheme } = useThemeStore();
+  const isDarkMode = getActiveTheme();
+  const activeKlareColors = isDarkMode ? darkKlareColors : lightKlareColors;
+  const styles = useMemo(
+    () => createAuthScreenStyles(theme, activeKlareColors),
+    [theme, activeKlareColors],
+  );
+
+  // Auth methods from store
   const signIn = useUserStore((state) => state.signIn);
   const signUp = useUserStore((state) => state.signUp);
 
-  const handleAuth = async () => {
+  // Handle auth actions
+  const handleSignIn = async () => {
     setLoading(true);
     setError(null);
 
-    if (isLogin) {
-      const { error } = await signIn(email, password);
-      if (error) {
-        setError(
-          "Anmeldung fehlgeschlagen. Bitte überprüfe deine Anmeldedaten.",
-        );
-      }
-    } else {
-      if (!name.trim()) {
-        setError("Bitte gib deinen Namen ein.");
-        setLoading(false);
-        return;
-      }
-
-      const { error } = await signUp(email, password, name);
-      if (error) {
-        setError(
-          "Registrierung fehlgeschlagen. Bitte versuche es mit einer anderen E-Mail-Adresse.",
-        );
-      }
+    const { error } = await signIn(email, password);
+    if (error) {
+      setError("Anmeldung fehlgeschlagen. Bitte überprüfe deine Zugangsdaten.");
     }
 
     setLoading(false);
   };
 
+  const handleSignUp = async () => {
+    setLoading(true);
+    setError(null);
+
+    if (!firstName.trim() || !lastName.trim()) {
+      setError("Bitte gib deinen vollständigen Namen ein.");
+      setLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Die Passwörter stimmen nicht überein.");
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await signUp(email, password, `${firstName} ${lastName}`);
+    if (error) {
+      setError(
+        "Registrierung fehlgeschlagen. Bitte versuche es mit einer anderen E-Mail-Adresse.",
+      );
+    }
+
+    setLoading(false);
+  };
+
+  const handleSocialAuth = (provider: SocialProvider) => {
+    console.log(`Social auth with ${provider}`);
+    // Implement social auth logic here
+  };
+
+  const handleForgotPassword = () => {
+    console.log("Password reset for:", email);
+    // Implement password reset logic here
+    setCurrentView("signin");
+  };
+
+  // Render social buttons
+  const renderSocialButtons = () => (
+    <View style={styles.socialContainer}>
+      <View style={styles.socialDivider}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>oder</Text>
+        <View style={styles.dividerLine} />
+      </View>
+      <View style={styles.socialButtonsRow}>
+        <MotiPressable
+          onPress={() => handleSocialAuth("facebook")}
+          style={styles.socialButton}
+          animate={({ pressed }) => {
+            "worklet";
+            return {
+              scale: pressed ? 0.95 : 1,
+              backgroundColor: pressed
+                ? isDarkMode
+                  ? "#333"
+                  : "#f0f0f0"
+                : styles.socialButton.backgroundColor,
+            };
+          }}
+          transition={{ type: "timing", duration: 100 }}
+        >
+          <Ionicons name="logo-facebook" size={24} color="#3b5998" />
+        </MotiPressable>
+
+        <MotiPressable
+          onPress={() => handleSocialAuth("instagram")}
+          style={styles.socialButton}
+          animate={({ pressed }) => {
+            "worklet";
+            return {
+              scale: pressed ? 0.95 : 1,
+              backgroundColor: pressed
+                ? isDarkMode
+                  ? "#333"
+                  : "#f0f0f0"
+                : styles.socialButton.backgroundColor,
+            };
+          }}
+          transition={{ type: "timing", duration: 100 }}
+        >
+          <Ionicons name="logo-instagram" size={24} color="#c13584" />
+        </MotiPressable>
+
+        <MotiPressable
+          onPress={() => handleSocialAuth("apple")}
+          style={styles.socialButton}
+          animate={({ pressed }) => {
+            "worklet";
+            return {
+              scale: pressed ? 0.95 : 1,
+              backgroundColor: pressed
+                ? isDarkMode
+                  ? "#333"
+                  : "#f0f0f0"
+                : styles.socialButton.backgroundColor,
+            };
+          }}
+          transition={{ type: "timing", duration: 100 }}
+        >
+          <Ionicons
+            name="logo-apple"
+            size={24}
+            color={isDarkMode ? "#fff" : "#000"}
+          />
+        </MotiPressable>
+
+        <MotiPressable
+          onPress={() => handleSocialAuth("twitter")}
+          style={styles.socialButton}
+          animate={({ pressed }) => {
+            "worklet";
+            return {
+              scale: pressed ? 0.95 : 1,
+              backgroundColor: pressed
+                ? isDarkMode
+                  ? "#333"
+                  : "#f0f0f0"
+                : styles.socialButton.backgroundColor,
+            };
+          }}
+          transition={{ type: "timing", duration: 100 }}
+        >
+          <Ionicons name="logo-twitter" size={24} color="#1da1f2" />
+        </MotiPressable>
+      </View>
+    </View>
+  );
+
+  // Render welcome view
+  const renderWelcomeView = () => (
+    <MotiView
+      from={{ opacity: 0, translateY: 20 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: "timing", duration: 600, delay: 300 }}
+      style={styles.welcomeContent}
+    >
+      <View style={styles.logoContainer}>
+        <KlareLogo
+          size={60}
+          spacing={10}
+          animated={true}
+          pulsate={true}
+          style={{ marginTop: 8 }}
+        />
+      </View>
+
+      <MotiText
+        from={{ opacity: 0, translateY: 10 }}
+        animate={{ opacity: 1, translateY: 0 }}
+        transition={{ type: "timing", duration: 600, delay: 500 }}
+        style={styles.welcomeTitle}
+      >
+        Willkommen zur KLARE Methode
+      </MotiText>
+
+      <MotiText
+        from={{ opacity: 0, translateY: 10 }}
+        animate={{ opacity: 1, translateY: 0 }}
+        transition={{ type: "timing", duration: 600, delay: 600 }}
+        style={[styles.subtitle, { textAlign: "center" }]}
+      >
+        Entdecke den Weg zu mehr Kongruenz und authentischem Selbstausdruck in
+        allen Lebensbereichen.
+      </MotiText>
+
+      <MotiView
+        from={{ opacity: 0, translateY: 20 }}
+        animate={{ opacity: 1, translateY: 0 }}
+        transition={{ type: "timing", duration: 600, delay: 700 }}
+        style={styles.welcomeButtonsContainer}
+      >
+        <Button
+          mode="contained"
+          style={[
+            styles.button,
+            styles.primaryButton,
+            { width: "100%", alignSelf: "stretch" },
+          ]}
+          labelStyle={styles.buttonLabel}
+          onPress={() => setCurrentView("signin")}
+        >
+          Anmelden
+        </Button>
+
+        <Button
+          mode="outlined"
+          style={[styles.button, { width: "100%", alignSelf: "stretch" }]}
+          labelStyle={styles.buttonLabel}
+          onPress={() => setCurrentView("signup")}
+        >
+          Registrieren
+        </Button>
+      </MotiView>
+    </MotiView>
+  );
+
+  // Render sign in view
+  const renderSignInView = () => (
+    <MotiView
+      from={{ opacity: 0, translateY: 20 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: "timing", duration: 400 }}
+      style={[styles.animatedCard, { width: "100%" }]}
+    >
+      <Pressable
+        style={styles.backButton}
+        onPress={() => setCurrentView("welcome")}
+      >
+        <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+      </Pressable>
+
+      <View style={styles.logoContainer}>
+        <MotiText
+          from={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ type: "timing", duration: 600, delay: 300 }}
+          style={styles.logoText}
+        >
+          KLARE
+        </MotiText>
+      </View>
+
+      <TextInput
+        label="E-Mail oder Benutzername"
+        value={email}
+        onChangeText={setEmail}
+        style={styles.input}
+        mode="outlined"
+        theme={{
+          colors: {
+            onSurfaceVariant: theme.colors.text,
+            surface: theme.dark ? "rgba(40, 40, 50, 0.6)" : "#f5f5f5",
+          },
+        }}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        left={
+          <TextInput.Icon
+            icon="email"
+            color={activeKlareColors.textSecondary}
+          />
+        }
+      />
+
+      <TextInput
+        label="Passwort"
+        value={password}
+        onChangeText={setPassword}
+        style={styles.passwordInput}
+        mode="outlined"
+        theme={{
+          colors: {
+            onSurfaceVariant: theme.colors.text,
+            surface: theme.dark ? "rgba(40, 40, 50, 0.6)" : "#f5f5f5",
+          },
+        }}
+        secureTextEntry
+        left={
+          <TextInput.Icon icon="lock" color={activeKlareColors.textSecondary} />
+        }
+      />
+
+      <TouchableRipple
+        style={styles.forgotPassword}
+        onPress={() => setCurrentView("forgot")}
+      >
+        <Text style={styles.forgotPasswordText}>Passwort vergessen?</Text>
+      </TouchableRipple>
+
+      {error && (
+        <HelperText type="error" visible={!!error}>
+          {error}
+        </HelperText>
+      )}
+
+      <Button
+        mode="contained"
+        onPress={handleSignIn}
+        style={[styles.button, { width: "100%", alignSelf: "stretch" }]}
+        loading={loading}
+        disabled={loading || !email || !password}
+      >
+        Anmelden
+      </Button>
+
+      <View style={styles.signupPromptContainer}>
+        <Text style={styles.promptText}>Noch kein Konto?</Text>
+        <TouchableRipple onPress={() => setCurrentView("signup")}>
+          <Text style={styles.promptLink}>Registrieren</Text>
+        </TouchableRipple>
+      </View>
+
+      {renderSocialButtons()}
+    </MotiView>
+  );
+
+  // Render sign up view
+  const renderSignUpView = () => (
+    <MotiView
+      from={{ opacity: 0, translateY: 20 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: "timing", duration: 400 }}
+      style={styles.animatedCard}
+    >
+      <Pressable
+        style={styles.backButton}
+        onPress={() => setCurrentView("welcome")}
+      >
+        <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+      </Pressable>
+
+      <View style={styles.logoContainer}>
+        <MotiText
+          from={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ type: "timing", duration: 600, delay: 300 }}
+          style={styles.logoText}
+        >
+          KLARE
+        </MotiText>
+      </View>
+
+      <View style={styles.inputRow}>
+        <TextInput
+          label="Vorname"
+          value={firstName}
+          onChangeText={setFirstName}
+          style={styles.halfInput}
+          mode="outlined"
+          theme={{
+            colors: {
+              onSurfaceVariant: theme.colors.text,
+              surface: theme.dark ? "rgba(40, 40, 50, 0.6)" : "#f5f5f5",
+            },
+          }}
+          autoCapitalize="words"
+          left={
+            <TextInput.Icon
+              icon="account"
+              color={activeKlareColors.textSecondary}
+            />
+          }
+        />
+        <TextInput
+          label="Nachname"
+          value={lastName}
+          onChangeText={setLastName}
+          style={styles.halfInput}
+          mode="outlined"
+          theme={{
+            colors: {
+              onSurfaceVariant: theme.colors.text,
+              surface: theme.dark ? "rgba(40, 40, 50, 0.6)" : "#f5f5f5",
+            },
+          }}
+          autoCapitalize="words"
+          left={
+            <TextInput.Icon
+              icon="account"
+              color={activeKlareColors.textSecondary}
+            />
+          }
+        />
+      </View>
+
+      <TextInput
+        label="E-Mail"
+        value={email}
+        onChangeText={setEmail}
+        style={styles.input}
+        mode="outlined"
+        theme={{
+          colors: {
+            onSurfaceVariant: theme.colors.text,
+            surface: theme.dark ? "rgba(40, 40, 50, 0.6)" : "#f5f5f5",
+          },
+        }}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        left={
+          <TextInput.Icon
+            icon="email"
+            color={activeKlareColors.textSecondary}
+          />
+        }
+      />
+
+      <TextInput
+        label="Passwort"
+        value={password}
+        onChangeText={setPassword}
+        style={styles.input}
+        mode="outlined"
+        theme={{
+          colors: {
+            onSurfaceVariant: theme.colors.text,
+            surface: theme.dark ? "rgba(40, 40, 50, 0.6)" : "#f5f5f5",
+          },
+        }}
+        secureTextEntry
+        left={
+          <TextInput.Icon icon="lock" color={activeKlareColors.textSecondary} />
+        }
+      />
+
+      <TextInput
+        label="Passwort bestätigen"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        style={styles.input}
+        mode="outlined"
+        theme={{
+          colors: {
+            onSurfaceVariant: theme.colors.text,
+            surface: theme.dark ? "rgba(40, 40, 50, 0.6)" : "#f5f5f5",
+          },
+        }}
+        secureTextEntry
+        left={
+          <TextInput.Icon
+            icon="lock-check"
+            color={activeKlareColors.textSecondary}
+          />
+        }
+      />
+
+      {error && (
+        <HelperText type="error" visible={!!error}>
+          {error}
+        </HelperText>
+      )}
+
+      <Button
+        mode="contained"
+        onPress={handleSignUp}
+        style={[
+          styles.button,
+          styles.primaryButton,
+          { width: "100%", alignSelf: "stretch" },
+        ]}
+        labelStyle={styles.buttonLabel}
+        loading={loading}
+        disabled={
+          loading ||
+          !email ||
+          !password ||
+          !firstName ||
+          !lastName ||
+          !confirmPassword
+        }
+      >
+        Registrieren
+      </Button>
+
+      <View style={styles.signupPromptContainer}>
+        <Text style={styles.promptText}>Bereits ein Konto?</Text>
+        <TouchableRipple onPress={() => setCurrentView("signin")}>
+          <Text style={styles.promptLink}>Anmelden</Text>
+        </TouchableRipple>
+      </View>
+
+      {renderSocialButtons()}
+    </MotiView>
+  );
+
+  // Render forgot password view
+  const renderForgotPasswordView = () => (
+    <MotiView
+      from={{ opacity: 0, translateY: 20 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: "timing", duration: 400 }}
+      style={styles.forgotContainer}
+    >
+      <Pressable
+        style={styles.backButton}
+        onPress={() => setCurrentView("signin")}
+      >
+        <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+      </Pressable>
+
+      <View style={styles.logoContainer}>
+        <MotiText
+          from={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ type: "timing", duration: 600, delay: 300 }}
+          style={styles.logoText}
+        >
+          KLARE
+        </MotiText>
+      </View>
+
+      <MotiView
+        from={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", delay: 300 }}
+      >
+        <Ionicons
+          name="help-circle-outline"
+          size={120}
+          color={theme.colors.primary}
+        />
+      </MotiView>
+
+      <Text style={styles.instructionText}>
+        Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum
+        Zurücksetzen deines Passworts.
+      </Text>
+
+      <TextInput
+        label="E-Mail"
+        value={email}
+        onChangeText={setEmail}
+        style={styles.input}
+        mode="outlined"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        left={
+          <TextInput.Icon
+            icon="email"
+            color={activeKlareColors.textSecondary}
+          />
+        }
+      />
+
+      {error && (
+        <HelperText type="error" visible={!!error}>
+          {error}
+        </HelperText>
+      )}
+
+      <Button
+        mode="contained"
+        onPress={handleForgotPassword}
+        style={[
+          styles.button,
+          styles.primaryButton,
+          { width: "100%", alignSelf: "stretch" },
+        ]}
+        labelStyle={styles.buttonLabel}
+        loading={loading}
+        disabled={loading || !email}
+      >
+        Passwort zurücksetzen
+      </Button>
+
+      <View style={styles.termsContainer}>
+        <Text style={styles.termsText}>
+          Mit der Fortsetzung stimmst du unseren{" "}
+          <Text style={styles.termsLink}>Nutzungsbedingungen</Text> und der{" "}
+          <Text style={styles.termsLink}>Datenschutzerklärung</Text> zu.
+        </Text>
+      </View>
+    </MotiView>
+  );
+
+  // Main render
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoid}
       >
-        <View style={styles.content}>
-          {/* KLARE Logo */}
-          <View style={styles.logoContainer}>
-            <KlareLogo
-              size={40}
-              spacing={8}
-              animated={true}
-              pulsate={true}
-              style={{ marginTop: 8 }}
-            />
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.content}>
+            <AnimatePresence exitBeforeEnter>
+              {currentView === "welcome" && renderWelcomeView()}
+              {currentView === "signin" && renderSignInView()}
+              {currentView === "signup" && renderSignUpView()}
+              {currentView === "forgot" && renderForgotPasswordView()}
+            </AnimatePresence>
           </View>
-          {/* <View style={styles.logoContainer}> */}
-          {/*   <KlareLogo size={30} spacing={8} animated={true} /> */}
-          {/* </View> */}
-          <Title style={styles.title}>KLARE Methode</Title>
-          <Text style={styles.subtitle}>
-            {isLogin
-              ? "Melde dich an, um deine Kongruenz-Reise fortzusetzen"
-              : "Erstelle ein Konto, um deine Kongruenz-Reise zu beginnen"}
-          </Text>
-
-          {!isLogin && (
-            <TextInput
-              label="Name"
-              value={name}
-              onChangeText={setName}
-              style={styles.input}
-              mode="outlined"
-              autoCapitalize="words"
-            />
-          )}
-
-          <TextInput
-            label="E-Mail"
-            value={email}
-            onChangeText={setEmail}
-            style={styles.input}
-            mode="outlined"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-
-          <TextInput
-            label="Passwort"
-            value={password}
-            onChangeText={setPassword}
-            style={styles.input}
-            mode="outlined"
-            secureTextEntry
-          />
-
-          {error && (
-            <HelperText type="error" visible={!!error}>
-              {error}
-            </HelperText>
-          )}
-
-          <Button
-            mode="contained"
-            onPress={handleAuth}
-            style={styles.button}
-            loading={loading}
-            disabled={loading || !email || !password}
-          >
-            {isLogin ? "Anmelden" : "Registrieren"}
-          </Button>
-
-          <Button
-            mode="text"
-            onPress={() => setIsLogin(!isLogin)}
-            style={styles.toggleButton}
-          >
-            {isLogin
-              ? "Neues Konto erstellen"
-              : "Bereits registriert? Anmelden"}
-          </Button>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: klareColors.background,
-  },
-  keyboardAvoid: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    justifyContent: "center",
-  },
-  logoContainer: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    textAlign: "center",
-    color: klareColors.k,
-    marginBottom: 10,
-  },
-  subtitle: {
-    textAlign: "center",
-    marginBottom: 32,
-    color: klareColors.textSecondary,
-  },
-  input: {
-    marginBottom: 16,
-  },
-  button: {
-    marginTop: 24,
-    backgroundColor: klareColors.k,
-  },
-  toggleButton: {
-    marginTop: 16,
-  },
-});
