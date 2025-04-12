@@ -1,0 +1,1 @@
+/Users/saschakohler/Documents/01_Development/Active_Projects/klare-methode-app/android/app/build/intermediates/cxx/Debug/b5d6u736/obj/arm64-v8a

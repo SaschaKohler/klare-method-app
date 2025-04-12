@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "rnscreens_autolinked_build",
+		"source" : "/Users/saschakohler/Documents/01_Development/Active_Projects/klare-methode-app/node_modules/react-native-screens/android/src/main/jni"
+	}
+}
