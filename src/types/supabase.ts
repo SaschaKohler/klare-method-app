@@ -7,6 +7,109 @@ export type Json =
   | Json[]
 
 export type Database = {
+  klare_content: {
+    Tables: {
+      practical_exercises: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          sort_order: number
+          step_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          step_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          step_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      supporting_questions: {
+        Row: {
+          created_at: string
+          id: string
+          question_text: string
+          sort_order: number
+          step_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_text: string
+          sort_order?: number
+          step_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_text?: string
+          sort_order?: number
+          step_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transformation_paths: {
+        Row: {
+          created_at: string
+          from_text: string
+          id: string
+          sort_order: number
+          step_id: string
+          to_text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          from_text: string
+          id?: string
+          sort_order?: number
+          step_id: string
+          to_text: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          from_text?: string
+          id?: string
+          sort_order?: number
+          step_id?: string
+          to_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       completed_modules: {
@@ -599,6 +702,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  klare_content: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

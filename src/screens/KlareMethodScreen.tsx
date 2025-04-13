@@ -11,7 +11,6 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
   Platform,
   ActivityIndicator,
 } from "react-native";
@@ -48,8 +47,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { loadModulesByStep, ModuleContent } from "../lib/contentService";
 import KlareMethodNavigationTabs from "../components/klareMethodNavigationTabs";
-import createStyles from "../constants/createStyles";
 import createKlareMethodScreenStyles from "../constants/klareMethodScreenStyles";
+
+// Import our new components and services
+import TransformationList from "../components/transformation/TransformationList";
+import {
+  getTransformationPaths,
+  getPracticalExercises,
+  getSupportingQuestions,
+  TransformationPoint,
+  PracticalExercise,
+  SupportingQuestion,
+} from "../services/transformationService";
 
 type KlareMethodScreenRouteProp = RouteProp<RootStackParamList, "KlareMethod">;
 
@@ -60,93 +69,6 @@ type TabType =
   | "exercises"
   | "questions"
   | "modules";
-
-// Transformation Wege für jeden KLARE-Schritt
-const transformationPoints: Record<string, { from: string; to: string }[]> = {
-  K: [
-    { from: "Vermeidung und Verdrängung", to: "Ehrliche Selbstreflexion" },
-    { from: "Unklarheit über Ist-Zustand", to: "Bewusstsein für die Realität" },
-    { from: "Fehlende Selbstwahrnehmung", to: "Präzise Standortbestimmung" },
-  ],
-  L: [
-    { from: "Energielosigkeit und Blockaden", to: "Natürliche Lebensenergie" },
-    { from: "Unterdrückte Ressourcen", to: "Aktivierte Potenziale" },
-    { from: "Innere Hindernisse", to: "Freier Energiefluss" },
-  ],
-  A: [
-    { from: "Widersprüchliche Ziele", to: "Stimmige Ausrichtung" },
-    { from: "Getrennte Lebensbereiche", to: "Ganzheitliche Integration" },
-    { from: "Wertekonflikt", to: "Wertekohärenz" },
-  ],
-  R: [
-    { from: "Ideen ohne Umsetzung", to: "Effektive Implementierung" },
-    { from: "Gelegentliche Maßnahmen", to: "Dauerhafte Integration" },
-    { from: "Rückfall in alte Muster", to: "Stabile neue Gewohnheiten" },
-  ],
-  E: [
-    { from: "Stagnierende Entwicklung", to: "Kontinuierliches Wachstum" },
-    { from: "Anstrengende Zielerreichung", to: "Mühelose Manifestation" },
-    { from: "Partielle Erfolge", to: "Ganzheitliche Entfaltung" },
-  ],
-};
-
-// Praktische Übungen für jeden KLARE-Schritt
-const practicalExercises: Record<string, string[]> = {
-  K: [
-    "Lebensrad-Analyse zur Standortbestimmung",
-    "Journaling zu Diskrepanzen zwischen Wunsch und Realität",
-    "Feedback-Einholung von vertrauten Personen",
-  ],
-  L: [
-    "Identifikation von Momenten natürlicher Lebendigkeit",
-    "Ressourcen-Anker für positive Energiezustände",
-    "Blockaden-Mapping und Auflösungsstrategien",
-  ],
-  A: [
-    "Werte-Hierarchie und Lebensbereiche-Integration",
-    "Visionboard für Ihre ideale Kongruenz",
-    "Ausrichtungs-Check für Entscheidungen",
-  ],
-  R: [
-    "Micro-Habits für tägliche Kongruenz-Praxis",
-    "Wochenplan mit integrierten Kongruenz-Ritualen",
-    "Fortschrittstracking mit visuellen Hilfsmitteln",
-  ],
-  E: [
-    "Regelmäßiger Kongruenz-Check mit dem KLARE-System",
-    "Journaling zu mühelosen Erfolgs-Momenten",
-    "Mentoring und Weitergabe Ihrer Erkenntnisse",
-  ],
-};
-
-// Unterstützende Fragen für jeden KLARE-Schritt
-const supportingQuestions: Record<string, string[]> = {
-  K: [
-    "Welche Diskrepanzen zwischen Wunsch und Realität nehme ich aktuell in meinen Lebensbereichen wahr?",
-    "In welchen Bereichen meines Lebens fühle ich mich nicht vollständig authentisch?",
-    "Welche Glaubenssätze hindern mich an einer realistischen Selbstwahrnehmung?",
-  ],
-  L: [
-    "In welchen Momenten fühle ich mich vollständig lebendig und energiegeladen?",
-    "Welche Aktivitäten oder Umgebungen blockieren meinen natürlichen Energiefluss?",
-    "Welche verschütteten Talente und Ressourcen möchte ich wiederentdecken?",
-  ],
-  A: [
-    "Wie kann ich meine unterschiedlichen Lebensbereiche harmonischer integrieren?",
-    "Welche meiner Werte stehen aktuell im Konflikt miteinander?",
-    "Wie kann ich meine Ziele mit meinen tiefsten Werten in Einklang bringen?",
-  ],
-  R: [
-    "Welche konkreten täglichen Gewohnheiten können meine Kongruenz unterstützen?",
-    "Wie kann ich Hindernisse für die nachhaltige Umsetzung überwinden?",
-    "Welche Strukturen brauche ich, um alte Muster zu durchbrechen?",
-  ],
-  E: [
-    "Wie kann ich mein Wachstum mühelos und natürlich gestalten?",
-    "In welchen Bereichen erlebe ich bereits mühelose Manifestation?",
-    "Wie kann ich anderen von meinen Erkenntnissen weitergeben?",
-  ],
-};
 
 // Add dark theme modifications in KLARE colors
 export const klareColorsDark = {
@@ -171,6 +93,18 @@ export default function KlareMethodScreen() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [autoRotate, setAutoRotate] = useState(false);
 
+  // State for content from Supabase
+  const [transformationPoints, setTransformationPoints] = useState<
+    TransformationPoint[]
+  >([]);
+  const [practicalExercises, setPracticalExercises] = useState<
+    PracticalExercise[]
+  >([]);
+  const [supportingQuestions, setSupportingQuestions] = useState<
+    SupportingQuestion[]
+  >([]);
+  const [isContentLoading, setIsContentLoading] = useState(false);
+
   // Zugriff auf Module
   const [availableModules, setAvailableModules] = useState<ModuleContent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -182,9 +116,10 @@ export default function KlareMethodScreen() {
   ) as KlareStep;
 
   const theme = useTheme();
-  const isDarkMode = theme.dark; // Check if dark mode is enabled
+  const isDarkMode = theme.dark;
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const insets = useSafeAreaInsets();
+
   // Animationswerte
   const backgroundColorProgress = useSharedValue(0);
   const iconSizeProgress = useSharedValue(1);
@@ -194,6 +129,32 @@ export default function KlareMethodScreen() {
     () => createKlareMethodScreenStyles(theme, klareColors),
     [theme, klareColors],
   );
+
+  // Load content for the active step
+  useEffect(() => {
+    const loadContent = async () => {
+      setIsContentLoading(true);
+      try {
+        // Load all content in parallel
+        const [transformations, exercises, questions] = await Promise.all([
+          getTransformationPaths(activeStepId),
+          getPracticalExercises(activeStepId),
+          getSupportingQuestions(activeStepId),
+        ]);
+
+        setTransformationPoints(transformations);
+        setPracticalExercises(exercises);
+        setSupportingQuestions(questions);
+      } catch (error) {
+        console.error("Error loading content:", error);
+      } finally {
+        setIsContentLoading(false);
+      }
+    };
+
+    loadContent();
+  }, [activeStepId]);
+
   // Module für den aktiven Schritt laden
   useEffect(() => {
     const fetchModules = async () => {
@@ -372,63 +333,23 @@ export default function KlareMethodScreen() {
 
   const renderTransformationTab = () => (
     <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>Transformationswege</Text>
-
-      {transformationPoints[activeStepId].map((point, index) => (
-        <View
-          key={index}
-          style={[
-            styles.transformationItem,
-            { borderLeftColor: activeStep.color },
-          ]}
-        >
-          <View style={styles.transformationFrom}>
-            <Chip
-              style={{
-                backgroundColor: `${activeStep.color}15`,
-                ...Platform.select({
-                  ios: {
-                    height: 30,
-                    paddingVertical: 0,
-                  },
-                }),
-              }}
-              textStyle={{ color: activeStep.color }}
-              compact
-            >
-              Von
-            </Chip>
-            <Text style={styles.transformationText}>{point.from}</Text>
-          </View>
-
-          <View style={styles.transformationArrow}>
-            <Ionicons name="arrow-down" size={16} color={activeStep.color} />
-          </View>
-
-          <View style={styles.transformationTo}>
-            <Chip
-              style={{
-                backgroundColor: `${activeStep.color}15`,
-                ...Platform.select({
-                  ios: {
-                    height: 30,
-                    paddingVertical: 0,
-                  },
-                }),
-              }}
-              textStyle={{ color: activeStep.color }}
-              compact
-            >
-              Zu
-            </Chip>
-            <Text
-              style={[styles.transformationText, styles.transformationTextBold]}
-            >
-              {point.to}
-            </Text>
-          </View>
+      {isContentLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={activeStep.color} />
+          <Text style={styles.loadingText}>
+            Transformationswege werden geladen...
+          </Text>
         </View>
-      ))}
+      ) : (
+        <TransformationList
+          transformationPoints={transformationPoints.map((point) => ({
+            from: point.from_text,
+            to: point.to_text,
+          }))}
+          color={activeStep.color}
+          stepId={activeStepId}
+        />
+      )}
     </View>
   );
 
@@ -436,26 +357,35 @@ export default function KlareMethodScreen() {
     <View style={styles.sectionContainer}>
       <Text style={styles.sectionTitle}>Praktische Übungen</Text>
 
-      <List.Section>
-        {practicalExercises[activeStepId].map((exercise, index) => (
-          <List.Item
-            key={index}
-            title={exercise}
-            titleStyle={{ fontSize: 15 }}
-            left={(props) => (
-              <View
-                style={[
-                  styles.exerciseIcon,
-                  { backgroundColor: `${activeStep.color}25` },
-                ]}
-              >
-                <Text style={{ color: activeStep.color }}>{index + 1}</Text>
-              </View>
-            )}
-            style={styles.exerciseItem}
-          />
-        ))}
-      </List.Section>
+      {isContentLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={activeStep.color} />
+          <Text style={styles.loadingText}>Übungen werden geladen...</Text>
+        </View>
+      ) : (
+        <List.Section>
+          {practicalExercises.map((exercise, index) => (
+            <List.Item
+              key={exercise.id}
+              title={exercise.title}
+              titleStyle={{ fontSize: 15 }}
+              description={exercise.description}
+              descriptionNumberOfLines={2}
+              left={(props) => (
+                <View
+                  style={[
+                    styles.exerciseIcon,
+                    { backgroundColor: `${activeStep.color}25` },
+                  ]}
+                >
+                  <Text style={{ color: activeStep.color }}>{index + 1}</Text>
+                </View>
+              )}
+              style={styles.exerciseItem}
+            />
+          ))}
+        </List.Section>
+      )}
 
       <View style={styles.buttonContainer}>
         <Button
@@ -474,22 +404,29 @@ export default function KlareMethodScreen() {
     <View style={styles.sectionContainer}>
       <Text style={styles.sectionTitle}>Unterstützende Fragen</Text>
 
-      {supportingQuestions[activeStepId].map((question, index) => (
-        <View
-          key={index}
-          style={[
-            styles.questionItem,
-            { backgroundColor: `${activeStep.color}10` },
-          ]}
-        >
-          <View
-            style={[styles.questionIcon, { borderColor: activeStep.color }]}
-          >
-            <Text style={{ color: activeStep.color }}>?</Text>
-          </View>
-          <Text style={styles.questionText}>{question}</Text>
+      {isContentLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={activeStep.color} />
+          <Text style={styles.loadingText}>Fragen werden geladen...</Text>
         </View>
-      ))}
+      ) : (
+        supportingQuestions.map((question, index) => (
+          <View
+            key={question.id}
+            style={[
+              styles.questionItem,
+              { backgroundColor: `${activeStep.color}10` },
+            ]}
+          >
+            <View
+              style={[styles.questionIcon, { borderColor: activeStep.color }]}
+            >
+              <Text style={{ color: activeStep.color }}>?</Text>
+            </View>
+            <Text style={styles.questionText}>{question.question_text}</Text>
+          </View>
+        ))
+      )}
     </View>
   );
 
@@ -508,7 +445,7 @@ export default function KlareMethodScreen() {
           </Text>
         </View>
       ) : (
-        availableModules.map((module, index) => {
+        availableModules.map((module) => {
           const isAvailable = isModuleAvailable(module.id);
 
           return (
@@ -705,7 +642,7 @@ export default function KlareMethodScreen() {
         ref={scrollViewRef}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: insets.bottom + 60 }, // Add extra bottom padding for scrolling
+          { paddingBottom: insets.bottom + 60 },
         ]}
         showsVerticalScrollIndicator={false}
       >
