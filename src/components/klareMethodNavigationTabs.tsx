@@ -109,42 +109,4 @@ const KlareMethodNavigationTabs: React.FC<KlareMethodNavigationTabsProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  tabContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-  },
-  tabItem: {
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  tabLabel: {
-    fontSize: 11,
-    color: "#888",
-    marginTop: 2,
-  },
-  activeIndicator: {
-    position: "absolute",
-    bottom: -8,
-    height: 3,
-    width: "60%",
-    borderRadius: 2,
-  },
-});
-
 export default KlareMethodNavigationTabs;

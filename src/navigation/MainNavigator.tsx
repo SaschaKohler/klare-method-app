@@ -14,17 +14,19 @@ import KlareMethodScreen from "../screens/KlareMethodScreen";
 import ModuleScreen from "../screens/ModuleScreen";
 import LifeWheelScreen from "../screens/LifeWheelScreen";
 import ProfileScreen from "../screens/ProfileScreen";
-import LearnScreen from "../screens/LearnScreen";
 import AuthScreen from "../screens/AuthScreen";
 import JournalScreen from "../screens/JournalScreen";
 import JournalEditorScreen from "../screens/JournalEditorScreen";
 import JournalViewerScreen from "../screens/JournalViewerScreen";
 
 // Definiere die Stack-Parameter
+export const KlareMethodSteps = ["K", "L", "A", "R", "E"] as const;
+export type KlareMethodStep = (typeof KlareMethodSteps)[number];
+
 export type RootStackParamList = {
   Main: undefined;
   Auth: undefined;
-  KlareMethod: { step?: "K" | "L" | "A" | "R" | "E" };
+  KlareMethod: { step: KlareMethodStep };
   LifeWheel: undefined;
   Journal: undefined;
   JournalEditor: {

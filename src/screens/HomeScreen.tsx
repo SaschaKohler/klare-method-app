@@ -33,6 +33,7 @@ import { useThemeStore } from "../store/useThemeStore";
 import { klareSteps } from "../data/klareMethodData";
 import KlareLogo from "../components/KlareLogo";
 import createStyles from "../constants/createStyles";
+import KlareMethodCards from "../components/KlareMethodCards";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -486,52 +487,7 @@ export default function HomeScreen() {
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           KLARE Methode
         </Text>
-
-        <View style={styles.klareContainer}>
-          {klareSteps.map((step, index) => (
-            <TouchableOpacity
-              key={step.id}
-              style={[styles.klareStep, { backgroundColor: `${step.color}10` }]}
-              testID={`klare-step-${step.id.toLowerCase()}`}
-              onPress={() =>
-                navigation.navigate(
-                  "KlareMethod" as never,
-                  { step: step.id } as never,
-                )
-              }
-            >
-              <View style={styles.klareStepHeader}>
-                <View
-                  style={[
-                    styles.klareStepIconContainer,
-                    { backgroundColor: `${step.color}25` },
-                  ]}
-                >
-                  <Ionicons
-                    name={step.iconName as any}
-                    size={20}
-                    color={step.color}
-                  />
-                </View>
-                <Text style={[styles.klareStepLetter, { color: step.color }]}>
-                  {step.id}
-                </Text>
-              </View>
-              <Text
-                style={[styles.klareStepName, { color: theme.colors.text }]}
-              >
-                {step.title}
-              </Text>
-              <View style={styles.klareStepProgress}>
-                <ProgressBar
-                  progress={stepProgress[step.id]}
-                  color={step.color}
-                  style={styles.klareStepProgressBar}
-                />
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <KlareMethodCards klareSteps={klareSteps} stepProgress={stepProgress} />
 
         {/* Fokus-Bereiche */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -693,4 +649,3 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
-
