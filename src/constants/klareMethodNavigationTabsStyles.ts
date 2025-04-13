@@ -32,7 +32,7 @@ const createKlareMethodNavigationTabsStyles = (
     },
     tabLabel: {
       fontSize: 11,
-      color: theme.colors.disabled,
+      color: theme.colors.text,
       marginTop: 2,
     },
     activeIndicator: {

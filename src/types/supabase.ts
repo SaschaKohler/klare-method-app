@@ -123,6 +123,69 @@ export type Database = {
           },
         ]
       }
+      journal_template_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          order_index: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          order_index: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          order_index?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      journal_templates: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          order_index: number
+          prompt_questions: Json
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          order_index: number
+          prompt_questions: Json
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          order_index?: number
+          prompt_questions?: Json
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       life_wheel_areas: {
         Row: {
           created_at: string | null
@@ -276,6 +339,59 @@ export type Database = {
           },
           {
             foreignKeyName: "user_exercise_results_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_journal_entries: {
+        Row: {
+          category: string | null
+          clarity_rating: number | null
+          created_at: string | null
+          entry_content: string
+          entry_date: string | null
+          id: string
+          is_archived: boolean | null
+          is_favorite: boolean | null
+          mood_rating: number | null
+          tags: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          clarity_rating?: number | null
+          created_at?: string | null
+          entry_content: string
+          entry_date?: string | null
+          id?: string
+          is_archived?: boolean | null
+          is_favorite?: boolean | null
+          mood_rating?: number | null
+          tags?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          clarity_rating?: number | null
+          created_at?: string | null
+          entry_content?: string
+          entry_date?: string | null
+          id?: string
+          is_archived?: boolean | null
+          is_favorite?: boolean | null
+          mood_rating?: number | null
+          tags?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_journal_entries_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
