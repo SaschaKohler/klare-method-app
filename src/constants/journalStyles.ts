@@ -75,7 +75,11 @@ export const createJournalStyles = (
     categoriesContainer: {
       paddingHorizontal: 16,
       paddingVertical: 8,
+    },
+    categoryTabsRow: {
       flexDirection: "row",
+      alignItems: "center",
+      gap: 8, // Adds space between category tabs
     },
     categoryTab: {
       flexDirection: "row",
@@ -83,7 +87,6 @@ export const createJournalStyles = (
       paddingVertical: 6,
       paddingHorizontal: 12,
       borderRadius: 16,
-      marginRight: 8,
       backgroundColor: isDarkMode
         ? `${klareColors.cardBackground}80`
         : `${klareColors.border}30`,
@@ -91,6 +94,7 @@ export const createJournalStyles = (
     activeCategoryTab: {
       backgroundColor: `${klareColors.k}15`,
     },
+
     categoryText: {
       fontSize: 14,
       color: klareColors.textSecondary,

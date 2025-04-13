@@ -398,7 +398,7 @@ export default function JournalScreen() {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.categoriesContainer}
     >
-      <View>
+      <View style={styles.categoryTabsRow}>
         <TouchableOpacity
           style={[
             styles.categoryTab,
