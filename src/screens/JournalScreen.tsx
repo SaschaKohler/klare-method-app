@@ -492,6 +492,7 @@ export default function JournalScreen() {
           <FlatList
             data={filteredTemplates}
             renderItem={renderTemplate}
+            scrollEnabled={false}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.templatesList}
             showsVerticalScrollIndicator={false}
@@ -539,6 +540,7 @@ export default function JournalScreen() {
           <FlatList
             data={entries}
             renderItem={renderEntry}
+            scrollEnabled={false}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.entriesList}
             showsVerticalScrollIndicator={false}
