@@ -1,14 +1,11 @@
 // src/screens/JournalEditorScreen.tsx
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
-  StyleSheet,
   View,
   ScrollView,
-  TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  Keyboard,
 } from "react-native";
 import {
   Text,
@@ -22,7 +19,6 @@ import {
   Menu,
   Surface,
   useTheme,
-  HelperText,
   ActivityIndicator,
 } from "react-native-paper";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -35,7 +31,7 @@ import { supabase } from "../lib/supabase";
 import { lightKlareColors, darkKlareColors } from "../constants/theme";
 import { useUserStore } from "../store/useUserStore";
 import { useThemeStore } from "../store/useThemeStore";
-import createStyles from "../constants/createStyles";
+import { createJournalEditorStyles } from "../constants/journalEditorStyles";
 
 // Typen für Tagebucheinträge
 type JournalEntry = {
@@ -94,8 +90,8 @@ export default function JournalEditorScreen() {
   const isDarkMode = getActiveTheme();
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const styles = useMemo(
-    () => createJournalEditorStyles(theme, klareColors),
-    [theme, klareColors],
+    () => createJournalEditorStyles(theme, klareColors, isDarkMode),
+    [theme, klareColors, isDarkMode],
   );
 
   // Reference zum TextInput für Autofokus
@@ -571,134 +567,3 @@ export default function JournalEditorScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-// Styles für den JournalEditorScreen
-const createJournalEditorStyles = (theme: any, klareColors: any) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: theme.colors.background,
-    },
-    scrollContent: {
-      flex: 1,
-    },
-    templateInfoContainer: {
-      margin: 16,
-      padding: 16,
-      borderRadius: 8,
-      backgroundColor: (isDarkMode) =>
-        isDarkMode
-          ? `${klareColors.cardBackground}80`
-          : `${klareColors.border}30`,
-    },
-    templateHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 8,
-    },
-    templateTitle: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: theme.colors.text,
-    },
-    templateDescription: {
-      fontSize: 14,
-      color: klareColors.textSecondary,
-    },
-    contentInput: {
-      padding: 16,
-      fontSize: 16,
-      lineHeight: 24,
-      textAlignVertical: "top",
-      minHeight: 200,
-      color: theme.colors.text,
-    },
-    metadataContainer: {
-      padding: 16,
-      paddingBottom: 80,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: "bold",
-      marginBottom: 8,
-      marginTop: 16,
-      color: theme.colors.text,
-    },
-    tagsContainer: {
-      marginBottom: 16,
-    },
-    tagChip: {
-      marginRight: 8,
-      marginBottom: 8,
-    },
-    addTagChip: {
-      backgroundColor: (isDarkMode) =>
-        isDarkMode
-          ? `${klareColors.cardBackground}80`
-          : `${klareColors.border}30`,
-      marginRight: 8,
-    },
-    tagMenuContent: {
-      width: 250,
-      backgroundColor: theme.colors.surface,
-    },
-    tagInputContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-    },
-    tagInput: {
-      flex: 1,
-      height: 40,
-      paddingHorizontal: 8,
-      color: theme.colors.text,
-    },
-    suggestedTagsContainer: {
-      padding: 8,
-    },
-    suggestedTagsTitle: {
-      fontSize: 14,
-      marginBottom: 8,
-      color: theme.colors.text,
-    },
-    suggestedTags: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-    },
-    suggestedTag: {
-      margin: 4,
-    },
-    sliderContainer: {
-      marginBottom: 16,
-    },
-    sliderLabelContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 8,
-    },
-    moodValue: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: theme.colors.text,
-    },
-    slider: {
-      width: "100%",
-      height: 40,
-    },
-    savingOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: "rgba(0, 0, 0, 0.3)",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 1000,
-    },
-  });

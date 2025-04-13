@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
   View,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -11,19 +10,13 @@ import {
   Text,
   TextInput,
   Button,
-  Title,
   HelperText,
-  ActivityIndicator,
   useTheme,
   TouchableRipple,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserStore } from "../store/useUserStore";
-import {
-  darkKlareColors,
-  klareColors,
-  lightKlareColors,
-} from "../constants/theme";
+import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import KlareLogo from "../components/KlareLogo";
 import createAuthScreenStyles from "../constants/authScreenStyle";
 import { useThemeStore } from "../store/useThemeStore";
