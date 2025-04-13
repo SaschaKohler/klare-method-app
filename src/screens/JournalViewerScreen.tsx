@@ -29,7 +29,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView, MotiText } from "moti";
 import { format, parseISO } from "date-fns";
-import { de } from "date-fns/locale";
+import { de, he } from "date-fns/locale";
 import { supabase } from "../lib/supabase";
 import { lightKlareColors, darkKlareColors } from "../constants/theme";
 import { useThemeStore } from "../store/useThemeStore";
@@ -70,6 +70,18 @@ export default function JournalViewerScreen() {
     () => createJournalViewerStyles(theme, klareColors),
     [theme, klareColors],
   );
+
+  const getColorForCategory = (category: string) => {
+    const firstLetter = category.toLowerCase()[0];
+    const colorKey = ["k", "l", "a", "r", "e"].includes(firstLetter)
+      ? firstLetter
+      : "k"; // default to 'k' if no match
+
+    return {
+      background: `${klareColors[colorKey]}15`,
+      text: klareColors[colorKey],
+    };
+  };
 
   // Load entry data
   useEffect(() => {
@@ -210,9 +222,12 @@ export default function JournalViewerScreen() {
                 key={`${tag}-${index}`}
                 style={[
                   styles.tagChip,
-                  { backgroundColor: `${klareColors.k}15` },
+                  {
+                    backgroundColor: getColorForCategory(entry.category)
+                      .background,
+                  },
                 ]}
-                textStyle={{ color: klareColors.k }}
+                textStyle={{ color: getColorForCategory(entry.category).text }}
               >
                 {tag}
               </Chip>
@@ -429,14 +444,12 @@ export default function JournalViewerScreen() {
               style={[
                 styles.categoryChip,
                 {
-                  backgroundColor: `${klareColors[entry.category.toLowerCase()[0] as keyof typeof klareColors]}15`,
+                  backgroundColor: getColorForCategory(entry.category)
+                    .background,
                 },
               ]}
               textStyle={{
-                color:
-                  klareColors[
-                    entry.category.toLowerCase()[0] as keyof typeof klareColors
-                  ],
+                color: getColorForCategory(entry.category).text,
               }}
             >
               {entry.category}
@@ -470,7 +483,7 @@ export default function JournalViewerScreen() {
                 marginVertical: 12,
               },
               heading2: {
-                color: theme.colors.text,
+                color: theme.colors.text as string,
                 fontSize: 20,
                 marginVertical: 10,
               },

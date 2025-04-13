@@ -398,52 +398,54 @@ export default function JournalScreen() {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.categoriesContainer}
     >
-      <TouchableOpacity
-        style={[
-          styles.categoryTab,
-          !activeCategory && styles.activeCategoryTab,
-        ]}
-        onPress={() => setActiveCategory(null)}
-      >
-        <Text
-          style={[
-            styles.categoryText,
-            !activeCategory && { color: klareColors.k },
-          ]}
-        >
-          Alle
-        </Text>
-      </TouchableOpacity>
-
-      {categories.map((category) => (
+      <View>
         <TouchableOpacity
-          key={category.id}
           style={[
             styles.categoryTab,
-            activeCategory === category.name && styles.activeCategoryTab,
+            !activeCategory && styles.activeCategoryTab,
           ]}
-          onPress={() => setActiveCategory(category.name)}
+          onPress={() => setActiveCategory(null)}
         >
-          <Ionicons
-            name={category.icon as any}
-            size={16}
-            color={
-              activeCategory === category.name
-                ? klareColors.k
-                : klareColors.textSecondary
-            }
-            style={{ marginRight: 4 }}
-          />
           <Text
             style={[
               styles.categoryText,
-              activeCategory === category.name && { color: klareColors.k },
+              !activeCategory && { color: klareColors.k },
             ]}
           >
-            {category.name}
+            Alle
           </Text>
         </TouchableOpacity>
-      ))}
+
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category.id}
+            style={[
+              styles.categoryTab,
+              activeCategory === category.name && styles.activeCategoryTab,
+            ]}
+            onPress={() => setActiveCategory(category.name)}
+          >
+            <Ionicons
+              name={category.icon as any}
+              size={16}
+              color={
+                activeCategory === category.name
+                  ? klareColors.k
+                  : klareColors.textSecondary
+              }
+              style={{ marginRight: 4 }}
+            />
+            <Text
+              style={[
+                styles.categoryText,
+                activeCategory === category.name && { color: klareColors.k },
+              ]}
+            >
+              {category.name}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
     </ScrollView>
   );
 
