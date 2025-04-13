@@ -1,5 +1,5 @@
 // src/components/CalendarStrip.tsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,14 +7,15 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
-} from 'react-native';
-import { format, addDays, isSameDay } from 'date-fns';
-import { de } from 'date-fns/locale';
-import { useTheme } from 'react-native-paper';
-import { useThemeStore } from '../store/useThemeStore';
-import { lightKlareColors, darkKlareColors } from '../constants/theme';
+} from "react-native";
+import { format, addDays, isSameDay } from "date-fns";
+import { de } from "date-fns/locale";
+import { useTheme } from "react-native-paper";
+import { useThemeStore } from "../store/useThemeStore";
+import { lightKlareColors, darkKlareColors } from "../constants/theme";
+import { createCalendarStripStyles } from "../constants/calendarStripsStyles";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const DAY_WIDTH = width / 7;
 
 interface CalendarStripProps {
@@ -42,7 +43,7 @@ const CalendarStrip: React.FC<CalendarStripProps> = ({
 }) => {
   const [dates, setDates] = useState<Date[]>([]);
   const scrollViewRef = React.useRef<ScrollView>(null);
-  
+
   // Theme handling
   const theme = useTheme();
   const { getActiveTheme } = useThemeStore();
@@ -50,7 +51,7 @@ const CalendarStrip: React.FC<CalendarStripProps> = ({
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
 
   const styles = useMemo(
-    () => createStyles(theme, klareColors, highlightColor),
+    () => createCalendarStripStyles(theme, klareColors, highlightColor),
     [theme, klareColors, highlightColor],
   );
 
@@ -65,7 +66,7 @@ const CalendarStrip: React.FC<CalendarStripProps> = ({
 
   // Scrolle zum ausgewählten Datum
   useEffect(() => {
-    const dateIndex = dates.findIndex(date => isSameDay(date, selectedDate));
+    const dateIndex = dates.findIndex((date) => isSameDay(date, selectedDate));
     if (dateIndex !== -1 && scrollViewRef.current) {
       scrollViewRef.current.scrollTo({
         x: dateIndex * DAY_WIDTH - DAY_WIDTH, // Zentriere das ausgewählte Datum
@@ -76,11 +77,14 @@ const CalendarStrip: React.FC<CalendarStripProps> = ({
 
   const renderDateItem = (date: Date, index: number) => {
     const isSelected = isSameDay(date, selectedDate);
-    
+
     return (
       <TouchableOpacity
         key={index}
-        style={[styles.dateContainer, isSelected && styles.selectedDateContainer]}
+        style={[
+          styles.dateContainer,
+          isSelected && styles.selectedDateContainer,
+        ]}
         onPress={() => onDateSelected(date)}
       >
         <Text
@@ -91,7 +95,7 @@ const CalendarStrip: React.FC<CalendarStripProps> = ({
             isSelected && highlightDateTextStyle,
           ]}
         >
-          {format(date, 'EEE', { locale: de }).toUpperCase()}
+          {format(date, "EEE", { locale: de }).toUpperCase()}
         </Text>
         <View
           style={[
@@ -108,7 +112,7 @@ const CalendarStrip: React.FC<CalendarStripProps> = ({
               isSelected && highlightDateTextStyle,
             ]}
           >
-            {format(date, 'd')}
+            {format(date, "d")}
           </Text>
         </View>
       </TouchableOpacity>
@@ -128,50 +132,5 @@ const CalendarStrip: React.FC<CalendarStripProps> = ({
     </View>
   );
 };
-
-const createStyles = (theme: any, klareColors: any, highlightColor?: string) => StyleSheet.create({
-  container: {
-    height: 80,
-    width: '100%',
-  },
-  scrollContent: {
-    paddingHorizontal: 8,
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  dateContainer: {
-    width: DAY_WIDTH,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-  },
-  selectedDateContainer: {
-    // Kein Styling erforderlich, da die Selektion im dateWrapper erfolgt
-  },
-  dayText: {
-    fontSize: 12,
-    marginBottom: 4,
-    color: theme.colors.text,
-  },
-  dateWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-  },
-  selectedDateWrapper: {
-    backgroundColor: highlightColor || klareColors.k,
-  },
-  dateText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.text,
-  },
-  selectedText: {
-    color: '#FFFFFF',
-  },
-});
 
 export default CalendarStrip;
