@@ -25,6 +25,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="com.deinname.klaremethode"/>
+        <data android:scheme="exp+klare-methode-app"/>
       </intent-filter>
     </activity>
   </application>
