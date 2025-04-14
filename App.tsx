@@ -5,18 +5,20 @@ import { Provider as PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import KlareLogo from "./src/components/KlareLogo";
 
+// Import from barrel exports
+import { KlareLogo } from "./src/components";
 import MainNavigator from "./src/navigation/MainNavigator";
 import { lightTheme, darkTheme } from "./src/constants/theme";
-import { useUserStore } from "./src/store/useUserStore";
-import { useThemeStore } from "./src/store/useThemeStore";
+import { useUserStore, useThemeStore, useLifeWheelStore, useProgressionStore } from "./src/store";
 
 // Splash Screen während des Ladens anzeigen
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [appReady, setAppReady] = useState(false);
+  
+  // User store
   const loadUserData = useUserStore((state) => state.loadUserData);
   
   // Theme management
@@ -49,9 +51,9 @@ export default function App() {
     // Daten laden, wenn die App startet
     async function prepare() {
       try {
-        // User-Daten laden
+        // User-Daten und abhängige Daten laden
         await loadUserData();
-
+        
         // Beliebige andere Vorbereitungen hier
       } catch (e) {
         console.warn(e);

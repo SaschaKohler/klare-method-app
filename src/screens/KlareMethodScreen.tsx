@@ -42,15 +42,14 @@ import Animated, {
   withDelay,
 } from "react-native-reanimated";
 import { RootStackParamList } from "../types/navigation";
-import { useUserStore } from "../store/useUserStore";
+import { useUserStore, useProgressionStore } from "../store";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { loadModulesByStep, ModuleContent } from "../lib/contentService";
-import KlareMethodNavigationTabs from "../components/klareMethodNavigationTabs";
+import { KlareMethodNavigationTabs, TransformationList } from "../components";
 import createKlareMethodScreenStyles from "../constants/klareMethodScreenStyles";
 
-// Import our new components and services
-import TransformationList from "../components/transformation/TransformationList";
+// Import our services
 import {
   getTransformationPaths,
   getPracticalExercises,
@@ -108,7 +107,9 @@ export default function KlareMethodScreen() {
   // Zugriff auf Module
   const [availableModules, setAvailableModules] = useState<ModuleContent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const isModuleAvailable = useUserStore((state) => state.isModuleAvailable);
+  
+  // Use the new progression store
+  const isModuleAvailable = useProgressionStore((state) => state.isModuleAvailable);
 
   // Finde den aktiven Schritt
   const activeStep = klareSteps.find(
@@ -117,7 +118,7 @@ export default function KlareMethodScreen() {
 
   const theme = useTheme();
   const isDarkMode = theme.dark;
-  const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
+  const themeKlareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const insets = useSafeAreaInsets();
 
   // Animationswerte
@@ -126,8 +127,8 @@ export default function KlareMethodScreen() {
   const contentOpacity = useSharedValue(0);
 
   const styles = useMemo(
-    () => createKlareMethodScreenStyles(theme, klareColors),
-    [theme, klareColors],
+    () => createKlareMethodScreenStyles(theme, themeKlareColors),
+    [theme, themeKlareColors],
   );
 
   // Load content for the active step
@@ -483,7 +484,7 @@ export default function KlareMethodScreen() {
                       <Ionicons
                         name="lock-closed"
                         size={20}
-                        color={styles.stepName}
+                        color={themeKlareColors.textSecondary}
                       />
                     </View>
                   )}
@@ -504,7 +505,7 @@ export default function KlareMethodScreen() {
                     <Ionicons
                       name="time-outline"
                       size={16}
-                      color={klareColors.textSecondary}
+                      color={themeKlareColors.textSecondary}
                     />
                     <Text style={styles.moduleDurationText}>
                       {module.duration} Min.
@@ -568,7 +569,7 @@ export default function KlareMethodScreen() {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="arrow-back" size={24} color={klareColors.text} />
+            <Ionicons name="arrow-back" size={24} color={themeKlareColors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>KLARE Methode</Text>
         </View>
@@ -577,7 +578,7 @@ export default function KlareMethodScreen() {
           <Ionicons
             name={autoRotate ? "pause-circle-outline" : "play-circle-outline"}
             size={24}
-            color={klareColors.text}
+            color={themeKlareColors.text}
           />
         </TouchableOpacity>
       </View>
@@ -620,7 +621,7 @@ export default function KlareMethodScreen() {
                 style={[
                   styles.stepName,
                   {
-                    color: isActive ? step.color : klareColors.textSecondary,
+                    color: isActive ? step.color : themeKlareColors.textSecondary,
                   },
                 ]}
               >

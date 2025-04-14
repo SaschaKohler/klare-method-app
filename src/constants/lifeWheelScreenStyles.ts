@@ -58,41 +58,7 @@ const createLifeWheelScreenStyles = (theme: Theme, klareColors: any) =>
         },
       }),
     },
-    sliderContainer: {
-      marginBottom: 24,
-    },
-    sliderLabelContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 8,
-    },
-    sliderLabel: {
-      color: theme.colors.disabled,
-    },
-    sliderValue: {
-      fontWeight: "bold",
-      color: theme.colors.text,
-    },
-    slider: {
-      width: "100%",
-      height: 40,
-      ...Platform.select({
-        ios: {
-          height: 36,
-        },
-      }),
-    },
-    sliderMarkers: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      paddingHorizontal: 10,
-      marginTop: -5,
-    },
-    sliderMarkerText: {
-      color: theme.colors.disabled,
-      fontSize: 12,
-    },
+    // Styles for sliders removed, now handled by LifeWheelEditor component
     saveButton: {
       backgroundColor: theme.colors.primary,
       marginBottom: 16,

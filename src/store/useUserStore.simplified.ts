@@ -1,4 +1,4 @@
-// src/store/useUserStore.ts
+// src/store/useUserStore.simplified.ts
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../lib/supabase";
@@ -14,7 +14,6 @@ interface User {
   streak: number; // Aktuelle Tagesstreak
   lastActive: string; // ISO Datum
   joinDate: string; // ISO Datum des Programmstarts
-  completedModules: string[]; // IDs der abgeschlossenen Module (für Abwärtskompatibilität)
 }
 
 interface UserState {
@@ -22,12 +21,7 @@ interface UserState {
   isLoading: boolean;
   isOnline: boolean;
   
-  // Legacy properties for backward compatibility
-  lifeWheelAreas: any[];
-  completedModules: string[];
-  moduleProgressCache: Record<string, number>;
-  
-  // Methods
+  // Funktionen
   setUser: (user: User) => void;
   clearUser: () => void;
   updateProgress: (progress: number) => Promise<void>;
@@ -43,20 +37,6 @@ interface UserState {
   ) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
   calculateTotalProgress: () => number;
-  
-  // Legacy methods for backward compatibility
-  completeModule: (moduleId: string) => void;
-  getModuleProgress: (stepId: "K" | "L" | "A" | "R" | "E") => number;
-  getDaysInProgram: () => number;
-  getCurrentStage: () => any;
-  getNextStage: () => any;
-  getAvailableModules: () => string[];
-  isModuleAvailable: (moduleId: string) => boolean;
-  updateLifeWheelArea: (
-    areaId: string,
-    currentValue: number,
-    targetValue: number,
-  ) => Promise<void>;
 }
 
 // Hilfsfunktion zum Berechnen des Gesamtfortschritts
@@ -80,9 +60,6 @@ export const useUserStore = create<UserState>((set, get) => ({
   user: null,
   isLoading: true,
   isOnline: false,
-  lifeWheelAreas: [], // Legacy property
-  completedModules: [], // Legacy property
-  moduleProgressCache: {}, // Legacy property
   
   setUser: (user) => set({ user }),
 
@@ -171,31 +148,10 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       // OFFLINE-FIRST ANSATZ: Zuerst lokale Daten laden
       const userData = await AsyncStorage.getItem("userData");
-      const completedModulesData = await AsyncStorage.getItem("completedModules");
-      const lifeWheelData = await AsyncStorage.getItem("lifeWheelAreas");
 
       // Lokale Daten setzen, falls vorhanden
       if (userData) {
         set({ user: JSON.parse(userData) });
-      }
-      
-      // Für Abwärtskompatibilität
-      if (completedModulesData) {
-        const modules = JSON.parse(completedModulesData);
-        set({ completedModules: modules });
-        
-        // Sicherstellen, dass das neue ProgressionStore die Daten hat
-        const progressionStore = useProgressionStore.getState();
-        await progressionStore.loadProgressionData();
-      }
-      
-      // Für Abwärtskompatibilität
-      if (lifeWheelData) {
-        set({ lifeWheelAreas: JSON.parse(lifeWheelData) });
-        
-        // Sicherstellen, dass das neue LifeWheelStore die Daten hat
-        const lifeWheelStore = useLifeWheelStore.getState();
-        await lifeWheelStore.loadLifeWheelData();
       }
 
       // Dann Versuch, mit Server zu synchronisieren (mit Timeout)
@@ -232,12 +188,6 @@ export const useUserStore = create<UserState>((set, get) => ({
             
             await progressionStore.loadProgressionData(sessionData.session.user.id);
             await lifeWheelStore.loadLifeWheelData(sessionData.session.user.id);
-            
-            // Für Abwärtskompatibilität
-            set({ 
-              completedModules: progressionStore.completedModules,
-              lifeWheelAreas: lifeWheelStore.lifeWheelAreas
-            });
 
             // 2. Daten in den Store setzen
             if (userDataArray && userDataArray.length > 0) {
@@ -252,7 +202,6 @@ export const useUserStore = create<UserState>((set, get) => ({
                   streak: userData.streak || 0,
                   lastActive: userData.last_active || new Date().toISOString(),
                   joinDate: userData.join_date || new Date().toISOString(),
-                  completedModules: progressionStore.completedModules,
                 },
               });
 
@@ -273,7 +222,6 @@ export const useUserStore = create<UserState>((set, get) => ({
                 streak: 0,
                 lastActive: now,
                 joinDate: now, // Startdatum setzen
-                completedModules: [],
               };
 
               set({ user });
@@ -422,7 +370,6 @@ export const useUserStore = create<UserState>((set, get) => ({
               streak: 0,
               lastActive: now,
               joinDate: now,
-              completedModules: [],
             },
             isOnline: true,
           });
@@ -436,12 +383,6 @@ export const useUserStore = create<UserState>((set, get) => ({
           const progressionStore = useProgressionStore.getState();
           await progressionStore.resetJoinDate();
           await progressionStore.saveProgressionData(data.user.id);
-          
-          // Für Abwärtskompatibilität
-          set({ 
-            lifeWheelAreas: lifeWheelStore.lifeWheelAreas,
-            completedModules: []
-          });
 
           // Lokal speichern
           await AsyncStorage.setItem("userData", JSON.stringify(get().user));
@@ -477,17 +418,17 @@ export const useUserStore = create<UserState>((set, get) => ({
       set({
         user: null,
         isOnline: false,
-        lifeWheelAreas: [],
-        completedModules: [],
-        moduleProgressCache: {},
       });
       
       // Auch die anderen Stores zurücksetzen
       const lifeWheelStore = useLifeWheelStore.getState();
       const progressionStore = useProgressionStore.getState();
       
-      // Irgendwann implementieren wir reset-Methoden in den Stores
-      // Für jetzt verlassen wir uns auf die Neuinitialisierung beim nächsten Login
+      // Progression-Store zurücksetzen - Implementiere eine reset-Methode dort
+      // progressionStore.reset();
+      
+      // LifeWheel-Store zurücksetzen - Implementiere eine reset-Methode dort
+      // lifeWheelStore.reset();
     } catch (error) {
       console.error("Fehler beim Abmelden:", error);
     }
@@ -495,73 +436,5 @@ export const useUserStore = create<UserState>((set, get) => ({
   
   calculateTotalProgress: () => {
     return calculateTotalProgress();
-  },
-  
-  // ===== LEGACY METHODS FOR BACKWARD COMPATIBILITY =====
-  
-  completeModule: (moduleId) => {
-    // Delegate to progression store
-    const progressionStore = useProgressionStore.getState();
-    const { user } = get();
-    progressionStore.completeModule(moduleId, user?.id);
-    
-    // Update completed modules for backward compatibility
-    set({ completedModules: progressionStore.completedModules });
-    
-    // Update user object too
-    if (get().user) {
-      set((state) => ({
-        user: { 
-          ...state.user!, 
-          completedModules: progressionStore.completedModules 
-        },
-      }));
-    }
-  },
-  
-  getModuleProgress: (stepId) => {
-    // Delegate to progression store
-    const progressionStore = useProgressionStore.getState();
-    return progressionStore.getModuleProgress(stepId);
-  },
-  
-  getDaysInProgram: () => {
-    // Delegate to progression store
-    const progressionStore = useProgressionStore.getState();
-    return progressionStore.getDaysInProgram();
-  },
-  
-  getCurrentStage: () => {
-    // Delegate to progression store
-    const progressionStore = useProgressionStore.getState();
-    return progressionStore.getCurrentStage();
-  },
-  
-  getNextStage: () => {
-    // Delegate to progression store
-    const progressionStore = useProgressionStore.getState();
-    return progressionStore.getNextStage();
-  },
-  
-  getAvailableModules: () => {
-    // Delegate to progression store
-    const progressionStore = useProgressionStore.getState();
-    return progressionStore.getAvailableModules();
-  },
-  
-  isModuleAvailable: (moduleId) => {
-    // Delegate to progression store
-    const progressionStore = useProgressionStore.getState();
-    return progressionStore.isModuleAvailable(moduleId);
-  },
-  
-  updateLifeWheelArea: async (areaId, currentValue, targetValue) => {
-    // Delegate to lifewheel store
-    const lifeWheelStore = useLifeWheelStore.getState();
-    const { user } = get();
-    await lifeWheelStore.updateLifeWheelArea(areaId, currentValue, targetValue);
-    
-    // Update for backward compatibility
-    set({ lifeWheelAreas: lifeWheelStore.lifeWheelAreas });
   },
 }));

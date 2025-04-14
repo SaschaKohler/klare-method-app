@@ -1,4 +1,4 @@
-// src/screens/HomeScreen.optimized.tsx
+// src/screens/HomeScreen.refactored.tsx
 import React, { useState, useEffect, useMemo } from "react";
 import {
   StyleSheet,
@@ -26,29 +26,32 @@ import { Ionicons } from "@expo/vector-icons";
 import {
   lightKlareColors,
   darkKlareColors,
+  klareColors,
 } from "../constants/theme";
+import { useUserStore, useLifeWheelStore, useProgressionStore } from "../store";
 import { useThemeStore } from "../store";
 import { klareSteps } from "../data/klareMethodData";
 import { KlareLogo, KlareMethodCards } from "../components";
-import { useKlareStores } from "../hooks";
 import createStyles from "../constants/createStyles";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   
-  // Use our custom hook instead of multiple useStore calls
-  const {
-    user,
-    lifeWheelAreas,
-    calculateAverage: calculateLifeWheelAverage,
-    findLowestAreas,
-    getModuleProgress,
-    getDaysInProgram,
-    getCurrentStage,
-    getNextStage,
-    getAvailableModules,
-    calculateTotalProgress
-  } = useKlareStores();
+  // Zustand stores
+  const user = useUserStore((state) => state.user);
+  const calculateTotalProgress = useUserStore((state) => state.calculateTotalProgress);
+  
+  // Life Wheel Store
+  const lifeWheelAreas = useLifeWheelStore((state) => state.lifeWheelAreas);
+  const calculateLifeWheelAverage = useLifeWheelStore((state) => state.calculateAverage);
+  const findLowestAreas = useLifeWheelStore((state) => state.findLowestAreas);
+  
+  // Progression Store
+  const getModuleProgress = useProgressionStore((state) => state.getModuleProgress);
+  const getDaysInProgram = useProgressionStore((state) => state.getDaysInProgram);
+  const getCurrentStage = useProgressionStore((state) => state.getCurrentStage);
+  const getNextStage = useProgressionStore((state) => state.getNextStage);
+  const getAvailableModules = useProgressionStore((state) => state.getAvailableModules);
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [todayTip, setTodayTip] = useState("");
@@ -85,13 +88,13 @@ export default function HomeScreen() {
   ];
 
   // Berechne den Fortschritt für jeden KLARE-Schritt
-  const stepProgress = useMemo(() => ({
+  const stepProgress = {
     K: getModuleProgress("K"),
     L: getModuleProgress("L"),
     A: getModuleProgress("A"),
     R: getModuleProgress("R"),
     E: getModuleProgress("E"),
-  }), [getModuleProgress]);
+  };
 
   // Aktualisiert die Uhrzeit jede Minute
   useEffect(() => {
@@ -142,7 +145,7 @@ export default function HomeScreen() {
   };
 
   // Bestimme die nächsten Aktivitäten basierend auf verfügbaren Modulen
-  const getNextActivities = useMemo(() => {
+  const getNextActivities = () => {
     const activities = [];
 
     // Tägliche Aktivität hinzufügen
@@ -183,7 +186,9 @@ export default function HomeScreen() {
     }
 
     return activities.slice(0, 3); // Maximal 3 Aktivitäten anzeigen
-  }, [availableModules, daysInProgram]);
+  };
+
+  const nextActivities = getNextActivities();
 
   // Berechnet die Streak-Tage
   const streakDays = user?.streak || daysInProgram;
@@ -506,7 +511,7 @@ export default function HomeScreen() {
           Nächste Aktivitäten
         </Text>
 
-        {getNextActivities.map((activity) => {
+        {nextActivities.map((activity) => {
           const stepInfo = klareSteps.find((step) => step.id === activity.step);
           return (
             <Card

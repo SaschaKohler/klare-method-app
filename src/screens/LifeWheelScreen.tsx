@@ -23,13 +23,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useUserStore } from "../store/useUserStore";
+import { useUserStore, useLifeWheelStore } from "../store";
 import {
   darkKlareColors,
   klareColors,
   lightKlareColors,
 } from "../constants/theme";
-import LifeWheelChart from "../components/lifewheel/LifeWheelChart";
+import { LifeWheelChart, LifeWheelEditor, LifeWheelLegend } from "../components";
 import Slider from "@react-native-community/slider";
 import { BlurView } from "expo-blur";
 import { StatusBar } from "expo-status-bar";
@@ -38,11 +38,16 @@ import createLifeWheelScreenStyles from "../constants/lifeWheelScreenStyles";
 
 export default function LifeWheelScreen() {
   const navigation = useNavigation();
-  const lifeWheelAreas = useUserStore((state) => state.lifeWheelAreas);
-  const updateLifeWheelArea = useUserStore(
-    (state) => state.updateLifeWheelArea,
-  );
+  
+  // Using the new LifeWheelStore
+  const lifeWheelAreas = useLifeWheelStore((state) => state.lifeWheelAreas);
+  const updateLifeWheelArea = useLifeWheelStore((state) => state.updateLifeWheelArea);
+  const saveLifeWheelData = useLifeWheelStore((state) => state.saveLifeWheelData);
+  
+  // For backwards compatibility with UserStore
+  const user = useUserStore((state) => state.user);
   const saveUserData = useUserStore((state) => state.saveUserData);
+  
   const theme = useTheme();
   const isDarkMode = theme.dark;
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
@@ -82,8 +87,12 @@ export default function LifeWheelScreen() {
 
   // Speichern der Änderungen
   const handleSave = useCallback(async () => {
-    const success = await saveUserData();
+    // Save lifewheel data using the new store
+    const success = await saveLifeWheelData(user?.id);
+    
+    // Also save user data for backward compatibility
     if (success) {
+      await saveUserData();
       setHasChanges(false);
       if (Platform.OS === "ios") {
         // iOS-style alert
@@ -104,7 +113,7 @@ export default function LifeWheelScreen() {
         "Beim Speichern ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
       );
     }
-  }, [saveUserData]);
+  }, [saveLifeWheelData, saveUserData, user]);
 
   // Einsichten generieren basierend auf den Lebensrad-Werten
   const generateInsights = useCallback(() => {
@@ -311,85 +320,19 @@ export default function LifeWheelScreen() {
 
           {/* Bereichsdetails und Slider */}
           {selectedArea && (
-            <Card style={styles.card} mode="elevated">
-              <Card.Title
-                title={selectedArea.name}
-                right={(props) => (
-                  <IconButton
-                    {...props}
-                    icon="close"
-                    onPress={() => setSelectedAreaId(null)}
-                  />
-                )}
-              />
-              <Card.Content>
-                <View style={styles.sliderContainer}>
-                  <View style={styles.sliderLabelContainer}>
-                    <Text style={styles.sliderLabel}>Aktueller Wert</Text>
-                    <Text style={styles.sliderValue}>
-                      {selectedArea.currentValue}/10
-                    </Text>
-                  </View>
-                  <Slider
-                    style={styles.slider}
-                    minimumValue={1}
-                    maximumValue={10}
-                    step={1}
-                    value={selectedArea.currentValue}
-                    onValueChange={(value) =>
-                      handleValueChange(
-                        selectedArea.id,
-                        value,
-                        selectedArea.targetValue,
-                      )
-                    }
-                    minimumTrackTintColor={klareColors.k}
-                    maximumTrackTintColor="#ccc"
-                    thumbTintColor={klareColors.k}
-                  />
-                  {/* iOS-Style für Wert-Labels unter dem Slider */}
-                  <View style={styles.sliderMarkers}>
-                    <Text style={styles.sliderMarkerText}>1</Text>
-                    <Text style={styles.sliderMarkerText}>5</Text>
-                    <Text style={styles.sliderMarkerText}>10</Text>
-                  </View>
-                </View>
-
-                {showTargetValues && (
-                  <View style={styles.sliderContainer}>
-                    <View style={styles.sliderLabelContainer}>
-                      <Text style={styles.sliderLabel}>Zielwert</Text>
-                      <Text style={styles.sliderValue}>
-                        {selectedArea.targetValue}/10
-                      </Text>
-                    </View>
-                    <Slider
-                      style={styles.slider}
-                      minimumValue={1}
-                      maximumValue={10}
-                      step={1}
-                      value={selectedArea.targetValue}
-                      onValueChange={(value) =>
-                        handleValueChange(
-                          selectedArea.id,
-                          selectedArea.currentValue,
-                          value,
-                        )
-                      }
-                      minimumTrackTintColor={klareColors.a}
-                      maximumTrackTintColor="#ccc"
-                      thumbTintColor={klareColors.a}
-                    />
-                    <View style={styles.sliderMarkers}>
-                      <Text style={styles.sliderMarkerText}>1</Text>
-                      <Text style={styles.sliderMarkerText}>5</Text>
-                      <Text style={styles.sliderMarkerText}>10</Text>
-                    </View>
-                  </View>
-                )}
-              </Card.Content>
-            </Card>
+            <LifeWheelEditor
+              selectedArea={selectedArea}
+              showTargetValues={showTargetValues}
+              onValueChange={handleValueChange}
+              onClose={() => setSelectedAreaId(null)}
+            />
           )}
+
+          {/* Legende */}
+          <LifeWheelLegend 
+            showTargetValues={showTargetValues} 
+            compact={false}
+          />
 
           {/* Speichern Button */}
           {hasChanges && (
