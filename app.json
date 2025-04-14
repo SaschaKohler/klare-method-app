@@ -1,28 +1,22 @@
 {
   "expo": {
-    "name": "klare-method-app",
-    "slug": "klare-method-app",
+    "name": "KLARE Methode",
+    "slug": "klare-methode-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.deinname.klaremethode",
-      "buildNumber": "1.0.0",
-      "infoPlist": {
-        "UIBackgroundModes": [
-          "fetch",
-          "remote-notification"
-        ],
-        "UIViewControllerBasedStatusBarAppearance": false
-      }
+      "bundleIdentifier": "com.deinname.klaremethode"
     },
     "android": {
       "adaptiveIcon": {
@@ -35,14 +29,12 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-asset",
-      "expo-font"
+      "expo-dev-client"
     ],
     "extra": {
       "eas": {
-        "projectId": "591be403-f400-4534-abaf-e93049778a60"
+        "projectId": "your-project-id"
       }
-    },
-    "owner": "blisha1"
+    }
   }
 }
