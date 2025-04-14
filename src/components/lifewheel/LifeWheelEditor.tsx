@@ -1,25 +1,23 @@
 // src/components/lifewheel/LifeWheelEditor.tsx
 import React, { useMemo } from "react";
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Platform,
-} from "react-native";
-import {
-  Text,
-  Card,
-  IconButton,
-  useTheme,
-} from "react-native-paper";
+import { View, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import { Text, Card, IconButton, useTheme } from "react-native-paper";
 import { LifeWheelArea } from "../../store/useLifeWheelStore";
 import Slider from "@react-native-community/slider";
-import { klareColors, darkKlareColors, lightKlareColors } from "../../constants/theme";
+import {
+  klareColors,
+  darkKlareColors,
+  lightKlareColors,
+} from "../../constants/theme";
 
 interface LifeWheelEditorProps {
   selectedArea: LifeWheelArea | null;
   showTargetValues?: boolean;
-  onValueChange: (areaId: string, currentValue: number, targetValue: number) => void;
+  onValueChange: (
+    areaId: string,
+    currentValue: number,
+    targetValue: number,
+  ) => void;
   onClose: () => void;
 }
 
@@ -39,16 +37,21 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
     return null;
   }
 
+  // Optimized slider handling for immediate updates
+  const handleCurrentValueChange = (value: number) => {
+    onValueChange(selectedArea.id, value, selectedArea.targetValue);
+  };
+
+  const handleTargetValueChange = (value: number) => {
+    onValueChange(selectedArea.id, selectedArea.currentValue, value);
+  };
+
   return (
     <Card style={styles.card} mode="elevated">
       <Card.Title
         title={selectedArea.name}
         right={(props) => (
-          <IconButton
-            {...props}
-            icon="close"
-            onPress={onClose}
-          />
+          <IconButton {...props} icon="close" onPress={onClose} />
         )}
       />
       <Card.Content>
@@ -65,15 +68,10 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
             maximumValue={10}
             step={1}
             value={selectedArea.currentValue}
-            onValueChange={(value) =>
-              onValueChange(
-                selectedArea.id,
-                value,
-                selectedArea.targetValue,
-              )
-            }
+            // Immediately update on value change, not just when touch ends
+            onValueChange={handleCurrentValueChange}
             minimumTrackTintColor={themeColors.k}
-            maximumTrackTintColor="#ccc"
+            maximumTrackTintColor={isDarkMode ? "#555" : "#ccc"}
             thumbTintColor={themeColors.k}
           />
           {/* iOS-Style für Wert-Labels unter dem Slider */}
@@ -98,15 +96,10 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
               maximumValue={10}
               step={1}
               value={selectedArea.targetValue}
-              onValueChange={(value) =>
-                onValueChange(
-                  selectedArea.id,
-                  selectedArea.currentValue,
-                  value,
-                )
-              }
+              // Immediately update on value change
+              onValueChange={handleTargetValueChange}
               minimumTrackTintColor={themeColors.a}
-              maximumTrackTintColor="#ccc"
+              maximumTrackTintColor={isDarkMode ? "#555" : "#ccc"}
               thumbTintColor={themeColors.a}
             />
             <View style={styles.sliderMarkers}>

@@ -1,5 +1,11 @@
 // src/screens/LifeWheelScreen.tsx
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import {
   StyleSheet,
   View,
@@ -12,9 +18,7 @@ import {
 import {
   Text,
   Card,
-  Title,
   Paragraph,
-  Switch,
   Divider,
   Button,
   IconButton,
@@ -35,28 +39,39 @@ import {
   LifeWheelEditor,
   LifeWheelLegend,
 } from "../components";
-import Slider from "@react-native-community/slider";
 import { BlurView } from "expo-blur";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import createLifeWheelScreenStyles from "../constants/lifeWheelScreenStyles";
+import { LifeWheelArea } from "../store/useLifeWheelStore";
 
 export default function LifeWheelScreen() {
   const navigation = useNavigation();
 
-  // Using the new LifeWheelStore
-  const lifeWheelAreas = useLifeWheelStore((state) => state.lifeWheelAreas);
+  // Store access
+  const storeLifeWheelAreas = useLifeWheelStore(
+    (state) => state.lifeWheelAreas,
+  );
   const updateLifeWheelArea = useLifeWheelStore(
     (state) => state.updateLifeWheelArea,
   );
   const saveLifeWheelData = useLifeWheelStore(
     (state) => state.saveLifeWheelData,
   );
+  const loadLifeWheelData = useLifeWheelStore(
+    (state) => state.loadLifeWheelData,
+  );
 
-  // For backwards compatibility with UserStore
+  // User Store für Kompatibilität
   const user = useUserStore((state) => state.user);
   const saveUserData = useUserStore((state) => state.saveUserData);
 
+  // Lokaler State für die Chart-Daten - wichtig für sofortige Updates
+  const [lifeWheelAreas, setLifeWheelAreas] = useState<LifeWheelArea[]>([
+    ...storeLifeWheelAreas,
+  ]);
+
+  // UI States
   const theme = useTheme();
   const isDarkMode = theme.dark;
   const themeColors = isDarkMode ? darkKlareColors : lightKlareColors;
@@ -65,31 +80,69 @@ export default function LifeWheelScreen() {
     [theme, themeColors],
   );
   const insets = useSafeAreaInsets();
-
+  const [viewMode, setViewMode] = useState("current");
   const [showTargetValues, setShowTargetValues] = useState(false);
   const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
   const [showInsights, setShowInsights] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [viewMode, setViewMode] = useState("current"); // 'current' oder 'target'
+  const chartUpdateCounter = useRef(0); // Zur Erzwingung von Re-renders
+
+  // Synchronisiere lokalen State mit Store bei Änderungen
+  useEffect(() => {
+    setLifeWheelAreas([...storeLifeWheelAreas]);
+  }, [storeLifeWheelAreas]);
+
+  // Lade Daten beim ersten Render
+  useEffect(() => {
+    const loadData = async () => {
+      await loadLifeWheelData(user?.id);
+    };
+    loadData();
+  }, []);
+
+  // ViewMode wird auf showTargetValues übertragen
+  useEffect(() => {
+    setShowTargetValues(viewMode === "target");
+  }, [viewMode]);
 
   // Finde den ausgewählten Bereich
-  const selectedArea = lifeWheelAreas.find(
-    (area) => area.id === selectedAreaId,
-  );
+  const selectedArea = useMemo(() => {
+    return lifeWheelAreas.find((area) => area.id === selectedAreaId);
+  }, [lifeWheelAreas, selectedAreaId]);
 
   // Behandlung der Bereichsauswahl
   const handleAreaPress = useCallback((areaId: string) => {
     setSelectedAreaId(areaId);
-    // iOS: Haptisches Feedback wenn verfügbar
-    if (Platform.OS === "ios" && window.navigator?.vibrate) {
-      window.navigator.vibrate(10);
+
+    // Haptisches Feedback
+    if (Platform.OS === "ios") {
+      try {
+        const Haptics = require("expo-haptics");
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (e) {
+        // Fallback wenn Haptics nicht verfügbar
+        if (window.navigator?.vibrate) {
+          window.navigator.vibrate(10);
+        }
+      }
     }
   }, []);
 
-  // Aktualisierung eines Bereichswerts mit debounce für bessere Performance
+  // DIREKTE Aktualisierung eines Bereichswerts - sofort sichtbar im Chart
   const handleValueChange = useCallback(
-    (areaId: string, currentValue: number, targetValue: number) => {
-      updateLifeWheelArea(areaId, currentValue, targetValue);
+    async (areaId: string, currentValue: number, targetValue: number) => {
+      // Lokalen State sofort aktualisieren für UI-Feedback
+      setLifeWheelAreas((currentAreas) =>
+        currentAreas.map((area) =>
+          area.id === areaId ? { ...area, currentValue, targetValue } : area,
+        ),
+      );
+
+      // Force re-render des Charts
+      chartUpdateCounter.current += 1;
+
+      // Dann Store aktualisieren (kann im Hintergrund erfolgen)
+      await updateLifeWheelArea(areaId, currentValue, targetValue);
       setHasChanges(true);
     },
     [updateLifeWheelArea],
@@ -97,15 +150,13 @@ export default function LifeWheelScreen() {
 
   // Speichern der Änderungen
   const handleSave = useCallback(async () => {
-    // Save lifewheel data using the new store
     const success = await saveLifeWheelData(user?.id);
 
-    // Also save user data for backward compatibility
     if (success) {
       await saveUserData();
       setHasChanges(false);
+
       if (Platform.OS === "ios") {
-        // iOS-style alert
         Alert.alert(
           "Gespeichert",
           "Ihre Lebensrad-Werte wurden erfolgreich gespeichert.",
@@ -124,11 +175,6 @@ export default function LifeWheelScreen() {
       );
     }
   }, [saveLifeWheelData, saveUserData, user]);
-
-  // ViewMode wird auf showTargetValues übertragen
-  useEffect(() => {
-    setShowTargetValues(viewMode === "target");
-  }, [viewMode]);
 
   // Einsichten generieren basierend auf den Lebensrad-Werten
   const generateInsights = useCallback(() => {
@@ -339,13 +385,15 @@ export default function LifeWheelScreen() {
             />
           </Card>
 
-          {/* Lebensrad Chart */}
+          {/* Lebensrad Chart - mit lokalen, sofort aktualisierten Daten */}
           <Card style={styles.chartCard} mode="elevated">
             <Card.Content>
               <View style={styles.chartContainer}>
                 <LifeWheelChart
                   showTargetValues={showTargetValues}
                   onAreaPress={handleAreaPress}
+                  key={`chart-${chartUpdateCounter.current}`} // Force re-render
+                  lifeWheelAreas={lifeWheelAreas} // Direkte Übergabe
                 />
               </View>
             </Card.Content>

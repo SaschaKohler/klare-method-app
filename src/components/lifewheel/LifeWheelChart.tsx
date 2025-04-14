@@ -1,5 +1,5 @@
 // src/components/lifewheel/LifeWheelChart.tsx
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   StyleSheet,
@@ -7,7 +7,7 @@ import {
   Platform,
   TouchableOpacity,
 } from "react-native";
-import { Text, useTheme } from "react-native-paper";
+import { useTheme } from "react-native-paper";
 import Svg, {
   Circle,
   G,
@@ -21,6 +21,7 @@ import {
   lightKlareColors,
 } from "../../constants/theme";
 import { useUserStore } from "../../store/useUserStore";
+import { LifeWheelArea } from "../../store/useLifeWheelStore";
 
 // Konstanten für das Lebensrad
 const WHEEL_PADDING = 40;
@@ -32,20 +33,24 @@ interface LifeWheelChartProps {
   showTargetValues?: boolean;
   size?: number;
   onAreaPress?: (areaId: string) => void;
+  lifeWheelAreas?: LifeWheelArea[]; // Kann direkt übergeben werden
 }
 
 const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
   showTargetValues = false,
   size = Math.min(Dimensions.get("window").width - WHEEL_PADDING * 2, 300),
   onAreaPress,
+  lifeWheelAreas: propLifeWheelAreas,
 }) => {
   // Theme für bessere Kontraste
   const theme = useTheme();
   const isDarkMode = theme.dark;
   const themeColors = isDarkMode ? darkKlareColors : lightKlareColors;
 
-  // Lebensrad-Daten aus dem Store holen
-  const lifeWheelAreas = useUserStore((state) => state.lifeWheelAreas);
+  // Entweder direkt übergebene Daten oder Daten aus dem Store nehmen
+  const storeLifeWheelAreas = useUserStore((state) => state.lifeWheelAreas);
+  // Wenn LifeWheelAreas als Prop übergeben wurden, verwende diese, ansonsten aus dem Store
+  const lifeWheelAreas = propLifeWheelAreas || storeLifeWheelAreas;
 
   // Berechnete Werte
   const center = size / 2;
