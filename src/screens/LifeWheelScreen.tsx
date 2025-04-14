@@ -19,6 +19,7 @@ import {
   Button,
   IconButton,
   useTheme,
+  SegmentedButtons,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,7 +30,11 @@ import {
   klareColors,
   lightKlareColors,
 } from "../constants/theme";
-import { LifeWheelChart, LifeWheelEditor, LifeWheelLegend } from "../components";
+import {
+  LifeWheelChart,
+  LifeWheelEditor,
+  LifeWheelLegend,
+} from "../components";
 import Slider from "@react-native-community/slider";
 import { BlurView } from "expo-blur";
 import { StatusBar } from "expo-status-bar";
@@ -38,22 +43,26 @@ import createLifeWheelScreenStyles from "../constants/lifeWheelScreenStyles";
 
 export default function LifeWheelScreen() {
   const navigation = useNavigation();
-  
+
   // Using the new LifeWheelStore
   const lifeWheelAreas = useLifeWheelStore((state) => state.lifeWheelAreas);
-  const updateLifeWheelArea = useLifeWheelStore((state) => state.updateLifeWheelArea);
-  const saveLifeWheelData = useLifeWheelStore((state) => state.saveLifeWheelData);
-  
+  const updateLifeWheelArea = useLifeWheelStore(
+    (state) => state.updateLifeWheelArea,
+  );
+  const saveLifeWheelData = useLifeWheelStore(
+    (state) => state.saveLifeWheelData,
+  );
+
   // For backwards compatibility with UserStore
   const user = useUserStore((state) => state.user);
   const saveUserData = useUserStore((state) => state.saveUserData);
-  
+
   const theme = useTheme();
   const isDarkMode = theme.dark;
-  const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
+  const themeColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const styles = useMemo(
-    () => createLifeWheelScreenStyles(theme, klareColors),
-    [theme, klareColors],
+    () => createLifeWheelScreenStyles(theme, themeColors),
+    [theme, themeColors],
   );
   const insets = useSafeAreaInsets();
 
@@ -61,6 +70,7 @@ export default function LifeWheelScreen() {
   const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
   const [showInsights, setShowInsights] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [viewMode, setViewMode] = useState("current"); // 'current' oder 'target'
 
   // Finde den ausgewählten Bereich
   const selectedArea = lifeWheelAreas.find(
@@ -89,7 +99,7 @@ export default function LifeWheelScreen() {
   const handleSave = useCallback(async () => {
     // Save lifewheel data using the new store
     const success = await saveLifeWheelData(user?.id);
-    
+
     // Also save user data for backward compatibility
     if (success) {
       await saveUserData();
@@ -114,6 +124,11 @@ export default function LifeWheelScreen() {
       );
     }
   }, [saveLifeWheelData, saveUserData, user]);
+
+  // ViewMode wird auf showTargetValues übertragen
+  useEffect(() => {
+    setShowTargetValues(viewMode === "target");
+  }, [viewMode]);
 
   // Einsichten generieren basierend auf den Lebensrad-Werten
   const generateInsights = useCallback(() => {
@@ -183,7 +198,7 @@ export default function LifeWheelScreen() {
                   <View
                     style={[
                       styles.insightDot,
-                      { backgroundColor: klareColors.k },
+                      { backgroundColor: themeColors.k },
                     ]}
                   />
                   <Text style={styles.insightText}>
@@ -204,7 +219,7 @@ export default function LifeWheelScreen() {
                   <View
                     style={[
                       styles.insightDot,
-                      { backgroundColor: klareColors.a },
+                      { backgroundColor: themeColors.a },
                     ]}
                   />
                   <Text style={styles.insightText}>
@@ -225,7 +240,7 @@ export default function LifeWheelScreen() {
                   <View
                     style={[
                       styles.insightDot,
-                      { backgroundColor: klareColors.e },
+                      { backgroundColor: themeColors.e },
                     ]}
                   />
                   <Text style={styles.insightText}>
@@ -272,10 +287,9 @@ export default function LifeWheelScreen() {
     );
   };
 
-  // iOS-optimierte Ansicht rendert BlurViews und verbesserte UI-Elemente
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style={isDarkMode ? "light" : "dark"} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -296,23 +310,42 @@ export default function LifeWheelScreen() {
             </Text>
           </View>
 
+          {/* Verbesserte Ansicht-Wahl (Tab-ähnlich) */}
+          <Card style={styles.viewModeCard} mode="elevated">
+            <SegmentedButtons
+              value={viewMode}
+              onValueChange={setViewMode}
+              buttons={[
+                {
+                  value: "current",
+                  label: "Aktueller Zustand",
+                  style:
+                    viewMode === "current"
+                      ? styles.activeSegment
+                      : styles.inactiveSegment,
+                  checkedColor: themeColors.k,
+                },
+                {
+                  value: "target",
+                  label: "Mit Zielwerten",
+                  style:
+                    viewMode === "target"
+                      ? styles.activeSegment
+                      : styles.inactiveSegment,
+                  checkedColor: themeColors.a,
+                },
+              ]}
+              style={styles.segmentedButtons}
+            />
+          </Card>
+
           {/* Lebensrad Chart */}
-          <Card style={styles.card} mode="elevated">
+          <Card style={styles.chartCard} mode="elevated">
             <Card.Content>
               <View style={styles.chartContainer}>
                 <LifeWheelChart
                   showTargetValues={showTargetValues}
                   onAreaPress={handleAreaPress}
-                />
-              </View>
-
-              <View style={styles.toggleContainer}>
-                <Text>Zielwerte anzeigen</Text>
-                <Switch
-                  value={showTargetValues}
-                  onValueChange={setShowTargetValues}
-                  color={klareColors.a}
-                  ios_backgroundColor="#eee"
                 />
               </View>
             </Card.Content>
@@ -329,8 +362,8 @@ export default function LifeWheelScreen() {
           )}
 
           {/* Legende */}
-          <LifeWheelLegend 
-            showTargetValues={showTargetValues} 
+          <LifeWheelLegend
+            showTargetValues={showTargetValues}
             compact={false}
           />
 
@@ -350,6 +383,7 @@ export default function LifeWheelScreen() {
           <TouchableOpacity
             style={styles.insightsToggle}
             onPress={() => setShowInsights(!showInsights)}
+            activeOpacity={0.7}
           >
             <Text style={styles.insightsToggleText}>
               {showInsights
@@ -359,7 +393,7 @@ export default function LifeWheelScreen() {
             <Ionicons
               name={showInsights ? "chevron-up" : "chevron-down"}
               size={20}
-              color={klareColors.k}
+              color={themeColors.k}
             />
           </TouchableOpacity>
 
@@ -373,7 +407,11 @@ export default function LifeWheelScreen() {
         <View
           style={[styles.floatingSaveContainer, { bottom: insets.bottom + 16 }]}
         >
-          <BlurView intensity={90} tint="light" style={styles.blurView}>
+          <BlurView
+            intensity={90}
+            tint={isDarkMode ? "dark" : "light"}
+            style={styles.blurView}
+          >
             <Button
               mode="contained"
               style={styles.floatingSaveButton}
