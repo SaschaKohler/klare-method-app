@@ -208,7 +208,7 @@ export default function AuthScreen() {
       <View style={styles.logoContainer}>
         <KlareLogo
           size={60}
-          spacing={10}
+          spacing={5}
           animated={true}
           pulsate={true}
           style={{ marginTop: 8 }}
@@ -270,25 +270,24 @@ export default function AuthScreen() {
     <MotiView
       from={{ opacity: 0, translateY: 20 }}
       animate={{ opacity: 1, translateY: 0 }}
-      transition={{ type: "timing", duration: 400 }}
-      style={[styles.animatedCard, { width: "100%" }]}
+      transition={{ type: "timing", duration: 600, delay: 300 }}
+      style={styles.signInCard}
     >
       <Pressable
         style={styles.backButton}
         onPress={() => setCurrentView("welcome")}
       >
-        <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+        <Ionicons name="arrow-back" size={20} color={theme.colors.text} />
       </Pressable>
 
       <View style={styles.logoContainer}>
-        <MotiText
-          from={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ type: "timing", duration: 600, delay: 300 }}
-          style={styles.logoText}
-        >
-          KLARE
-        </MotiText>
+        <KlareLogo
+          size={40}
+          spacing={5}
+          animated={false}
+          pulsate={true}
+          style={{ marginTop: 8 }}
+        />
       </View>
 
       <TextInput
@@ -370,25 +369,24 @@ export default function AuthScreen() {
     <MotiView
       from={{ opacity: 0, translateY: 20 }}
       animate={{ opacity: 1, translateY: 0 }}
-      transition={{ type: "timing", duration: 400 }}
-      style={styles.animatedCard}
+      transition={{ type: "timing", duration: 600, delay: 300 }}
+      style={styles.signUpCard}
     >
       <Pressable
         style={styles.backButton}
         onPress={() => setCurrentView("welcome")}
       >
-        <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+        <Ionicons name="arrow-back" size={20} color={theme.colors.text} />
       </Pressable>
 
       <View style={styles.logoContainer}>
-        <MotiText
-          from={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ type: "timing", duration: 600, delay: 300 }}
-          style={styles.logoText}
-        >
-          KLARE
-        </MotiText>
+        <KlareLogo
+          size={40}
+          spacing={5}
+          animated={false}
+          pulsate={true}
+          style={{ marginTop: 8 }}
+        />
       </View>
 
       <View style={styles.inputRow}>

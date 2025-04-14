@@ -1,7 +1,7 @@
 import { StyleSheet, Platform, Dimensions } from "react-native";
 import { Theme } from "react-native-paper/lib/typescript/types";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGTH } = Dimensions.get("window");
 
 const createAuthScreenStyles = (theme: Theme, klareColors: any) =>
   StyleSheet.create({
@@ -60,8 +60,8 @@ const createAuthScreenStyles = (theme: Theme, klareColors: any) =>
     // New styles for enhanced auth screens
     backButton: {
       position: "absolute",
-      top: 20,
-      left: 20,
+      top: SCREEN_HEIGTH / 4 - 30,
+      left: 0,
       zIndex: 10,
     },
     logoText: {
@@ -149,7 +149,22 @@ const createAuthScreenStyles = (theme: Theme, klareColors: any) =>
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
-      width: "100%",
+      height: SCREEN_HEIGTH,
+      width: SCREEN_WIDTH - 30,
+    },
+    signInCard: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      height: SCREEN_HEIGTH,
+      width: SCREEN_WIDTH - 30,
+    },
+    signUpCard: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      height: SCREEN_HEIGTH,
+      width: SCREEN_WIDTH - 30,
     },
     welcomeImage: {
       width: 200,
