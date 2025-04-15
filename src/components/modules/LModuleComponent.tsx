@@ -105,7 +105,13 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
 
   // Wenn es sich um das ResourceFinder-Modul handelt, verwende die dedizierte Komponente
   if (isResourceFinderModule) {
-    return <ResourceFinder onComplete={onComplete} themeColor={themeColor} />;
+    return (
+      <ResourceFinder
+        onComplete={onComplete}
+        themeColor={themeColor}
+        module={module}
+      />
+    );
   }
 
   // Bearbeite Benutzereingaben

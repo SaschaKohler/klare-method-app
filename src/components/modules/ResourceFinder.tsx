@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -22,15 +22,17 @@ import Slider from "@react-native-community/slider";
 import * as Haptics from "expo-haptics";
 import { useResourceStore } from "../../store/useResourceStore";
 
-// Types
+// Erweiterte Props-Schnittstelle
 interface ResourceFinderProps {
   onComplete: () => void;
   themeColor?: string;
+  module?: any; // Modul-Objekt als optionaler Parameter
 }
 
 const ResourceFinder = ({
   onComplete,
   themeColor = "#8B5CF6",
+  module,
 }: ResourceFinderProps) => {
   const theme = useTheme();
   const [currentStep, setCurrentStep] = useState(0);
@@ -43,11 +45,11 @@ const ResourceFinder = ({
   const [resourceRating, setResourceRating] = useState(7);
   const [resourceTips, setResourceTips] = useState("");
 
-  // Get access to the store
+  // Get resources from the store
   const { resources, addResource } = useResourceStore();
 
-  // Steps for the resource finder process
-  const steps = [
+  // Standard-Schritte für den Resource Finder
+  const defaultSteps = [
     {
       title: "Ressourcen-Finder",
       description:
@@ -90,6 +92,66 @@ const ResourceFinder = ({
     },
   ];
 
+  // State für die Schritte
+  const [steps, setSteps] = useState(defaultSteps);
+
+  // Effekt zur Verarbeitung des Moduls, falls vorhanden
+  useEffect(() => {
+    if (module) {
+      try {
+        console.log("Modul erkannt:", module.module_id || module.id);
+
+        // Extrahiere Fragen oder Beschreibungen aus dem Modul-Objekt, falls vorhanden
+        let moduleQuestions: string[] = [];
+
+        // Suche nach einem content-Feld oder description-Feld
+        if (module.content && typeof module.content === "string") {
+          // Teile den Content an Zeilenumbrüchen oder speziellen Markierungen
+          moduleQuestions = module.content
+            .split(/\n+|\?/)
+            .filter(
+              (line: string) =>
+                line.trim().endsWith("?") || line.trim().length > 20,
+            )
+            .map((line: string) => line.trim())
+            .filter(Boolean); // Leere Strings entfernen
+        }
+
+        // Alternativ, falls es einen spezifischen Fragen-Array gibt
+        if (module.questions && Array.isArray(module.questions)) {
+          moduleQuestions = module.questions;
+        }
+
+        // Wenn keine Fragen gefunden wurden, verwende Standardfragen
+        if (moduleQuestions.length === 0) {
+          moduleQuestions = defaultSteps[1].questions;
+        }
+
+        // Aktualisiere den Reflektionsschritt mit den gefundenen Fragen
+        const updatedSteps = [...defaultSteps];
+        updatedSteps[1] = {
+          ...updatedSteps[1],
+          questions: moduleQuestions,
+        };
+
+        // Wenn ein Titel im Modul definiert ist, verwende diesen
+        if (module.title) {
+          updatedSteps[0] = {
+            ...updatedSteps[0],
+            title: module.title,
+            description: module.description || updatedSteps[0].description,
+          };
+        }
+
+        setSteps(updatedSteps);
+      } catch (error) {
+        console.error("Fehler bei der Verarbeitung des Moduls:", error);
+        // Bei Fehlern die Standard-Schritte verwenden
+        setSteps(defaultSteps);
+      }
+    }
+  }, [module]);
+
   // Get current step
   const currentStepData = steps[currentStep];
 
@@ -109,14 +171,17 @@ const ResourceFinder = ({
     if (currentStep < steps.length - 1) {
       // Save answers if we're on the questions step
       if (currentStepData.type === "reflection" && inputText.trim() !== "") {
-        setQuestions([
-          ...questions,
-          {
-            question: currentStepData.questions[questions.length],
-            answer: inputText.trim(),
-          },
-        ]);
-        setInputText("");
+        const currentQuestion = currentStepData.questions?.[questions.length];
+        if (currentQuestion) {
+          setQuestions([
+            ...questions,
+            {
+              question: currentQuestion,
+              answer: inputText.trim(),
+            },
+          ]);
+          setInputText("");
+        }
       }
 
       // Handle resource identification step
@@ -534,7 +599,35 @@ const ResourceFinder = ({
         );
 
       default:
-        return null;
+        return (
+          <Card style={styles.card}>
+            <Card.Content>
+              <Title style={[styles.title, { color: themeColor }]}>
+                {currentStepData.title}
+              </Title>
+              <Paragraph style={styles.paragraph}>
+                {currentStepData.description}
+              </Paragraph>
+            </Card.Content>
+
+            <Card.Actions style={styles.cardActions}>
+              <Button
+                mode="outlined"
+                onPress={handlePrevStep}
+                style={styles.outlinedButton}
+              >
+                Zurück
+              </Button>
+              <Button
+                mode="contained"
+                onPress={handleNextStep}
+                style={[styles.button, { backgroundColor: themeColor }]}
+              >
+                Weiter
+              </Button>
+            </Card.Actions>
+          </Card>
+        );
     }
   };
 
