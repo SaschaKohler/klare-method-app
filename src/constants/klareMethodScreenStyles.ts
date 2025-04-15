@@ -229,7 +229,7 @@ const createKlareMethodScreenStyles = (theme: Theme, klareColors: any) =>
     moduleDurationText: {
       fontSize: 12,
       marginLeft: 3,
-      color: theme.colors.disabled,
+      color: theme.colors.text,
     },
     lockedChip: {
       backgroundColor: theme.colors.surface,

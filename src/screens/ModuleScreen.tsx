@@ -222,7 +222,7 @@ const ModuleScreen = () => {
   const renderModuleSelector = () => (
     <ScrollView style={styles.moduleSelector}>
       <Text style={styles.moduleSelectorTitle}>
-        Select Module for Step {(stepId || "K").toUpperCase()}
+        Wähle Module für Schritt {(stepId || "K").toUpperCase()}
       </Text>
       {availableModules.map((module) => (
         <Button
@@ -234,7 +234,7 @@ const ModuleScreen = () => {
             setShowModuleSelector(false);
           }}
         >
-          {module.title} ({module.content_type})
+          {module.title}
         </Button>
       ))}
     </ScrollView>

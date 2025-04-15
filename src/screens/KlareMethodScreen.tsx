@@ -107,9 +107,11 @@ export default function KlareMethodScreen() {
   // Zugriff auf Module
   const [availableModules, setAvailableModules] = useState<ModuleContent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Use the new progression store
-  const isModuleAvailable = useProgressionStore((state) => state.isModuleAvailable);
+  const isModuleAvailable = useProgressionStore(
+    (state) => state.isModuleAvailable,
+  );
 
   // Finde den aktiven Schritt
   const activeStep = klareSteps.find(
@@ -447,8 +449,8 @@ export default function KlareMethodScreen() {
         </View>
       ) : (
         availableModules.map((module) => {
-          const isAvailable = isModuleAvailable(module.id);
-
+          const isAvailable = isModuleAvailable(module.module_id);
+          console.log(isAvailable, module.id);
           return (
             <Card
               key={module.id}
@@ -569,7 +571,11 @@ export default function KlareMethodScreen() {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="arrow-back" size={24} color={themeKlareColors.text} />
+            <Ionicons
+              name="arrow-back"
+              size={24}
+              color={themeKlareColors.text}
+            />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>KLARE Methode</Text>
         </View>
@@ -621,7 +627,9 @@ export default function KlareMethodScreen() {
                 style={[
                   styles.stepName,
                   {
-                    color: isActive ? step.color : themeKlareColors.textSecondary,
+                    color: isActive
+                      ? step.color
+                      : themeKlareColors.textSecondary,
                   },
                 ]}
               >

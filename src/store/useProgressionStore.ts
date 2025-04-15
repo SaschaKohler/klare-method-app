@@ -20,7 +20,7 @@ interface ProgressionState {
   moduleProgressCache: ModuleProgressCache;
   joinDate: string | null;
   isLoading: boolean;
-  
+
   // Funktionen
   completeModule: (moduleId: string, userId?: string) => Promise<void>;
   getModuleProgress: (stepId: "K" | "L" | "A" | "R" | "E") => number;
@@ -90,7 +90,7 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
   moduleProgressCache: {},
   joinDate: null,
   isLoading: false,
-  
+
   completeModule: async (moduleId, userId) => {
     const { completedModules } = get();
 
@@ -178,84 +178,90 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
     const today = new Date();
     const diffTime = Math.abs(today.getTime() - joinDateObj.getTime());
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return diffDays;
   },
 
   getCurrentStage: () => {
     const daysInProgram = get().getDaysInProgram();
     const completedModules = get().completedModules;
-    
+
     // Finde die höchste Stufe, bei der alle Voraussetzungen erfüllt sind
     let currentStage: ProgressionStage | null = null;
-    
+
     for (const stage of progressionStages) {
       // Zeitliche Voraussetzung erfüllt?
       if (stage.requiredDays <= daysInProgram) {
         // Inhaltliche Voraussetzungen erfüllt?
-        const allRequiredCompleted = stage.requiredModules.every(
-          moduleId => completedModules.includes(moduleId)
+        const allRequiredCompleted = stage.requiredModules.every((moduleId) =>
+          completedModules.includes(moduleId),
         );
-        
+
         if (allRequiredCompleted) {
           // Speichere höchste Stufe (Annahme: progressionStages ist sortiert)
           currentStage = stage;
         }
       }
     }
-    
+
     return currentStage;
   },
 
   getNextStage: () => {
     const currentStage = get().getCurrentStage();
-    
+
     if (!currentStage) {
       // Wenn keine aktuelle Stufe vorhanden ist, nimm die erste
       return progressionStages[0] || null;
     }
-    
+
     // Finde die nächste Stufe anhand des Index
-    const currentIndex = progressionStages.findIndex(stage => stage.id === currentStage.id);
+    const currentIndex = progressionStages.findIndex(
+      (stage) => stage.id === currentStage.id,
+    );
     if (currentIndex === -1 || currentIndex === progressionStages.length - 1) {
       return null; // Keine nächste Stufe vorhanden
     }
-    
+
     return progressionStages[currentIndex + 1];
   },
 
   getAvailableModules: () => {
     const { getDaysInProgram, completedModules } = get();
     const daysInProgram = getDaysInProgram();
-    
+
     // Set für eindeutige Module
     const availableModulesSet = new Set<string>();
-    
+
     // Gehe durch alle Progressionsstufen
     for (const stage of progressionStages) {
       // Prüfen, ob die zeitliche Voraussetzung erfüllt ist
       if (stage.requiredDays <= daysInProgram) {
         // Prüfen, ob alle erforderlichen Module abgeschlossen sind
-        const allRequiredCompleted = stage.requiredModules.every(
-          moduleId => completedModules.includes(moduleId)
+        const allRequiredCompleted = stage.requiredModules.every((moduleId) =>
+          completedModules.includes(moduleId),
         );
-        
+
         // Wenn alle Voraussetzungen erfüllt sind, Module freischalten
         if (allRequiredCompleted) {
-          stage.unlocksModules.forEach(moduleId => availableModulesSet.add(moduleId));
+          stage.unlocksModules.forEach((moduleId) =>
+            availableModulesSet.add(moduleId),
+          );
         }
       }
     }
-    
+
     return Array.from(availableModulesSet);
   },
 
   isModuleAvailable: (moduleId) => {
+    //
     // Für Testzwecke: Alle "K" (Klarheit) Module sind verfügbar
-    if (moduleId.startsWith('k-')) {
+    console.log("isModuleAvailable", moduleId);
+    if (moduleId.startsWith("k-")) {
       return true;
     }
-    
+
     // Normale Verfügbarkeitsprüfung für andere Module
     return get().getAvailableModules().includes(moduleId);
   },
@@ -263,7 +269,7 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
   getModuleUnlockDate: (moduleId) => {
     const { joinDate } = get();
     if (!joinDate) return null;
-    
+
     // Finde die Stufe, in der das Modul freigeschaltet wird
     for (const stage of progressionStages) {
       if (stage.unlocksModules.includes(moduleId)) {
@@ -271,24 +277,24 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
         const joinDateObj = new Date(joinDate);
         const unlockDate = new Date(joinDateObj);
         unlockDate.setDate(joinDateObj.getDate() + stage.requiredDays);
-        
+
         return unlockDate;
       }
     }
-    
+
     return null; // Modul nicht gefunden
   },
 
   getDaysUntilUnlock: (moduleId) => {
     const unlockDate = get().getModuleUnlockDate(moduleId);
     if (!unlockDate) return -1; // Nicht bekannt
-    
+
     const today = new Date();
     if (unlockDate <= today) return 0; // Bereits verfügbar
-    
+
     const diffTime = Math.abs(unlockDate.getTime() - today.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return diffDays;
   },
 
@@ -297,7 +303,8 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
 
     try {
       // OFFLINE-FIRST ANSATZ: Zuerst lokale Daten laden
-      const completedModulesData = await AsyncStorage.getItem("completedModules");
+      const completedModulesData =
+        await AsyncStorage.getItem("completedModules");
       const joinDateData = await AsyncStorage.getItem("joinDate");
 
       // Lokale Daten setzen, falls vorhanden
@@ -356,7 +363,7 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
 
           if (userData && userData.join_date) {
             set({ joinDate: userData.join_date });
-            
+
             // Lokal speichern
             await AsyncStorage.setItem("joinDate", userData.join_date);
           }
@@ -432,9 +439,9 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
   resetJoinDate: async () => {
     // Aktuelles Datum als Startdatum setzen
     const newJoinDate = new Date().toISOString();
-    
+
     set({ joinDate: newJoinDate });
-    
+
     // Lokal speichern
     await AsyncStorage.setItem("joinDate", newJoinDate);
   },
