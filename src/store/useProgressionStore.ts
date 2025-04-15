@@ -258,7 +258,7 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
     //
     // Für Testzwecke: Alle "K" (Klarheit) Module sind verfügbar
     console.log("isModuleAvailable", moduleId);
-    if (moduleId.startsWith("k-")) {
+    if (moduleId.startsWith("k-") || moduleId.startsWith("l-")) {
       return true;
     }
 

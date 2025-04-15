@@ -10,22 +10,32 @@ import { StatusBar } from "expo-status-bar";
 import { KlareLogo } from "./src/components";
 import MainNavigator from "./src/navigation/MainNavigator";
 import { lightTheme, darkTheme } from "./src/constants/theme";
-import { useUserStore, useThemeStore, useLifeWheelStore, useProgressionStore } from "./src/store";
+import {
+  useUserStore,
+  useThemeStore,
+  useLifeWheelStore,
+  useProgressionStore,
+} from "./src/store";
+import { useResourceStore } from "./src/store/useResourceStore";
 
 // Splash Screen während des Ladens anzeigen
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [appReady, setAppReady] = useState(false);
-  
+
   // User store
   const loadUserData = useUserStore((state) => state.loadUserData);
-  
+  const { loadResources } = useResourceStore();
   // Theme management
   const colorScheme = useColorScheme();
   const { getActiveTheme, isSystemTheme, setSystemTheme } = useThemeStore();
   const isDarkMode = getActiveTheme();
   const theme = isDarkMode ? darkTheme : lightTheme;
+
+  useEffect(() => {
+    loadResources();
+  }, [loadResources]);
 
   // Monitor system theme changes
   useEffect(() => {
@@ -36,11 +46,14 @@ export default function App() {
 
   // Monitor app state to update theme when app comes back to foreground
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
-      if (nextAppState === 'active' && isSystemTheme) {
-        setSystemTheme(true);
-      }
-    });
+    const subscription = AppState.addEventListener(
+      "change",
+      (nextAppState: AppStateStatus) => {
+        if (nextAppState === "active" && isSystemTheme) {
+          setSystemTheme(true);
+        }
+      },
+    );
 
     return () => {
       subscription.remove();
@@ -53,7 +66,7 @@ export default function App() {
       try {
         // User-Daten und abhängige Daten laden
         await loadUserData();
-        
+
         // Beliebige andere Vorbereitungen hier
       } catch (e) {
         console.warn(e);
@@ -68,7 +81,14 @@ export default function App() {
 
   if (!appReady) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isDarkMode ? '#111827' : '#fff' }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: isDarkMode ? "#111827" : "#fff",
+        }}
+      >
         <KlareLogo size={60} spacing={12} animated={true} pulsate={true} />
       </View>
     );
@@ -85,3 +105,4 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+

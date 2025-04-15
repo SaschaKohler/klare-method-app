@@ -255,24 +255,27 @@ export default function KlareMethodScreen() {
   };
 
   // Navigation zur Übung mit Modul-Auswahl
-  const navigateToModules = useCallback((specificModuleId?: string) => {
-    if (specificModuleId) {
-      // Wenn eine spezifische Modul-ID übergeben wurde, navigiere direkt zu diesem Modul
-      navigation.navigate(
-        "ModuleScreen" as never,
-        { 
-          stepId: activeStepId,
-          moduleId: specificModuleId 
-        } as never
-      );
-    } else {
-      // Ansonsten navigiere zum Modul-Screen mit dem aktuellen Schritt
-      navigation.navigate(
-        "ModuleScreen" as never,
-        { stepId: activeStepId } as never
-      );
-    }
-  }, [navigation, activeStepId]);
+  const navigateToModules = useCallback(
+    (specificModuleId?: string) => {
+      if (specificModuleId) {
+        // Wenn eine spezifische Modul-ID übergeben wurde, navigiere direkt zu diesem Modul
+        navigation.navigate(
+          "ModuleScreen" as never,
+          {
+            stepId: activeStepId,
+            moduleId: specificModuleId,
+          } as never,
+        );
+      } else {
+        // Ansonsten navigiere zum Modul-Screen mit dem aktuellen Schritt
+        navigation.navigate(
+          "ModuleScreen" as never,
+          { stepId: activeStepId } as never,
+        );
+      }
+    },
+    [navigation, activeStepId],
+  );
 
   // Render Methoden für verschiedene Tabs
   const renderOverviewTab = () => (
@@ -445,131 +448,154 @@ export default function KlareMethodScreen() {
     </View>
   );
 
-  const renderModulesTab = () => (
-    <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>Module für {activeStep.title}</Text>
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={activeStep.color} />
-          <Text style={styles.loadingText}>Module werden geladen...</Text>
-        </View>
-      ) : availableModules.length === 0 ? (
-        <View style={styles.noModulesContainer}>
-          <Text style={styles.noModulesText}>
-            Keine Module für diesen Schritt verfügbar.
-          </Text>
-        </View>
-      ) : (
-        availableModules.map((module) => {
-          const isAvailable = isModuleAvailable(module.module_id);
-          console.log(isAvailable, module.id);
-          return (
-            <Card
-              key={module.id}
-              style={[styles.moduleCard, !isAvailable && styles.lockedModule]}
-              onPress={() => isAvailable && navigateToModules(module.module_id)}
-            >
-              <Card.Content style={{ padding: 10 }}>
-                <View style={styles.moduleHeader}>
-                  <View>
-                    <Text style={styles.moduleType}>
-                      {module.content_type === "video"
-                        ? "Video"
-                        : module.content_type === "theory"
-                          ? "Theorie"
-                          : module.content_type === "intro"
-                            ? "Intro"
-                            : module.content_type === "exercise"
-                              ? "Übung"
-                              : "Quiz"}
-                    </Text>
-                    <Title
-                      style={[
-                        styles.moduleTitle,
-                        !isAvailable && styles.lockedText,
-                      ]}
-                    >
-                      {module.title}
-                    </Title>
+  const renderModulesTab = () => {
+    const handleLModuleNavigation = (moduleId: string) => {
+      if (moduleId === "l-resource-finder") {
+        // Direkt zur Ressourcenverwaltung navigieren
+        navigation.navigate(
+          "ModuleScreen" as never,
+          { stepId: activeStepId, moduleId: "l-resource-finder" } as never,
+        );
+      } else {
+        // Standard-Navigation
+        navigateToModules(moduleId);
+      }
+    };
+    return (
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>Module für {activeStep.title}</Text>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={activeStep.color} />
+            <Text style={styles.loadingText}>Module werden geladen...</Text>
+          </View>
+        ) : availableModules.length === 0 ? (
+          <View style={styles.noModulesContainer}>
+            <Text style={styles.noModulesText}>
+              Keine Module für diesen Schritt verfügbar.
+            </Text>
+          </View>
+        ) : (
+          availableModules.map((module) => {
+            const isAvailable = isModuleAvailable(module.module_id);
+            console.log(isAvailable, module.id);
+            return (
+              <Card
+                key={module.id}
+                style={[styles.moduleCard, !isAvailable && styles.lockedModule]}
+                onPress={() => {
+                  if (activeStepId === "L" && isAvailable) {
+                    handleLModuleNavigation(module.module_id);
+                  } else if (isAvailable) {
+                    navigateToModules(module.module_id);
+                  }
+                }}
+              >
+                <Card.Content style={{ padding: 10 }}>
+                  <View style={styles.moduleHeader}>
+                    <View>
+                      <Text style={styles.moduleType}>
+                        {module.content_type === "video"
+                          ? "Video"
+                          : module.content_type === "theory"
+                            ? "Theorie"
+                            : module.content_type === "intro"
+                              ? "Intro"
+                              : module.content_type === "exercise"
+                                ? "Übung"
+                                : "Quiz"}
+                      </Text>
+                      <Title
+                        style={[
+                          styles.moduleTitle,
+                          !isAvailable && styles.lockedText,
+                        ]}
+                      >
+                        {module.title}
+                      </Title>
+                    </View>
+
+                    {!isAvailable && (
+                      <View style={styles.lockIconContainer}>
+                        <Ionicons
+                          name="lock-closed"
+                          size={20}
+                          color={themeKlareColors.textSecondary}
+                        />
+                      </View>
+                    )}
                   </View>
 
-                  {!isAvailable && (
-                    <View style={styles.lockIconContainer}>
+                  <Paragraph
+                    style={[
+                      styles.moduleDescription,
+                      !isAvailable && styles.lockedText,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {module.description}
+                  </Paragraph>
+
+                  <View style={styles.moduleFooter}>
+                    <View style={styles.moduleDuration}>
                       <Ionicons
-                        name="lock-closed"
-                        size={20}
+                        name="time-outline"
+                        size={16}
                         color={themeKlareColors.textSecondary}
                       />
+                      <Text style={styles.moduleDurationText}>
+                        {module.duration} Min.
+                      </Text>
                     </View>
-                  )}
-                </View>
 
-                <Paragraph
-                  style={[
-                    styles.moduleDescription,
-                    !isAvailable && styles.lockedText,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {module.description}
-                </Paragraph>
-
-                <View style={styles.moduleFooter}>
-                  <View style={styles.moduleDuration}>
-                    <Ionicons
-                      name="time-outline"
-                      size={16}
-                      color={themeKlareColors.textSecondary}
-                    />
-                    <Text style={styles.moduleDurationText}>
-                      {module.duration} Min.
-                    </Text>
+                    {isAvailable ? (
+                      <Button
+                        mode="outlined"
+                        compact
+                        style={{ borderColor: activeStep.color, height: 20 }}
+                        labelStyle={{
+                          color: activeStep.color,
+                          fontSize: 11,
+                          marginVertical: 0,
+                        }}
+                      >
+                        Öffnen
+                      </Button>
+                    ) : (
+                      <Chip
+                        style={styles.lockedChip}
+                        textStyle={styles.lockedChipText}
+                        icon="lock-closed"
+                        compact
+                      >
+                        Gesperrt
+                      </Chip>
+                    )}
                   </View>
+                </Card.Content>
+              </Card>
+            );
+          })
+        )}
 
-                  {isAvailable ? (
-                    <Button
-                      mode="outlined"
-                      compact
-                      style={{ borderColor: activeStep.color, height: 20 }}
-                      labelStyle={{
-                        color: activeStep.color,
-                        fontSize: 11,
-                        marginVertical: 0,
-                      }}
-                    >
-                      Öffnen
-                    </Button>
-                  ) : (
-                    <Chip
-                      style={styles.lockedChip}
-                      textStyle={styles.lockedChipText}
-                      icon="lock-closed"
-                      compact
-                    >
-                      Gesperrt
-                    </Chip>
-                  )}
-                </View>
-              </Card.Content>
-            </Card>
-          );
-        })
-      )}
-
-      {!isLoading && (
-        <View style={styles.buttonContainer}>
-          <Button
-            mode="contained"
-            icon="apps"
-            style={[styles.actionButton, { backgroundColor: activeStep.color }]}
-            onPress={() => navigateToModules()}
-          >
-            Alle Module ansehen
-          </Button>
-        </View>
-      )}
-    </View>
-  );
+        {!isLoading && (
+          <View style={styles.buttonContainer}>
+            <Button
+              mode="contained"
+              icon="apps"
+              style={[
+                styles.actionButton,
+                { backgroundColor: activeStep.color },
+              ]}
+              onPress={() => navigateToModules()}
+            >
+              Alle Module ansehen
+            </Button>
+          </View>
+        )}
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>

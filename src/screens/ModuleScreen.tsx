@@ -25,6 +25,7 @@ import { useUserStore } from "../store/useUserStore";
 import ModuleContentComponent from "../components/modules/ModuleContent";
 import ModuleExercise from "../components/modules/ModuleExercise";
 import ModuleQuiz from "../components/modules/ModuleQuiz";
+import { LModuleComponent } from "../components/modules";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import createModuleScreenStyles from "../constants/moduleScreenStyles";
 // import ModuleVideoComponent from "../components/modules/ModuleVideo";
@@ -132,6 +133,22 @@ const ModuleScreen = () => {
   const renderModuleContent = () => {
     if (!moduleData) return null;
 
+    // Prüfe, ob es ein L-Modul ist
+    if (
+      moduleData.module_id.startsWith("l-") &&
+      (moduleData.content_type === "exercise" ||
+        moduleData.module_id === "l-resource-finder" ||
+        moduleData.module_id === "l-energy-blockers" ||
+        moduleData.module_id === "l-vitality-moments" ||
+        moduleData.module_id === "l-embodiment")
+    ) {
+      return (
+        <LModuleComponent
+          module={moduleData}
+          onComplete={handleModuleComplete}
+        />
+      );
+    }
     switch (moduleData.content_type) {
       case "intro":
       case "theory":
