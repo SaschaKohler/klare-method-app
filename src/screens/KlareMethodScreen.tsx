@@ -254,12 +254,24 @@ export default function KlareMethodScreen() {
     setAutoRotate((prev) => !prev);
   };
 
-  // Navigation zur Übung
-  const navigateToModules = useCallback(() => {
-    navigation.navigate(
-      "ModuleScreen" as never,
-      { stepId: activeStepId } as never,
-    );
+  // Navigation zur Übung mit Modul-Auswahl
+  const navigateToModules = useCallback((specificModuleId?: string) => {
+    if (specificModuleId) {
+      // Wenn eine spezifische Modul-ID übergeben wurde, navigiere direkt zu diesem Modul
+      navigation.navigate(
+        "ModuleScreen" as never,
+        { 
+          stepId: activeStepId,
+          moduleId: specificModuleId 
+        } as never
+      );
+    } else {
+      // Ansonsten navigiere zum Modul-Screen mit dem aktuellen Schritt
+      navigation.navigate(
+        "ModuleScreen" as never,
+        { stepId: activeStepId } as never
+      );
+    }
   }, [navigation, activeStepId]);
 
   // Render Methoden für verschiedene Tabs
@@ -326,7 +338,7 @@ export default function KlareMethodScreen() {
           mode="contained"
           icon="school-outline"
           style={[styles.actionButton, { backgroundColor: activeStep.color }]}
-          onPress={navigateToModules}
+          onPress={() => navigateToModules()}
         >
           Module starten
         </Button>
@@ -395,7 +407,7 @@ export default function KlareMethodScreen() {
           mode="contained"
           icon="school-outline"
           style={[styles.actionButton, { backgroundColor: activeStep.color }]}
-          onPress={navigateToModules}
+          onPress={() => navigateToModules()}
         >
           Alle Übungen anzeigen
         </Button>
@@ -455,7 +467,7 @@ export default function KlareMethodScreen() {
             <Card
               key={module.id}
               style={[styles.moduleCard, !isAvailable && styles.lockedModule]}
-              onPress={() => isAvailable && navigateToModules()}
+              onPress={() => isAvailable && navigateToModules(module.module_id)}
             >
               <Card.Content style={{ padding: 10 }}>
                 <View style={styles.moduleHeader}>
@@ -550,7 +562,7 @@ export default function KlareMethodScreen() {
             mode="contained"
             icon="apps"
             style={[styles.actionButton, { backgroundColor: activeStep.color }]}
-            onPress={navigateToModules}
+            onPress={() => navigateToModules()}
           >
             Alle Module ansehen
           </Button>
