@@ -16,12 +16,14 @@ import { useThemeStore } from "../store/useThemeStore";
 import { lightKlareColors, darkKlareColors } from "../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import ThemeToggle from "../components/ThemeToggle";
+import { useNavigation } from "@react-navigation/native";
 
 export default function ProfileScreen() {
   const user = useUserStore((state) => state.user);
+  const navigation = useNavigation();
   const signOut = useUserStore((state) => state.signOut);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  
+
   const theme = useTheme();
   const { getActiveTheme } = useThemeStore();
   const isDarkMode = getActiveTheme();
@@ -42,7 +44,9 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Avatar.Text
@@ -84,7 +88,12 @@ export default function ProfileScreen() {
               <ThemeToggle showLabel={false} />
 
               <Divider />
-
+              <List.Item
+                title="Ressourcen-Bibliothek"
+                left={() => <List.Icon icon="battery-charging-outline" />}
+                onPress={() => navigation.navigate("ResourceLibrary")}
+              />
+              <Divider />
               <List.Item
                 title="Daten synchronisieren"
                 description="Letzte Synchronisierung: Heute, 14:30"
@@ -104,34 +113,70 @@ export default function ProfileScreen() {
 
               <View style={styles.progressContainer}>
                 <View style={styles.progressItem}>
-                  <View style={[styles.progressCircle, { backgroundColor: `${klareColors.k}15` }]}>
-                    <Text style={[styles.progressCircleText, { color: klareColors.k }]}>
+                  <View
+                    style={[
+                      styles.progressCircle,
+                      { backgroundColor: `${klareColors.k}15` },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.progressCircleText,
+                        { color: klareColors.k },
+                      ]}
+                    >
                       {user?.progress || 0}%
                     </Text>
                   </View>
-                  <Text style={[styles.progressText, { color: theme.colors.text }]}>
+                  <Text
+                    style={[styles.progressText, { color: theme.colors.text }]}
+                  >
                     Gesamtfortschritt
                   </Text>
                 </View>
 
                 <View style={styles.progressItem}>
-                  <View style={[styles.progressCircle, { backgroundColor: `${klareColors.k}15` }]}>
-                    <Text style={[styles.progressCircleText, { color: klareColors.k }]}>
+                  <View
+                    style={[
+                      styles.progressCircle,
+                      { backgroundColor: `${klareColors.k}15` },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.progressCircleText,
+                        { color: klareColors.k },
+                      ]}
+                    >
                       {user?.streak || 0}
                     </Text>
                   </View>
-                  <Text style={[styles.progressText, { color: theme.colors.text }]}>
+                  <Text
+                    style={[styles.progressText, { color: theme.colors.text }]}
+                  >
                     Streak
                   </Text>
                 </View>
 
                 <View style={styles.progressItem}>
-                  <View style={[styles.progressCircle, { backgroundColor: `${klareColors.k}15` }]}>
-                    <Text style={[styles.progressCircleText, { color: klareColors.k }]}>
+                  <View
+                    style={[
+                      styles.progressCircle,
+                      { backgroundColor: `${klareColors.k}15` },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.progressCircleText,
+                        { color: klareColors.k },
+                      ]}
+                    >
                       {user?.completedModules?.length || 0}
                     </Text>
                   </View>
-                  <Text style={[styles.progressText, { color: theme.colors.text }]}>
+                  <Text
+                    style={[styles.progressText, { color: theme.colors.text }]}
+                  >
                     Module
                   </Text>
                 </View>
@@ -248,3 +293,4 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
 });
+

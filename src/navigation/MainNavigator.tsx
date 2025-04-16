@@ -20,6 +20,9 @@ import AuthScreen from "../screens/AuthScreen";
 import JournalScreen from "../screens/JournalScreen";
 import JournalEditorScreen from "../screens/JournalEditorScreen";
 import JournalViewerScreen from "../screens/JournalViewerScreen";
+import EditResource from "../screens/resources/EditResource";
+import ResourceLibraryScreen from "../screens/resources/ResourceLibraryScreen";
+import ResourceLibrary from "../components/resources/ResourceLibrary";
 
 // Definiere die Stack-Parameter
 export const KlareMethodSteps = ["K", "L", "A", "R", "E"] as const;
@@ -38,6 +41,8 @@ export type RootStackParamList = {
   JournalViewer: {
     entryId: string;
   };
+  ResourceLibrary: undefined;
+  EditResource: { resourceId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -218,6 +223,16 @@ const MainNavigator = () => {
             name="JournalViewer"
             component={JournalViewerScreen}
             options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ResourceLibrary"
+            component={ResourceLibrary}
+            options={{ title: "Ressource Library" }}
+          />
+          <Stack.Screen
+            name="EditResource"
+            component={EditResource}
+            options={{ title: "Ressource bearbeiten" }}
           />
         </>
       ) : (

@@ -410,6 +410,45 @@ export type Database = {
           },
         ]
       }
+      resources: {
+        Row: {
+          activation_tips: string | null
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          last_activated: string | null
+          name: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activation_tips?: string | null
+          category: string
+          created_at?: string
+          description?: string | null
+          id: string
+          last_activated?: string | null
+          name: string
+          rating?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activation_tips?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_activated?: string | null
+          name?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_exercise_results: {
         Row: {
           answer: Json | null
@@ -585,7 +624,41 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_practical_exercises: {
+        Args: { step: string }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          sort_order: number
+          step_id: string
+          title: string
+          updated_at: string
+        }[]
+      }
+      get_supporting_questions: {
+        Args: { step: string }
+        Returns: {
+          created_at: string
+          id: string
+          question_text: string
+          sort_order: number
+          step_id: string
+          updated_at: string
+        }[]
+      }
+      get_transformation_paths: {
+        Args: { step: string }
+        Returns: {
+          created_at: string
+          from_text: string
+          id: string
+          sort_order: number
+          step_id: string
+          to_text: string
+          updated_at: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

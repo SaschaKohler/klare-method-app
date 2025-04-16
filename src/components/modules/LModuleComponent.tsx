@@ -15,7 +15,7 @@ import { lightKlareColors } from "../../constants/theme";
 
 // Importiere gemeinsame Komponenten
 import ResourceVisualizerComponent from "./ResourceVisualizerComponent";
-import ResourceFinder from "./ResourceFinder"; // Korrigierter Import-Name
+import ResourceFinder from "../resources/ResourceFinder"; // Korrigierter Import-Name
 
 // Typen
 interface Resource {
