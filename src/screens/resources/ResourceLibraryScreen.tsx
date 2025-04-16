@@ -76,8 +76,9 @@ export default function ResourceLibraryScreen() {
       {/* FAB zum Hinzufügen einer neuen Ressource */}
       {!isResourceFinderVisible && (
         <FAB
-          icon={() => <Ionicons name="add" size={24} color="#fff" />}
           style={[styles.fab, { backgroundColor: klareColors.l }]}
+          icon="pencil-plus"
+          color="white"
           onPress={handleAddResource}
         />
       )}

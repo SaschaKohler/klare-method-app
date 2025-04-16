@@ -1,111 +1,53 @@
 // src/screens/resources/EditResource.tsx
-import { type } from "@testing-library/react-native/build/user-event/type";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  Alert,
+  Platform,
 } from "react-native";
-import { Chip, TextInput, useTheme } from "react-native-paper";
-import createStyles from "../../constants/createStyles";
 import {
-  darkKlareColors,
-  klareColors,
-  lightKlareColors,
-} from "../../constants/theme";
+  Chip,
+  TextInput,
+  useTheme,
+  Button,
+  IconButton,
+} from "react-native-paper";
+import { Ionicons } from "@expo/vector-icons";
+import { darkKlareColors, lightKlareColors } from "../../constants/theme";
 import { ResourceCategory } from "../../services/ResourceLibraryService";
 import { useThemeStore } from "../../store";
 import { useResourceStore } from "../../store/useResourceStore";
 import { useUserStore } from "../../store/useUserStore";
-
-const KLARE_STAGES = [
-  "Klarheit",
-  "Lebendigkeit",
-  "Ausrichtung",
-  "Realisierung",
-  "Entfaltung",
-];
-
-const RESOURCE_TYPES = [
-  "Audio",
-  "Video",
-  "Übung",
-  "Meditation",
-  "Artikel",
-  "Buch",
-];
-
-// Type for resource finder questions
-interface ResourceQuestion {
-  id: string;
-  question: string;
-  helpText?: string;
-  category: ResourceCategory;
-}
-
-// Fixed set of precise questions for resource discovery
-const RESOURCE_QUESTIONS: ResourceQuestion[] = [
-  {
-    id: "activity_energy",
-    question: "Welche Aktivität gibt dir sofort mehr Energie?",
-    helpText: "Denke an Tätigkeiten, nach denen du dich lebendiger fühlst.",
-    category: ResourceCategory.ACTIVITY,
-  },
-  {
-    id: "personal_strength",
-    question: "Welche persönliche Stärke wird von anderen an dir geschätzt?",
-    helpText:
-      "Eine Fähigkeit oder Eigenschaft, die andere an dir bemerken und schätzen.",
-    category: ResourceCategory.PERSONAL_STRENGTH,
-  },
-  {
-    id: "relationship_support",
-    question: "Welche Beziehung gibt dir Halt und Unterstützung?",
-    helpText: "Eine Person oder Gruppe, die dich stärkt und unterstützt.",
-    category: ResourceCategory.RELATIONSHIP,
-  },
-  {
-    id: "place_recharge",
-    question: "An welchem Ort kannst du am besten auftanken?",
-    helpText:
-      "Ein physischer Ort, an dem du dich besonders wohl und lebendig fühlst.",
-    category: ResourceCategory.PLACE,
-  },
-  {
-    id: "memory_strength",
-    question: "Welche Erinnerung gibt dir Kraft in schwierigen Zeiten?",
-    helpText:
-      "Ein Erlebnis, das dir Mut, Freude oder Stärke gibt, wenn du daran denkst.",
-    category: ResourceCategory.MEMORY,
-  },
-];
+import Slider from "@react-native-community/slider";
+import * as Haptics from "expo-haptics";
+import CustomHeader from "../../components/CustomHeader";
 
 const EditResource = ({ route, navigation }) => {
   const { resource } = route.params;
   const { user } = useUserStore();
   const { updateResource } = useResourceStore();
 
-  const [name, setName] = useState(resource.name);
-  const [description, setDescription] = useState(resource.description || "");
-
   // Theme handling
   const theme = useTheme();
   const { getActiveTheme } = useThemeStore();
   const isDarkMode = getActiveTheme();
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
+  const themeColor = klareColors.l;
 
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [resourceName, setResourceName] = useState("");
-  const [resourceDescription, setResourceDescription] = useState("");
-  const [resourceCategory, setResourceCategory] = useState<ResourceCategory>(
-    ResourceCategory.ACTIVITY,
+  // State für alle Resource-Eigenschaften
+  const [name, setName] = useState(resource.name);
+  const [description, setDescription] = useState(resource.description || "");
+  const [category, setCategory] = useState(resource.category);
+  const [rating, setRating] = useState(resource.rating);
+  const [activationTips, setActivationTips] = useState(
+    resource.activationTips || "",
   );
-  const [resourceRating, setResourceRating] = useState(7);
-  const [resourceTips, setResourceTips] = useState("");
-  const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0);
 
+  // Kategorie-Utility-Funktionen
   const getCategoryLabel = (category: ResourceCategory): string => {
     switch (category) {
       case ResourceCategory.ACTIVITY:
@@ -125,7 +67,6 @@ const EditResource = ({ route, navigation }) => {
     }
   };
 
-  // Get category icon
   const getCategoryIcon = (category: ResourceCategory): string => {
     switch (category) {
       case ResourceCategory.ACTIVITY:
@@ -144,45 +85,75 @@ const EditResource = ({ route, navigation }) => {
         return "star-outline";
     }
   };
+
+  // Get rating label based on value
+  const getRatingLabel = (value: number): string => {
+    if (value <= 3) return "Schwach";
+    if (value <= 5) return "Mittelmäßig";
+    if (value <= 7) return "Gut";
+    if (value <= 9) return "Stark";
+    return "Sehr stark";
+  };
+
+  // Validierung der Eingaben und Speichern
   const handleSave = async () => {
+    if (!name.trim()) {
+      Alert.alert(
+        "Unvollständige Daten",
+        "Bitte gib einen Namen für deine Ressource ein.",
+      );
+      return;
+    }
+
     if (user?.id) {
-      await updateResource(user.id, resource.id, {
-        name,
-        description,
-      });
-      navigation.goBack();
+      try {
+        await updateResource(user.id, resource.id, {
+          name,
+          description,
+          category,
+          rating,
+          activationTips,
+        });
+
+        // Haptisches Feedback
+        if (Platform.OS !== "web") {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+
+        Alert.alert(
+          "Gespeichert",
+          "Die Ressource wurde erfolgreich aktualisiert.",
+          [{ text: "OK", onPress: () => navigation.goBack() }],
+        );
+      } catch (error) {
+        console.error("Fehler beim Speichern der Ressource:", error);
+        Alert.alert(
+          "Fehler",
+          "Die Ressource konnte nicht gespeichert werden. Bitte versuche es erneut.",
+        );
+      }
     }
   };
 
   return (
     <ScrollView style={styles.container}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.questionsScroll}
-      >
-        {RESOURCE_QUESTIONS.map((question, index) => (
-          <Chip
-            key={question.id}
-            selected={selectedQuestionIndex === index}
-            onPress={() => setSelectedQuestionIndex(index)}
-            style={[
-              styles.questionChip,
-              selectedQuestionIndex === index && {
-                backgroundColor: `${klareColors.textSecondary}20`,
-              },
-              answers[question.id] ? styles.answeredChip : {},
-            ]}
-            textStyle={
-              selectedQuestionIndex === index ? { color: klareColors.text } : {}
-            }
-          >
-            {getCategoryLabel(question.category)}
-            {answers[question.id] ? " ✓" : ""}
-          </Chip>
-        ))}
-      </ScrollView>
+      <View style={styles.headerSection}>
+        <View style={styles.headerIconContainer}>
+          <Ionicons
+            name={getCategoryIcon(category)}
+            size={32}
+            color={themeColor}
+          />
+        </View>
+        <Text style={[styles.headerTitle, { color: themeColor }]}>
+          Ressource bearbeiten
+        </Text>
+        <Text style={styles.headerSubtitle}>
+          Passe deine Energiequelle an und mache sie noch wertvoller für dich.
+        </Text>
+      </View>
 
+      {/* Name */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Name</Text>
         <TextInput
@@ -190,338 +161,246 @@ const EditResource = ({ route, navigation }) => {
           onChangeText={setName}
           style={styles.input}
           placeholder="Ressourcen-Name"
+          mode="outlined"
+          outlineColor="#e0e0e0"
+          activeOutlineColor={themeColor}
         />
       </View>
 
+      {/* Kategorie */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Kategorie</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoriesScroll}
+        >
+          {Object.values(ResourceCategory).map((cat) => (
+            <Chip
+              key={cat}
+              selected={category === cat}
+              onPress={() => setCategory(cat)}
+              style={[
+                styles.categoryChip,
+                category === cat && {
+                  backgroundColor: `${themeColor}20`,
+                },
+              ]}
+              textStyle={category === cat ? { color: themeColor } : {}}
+              icon={() => (
+                <Ionicons
+                  name={getCategoryIcon(cat)}
+                  size={16}
+                  color={category === cat ? themeColor : "#666"}
+                />
+              )}
+            >
+              {getCategoryLabel(cat)}
+            </Chip>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Beschreibung */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Beschreibung</Text>
         <TextInput
           value={description}
           onChangeText={setDescription}
-          style={[styles.input, styles.multilineInput]}
+          style={styles.multilineInput}
           multiline
           numberOfLines={4}
-          placeholder="Beschreibe die Ressource"
+          placeholder="Beschreibe, wie diese Ressource dir Lebendigkeit gibt..."
+          mode="outlined"
+          outlineColor="#e0e0e0"
+          activeOutlineColor={themeColor}
         />
       </View>
 
-      {/* <View style={styles.inputContainer}> */}
-      {/*   <Text style={styles.label}>URL</Text> */}
-      {/*   <TextInput */}
-      {/*     value={url} */}
-      {/*     onChangeText={setUrl} */}
-      {/*     style={styles.input} */}
-      {/*     placeholder="Link zur Ressource" */}
-      {/*   /> */}
-      {/* </View> */}
+      {/* Rating */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Stärke</Text>
+        <Text style={styles.sliderLabel}>
+          Aktuelle Stärke: {rating}/10 ({getRatingLabel(rating)})
+        </Text>
+        <Slider
+          minimumValue={1}
+          maximumValue={10}
+          step={1}
+          value={rating}
+          onValueChange={setRating}
+          minimumTrackTintColor={themeColor}
+          maximumTrackTintColor="#EEEEEE"
+          style={styles.slider}
+        />
+        <View style={styles.sliderMarkers}>
+          <Text style={styles.sliderMarkerText}>Schwach</Text>
+          <Text style={styles.sliderMarkerText}>Mittel</Text>
+          <Text style={styles.sliderMarkerText}>Stark</Text>
+        </View>
+      </View>
 
-      {/* <View style={styles.inputContainer}> */}
-      {/*   <Text style={styles.label}>Ressourcentyp</Text> */}
-      {/*   <View style={styles.pickerContainer}> */}
-      {/*     <Picker */}
-      {/*       selectedValue={type} */}
-      {/*       onValueChange={(itemValue) => setType(itemValue)} */}
-      {/*       style={styles.picker} */}
-      {/*     > */}
-      {/*       <Picker.Item label="Typ wählen" value="" /> */}
-      {/*       {RESOURCE_TYPES.map((resourceType) => ( */}
-      {/*         <Picker.Item */}
-      {/*           key={resourceType} */}
-      {/*           label={resourceType} */}
-      {/*           value={resourceType} */}
-      {/*         /> */}
-      {/*       ))} */}
-      {/*     </Picker> */}
-      {/*   </View> */}
-      {/* </View> */}
+      {/* Aktivierungstipps */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Aktivierungsstrategie</Text>
+        <TextInput
+          value={activationTips}
+          onChangeText={setActivationTips}
+          style={styles.multilineInput}
+          multiline
+          numberOfLines={4}
+          placeholder="Wie kannst du diese Ressource regelmäßig aktivieren? Z.B. tägliche 10-minütige Meditation, wöchentlicher Waldspaziergang..."
+          mode="outlined"
+          outlineColor="#e0e0e0"
+          activeOutlineColor={themeColor}
+        />
+      </View>
 
-      {/* <View style={styles.inputContainer}> */}
-      {/*   <Text style={styles.label}>KLARE-Phase</Text> */}
-      {/*   <View style={styles.pickerContainer}> */}
-      {/*     <Picker */}
-      {/*       selectedValue={stage} */}
-      {/*       onValueChange={(itemValue) => setStage(itemValue)} */}
-      {/*       style={styles.picker} */}
-      {/*     > */}
-      {/*       <Picker.Item label="Phase wählen" value="" /> */}
-      {/*       {KLARE_STAGES.map((stageOption) => ( */}
-      {/*         <Picker.Item */}
-      {/*           key={stageOption} */}
-      {/*           label={stageOption} */}
-      {/*           value={stageOption} */}
-      {/*         /> */}
-      {/*       ))} */}
-      {/*     </Picker> */}
-      {/*   </View> */}
-      {/* </View> */}
+      <View style={styles.activationTips}>
+        <Text style={styles.tipsTitle}>Tipps zur Ressourcenaktivierung:</Text>
+        <Text style={styles.tipItem}>
+          • Plane konkrete Zeiten für die Aktivierung
+        </Text>
+        <Text style={styles.tipItem}>
+          • Verbinde die Ressource mit bestehenden Gewohnheiten
+        </Text>
+        <Text style={styles.tipItem}>
+          • Beginne mit kleinen, leicht umsetzbaren Schritten
+        </Text>
+        <Text style={styles.tipItem}>
+          • Notiere dir die positiven Effekte nach der Aktivierung
+        </Text>
+      </View>
 
-      {/* <View style={styles.inputContainer}> */}
-      {/*   <Text style={styles.label}>Dauer (Minuten)</Text> */}
-      {/*   <TextInput */}
-      {/*     value={duration} */}
-      {/*     onChangeText={setDuration} */}
-      {/*     style={styles.input} */}
-      {/*     keyboardType="numeric" */}
-      {/*     placeholder="Dauer in Minuten" */}
-      {/*   /> */}
-      {/* </View> */}
-
-      {/* <View style={styles.inputContainer}> */}
-      {/*   <Text style={styles.label}>Tags (kommagetrennt)</Text> */}
-      {/*   <TextInput */}
-      {/*     value={tags} */}
-      {/*     onChangeText={setTags} */}
-      {/*     style={styles.input} */}
-      {/*     placeholder="Kommagetrennte Tags" */}
-      {/*   /> */}
-      {/* </View> */}
-
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveButtonText}>Speichern</Text>
-      </TouchableOpacity>
+      {/* Speichern & Abbrechen */}
+      <View style={styles.buttonContainer}>
+        <Button
+          mode="outlined"
+          onPress={() => navigation.goBack()}
+          style={styles.cancelButton}
+        >
+          Abbrechen
+        </Button>
+        <Button
+          mode="contained"
+          onPress={handleSave}
+          style={[styles.saveButton, { backgroundColor: themeColor }]}
+          icon="content-save-outline"
+        >
+          Speichern
+        </Button>
+      </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
   container: {
     flex: 1,
     padding: 16,
     backgroundColor: "#fff",
   },
-  inputContainer: {
+  headerSection: {
+    alignItems: "center",
+    marginBottom: 20,
+    padding: 16,
+  },
+  headerIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 16,
   },
-  label: {
-    marginTop: 8,
-    marginBottom: 8,
-    fontSize: 18,
+  headerTitle: {
+    fontSize: 22,
     fontWeight: "bold",
+    marginBottom: 8,
   },
-  questionChip: {
-    marginRight: 8,
-    paddingVertical: 2,
+  headerSubtitle: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    paddingHorizontal: 20,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 8,
+    color: "#444",
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    padding: 0,
-    borderRadius: 8,
     backgroundColor: "#f9f9f9",
-    fontSize: 16,
   },
   multilineInput: {
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 8,
-    padding: 12,
     minHeight: 120,
     backgroundColor: "#f9f9f9",
     textAlignVertical: "top",
-    fontSize: 16,
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-  },
-  picker: {
-    height: 50,
-    width: "100%",
-  },
-  saveButton: {
-    backgroundColor: "#007bff",
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 16,
-  },
-  saveButtonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  header: {
+  categoriesScroll: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    paddingBottom: 8,
-  },
-  searchContainer: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f0f0f0",
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    marginRight: 8,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    fontSize: 14,
-  },
-  clearButton: {
-    margin: 0,
-    padding: 0,
-  },
-  headerButtons: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  addButton: {
-    marginLeft: 8,
-    borderRadius: 4,
-  },
-  viewModeTabs: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    backgroundColor: "#fff",
-  },
-  viewModeTab: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-  },
-  viewModeText: {
-    fontSize: 14,
-    color: "#666",
-  },
-  activeTabText: {
-    fontWeight: "600",
-  },
-  filterChipsContainer: {
-    flexDirection: "row",
-    padding: 8,
-    backgroundColor: "#fff",
-  },
-  filterChip: {
-    marginRight: 8,
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  resourcesList: {
-    padding: 16,
-  },
-  resourceCard: {
-    marginBottom: 16,
-    borderRadius: 8,
-  },
-  resourceHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  resourceTitleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  resourceTitle: {
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  categoryChip: {
-    alignSelf: "flex-start",
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  resourceDescription: {
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  resourceDetails: {
-    marginTop: 8,
-  },
-  resourceRating: {
-    marginBottom: 12,
-  },
-  resourceRatingLabel: {
-    fontSize: 14,
-    marginBottom: 4,
-    color: "#666",
-  },
-  ratingContainer: {
-    flexDirection: "row",
-  },
-  ratingBubble: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: "#eee",
-    marginRight: 4,
-  },
-  lastActivatedText: {
-    fontSize: 12,
-    color: "#666",
     marginBottom: 8,
   },
-  activationTipsContainer: {
-    backgroundColor: "#f5f5f5",
+  categoryChip: {
+    marginRight: 8,
+    paddingVertical: 2,
+  },
+  slider: {
+    height: 40,
+    marginVertical: 8,
+  },
+  sliderLabel: {
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "500",
+    marginBottom: 4,
+  },
+  sliderMarkers: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: -8,
+  },
+  sliderMarkerText: {
+    fontSize: 12,
+    color: "#666",
+  },
+  activationTips: {
+    backgroundColor: "#f7f7f7",
     padding: 12,
     borderRadius: 8,
     marginTop: 8,
+    marginBottom: 20,
   },
-  activationTipsLabel: {
-    fontSize: 13,
+  tipsTitle: {
+    fontSize: 14,
     fontWeight: "600",
-    marginBottom: 4,
-  },
-  activationTipsText: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  cardActions: {
-    justifyContent: "flex-end",
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  activateButton: {
-    borderRadius: 4,
-  },
-  emptyState: {
-    padding: 32,
-    margin: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginTop: 16,
     marginBottom: 8,
   },
-  emptyStateText: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 16,
+  tipItem: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 4,
   },
-  emptyStateButton: {
-    marginTop: 8,
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 30,
   },
-  loadingContainer: {
-    padding: 32,
-    alignItems: "center",
-    justifyContent: "center",
+  cancelButton: {
+    flex: 1,
+    marginRight: 8,
   },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 14,
-    color: "#666",
-  },
-  filterMenu: {
-    maxWidth: "80%",
+  saveButton: {
+    flex: 2,
   },
 });
 
