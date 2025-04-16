@@ -10,6 +10,7 @@ interface CustomHeaderProps {
   showLogo?: boolean;
   showBack?: boolean;
   onBackPress?: () => void;
+  noTopPadding?: boolean; // Neue Eigenschaft
 }
 
 const CustomHeader: React.FC<CustomHeaderProps> = ({
@@ -17,6 +18,7 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
   showLogo = true,
   showBack = false,
   onBackPress,
+  noTopPadding = false,
 }) => {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -25,7 +27,10 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
     <View
       style={[
         styles.container,
-        { paddingTop: insets.top, backgroundColor: theme.colors.surface },
+        { 
+          paddingTop: noTopPadding ? 0 : insets.top, 
+          backgroundColor: theme.colors.surface 
+        },
       ]}
     >
       <View style={styles.content}>

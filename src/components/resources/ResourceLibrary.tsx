@@ -247,7 +247,16 @@ const ResourceLibrary = ({
         </Text>
         <Button
           mode="contained"
-          onPress={onAddResource}
+          onPress={() => {
+            console.log("Empty state button pressed");
+            if (onAddResource) {
+              console.log("Using onAddResource callback");
+              onAddResource();
+            } else {
+              console.log("onAddResource is undefined, using navigation");
+              navigation.navigate("ResourceFinder" as never);
+            }
+          }}
           style={[styles.emptyStateButton, { backgroundColor: themeColor }]}
         >
           Ressource hinzufügen
@@ -417,7 +426,16 @@ const ResourceLibrary = ({
           <Button
             icon="plus"
             mode="contained"
-            onPress={() => navigation.navigate("ResourceFinder")}
+            onPress={() => {
+              console.log("Neu button pressed");
+              if (onAddResource) {
+                console.log("Using onAddResource callback");
+                onAddResource();
+              } else {
+                console.log("onAddResource is undefined, using navigation");
+                navigation.navigate("ResourceFinder" as never);
+              }
+            }}
             style={[styles.addButton, { backgroundColor: themeColor }]}
             compact
           >

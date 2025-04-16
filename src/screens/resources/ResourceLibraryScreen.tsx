@@ -27,6 +27,7 @@ export default function ResourceLibraryScreen() {
 
   // Callback für das Hinzufügen einer neuen Ressource
   const handleAddResource = () => {
+    console.log("Ressource hinzufügen Handler wurde aufgerufen");
     setIsResourceFinderVisible(true);
   };
 
@@ -48,6 +49,7 @@ export default function ResourceLibraryScreen() {
       <CustomHeader
         title="Ressourcen-Bibliothek"
         showBack
+        noTopPadding={true}
         onBackPress={() => navigation.goBack()}
       />
 

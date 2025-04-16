@@ -30,7 +30,7 @@ import { useUserStore } from "../../store/useUserStore";
 
 // Props interface
 interface ResourceFinderProps {
-  onComplete: () => void;
+  onComplete?: () => void;
   themeColor?: string;
   module?: any; // Module object as optional parameter
 }
@@ -270,8 +270,13 @@ const ResourceFinder = ({
       // Provide success feedback
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-      // Complete the module
-      onComplete();
+      // Complete the module if callback provided, otherwise navigate back
+      if (onComplete) {
+        onComplete();
+      } else {
+        // If no callback provided, navigate back using navigation
+        navigation.goBack();
+      }
     } catch (error) {
       console.error("Error saving resource:", error);
       Alert.alert(
@@ -801,7 +806,7 @@ const ResourceFinder = ({
             icon="check"
             style={[styles.button, { backgroundColor: themeColor }]}
           >
-            Ressource speichern
+            Speichern
           </Button>
         </Card.Actions>
       </Card>
