@@ -14,7 +14,7 @@ export interface LifeWheelArea {
 interface LifeWheelState {
   lifeWheelAreas: LifeWheelArea[];
   isLoading: boolean;
-  
+
   // Funktionen
   updateLifeWheelArea: (
     areaId: string,
@@ -69,7 +69,7 @@ function getLocalizedName(key: string): string {
 export const useLifeWheelStore = create<LifeWheelState>((set, get) => ({
   lifeWheelAreas: [...DEFAULT_LIFE_WHEEL_AREAS], // Kopie verwenden
   isLoading: false,
-  
+
   updateLifeWheelArea: async (areaId, currentValue, targetValue) => {
     set((state) => ({
       lifeWheelAreas: state.lifeWheelAreas.map((area) =>
@@ -231,12 +231,12 @@ export const useLifeWheelStore = create<LifeWheelState>((set, get) => ({
       .sort((a, b) => a.currentValue - b.currentValue)
       .slice(0, count);
   },
-  
+
   // Reset the store to its initial state
   reset: () => {
-    set({ 
+    set({
       lifeWheelAreas: [...DEFAULT_LIFE_WHEEL_AREAS],
-      isLoading: false
+      isLoading: false,
     });
-  }
+  },
 }));

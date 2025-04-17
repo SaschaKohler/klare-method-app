@@ -38,6 +38,11 @@ export interface Stage {
   requiredModules: string[];
   modules: string[];
 }
+interface AvergeScoreResult {
+  current: number;
+  target: number;
+  gap: number;
+}
 
 export interface User {
   id: string;
@@ -48,6 +53,39 @@ export interface User {
   lastActive: string; // ISO Datum
   joinDate: string; // ISO Datum des Programmstarts
   completedModules: string[]; // IDs der abgeschlossenen Module (für Abwärtskompatibilität)
+}
+export enum ResourceCategory {
+  ACTIVITY = "activity",
+  PERSONAL_STRENGTH = "personal_strength",
+  RELATIONSHIP = "relationship",
+  PLACE = "place",
+  MEMORY = "memory",
+  CUSTOM = "custom",
+}
+export interface Resource {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  rating: number;
+  category: ResourceCategory;
+  activationTips?: string;
+  lastActivated?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RawResourceData {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  rating: number;
+  category: ResourceCategory;
+  activationTips?: string;
+  lastActivated?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SessionData {

@@ -2,6 +2,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import uuid from "react-native-uuid";
 import { supabase } from "../lib/supabase";
+import { RawResourceData } from "../types/store";
 
 // Types
 export interface Resource {
@@ -62,18 +63,20 @@ class ResourceLibraryService {
 
           if (!error && data) {
             // Transform server data to match our interface
-            resources = data.map((item: any) => ({
-              id: item.id,
-              userId: item.user_id,
-              name: item.name,
-              description: item.description,
-              rating: item.rating,
-              category: item.category,
-              activationTips: item.activation_tips,
-              lastActivated: item.last_activated,
-              createdAt: item.created_at,
-              updatedAt: item.updated_at,
-            }));
+            resources = data.map(
+              (item: RawResourceData): Resource => ({
+                id: item.id,
+                userId: item.user_id,
+                name: item.name,
+                description: item.description,
+                rating: item.rating,
+                category: item.category,
+                activationTips: item.activation_tips,
+                lastActivated: item.last_activated,
+                createdAt: item.created_at,
+                updatedAt: item.updated_at,
+              }),
+            );
 
             // Update local storage with server data
             await AsyncStorage.setItem(localKey, JSON.stringify(resources));

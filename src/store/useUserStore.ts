@@ -326,6 +326,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       // Wenn online und eingeloggt, mit Supabase synchronisieren
       if (isOnline && user) {
         try {
+          // @ts-ignore
           await supabase
             .from("users")
             .update({
