@@ -1,7 +1,14 @@
 // src/components/modules/ModuleExercise.tsx
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
-import { Text, Card, Button, TextInput, ProgressBar, useTheme } from "react-native-paper";
+import {
+  Text,
+  Card,
+  Button,
+  TextInput,
+  ProgressBar,
+  useTheme,
+} from "react-native-paper";
 import Markdown from "react-native-markdown-display";
 import { ExerciseStep } from "../../lib/contentService";
 import Slider from "@react-native-community/slider";
@@ -16,106 +23,126 @@ interface ModuleExerciseProps {
   onComplete: () => void;
 }
 
-const ModuleExercise: React.FC<ModuleExerciseProps> = ({ 
-  title, 
-  content, 
+const ModuleExercise: React.FC<ModuleExerciseProps> = ({
+  title,
+  content,
   exerciseSteps = [],
   moduleId,
-  onComplete
+  onComplete,
 }) => {
   const theme = useTheme();
   const user = useUserStore((state) => state.user);
-  
+
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<string, any>>({});
   const [journalText, setJournalText] = useState("");
   const [sliderValue, setSliderValue] = useState(5);
   const [isCompleting, setIsCompleting] = useState(false);
-  
+
   const currentStep = exerciseSteps[currentStepIndex];
   const isLastStep = currentStepIndex === exerciseSteps.length - 1;
   const progress = (currentStepIndex + 1) / exerciseSteps.length;
-  
+
   const handleNextStep = async () => {
     if (!currentStep) return;
-    
+
     // Aktuelle Antwort speichern
     let answer: any = null;
-    
-    if (currentStep.step_type === 'journal') {
+
+    if (currentStep.step_type === "journal") {
       answer = journalText;
-      
+
       // Speichern für den Benutzer
       if (user) {
         await saveExerciseResult(user.id, currentStep.id, answer);
       }
-      
+
       // Für die nächste Frage vorbereiten
       setJournalText("");
-    } 
-    else if (currentStep.step_type === 'input' && currentStep.options?.input_type === 'slider') {
+    } else if (
+      currentStep.step_type === "input" &&
+      currentStep.options?.input_type === "slider"
+    ) {
       answer = sliderValue;
-      
+
       // Speichern für den Benutzer
       if (user) {
         await saveExerciseResult(user.id, currentStep.id, answer);
       }
-      
+
       // Für die nächste Frage vorbereiten
       const nextDefaultValue = currentStep.options?.default_value || 5;
       setSliderValue(nextDefaultValue);
     }
-    
+
     // Antwort in lokalen State speichern
-    setUserAnswers(prev => ({
+    setUserAnswers((prev) => ({
       ...prev,
-      [currentStep.id]: answer
+      [currentStep.id]: answer,
     }));
-    
+
     if (isLastStep) {
       // Übung abschließen
       setIsCompleting(true);
       onComplete();
     } else {
       // Zur nächsten Frage gehen
-      setCurrentStepIndex(prevIndex => prevIndex + 1);
+      setCurrentStepIndex((prevIndex) => prevIndex + 1);
     }
   };
-  
+
   const renderStepContent = () => {
     if (!currentStep) return null;
-    
+
     return (
       <View>
         <Text style={styles.stepTitle}>{currentStep.title}</Text>
-        
-        <Markdown style={{
-          body: { color: theme.colors.onBackground, fontSize: 16, lineHeight: 24 },
-          heading1: { fontSize: 24, fontWeight: 'bold', color: theme.colors.primary },
-          heading2: { fontSize: 20, fontWeight: 'bold', color: theme.colors.primary },
-          heading3: { fontSize: 18, fontWeight: 'bold', color: theme.colors.onBackground },
-          paragraph: { marginBottom: 16 },
-          bullet_list: { marginVertical: 8 },
-          bullet_list_item: { marginLeft: 8, flexDirection: 'row' },
-          bullet_list_icon: { marginRight: 8, fontWeight: 'bold' },
-        }}>
+
+        <Markdown
+          style={{
+            body: {
+              color: theme.colors.onBackground,
+              fontSize: 16,
+              lineHeight: 24,
+            },
+            heading1: {
+              fontSize: 24,
+              fontWeight: "bold",
+              color: theme.colors.primary,
+            },
+            heading2: {
+              fontSize: 20,
+              fontWeight: "bold",
+              color: theme.colors.primary,
+            },
+            heading3: {
+              fontSize: 18,
+              fontWeight: "bold",
+              color: theme.colors.onBackground,
+            },
+            paragraph: { marginBottom: 16 },
+            bullet_list: { marginVertical: 8 },
+            bullet_list_item: { marginLeft: 8, flexDirection: "row" },
+            bullet_list_icon: { marginRight: 8, fontWeight: "bold" },
+          }}
+        >
           {currentStep.instructions}
         </Markdown>
-        
+
         {renderInputComponent()}
       </View>
     );
   };
-  
+
   const renderInputComponent = () => {
     if (!currentStep) return null;
-    
+
     switch (currentStep.step_type) {
-      case 'reflection':
+      case "reflection":
         // Reflexionsfragen benötigen keine Benutzereingabe
         return null;
-        
-      case 'journal':
+
+      case "journal":
         return (
           <View style={styles.inputContainer}>
             <TextInput
@@ -124,20 +151,26 @@ const ModuleExercise: React.FC<ModuleExerciseProps> = ({
               numberOfLines={6}
               value={journalText}
               onChangeText={setJournalText}
-              placeholder={currentStep.options?.placeholder || "Ihre Antwort hier..."}
+              placeholder={
+                currentStep.options?.placeholder || "Ihre Antwort hier..."
+              }
               style={styles.journalInput}
             />
             {currentStep.options?.min_length && (
               <Text style={styles.helperText}>
-                Minimale Länge: {currentStep.options.min_length} Zeichen 
-                ({Math.max(0, journalText.length - currentStep.options.min_length)} verbleibend)
+                Minimale Länge: {currentStep.options.min_length} Zeichen (
+                {Math.max(
+                  0,
+                  journalText.length - currentStep.options.min_length,
+                )}{" "}
+                verbleibend)
               </Text>
             )}
           </View>
         );
-        
-      case 'input':
-        if (currentStep.options?.input_type === 'slider') {
+
+      case "input":
+        if (currentStep.options?.input_type === "slider") {
           return (
             <View style={styles.sliderContainer}>
               <View style={styles.sliderValueContainer}>
@@ -162,22 +195,22 @@ const ModuleExercise: React.FC<ModuleExerciseProps> = ({
           );
         }
         return null;
-        
+
       default:
         return null;
     }
   };
-  
+
   const isNextButtonDisabled = () => {
     if (!currentStep) return true;
-    
+
     switch (currentStep.step_type) {
-      case 'journal':
+      case "journal":
         return journalText.length < (currentStep.options?.min_length || 0);
-      case 'input':
+      case "input":
         // Für Slider immer aktiviert
         return false;
-      case 'reflection':
+      case "reflection":
         // Keine Eingabe erforderlich
         return false;
       default:
@@ -189,11 +222,11 @@ const ModuleExercise: React.FC<ModuleExerciseProps> = ({
     <ScrollView style={styles.container}>
       <View style={styles.contentContainer}>
         <Text style={styles.title}>{title}</Text>
-        
+
         {content.intro_text && (
           <Text style={styles.introText}>{content.intro_text}</Text>
         )}
-        
+
         <Card style={styles.progressCard}>
           <Card.Content>
             <Text style={styles.progressText}>
@@ -206,11 +239,9 @@ const ModuleExercise: React.FC<ModuleExerciseProps> = ({
             />
           </Card.Content>
         </Card>
-        
+
         <Card style={styles.exerciseCard}>
-          <Card.Content>
-            {renderStepContent()}
-          </Card.Content>
+          <Card.Content>{renderStepContent()}</Card.Content>
           <Card.Actions style={styles.cardActions}>
             <Button
               mode="contained"

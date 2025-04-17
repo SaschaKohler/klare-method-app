@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          duration_minutes: number | null
           id: string
           sort_order: number
           step_id: string
@@ -22,6 +23,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          duration_minutes?: number | null
           id?: string
           sort_order?: number
           step_id: string
@@ -31,6 +33,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          duration_minutes?: number | null
           id?: string
           sort_order?: number
           step_id?: string
@@ -363,6 +366,44 @@ export type Database = {
         }
         Relationships: []
       }
+      personal_values: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          rank: number | null
+          updated_at: string | null
+          user_id: string
+          value_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          rank?: number | null
+          updated_at?: string | null
+          user_id: string
+          value_name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          rank?: number | null
+          updated_at?: string | null
+          user_id?: string
+          value_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_values_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz_questions: {
         Row: {
           correct_answer: Json | null
@@ -619,6 +660,125 @@ export type Database = {
         }
         Relationships: []
       }
+      vision_board_items: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          height: number | null
+          id: string
+          image_url: string | null
+          life_area: string
+          position_x: number | null
+          position_y: number | null
+          rotation: number | null
+          scale: number | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          vision_board_id: string | null
+          width: number | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          height?: number | null
+          id?: string
+          image_url?: string | null
+          life_area: string
+          position_x?: number | null
+          position_y?: number | null
+          rotation?: number | null
+          scale?: number | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          vision_board_id?: string | null
+          width?: number | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          height?: number | null
+          id?: string
+          image_url?: string | null
+          life_area?: string
+          position_x?: number | null
+          position_y?: number | null
+          rotation?: number | null
+          scale?: number | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          vision_board_id?: string | null
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vision_board_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vision_board_items_vision_board_id_fkey"
+            columns: ["vision_board_id"]
+            isOneToOne: false
+            referencedRelation: "vision_boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vision_boards: {
+        Row: {
+          background_type: string
+          background_value: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          layout_type: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          background_type: string
+          background_value?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          layout_type?: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          background_type?: string
+          background_value?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          layout_type?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vision_boards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -629,6 +789,7 @@ export type Database = {
         Returns: {
           created_at: string
           description: string | null
+          duration_minutes: number | null
           id: string
           sort_order: number
           step_id: string

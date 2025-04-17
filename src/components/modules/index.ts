@@ -10,6 +10,10 @@ export { default as LResourceManagerComponent } from "./LResourceManagerComponen
 export { default as LModuleComponent } from "./LModuleComponent";
 export { default as LModuleIndexComponent } from "./LModuleIndexComponent";
 
+// Export der A-Modul-Komponenten
+export { default as VisionBoardExercise } from "./VisionBoardExercise";
+export { default as ValuesHierarchyComponent } from "./ValuesHierarchyComponent";
+
 // Typen für die L-Module
 export interface Resource {
   id: string;
@@ -27,4 +31,28 @@ export interface Blocker {
   impact: number;
   transformationStrategy?: string;
   lastTransformed?: string;
+}
+
+// Typen für die A-Module
+export interface PersonalValue {
+  id?: string;
+  value_name: string;
+  description?: string;
+  rank: number;
+  conflict_analysis?: string;
+}
+
+export interface VisionBoardItem {
+  id?: string;
+  life_area: string;
+  title: string;
+  description?: string;
+  image_url?: string;
+  position_x: number;
+  position_y: number;
+  width: number;
+  height: number;
+  scale: number;
+  rotation: number;
+  color?: string;
 }

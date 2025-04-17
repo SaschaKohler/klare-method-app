@@ -20,6 +20,7 @@ import AuthScreen from "../screens/AuthScreen";
 import JournalScreen from "../screens/JournalScreen";
 import JournalEditorScreen from "../screens/JournalEditorScreen";
 import JournalViewerScreen from "../screens/JournalViewerScreen";
+import VisionBoardScreen from "../screens/VisionBoardScreen";
 import EditResource from "../screens/resources/EditResource";
 import ResourceLibraryScreen from "../screens/resources/ResourceLibraryScreen";
 import ResourceLibrary from "../components/resources/ResourceLibrary";
@@ -41,6 +42,10 @@ export type RootStackParamList = {
   };
   JournalViewer: {
     entryId: string;
+  };
+  VisionBoard: {
+    boardId?: string;
+    lifeAreas?: string[];
   };
   ResourceLibrary: undefined;
   ResourceFinder: undefined;
@@ -224,6 +229,11 @@ const MainNavigator = () => {
           <Stack.Screen
             name="JournalViewer"
             component={JournalViewerScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="VisionBoard"
+            component={VisionBoardScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen

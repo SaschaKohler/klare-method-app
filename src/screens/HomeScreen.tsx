@@ -23,10 +23,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  lightKlareColors,
-  darkKlareColors,
-} from "../constants/theme";
+import { lightKlareColors, darkKlareColors } from "../constants/theme";
 import { useThemeStore } from "../store";
 import { klareSteps } from "../data/klareMethodData";
 import { KlareLogo, KlareMethodCards } from "../components";
@@ -35,7 +32,7 @@ import createStyles from "../constants/createStyles";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  
+
   // Use our custom hook instead of multiple useStore calls
   const {
     user,
@@ -47,7 +44,7 @@ export default function HomeScreen() {
     getCurrentStage,
     getNextStage,
     getAvailableModules,
-    calculateTotalProgress
+    calculateTotalProgress,
   } = useKlareStores();
 
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -85,13 +82,16 @@ export default function HomeScreen() {
   ];
 
   // Berechne den Fortschritt für jeden KLARE-Schritt
-  const stepProgress = useMemo(() => ({
-    K: getModuleProgress("K"),
-    L: getModuleProgress("L"),
-    A: getModuleProgress("A"),
-    R: getModuleProgress("R"),
-    E: getModuleProgress("E"),
-  }), [getModuleProgress]);
+  const stepProgress = useMemo(
+    () => ({
+      K: getModuleProgress("K"),
+      L: getModuleProgress("L"),
+      A: getModuleProgress("A"),
+      R: getModuleProgress("R"),
+      E: getModuleProgress("E"),
+    }),
+    [getModuleProgress],
+  );
 
   // Aktualisiert die Uhrzeit jede Minute
   useEffect(() => {
@@ -466,7 +466,34 @@ export default function HomeScreen() {
           KLARE Methode
         </Text>
         <KlareMethodCards klareSteps={klareSteps} stepProgress={stepProgress} />
-
+        {/* Vision Board Section */}
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          Vision Board
+        </Text>
+        <Card style={styles.card}>
+          <Card.Content>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Ionicons
+                name="images-outline"
+                size={24}
+                color={klareColors.a}
+                style={{ marginRight: 10 }}
+              />
+              <Text style={{ flex: 1, color: theme.colors.text }}>
+                Visualisieren Sie Ihre Lebensziele und Visionen
+              </Text>
+            </View>
+          </Card.Content>
+          <Card.Actions>
+            <Button
+              mode="contained"
+              onPress={() => navigation.navigate("VisionBoard")}
+              style={{ backgroundColor: klareColors.a }}
+            >
+              Vision Board erstellen
+            </Button>
+          </Card.Actions>
+        </Card>
         {/* Fokus-Bereiche */}
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           Ihre Fokus-Bereiche
