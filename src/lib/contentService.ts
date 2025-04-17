@@ -3,7 +3,6 @@ import { supabase } from "./supabase";
 
 import { Database } from "../types/supabase";
 
-// Typen aus der Supabase-Datenbankdefinition ableiten
 type ModuleContentRow = Database["public"]["Tables"]["module_contents"]["Row"];
 type ContentSectionRow =
   Database["public"]["Tables"]["content_sections"]["Row"];
@@ -11,65 +10,47 @@ type ExerciseStepRow = Database["public"]["Tables"]["exercise_steps"]["Row"];
 type QuizQuestionRow = Database["public"]["Tables"]["quiz_questions"]["Row"];
 
 // Interface-Definitionen, die mit den Datenbanktypen übereinstimmen
-export interface ContentSection {
-  id: string;
-  title: string;
-  content: string | null;
-  media_url?: string | null;
-  order_index: number;
-  module_content_id: string;
-  created_at?: string | null;
-  updated_at?: string | null;
+export interface ContentSection extends ContentSectionRow {}
+
+export interface ExerciseStep extends ExerciseStepRow {
+  step_type: "reflection" | "practice" | "input" | "selection" | "journal";
 }
 
-export interface ExerciseStep {
-  id: string;
-  title: string;
-  instructions: string;
-  step_type: string; // 'reflection' | 'practice' | 'input' | 'selection' | 'journal'
-  options: any;
-  order_index: number;
-  module_content_id: string;
-  created_at?: string | null;
-  updated_at?: string | null;
+export interface QuizQuestion extends QuizQuestionRow {}
+
+export interface ExerciseOptions {
+  inputType?: "text" | "number" | "choice";
+  choices?: string[];
+  allowMultiple?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  placeholder?: string;
+  [key: string]: unknown;
 }
 
-export interface QuizQuestion {
-  id: string;
-  question: string;
-  question_type: string; // 'multiple_choice' | 'single_choice' | 'text' | 'true_false'
-  options: any;
-  correct_answer: any;
-  explanation: string | null;
-  order_index: number;
-  module_content_id: string;
-  created_at?: string | null;
-  updated_at?: string | null;
+export interface QuizQuestion
+  extends Omit<QuizQuestionRow, "options" | "correct_answer"> {
+  question_type: "single_choice" | "multiple_choice" | "text" | "true_false";
+  options: string[];
+  correct_answer: string | string[]; // Für Mehrfachauswahl
 }
-
-export interface ModuleContent {
-  id: string;
-  module_id: string;
-  content_type: string; // 'intro' | 'theory' | 'text' | 'video' | 'exercise' | 'quiz'
-  title: string;
-  description: string | null;
-  content: any;
-  order_index: number;
-  created_at?: string | null;
-  updated_at?: string | null;
+export interface ModuleContent extends Omit<ModuleContentRow, "content"> {
+  content_type: "intro" | "theory" | "text" | "video" | "exercise" | "quiz";
+  content: ModuleContentData;
   sections?: ContentSection[];
   exercise_steps?: ExerciseStep[];
   quiz_questions?: QuizQuestion[];
 }
 
-// Import für lokale Fallback-Daten
-import {
-  exerciseContent,
-  theoryContent,
-  quizContent,
-} from "../data/klareModuleContent";
-import { getModuleById } from "../data/klareMethodModules";
-
+export interface ModuleContentData {
+  intro_text?: string;
+  key_points?: string[];
+  description?: string;
+  video_url?: string;
+  media_url?: string;
+  content?: string; // Für Video-Module
+  [key: string]: unknown; // Für andere Inhalte
+}
 // Funktion zum Laden eines Moduls mit allen zugehörigen Inhalten
 export const loadModuleContent = async (
   moduleId: string,
@@ -89,7 +70,7 @@ export const loadModuleContent = async (
         "Modul nicht in Supabase gefunden, verwende lokale Daten:",
         moduleId,
       );
-      // return createLocalModuleContent(moduleId);
+      //TODO: lokal Fallback | return createLocalModuleContent(moduleId);
     }
 
     // Vollständiges Modul-Objekt erstellen
@@ -122,7 +103,11 @@ export const loadModuleContent = async (
         .order("order_index", { ascending: true });
 
       if (!stepsError && stepsData) {
-        fullModule.exercise_steps = stepsData;
+        fullModule.exercise_steps = stepsData.map((step) => ({
+          ...step,
+          options: (step.options as ExerciseOptions) || {}, // Standardwert für options setzen
+          step_type: (step.step_type as ExerciseStep["step_type"]) || "input", // Standardwert für step_type setzen
+        }));
       }
     }
 

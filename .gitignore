@@ -1,3 +1,7 @@
+# diagnostics
+type-audit-report.md  
+type-audit.js
+
 # Dotenv files
 .env
 .env.local
