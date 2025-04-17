@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Platform,
   KeyboardAvoidingView,
-  TextInput as RNTextInput,
 } from "react-native";
 import {
   Text,
@@ -15,32 +14,40 @@ import {
   Title,
   Paragraph,
   Button,
-  Divider,
   Checkbox,
   RadioButton,
   TextInput,
   ProgressBar,
   IconButton,
-  List,
 } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { klareColors } from "../../constants/theme";
 import { Module } from "../../data/klareMethodModules";
-import {
-  exerciseContent,
-  theoryContent,
-  quizContent,
-  exerciseHelpers,
-} from "../../data/klareModuleContent";
+import { theoryContent, exerciseHelpers } from "../../data/klareModuleContent";
 import { useUserStore } from "../../store/useUserStore";
 import Markdown from "react-native-markdown-display";
 
-// Hauptkomponente zum Anzeigen eines Moduls basierend auf seinem Typ
-export const ModuleViewer: React.FC<{
+export interface ModuleComponentsProps {
   module: Module;
-  onComplete?: () => void;
+  onComplete: () => void;
   onBack?: () => void;
-}> = ({ module, onComplete, onBack }) => {
+}
+
+export interface TextModuleProps {
+  module: Module;
+  onComplete: () => void;
+}
+
+export interface ExerciseModuleProps {
+  module: Module;
+  onComplete: () => void;
+}
+// Hauptkomponente zum Anzeigen eines Moduls basierend auf seinem Typ
+export const ModuleViewer = ({
+  module,
+  onComplete,
+  onBack,
+}: ModuleComponentsProps) => {
   const completeModule = useUserStore((state) => state.completeModule);
   const [isModuleComplete, setIsModuleComplete] = useState(false);
 
@@ -178,10 +185,7 @@ const VideoModule: React.FC<{
 };
 
 // Komponente für Text-Module
-const TextModule: React.FC<{
-  module: Module;
-  onComplete: () => void;
-}> = ({ module, onComplete }) => {
+const TextModule = ({ module, onComplete }: TextModuleProps) => {
   const [readPercentage, setReadPercentage] = useState(0);
   const [canComplete, setCanComplete] = useState(false);
 
@@ -248,10 +252,7 @@ const TextModule: React.FC<{
 };
 
 // Komponente für Übungs-Module
-const ExerciseModule: React.FC<{
-  module: Module;
-  onComplete: () => void;
-}> = ({ module, onComplete }) => {
+const ExerciseModule = ({ module, onComplete }: ExerciseModuleProps) => {
   const [activeSection, setActiveSection] = useState<
     "description" | "steps" | "reflection"
   >("description");

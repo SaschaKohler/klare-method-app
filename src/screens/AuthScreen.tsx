@@ -96,12 +96,12 @@ export default function AuthScreen() {
 
   const handleSocialAuth = (provider: SocialProvider) => {
     console.log(`Social auth with ${provider}`);
-    // Implement social auth logic here
+    // TODO: Implement social auth logic here
   };
 
   const handleForgotPassword = () => {
     console.log("Password reset for:", email);
-    // Implement password reset logic here
+    // TODO: Implement password reset logic here
     setCurrentView("signin");
   };
 

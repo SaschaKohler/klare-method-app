@@ -2,31 +2,19 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../lib/supabase";
-import { useLifeWheelStore } from "./useLifeWheelStore";
+import { LifeWheelArea, useLifeWheelStore } from "./useLifeWheelStore";
 import { useProgressionStore } from "./useProgressionStore";
-
-// Benutzer-Typ definieren
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  progress: number; // Gesamtfortschritt in Prozent
-  streak: number; // Aktuelle Tagesstreak
-  lastActive: string; // ISO Datum
-  joinDate: string; // ISO Datum des Programmstarts
-  completedModules: string[]; // IDs der abgeschlossenen Module (für Abwärtskompatibilität)
-}
+import { AuthError, User } from "@supabase/supabase-js";
+import { SessionData, Stage, SupabaseResponse } from "../types/store";
 
 interface UserState {
   user: User | null;
   isLoading: boolean;
   isOnline: boolean;
-  
-  // Legacy properties for backward compatibility
-  lifeWheelAreas: any[];
+  lifeWheelAreas: LifeWheelArea[]; // Lebensrad-Einträge
   completedModules: string[];
   moduleProgressCache: Record<string, number>;
-  
+
   // Methods
   setUser: (user: User) => void;
   clearUser: () => void;
@@ -35,21 +23,24 @@ interface UserState {
   updateStreak: (streak: number) => Promise<void>;
   loadUserData: () => Promise<void>;
   saveUserData: () => Promise<boolean>;
-  signIn: (email: string, password: string) => Promise<{ error: any | null }>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ error: AuthError | null }>;
   signUp: (
     email: string,
     password: string,
     name: string,
-  ) => Promise<{ error: any | null }>;
+  ) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   calculateTotalProgress: () => number;
-  
+
   // Legacy methods for backward compatibility
   completeModule: (moduleId: string) => void;
   getModuleProgress: (stepId: "K" | "L" | "A" | "R" | "E") => number;
   getDaysInProgram: () => number;
-  getCurrentStage: () => any;
-  getNextStage: () => any;
+  getCurrentStage: () => Stage | null;
+  getNextStage: () => Stage | null;
   getAvailableModules: () => string[];
   isModuleAvailable: (moduleId: string) => boolean;
   updateLifeWheelArea: (
@@ -62,7 +53,7 @@ interface UserState {
 // Hilfsfunktion zum Berechnen des Gesamtfortschritts
 export function calculateTotalProgress(): number {
   const progressionStore = useProgressionStore.getState();
-  
+
   // Berechne den Fortschritt für jeden KLARE-Schritt
   const kProgress = progressionStore.getModuleProgress("K");
   const lProgress = progressionStore.getModuleProgress("L");
@@ -83,7 +74,7 @@ export const useUserStore = create<UserState>((set, get) => ({
   lifeWheelAreas: [], // Legacy property
   completedModules: [], // Legacy property
   moduleProgressCache: {}, // Legacy property
-  
+
   setUser: (user) => set({ user }),
 
   clearUser: () => set({ user: null }),
@@ -118,7 +109,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     if (!user) return;
 
     const now = new Date().toISOString();
-    
+
     set((state) => ({
       user: { ...state.user!, lastActive: now },
     }));
@@ -130,13 +121,22 @@ export const useUserStore = create<UserState>((set, get) => ({
       // Wenn online, synchronisiere mit Supabase
       if (isOnline) {
         try {
-          await supabase.from("users").update({ last_active: now }).eq("id", user.id);
+          await supabase
+            .from("users")
+            .update({ last_active: now })
+            .eq("id", user.id);
         } catch (error) {
-          console.error("Fehler beim Aktualisieren des letzten Aktivitätsdatums:", error);
+          console.error(
+            "Fehler beim Aktualisieren des letzten Aktivitätsdatums:",
+            error,
+          );
         }
       }
     } catch (error) {
-      console.error("Fehler beim Speichern des letzten Aktivitätsdatums:", error);
+      console.error(
+        "Fehler beim Speichern des letzten Aktivitätsdatums:",
+        error,
+      );
     }
   },
 
@@ -171,28 +171,29 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       // OFFLINE-FIRST ANSATZ: Zuerst lokale Daten laden
       const userData = await AsyncStorage.getItem("userData");
-      const completedModulesData = await AsyncStorage.getItem("completedModules");
+      const completedModulesData =
+        await AsyncStorage.getItem("completedModules");
       const lifeWheelData = await AsyncStorage.getItem("lifeWheelAreas");
 
       // Lokale Daten setzen, falls vorhanden
       if (userData) {
         set({ user: JSON.parse(userData) });
       }
-      
+
       // Für Abwärtskompatibilität
       if (completedModulesData) {
         const modules = JSON.parse(completedModulesData);
         set({ completedModules: modules });
-        
+
         // Sicherstellen, dass das neue ProgressionStore die Daten hat
         const progressionStore = useProgressionStore.getState();
         await progressionStore.loadProgressionData();
       }
-      
+
       // Für Abwärtskompatibilität
       if (lifeWheelData) {
         set({ lifeWheelAreas: JSON.parse(lifeWheelData) });
-        
+
         // Sicherstellen, dass das neue LifeWheelStore die Daten hat
         const lifeWheelStore = useLifeWheelStore.getState();
         await lifeWheelStore.loadLifeWheelData();
@@ -211,7 +212,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         const { data: sessionData } = (await Promise.race([
           sessionPromise,
           timeout,
-        ])) as any;
+        ])) as SupabaseResponse<SessionData>;
 
         if (sessionData?.session) {
           set({ isOnline: true });
@@ -229,14 +230,16 @@ export const useUserStore = create<UserState>((set, get) => ({
             // Auch die Lebensrad- und Progressionsdaten laden
             const progressionStore = useProgressionStore.getState();
             const lifeWheelStore = useLifeWheelStore.getState();
-            
-            await progressionStore.loadProgressionData(sessionData.session.user.id);
+
+            await progressionStore.loadProgressionData(
+              sessionData.session.user.id,
+            );
             await lifeWheelStore.loadLifeWheelData(sessionData.session.user.id);
-            
+
             // Für Abwärtskompatibilität
-            set({ 
+            set({
               completedModules: progressionStore.completedModules,
-              lifeWheelAreas: lifeWheelStore.lifeWheelAreas
+              lifeWheelAreas: lifeWheelStore.lifeWheelAreas,
             });
 
             // 2. Daten in den Store setzen
@@ -292,7 +295,7 @@ export const useUserStore = create<UserState>((set, get) => ({
 
               // Lokal speichern
               await AsyncStorage.setItem("userData", JSON.stringify(user));
-              
+
               // Datum im Progression-Store setzen
               await progressionStore.resetJoinDate();
             }
@@ -333,11 +336,11 @@ export const useUserStore = create<UserState>((set, get) => ({
               join_date: user.joinDate,
             })
             .eq("id", user.id);
-            
+
           // Auch die Lebensrad- und Progressionsdaten speichern
           const progressionStore = useProgressionStore.getState();
           const lifeWheelStore = useLifeWheelStore.getState();
-          
+
           await progressionStore.saveProgressionData(user.id);
           await lifeWheelStore.saveLifeWheelData(user.id);
 
@@ -370,7 +373,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       const { data, error } = (await Promise.race([
         loginPromise,
         timeout,
-      ])) as any;
+      ])) as SupabaseResponse<{ user: User | null }>;
 
       if (error) throw error;
 
@@ -400,7 +403,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         // Benutzer erstellen...
         try {
           const now = new Date().toISOString();
-          
+
           await supabase.from("users").insert({
             id: data.user.id,
             email,
@@ -431,16 +434,16 @@ export const useUserStore = create<UserState>((set, get) => ({
           const lifeWheelStore = useLifeWheelStore.getState();
           await lifeWheelStore.loadLifeWheelData(data.user.id);
           await lifeWheelStore.saveLifeWheelData(data.user.id);
-          
+
           // Progression-Einträge initialisieren
           const progressionStore = useProgressionStore.getState();
           await progressionStore.resetJoinDate();
           await progressionStore.saveProgressionData(data.user.id);
-          
+
           // Für Abwärtskompatibilität
-          set({ 
+          set({
             lifeWheelAreas: lifeWheelStore.lifeWheelAreas,
-            completedModules: []
+            completedModules: [],
           });
 
           // Lokal speichern
@@ -481,86 +484,86 @@ export const useUserStore = create<UserState>((set, get) => ({
         completedModules: [],
         moduleProgressCache: {},
       });
-      
+
       // Auch die anderen Stores zurücksetzen
       const lifeWheelStore = useLifeWheelStore.getState();
       const progressionStore = useProgressionStore.getState();
-      
+
       // Irgendwann implementieren wir reset-Methoden in den Stores
       // Für jetzt verlassen wir uns auf die Neuinitialisierung beim nächsten Login
     } catch (error) {
       console.error("Fehler beim Abmelden:", error);
     }
   },
-  
+
   calculateTotalProgress: () => {
     return calculateTotalProgress();
   },
-  
+
   // ===== LEGACY METHODS FOR BACKWARD COMPATIBILITY =====
-  
+
   completeModule: (moduleId) => {
     // Delegate to progression store
     const progressionStore = useProgressionStore.getState();
     const { user } = get();
     progressionStore.completeModule(moduleId, user?.id);
-    
+
     // Update completed modules for backward compatibility
     set({ completedModules: progressionStore.completedModules });
-    
+
     // Update user object too
     if (get().user) {
       set((state) => ({
-        user: { 
-          ...state.user!, 
-          completedModules: progressionStore.completedModules 
+        user: {
+          ...state.user!,
+          completedModules: progressionStore.completedModules,
         },
       }));
     }
   },
-  
+
   getModuleProgress: (stepId) => {
     // Delegate to progression store
     const progressionStore = useProgressionStore.getState();
     return progressionStore.getModuleProgress(stepId);
   },
-  
+
   getDaysInProgram: () => {
     // Delegate to progression store
     const progressionStore = useProgressionStore.getState();
     return progressionStore.getDaysInProgram();
   },
-  
+
   getCurrentStage: () => {
     // Delegate to progression store
     const progressionStore = useProgressionStore.getState();
     return progressionStore.getCurrentStage();
   },
-  
+
   getNextStage: () => {
     // Delegate to progression store
     const progressionStore = useProgressionStore.getState();
     return progressionStore.getNextStage();
   },
-  
+
   getAvailableModules: () => {
     // Delegate to progression store
     const progressionStore = useProgressionStore.getState();
     return progressionStore.getAvailableModules();
   },
-  
+
   isModuleAvailable: (moduleId) => {
     // Delegate to progression store
     const progressionStore = useProgressionStore.getState();
     return progressionStore.isModuleAvailable(moduleId);
   },
-  
+
   updateLifeWheelArea: async (areaId, currentValue, targetValue) => {
     // Delegate to lifewheel store
     const lifeWheelStore = useLifeWheelStore.getState();
     const { user } = get();
     await lifeWheelStore.updateLifeWheelArea(areaId, currentValue, targetValue);
-    
+
     // Update for backward compatibility
     set({ lifeWheelAreas: lifeWheelStore.lifeWheelAreas });
   },
