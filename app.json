@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "KLARE Methode",
-    "slug": "klare-methode-app",
+    "name": "klare-methode",
+    "slug": "klare-methode",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -11,30 +11,23 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.deinname.klaremethode"
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "package": "com.deinname.klaremethode"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-dev-client"
-    ],
     "extra": {
-      "eas": {
-        "projectId": "your-project-id"
-      }
+      "supabaseUrl": "https://wxnjfyrkcqwnjjtlufhg.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4bmpmeXJrY3F3bmpqdGx1ZmhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3OTM1NDksImV4cCI6MjA1NzM2OTU0OX0.iRvcBMLv-pcQwPApekQdKnpmSJWCLLkQN4v3x_xH-qs"
     }
   }
 }
+

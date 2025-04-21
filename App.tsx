@@ -5,6 +5,8 @@ import { Provider as PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Import from barrel exports
 import { KlareLogo } from "./src/components";
@@ -44,7 +46,7 @@ export default function App() {
     }
   }, [colorScheme, isSystemTheme, setSystemTheme]);
 
-  // Monitor app state to update theme when app comes back to foreground
+  // Monitor app state
   useEffect(() => {
     const subscription = AppState.addEventListener(
       "change",
@@ -61,10 +63,8 @@ export default function App() {
   }, [isSystemTheme, setSystemTheme]);
 
   useEffect(() => {
-    // Daten laden, wenn die App startet
     async function prepare() {
       try {
-        // User-Daten und abhängige Daten laden
         await loadUserData();
 
         // Beliebige andere Vorbereitungen hier
@@ -95,14 +95,16 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <PaperProvider theme={theme}>
-        <NavigationContainer>
-          <MainNavigator />
-          <StatusBar style={isDarkMode ? "light" : "dark"} />
-        </NavigationContainer>
-      </PaperProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <PaperProvider theme={theme}>
+          <NavigationContainer>
+            <MainNavigator />
+            <StatusBar style={isDarkMode ? "light" : "dark"} />
+          </NavigationContainer>
+        </PaperProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

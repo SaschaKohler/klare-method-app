@@ -21,7 +21,7 @@ import KlareLogo from "../components/KlareLogo";
 import createAuthScreenStyles from "../constants/authScreenStyle";
 import { useThemeStore } from "../store/useThemeStore";
 import { Ionicons } from "@expo/vector-icons";
-import { MotiView, MotiText, AnimatePresence } from "moti";
+import { MotiView, MotiText } from "moti";
 import { MotiPressable } from "moti/interactions";
 
 // Auth states
@@ -634,12 +634,10 @@ export default function AuthScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.content}>
-            <AnimatePresence exitBeforeEnter>
-              {currentView === "welcome" && renderWelcomeView()}
-              {currentView === "signin" && renderSignInView()}
-              {currentView === "signup" && renderSignUpView()}
-              {currentView === "forgot" && renderForgotPasswordView()}
-            </AnimatePresence>
+            {currentView === "welcome" && renderWelcomeView()}
+            {currentView === "signin" && renderSignInView()}
+            {currentView === "signup" && renderSignUpView()}
+            {currentView === "forgot" && renderForgotPasswordView()}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
