@@ -34,30 +34,19 @@ export default function HomeScreen() {
   const navigation = useNavigation();
 
   // Use our custom hook instead of multiple useStore calls
-  const {
-    user,
-    lifeWheelAreas,
-    calculateAverage: calculateLifeWheelAverage,
-    findLowestAreas,
-    getModuleProgress,
-    getDaysInProgram,
-    getCurrentStage,
-    getNextStage,
-    getAvailableModules,
-    calculateTotalProgress,
-  } = useKlareStores();
+  const { summary, theme, progression, actions, analytics } = useKlareStores();
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [todayTip, setTodayTip] = useState("");
 
   // Theme handling
-  const theme = useTheme();
-  const { getActiveTheme } = useThemeStore();
-  const isDarkMode = getActiveTheme();
+  const paperTheme = useTheme();
+  const isDarkMode = theme.isDarkMode;
+
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const styles = useMemo(
-    () => createStyles(theme, klareColors),
-    [theme, klareColors],
+    () => createStyles(paperTheme, klareColors),
+    [paperTheme, klareColors],
   );
 
   // Animation für Stage-Fortschritt
@@ -65,10 +54,10 @@ export default function HomeScreen() {
   const opacity = React.useRef(new Animated.Value(0)).current;
 
   // Aktuelle Stage und Fortschritt
-  const currentStage = getCurrentStage();
-  const nextStage = getNextStage();
-  const daysInProgram = getDaysInProgram();
-  const availableModules = getAvailableModules();
+  // const currentStage = getCurrentStage();
+  // const nextStage = getNextStage();
+  // const daysInProgram = getDaysInProgram();
+  // const availableModules = getAvailableModules();
 
   // Tipps des Tages
   const dailyTips = [
@@ -81,18 +70,6 @@ export default function HomeScreen() {
     "Üben Sie bewusst, innere und äußere Kongruenz in einer herausfordernden Situation.",
   ];
 
-  // Berechne den Fortschritt für jeden KLARE-Schritt
-  const stepProgress = useMemo(
-    () => ({
-      K: getModuleProgress("K"),
-      L: getModuleProgress("L"),
-      A: getModuleProgress("A"),
-      R: getModuleProgress("R"),
-      E: getModuleProgress("E"),
-    }),
-    [getModuleProgress],
-  );
-
   // Aktualisiert die Uhrzeit jede Minute
   useEffect(() => {
     const timer = setInterval(() => {
@@ -101,6 +78,11 @@ export default function HomeScreen() {
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    // actions.startSession();
+    console.log("Session started");
+  }, [actions]);
 
   // Animation für Stage-Fortschritt
   useEffect(() => {
@@ -126,7 +108,11 @@ export default function HomeScreen() {
     );
     const tipIndex = dayOfYear % dailyTips.length;
     setTodayTip(dailyTips[tipIndex]);
-  }, []);
+
+    if (analytics?.recommendations?.dailyTip) {
+      setTodayTip(analytics.recommendations.dailyTip);
+    }
+  }, [analytics]);
 
   // Formatiert die Uhrzeit als Grußtext
   const getGreeting = () => {
@@ -141,9 +127,17 @@ export default function HomeScreen() {
     }
   };
 
+  const {
+    user: userSummary,
+    modules: modulesSummary,
+    lifeWheel: lifeWheelSummary,
+  } = summary;
+
   // Bestimme die nächsten Aktivitäten basierend auf verfügbaren Modulen
   const getNextActivities = useMemo(() => {
     const activities = [];
+    const daysInProgram = progression.getDaysInProgram();
+    const availableModules = progression.getAvailableModules();
 
     // Tägliche Aktivität hinzufügen
     activities.push({
@@ -183,33 +177,42 @@ export default function HomeScreen() {
     }
 
     return activities.slice(0, 3); // Maximal 3 Aktivitäten anzeigen
-  }, [availableModules, daysInProgram]);
+  }, [progression]);
 
-  // Berechnet die Streak-Tage
-  const streakDays = user?.streak || daysInProgram;
-
-  // Gesamtfortschritt
-  const totalProgress = user?.progress || calculateTotalProgress();
+  // Berechne den Fortschritt für jeden KLARE-Schritt
+  const stepProgress = useMemo(
+    () => ({
+      K: modulesSummary.k / 100,
+      L: modulesSummary.l / 100,
+      A: modulesSummary.a / 100,
+      R: modulesSummary.r / 100,
+      E: modulesSummary.e / 100,
+    }),
+    [modulesSummary],
+  );
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      style={[
+        styles.container,
+        { backgroundColor: paperTheme.colors.background },
+      ]}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header mit Begrüßung und KLARE Logo */}
         <View style={styles.headerContainer}>
           <View>
-            <Text style={[styles.greeting, { color: theme.colors.text }]}>
+            <Text style={[styles.greeting, { color: paperTheme.colors.text }]}>
               {getGreeting()}
             </Text>
-            <Text style={[styles.userName, { color: theme.colors.text }]}>
-              {user?.name || "Sascha"}
+            <Text style={[styles.userName, { color: paperTheme.colors.text }]}>
+              {userSummary?.name || "Sascha"}
             </Text>
           </View>
           <TouchableOpacity>
             <Avatar.Text
               size={50}
-              label={user?.name?.charAt(0) || "S"}
+              label={userSummary?.name?.charAt(0) || "S"}
               style={{ backgroundColor: klareColors.k }}
             />
           </TouchableOpacity>
@@ -237,10 +240,10 @@ export default function HomeScreen() {
                   <Text
                     style={[
                       styles.progressionTitle,
-                      { color: theme.colors.text },
+                      { color: paperTheme.colors.text },
                     ]}
                   >
-                    KLARE Programm - Tag {daysInProgram}
+                    KLARE Programm - Tag {userSummary?.daysInProgram}
                   </Text>
                 </View>
                 <Chip
@@ -250,31 +253,32 @@ export default function HomeScreen() {
                     { backgroundColor: `${klareColors.k}15` },
                   ]}
                 >
-                  Phase {currentStage ? currentStage.id : "1"}
+                  Phase{" "}
+                  {userSummary.currentStage ? userSummary.currentStage.id : "1"}
                 </Chip>
               </View>
 
-              {currentStage && (
+              {userSummary.currentStage && (
                 <>
                   <Text style={[styles.stageName, { color: klareColors.k }]}>
-                    {currentStage.name}
+                    {userSummary.currentStage.name}
                   </Text>
                   <Text
                     style={[
                       styles.stageDescription,
-                      { color: theme.colors.text },
+                      { color: paperTheme.colors.text },
                     ]}
                   >
-                    {currentStage.description}
+                    {userSummary.currentStage.description}
                   </Text>
 
-                  {nextStage && (
+                  {userSummary.nextStage && (
                     <View
                       style={[
                         styles.nextStagePreview,
                         {
                           borderTopColor: isDarkMode
-                            ? theme.colors.backdrop
+                            ? paperTheme.colors.backdrop
                             : "#F1F1F1",
                         },
                       ]}
@@ -282,7 +286,7 @@ export default function HomeScreen() {
                       <Text
                         style={[
                           styles.nextStageLabel,
-                          { color: theme.colors.text },
+                          { color: paperTheme.colors.text },
                         ]}
                       >
                         Nächste Phase:
@@ -290,19 +294,23 @@ export default function HomeScreen() {
                       <Text
                         style={[
                           styles.nextStageName,
-                          { color: theme.colors.text },
+                          { color: paperTheme.colors.text },
                         ]}
                       >
-                        {nextStage.name}
+                        {userSummary.nextStage.name}
                       </Text>
-                      {nextStage.requiredDays > daysInProgram && (
+                      {userSummary.nextStage.requiredDays >
+                        userSummary.daysInProgram && (
                         <Text
                           style={[
                             styles.daysUntilText,
                             { color: klareColors.textSecondary },
                           ]}
                         >
-                          in {nextStage.requiredDays - daysInProgram} Tagen
+                          in{" "}
+                          {userSummary.nextStage.requiredDays -
+                            userSummary.daysInProgram}{" "}
+                          Tagen
                         </Text>
                       )}
                     </View>
@@ -330,17 +338,17 @@ export default function HomeScreen() {
                 </Text>
                 <View style={styles.progressBarContainer}>
                   <ProgressBar
-                    progress={totalProgress / 100}
+                    progress={modulesSummary.total / 100}
                     color={klareColors.k}
                     style={styles.progressBar}
                   />
                   <Text
                     style={[
                       styles.progressPercentage,
-                      { color: theme.colors.text },
+                      { color: paperTheme.colors.text },
                     ]}
                   >
-                    {totalProgress}%
+                    {modulesSummary.total}%
                   </Text>
                 </View>
               </View>
@@ -356,17 +364,17 @@ export default function HomeScreen() {
                 </Text>
                 <View style={styles.progressBarContainer}>
                   <ProgressBar
-                    progress={calculateLifeWheelAverage() / 10}
+                    progress={lifeWheelSummary.average / 10}
                     color={klareColors.a}
                     style={styles.progressBar}
                   />
                   <Text
                     style={[
                       styles.progressPercentage,
-                      { color: theme.colors.text },
+                      { color: paperTheme.colors.text },
                     ]}
                   >
-                    {calculateLifeWheelAverage()}/10
+                    {lifeWheelSummary.average / 10}
                   </Text>
                 </View>
               </View>
@@ -375,12 +383,18 @@ export default function HomeScreen() {
             <View
               style={[
                 styles.statsContainer,
-                { borderTopColor: isDarkMode ? theme.colors.backdrop : "#eee" },
+                {
+                  borderTopColor: isDarkMode
+                    ? paperTheme.colors.backdrop
+                    : "#eee",
+                },
               ]}
             >
               <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: theme.colors.text }]}>
-                  {daysInProgram}
+                <Text
+                  style={[styles.statValue, { color: paperTheme.colors.text }]}
+                >
+                  {userSummary.daysInProgram}
                 </Text>
                 <Text
                   style={[
@@ -397,15 +411,17 @@ export default function HomeScreen() {
                   styles.statDivider,
                   {
                     backgroundColor: isDarkMode
-                      ? theme.colors.backdrop
+                      ? paperTheme.colors.backdrop
                       : "#eee",
                   },
                 ]}
               ></View>
 
               <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: theme.colors.text }]}>
-                  {availableModules.length}/35
+                <Text
+                  style={[styles.statValue, { color: paperTheme.colors.text }]}
+                >
+                  {modulesSummary.available.length}/35
                 </Text>
                 <Text
                   style={[
@@ -422,7 +438,7 @@ export default function HomeScreen() {
                   styles.statDivider,
                   {
                     backgroundColor: isDarkMode
-                      ? theme.colors.backdrop
+                      ? paperTheme.colors.backdrop
                       : "#eee",
                   },
                 ]}
@@ -431,9 +447,12 @@ export default function HomeScreen() {
               <View style={styles.statItem}>
                 <View style={styles.streakContainer}>
                   <Text
-                    style={[styles.statValue, { color: theme.colors.text }]}
+                    style={[
+                      styles.statValue,
+                      { color: paperTheme.colors.text },
+                    ]}
                   >
-                    {streakDays}🔥
+                    {userSummary.streak}🔥
                   </Text>
                 </View>
                 <Text
@@ -462,12 +481,12 @@ export default function HomeScreen() {
         </Card>
 
         {/* KLARE Methode Schritte */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+        <Text style={[styles.sectionTitle, { color: paperTheme.colors.text }]}>
           KLARE Methode
         </Text>
         <KlareMethodCards klareSteps={klareSteps} stepProgress={stepProgress} />
         {/* Vision Board Section */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+        <Text style={[styles.sectionTitle, { color: paperTheme.colors.text }]}>
           Vision Board
         </Text>
         <Card style={styles.card}>
@@ -479,7 +498,7 @@ export default function HomeScreen() {
                 color={klareColors.a}
                 style={{ marginRight: 10 }}
               />
-              <Text style={{ flex: 1, color: theme.colors.text }}>
+              <Text style={{ flex: 1, color: paperTheme.colors.text }}>
                 Visualisieren Sie Ihre Lebensziele und Visionen
               </Text>
             </View>
@@ -495,14 +514,14 @@ export default function HomeScreen() {
           </Card.Actions>
         </Card>
         {/* Fokus-Bereiche */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+        <Text style={[styles.sectionTitle, { color: paperTheme.colors.text }]}>
           Ihre Fokus-Bereiche
         </Text>
 
         <Card style={styles.card}>
           <Card.Content>
             <List.Section>
-              {findLowestAreas(2).map((area) => (
+              {lifeWheelSummary.lowestAreas.map((area) => (
                 <List.Item
                   key={area.id}
                   title={area.name}
@@ -529,7 +548,7 @@ export default function HomeScreen() {
         </Card>
 
         {/* Nächste Aktivitäten */}
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+        <Text style={[styles.sectionTitle, { color: paperTheme.colors.text }]}>
           Nächste Aktivitäten
         </Text>
 

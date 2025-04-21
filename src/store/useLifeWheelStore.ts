@@ -2,14 +2,15 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../lib/supabase";
+import { LifeWheelArea } from "../types/store";
 
 // Lebensrad-Typ definieren
-export interface LifeWheelArea {
-  id: string;
-  name: string;
-  currentValue: number;
-  targetValue: number;
-}
+// export interface LifeWheelArea {
+//   id: string;
+//   name: string;
+//   currentValue: number;
+//   targetValue: number;
+// }
 
 interface LifeWheelState {
   lifeWheelAreas: LifeWheelArea[];
@@ -29,7 +30,7 @@ interface LifeWheelState {
 }
 
 // Konstanten für häufig verwendete Daten
-const DEFAULT_LIFE_WHEEL_AREAS: LifeWheelArea[] = [
+export const DEFAULT_LIFE_WHEEL_AREAS: LifeWheelArea[] = [
   { id: "health", name: "Gesundheit", currentValue: 5, targetValue: 8 },
   { id: "relationships", name: "Beziehungen", currentValue: 6, targetValue: 9 },
   { id: "family", name: "Familie", currentValue: 7, targetValue: 8 },

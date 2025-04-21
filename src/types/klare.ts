@@ -1,0 +1,166 @@
+// src/types/klare.ts
+
+// User-bezogene Typen
+export interface UserSummary {
+  name: string | null;
+  email: string | null;
+  progress: number;
+  daysInProgram: number;
+  currentStage: any | null; // Sollte mit entsprechendem Typ ersetzt werden
+  nextStage: any | null; // Sollte mit entsprechendem Typ ersetzt werden
+  joinDate: string | null;
+  streak: number;
+}
+
+// Lebensrad-bezogene Typen
+export interface LifeWheelSummary {
+  areas: any[]; // Sollte mit entsprechendem Typ ersetzt werden
+  average: number;
+  lowestAreas: any[]; // Sollte mit entsprechendem Typ ersetzt werden
+  highestAreas: any[]; // Sollte mit entsprechendem Typ ersetzt werden
+  gapAreas: any[]; // Sollte mit entsprechendem Typ ersetzt werden
+}
+
+// Modul-bezogene Typen
+export interface ModulesSummary {
+  k: number;
+  l: number;
+  a: number;
+  r: number;
+  e: number;
+  total: number;
+  available: string[];
+  completed: string[];
+  currentStage: any | null; // Sollte mit entsprechendem Typ ersetzt werden
+  nextStage: any | null; // Sollte mit entsprechendem Typ ersetzt werden
+}
+
+// Ressourcen-bezogene Typen
+export interface ResourceSummary {
+  count: number;
+  byCategory: {
+    physical: number;
+    mental: number;
+    emotional: number;
+    spiritual: number;
+    social: number;
+  };
+  topResources: any[]; // Sollte mit entsprechendem Typ ersetzt werden
+  recentlyActivated: any[]; // Sollte mit entsprechendem Typ ersetzt werden
+}
+
+// Backup-bezogene Typen
+export interface BackupMetadata {
+  version: string;
+  userId: string;
+  createdAt: string;
+  appVersion: string;
+  description: string;
+}
+
+// Gesamter Rückgabetyp für useKlareStores
+export interface KlareStoreResult {
+  user: any; // Sollte mit entsprechendem Typ ersetzt werden
+  isLoading: boolean;
+  isOnline: boolean;
+
+  auth: {
+    signIn: (email: string, password: string) => Promise<{ error: any | null }>;
+    signUp: (
+      email: string,
+      password: string,
+      name: string,
+    ) => Promise<{ error: any | null }>;
+    signOut: () => Promise<void>;
+    isAuthenticated: boolean;
+    isAdmin: boolean;
+  };
+
+  lifeWheel: {
+    areas: any[]; // Sollte mit entsprechendem Typ ersetzt werden
+    updateArea: (
+      areaId: string,
+      currentValue: number,
+      targetValue: number,
+    ) => Promise<void>;
+    average: number;
+    findLowestAreas: (count?: number) => any[]; // Sollte mit entsprechendem Typ ersetzt werden
+    calculateAverage: () => number;
+  };
+
+  progression: {
+    completedModules: string[];
+    completeModule: (moduleId: string) => Promise<void>;
+    getModuleProgress: (stepId: "K" | "L" | "A" | "R" | "E") => number;
+    getDaysInProgram: () => number;
+    getCurrentStage: () => any | null; // Sollte mit entsprechendem Typ ersetzt werden
+    getNextStage: () => any | null; // Sollte mit entsprechendem Typ ersetzt werden
+    getAvailableModules: () => string[];
+    isModuleAvailable: (moduleId: string) => boolean;
+    getModuleDetails: (moduleId: string) => {
+      id: string;
+      step: "K" | "L" | "A" | "R" | "E";
+      completed: boolean;
+      available: boolean;
+      unlockDate: Date | null;
+      daysUntilUnlock: number;
+    };
+    getStepProgressPercentage: (step: "K" | "L" | "A" | "R" | "E") => number;
+  };
+
+  theme: {
+    isDarkMode: boolean;
+    isSystemTheme: boolean;
+    toggleTheme: () => void;
+    setSystemTheme: (useSystem: boolean) => void;
+    getActiveTheme: () => boolean;
+  };
+
+  resources: {
+    all: any[]; // Sollte mit entsprechendem Typ ersetzt werden
+    add: (userId: string, resource: any) => Promise<any>; // Sollte mit entsprechendem Typ ersetzt werden
+    update: (userId: string, resourceId: string, updates: any) => Promise<any>; // Sollte mit entsprechendem Typ ersetzt werden
+    delete: (userId: string, resourceId: string) => Promise<void>;
+    activate: (userId: string, resourceId: string) => Promise<any>; // Sollte mit entsprechendem Typ ersetzt werden
+    getByCategory: (category: string) => any[]; // Sollte mit entsprechendem Typ ersetzt werden
+    getTop: (limit?: number) => any[]; // Sollte mit entsprechendem Typ ersetzt werden
+    search: (searchTerm: string) => any[]; // Sollte mit entsprechendem Typ ersetzt werden
+    getRecentlyActivated: (limit?: number) => any[]; // Sollte mit entsprechendem Typ ersetzt werden
+  };
+
+  summary: {
+    user: UserSummary | null;
+    lifeWheel: LifeWheelSummary;
+    modules: ModulesSummary;
+    resources: ResourceSummary;
+  };
+
+  analytics: {
+    weeklyTrends: {
+      lifeWheelTrend: "improving" | "declining" | "stable";
+      progressTrend: "improving" | "declining" | "stable";
+      mostImprovedArea: string | null;
+      leastImprovedArea: string | null;
+      weeklyCompletion: boolean;
+    };
+    recommendations: {
+      nextModule: string | null;
+      focusAreas: any[]; // Sollte mit entsprechendem Typ ersetzt werden
+      dailyTip: string;
+    };
+  };
+
+  actions: {
+    saveAll: () => Promise<boolean>;
+    startSession: () => Promise<void>;
+    calculateTotalProgress: () => number;
+  };
+
+  persistence: {
+    createBackup: () => Promise<any | null>; // Sollte mit entsprechendem Typ ersetzt werden
+    restoreBackup: (backup: any) => Promise<boolean>; // Sollte mit entsprechendem Typ ersetzt werden
+    syncWithCloud: () => Promise<boolean>;
+    restoreFromCloud: () => Promise<boolean>;
+    clearAllPersistedData: () => Promise<boolean>;
+  };
+}
