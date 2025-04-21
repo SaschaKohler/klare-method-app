@@ -29,13 +29,17 @@ import { Tables, TablesInsert, TablesUpdate } from "../types/supabase";
 
 type VisionBoardRouteProp = RouteProp<RootStackParamList, "VisionBoard">;
 
-type VisionBoard = Tables<"vision_boards">;
+type VisionBoardRow = Tables<"vision_boards">;
 type VisionBoardInsert = TablesInsert<"vision_boards">;
 type VisionBoardUpdate = TablesUpdate<"vision_boards">;
 
 type VisionBoardItem = Tables<"vision_board_items">;
 type VisionBoardItemInsert = TablesInsert<"vision_board_items">;
 type VisionBoardItemUpdate = TablesUpdate<"vision_board_items">;
+
+interface VisionBoard extends VisionBoardRow {
+  items?: VisionBoardItem[];
+}
 
 const VisionBoardScreen = () => {
   const navigation = useNavigation();
@@ -281,7 +285,7 @@ const VisionBoardScreen = () => {
       title: newBoardTitle,
       description: newBoardDescription,
       background_type: "gradient",
-      background_value: "gradient_blue",
+      background_value: "gradient_primary",
       layout_type: "grid",
       items: [],
     };
@@ -390,21 +394,21 @@ const VisionBoardScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style={theme.dark ? "light" : "dark"} />
 
-      <CustomHeader
-        title={activeBoard ? activeBoard.title : "Vision Boards"}
-        showBackButton={true}
-        onBackPress={() => {
-          // Wenn ein aktives Board angezeigt wird, zurück zur Board-Übersicht
-          if (activeBoard) {
-            setActiveBoard(null);
-          } else {
-            // Sonst zurück zum vorherigen Screen
-            navigation.goBack();
-          }
-        }}
-        rightIcon={activeBoard ? "close" : undefined}
-        onRightIconPress={activeBoard ? () => setActiveBoard(null) : undefined}
-      />
+      {/* <CustomHeader */}
+      {/*   title={activeBoard ? activeBoard.title : "Vision Boards"} */}
+      {/*   showBackButton={true} */}
+      {/*   onBackPress={() => { */}
+      {/*     // Wenn ein aktives Board angezeigt wird, zurück zur Board-Übersicht */}
+      {/*     if (activeBoard) { */}
+      {/*       setActiveBoard(null); */}
+      {/*     } else { */}
+      {/*       // Sonst zurück zum vorherigen Screen */}
+      {/*       navigation.goBack(); */}
+      {/*     } */}
+      {/*   }} */}
+      {/*   rightIcon={activeBoard ? "close" : undefined} */}
+      {/*   onRightIconPress={activeBoard ? () => setActiveBoard(null) : undefined} */}
+      {/* /> */}
 
       {renderContent()}
 

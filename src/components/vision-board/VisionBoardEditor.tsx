@@ -1,5 +1,5 @@
 // src/components/vision-board/VisionBoardEditor.tsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
   StyleSheet,
@@ -26,10 +26,12 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { supabase } from "../../lib/supabase";
-import { useUserStore } from "../../store";
+import { useThemeStore, useUserStore } from "../../store";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Tables, TablesInsert } from "../../types/supabase";
+import { Theme } from "react-native-paper/lib/typescript/types";
+import { darkKlareColors, lightKlareColors } from "../../constants/theme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -43,18 +45,6 @@ interface VisionBoardEditorProps {
   readOnly?: boolean;
   onCancel?: () => void;
 }
-
-const BACKGROUNDS = {
-  gradient_blue: ["#4facfe", "#00f2fe"],
-  gradient_purple: ["#6a11cb", "#2575fc"],
-  // mountains: require("../../assets/visionboard/mountains.jpg"),
-  // ocean: require("../../assets/visionboard/ocean.jpg"),
-  // forest: require("../../assets/visionboard/forest.jpg"),
-  // sunrise: require("../../assets/visionboard/sunrise.jpg"),
-  // stars: require("../../assets/visionboard/stars.jpg"),
-  // abstract: require("../../assets/visionboard/abstract.jpg"),
-  // minimal: require("../../assets/visionboard/minimal.jpg"),
-};
 
 // Koordinatenhelferfunktion für freies Layout
 const getItemPosition = (index: number, itemCount: number, radius: number) => {
@@ -75,13 +65,36 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
   const insets = useSafeAreaInsets();
   const user = useUserStore((state) => state.user);
 
+  const { getActiveTheme } = useThemeStore();
+  const isDarkMode = getActiveTheme();
+  const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
+  const styles = useMemo(
+    () => createStyles(theme, klareColors),
+    [theme, klareColors],
+  );
+
+  const BACKGROUNDS = {
+    gradient_primary: [`${theme.colors.primary}`, `${theme.colors.secondary}`],
+    gradient_secondary: [
+      `${theme.colors.secondary}`,
+      `${theme.colors.tertiary}`,
+    ],
+    // mountains: require("../../assets/visionboard/mountains.jpg"),
+    // ocean: require("../../assets/visionboard/ocean.jpg"),
+    // forest: require("../../assets/visionboard/forest.jpg"),
+    // sunrise: require("../../assets/visionboard/sunrise.jpg"),
+    // stars: require("../../assets/visionboard/stars.jpg"),
+    // abstract: require("../../assets/visionboard/abstract.jpg"),
+    // minimal: require("../../assets/visionboard/minimal.jpg"),
+  };
+
   // State für das Vision Board
   const [board, setBoard] = useState<VisionBoard>(
     initialBoard || {
       title: "Mein Vision Board",
       description: "Meine persönliche Lebensvision",
       background_type: "gradient",
-      background_value: "gradient_blue",
+      background_value: "gradient_primary",
       layout_type: "grid",
       items: [],
     },
@@ -462,15 +475,15 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
               style={styles.backgroundSelector}
             >
               <TouchableOpacity
-                onPress={() => changeBackground("gradient", "gradient_blue")}
+                onPress={() => changeBackground("gradient", "gradient_primary")}
                 style={[
                   styles.backgroundOption,
-                  board.background_value === "gradient_blue" &&
+                  board.background_value === "gradient_primary" &&
                     styles.selectedBackground,
                 ]}
               >
                 <LinearGradient
-                  colors={BACKGROUNDS.gradient_blue as string[]}
+                  colors={BACKGROUNDS.gradient_primary as string[]}
                   style={styles.backgroundPreview}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -479,15 +492,17 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => changeBackground("gradient", "gradient_purple")}
+                onPress={() =>
+                  changeBackground("gradient", "gradient_secondary")
+                }
                 style={[
                   styles.backgroundOption,
-                  board.background_value === "gradient_purple" &&
+                  board.background_value === "gradient_secondary" &&
                     styles.selectedBackground,
                 ]}
               >
                 <LinearGradient
-                  colors={BACKGROUNDS.gradient_purple as string[]}
+                  colors={BACKGROUNDS.gradient_secondary as string[]}
                   style={styles.backgroundPreview}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -739,153 +754,155 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    position: "relative",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    zIndex: 2,
-  },
-  headerActions: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#fff",
-    textShadowColor: "rgba(0, 0, 0, 0.75)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-  titleInput: {
-    fontSize: 20,
-    fontWeight: "bold",
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 4,
-    padding: 8,
-    minWidth: 200,
-  },
-  boardContainer: {
-    flex: 1,
-  },
-  boardContent: {
-    minHeight: 800,
-  },
-  board: {
-    flex: 1,
-    position: "relative",
-  },
-  itemCard: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-  selectedItem: {
-    borderWidth: 2,
-    borderColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  itemImage: {
-    width: "100%",
-    height: "60%",
-  },
-  itemContent: {
-    padding: 8,
-    flex: 1,
-    justifyContent: "space-between",
-  },
-  itemTitle: {
-    fontWeight: "bold",
-    fontSize: 14,
-    marginBottom: 2,
-  },
-  itemDescription: {
-    fontSize: 12,
-    opacity: 0.7,
-    flex: 1,
-  },
-  areaChip: {
-    alignSelf: "flex-start",
-    height: 20,
-    marginTop: 4,
-  },
-  toolbar: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderTopWidth: 1,
-    borderTopColor: "rgba(0, 0, 0, 0.1)",
-  },
-  itemActions: {
-    flexDirection: "row",
-    marginLeft: "auto",
-  },
-  input: {
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
-    borderRadius: 4,
-    padding: 8,
-    marginBottom: 12,
-  },
-  textArea: {
-    minHeight: 80,
-    textAlignVertical: "top",
-  },
-  imageSection: {
-    marginTop: 12,
-    alignItems: "center",
-  },
-  imagePreview: {
-    width: "100%",
-    height: 150,
-    marginTop: 8,
-    borderRadius: 4,
-  },
-  settingsLabel: {
-    fontWeight: "bold",
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  segmentedButtons: {
-    marginBottom: 12,
-  },
-  backgroundSelector: {
-    flexDirection: "row",
-    paddingVertical: 8,
-  },
-  backgroundOption: {
-    marginRight: 12,
-    alignItems: "center",
-    width: 80,
-  },
-  backgroundPreview: {
-    width: 80,
-    height: 60,
-    borderRadius: 4,
-  },
-  backgroundLabel: {
-    marginTop: 4,
-    fontSize: 12,
-    textAlign: "center",
-  },
-  selectedBackground: {
-    borderWidth: 2,
-    borderColor: "#007AFF",
-    borderRadius: 6,
-  },
-});
+const createStyles = (theme: Theme, klareColors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      position: "relative",
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 16,
+      zIndex: 2,
+    },
+    headerActions: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: theme.colors.onSurface,
+      // textShadowColor: "rgba(0, 0, 0, 0.75)",
+      textShadowOffset: { width: 1, height: 1 },
+      textShadowRadius: 2,
+    },
+    titleInput: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: theme.colors.background,
+      backgroundColor: `${theme.colors.surface}20`,
+      borderRadius: 4,
+      padding: 8,
+      minWidth: 200,
+    },
+    boardContainer: {
+      flex: 1,
+    },
+    boardContent: {
+      minHeight: 800,
+    },
+    board: {
+      flex: 1,
+      position: "relative",
+    },
+    itemCard: {
+      width: "100%",
+      height: "100%",
+      borderRadius: 8,
+      // overflow: "hidden",
+    },
+    selectedItem: {
+      borderWidth: 1,
+      borderColor: "#fff",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    itemImage: {
+      width: "100%",
+      height: "60%",
+    },
+    itemContent: {
+      padding: 8,
+      flex: 1,
+      justifyContent: "space-between",
+    },
+    itemTitle: {
+      fontWeight: "bold",
+      fontSize: 14,
+      marginBottom: 2,
+    },
+    itemDescription: {
+      fontSize: 12,
+      opacity: 0.7,
+      flex: 1,
+    },
+    areaChip: {
+      alignSelf: "flex-start",
+      height: 70,
+      marginTop: 4,
+    },
+    toolbar: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      backgroundColor: theme.colors.bold,
+      borderTopWidth: 1,
+      borderTopColor: "rgba(0, 0, 0, 0.1)",
+    },
+    itemActions: {
+      flexDirection: "row",
+      marginLeft: "auto",
+    },
+    input: {
+      backgroundColor: "rgba(255, 255, 255, 0.7)",
+      borderRadius: 4,
+      padding: 8,
+      marginBottom: 12,
+    },
+    textArea: {
+      minHeight: 80,
+      textAlignVertical: "top",
+    },
+    imageSection: {
+      marginTop: 12,
+      alignItems: "center",
+    },
+    imagePreview: {
+      width: "100%",
+      height: 150,
+      marginTop: 8,
+      borderRadius: 4,
+    },
+    settingsLabel: {
+      fontWeight: "bold",
+      marginTop: 12,
+      marginBottom: 8,
+    },
+    segmentedButtons: {
+      marginBottom: 12,
+    },
+    backgroundSelector: {
+      flexDirection: "row",
+      paddingVertical: 8,
+    },
+    backgroundOption: {
+      marginRight: 12,
+      alignItems: "center",
+      width: 80,
+    },
+    backgroundPreview: {
+      width: 80,
+      height: 60,
+      borderRadius: 4,
+    },
+    backgroundLabel: {
+      marginTop: 4,
+      fontSize: 12,
+      textAlign: "center",
+    },
+    selectedBackground: {
+      borderWidth: 2,
+      borderColor: "#007AFF",
+      borderRadius: 6,
+    },
+  });
 
 export default VisionBoardEditor;
