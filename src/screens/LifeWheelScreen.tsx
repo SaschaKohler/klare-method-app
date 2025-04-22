@@ -43,24 +43,26 @@ import { BlurView } from "expo-blur";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import createLifeWheelScreenStyles from "../constants/lifeWheelScreenStyles";
-import { LifeWheelArea } from "../store/useLifeWheelStore";
+import { LifeWheelArea } from "../types/store";
+import { useKlareStores } from "../hooks/useKlareStores";
 
 export default function LifeWheelScreen() {
   const navigation = useNavigation();
 
+  const { summary, lifeWheel, theme: themeStore, actions } = useKlareStores();
   // Store access
-  const storeLifeWheelAreas = useLifeWheelStore(
-    (state) => state.lifeWheelAreas,
-  );
-  const updateLifeWheelArea = useLifeWheelStore(
-    (state) => state.updateLifeWheelArea,
-  );
-  const saveLifeWheelData = useLifeWheelStore(
-    (state) => state.saveLifeWheelData,
-  );
-  const loadLifeWheelData = useLifeWheelStore(
-    (state) => state.loadLifeWheelData,
-  );
+  // const storeLifeWheelAreas = useLifeWheelStore(
+  //   (state) => state.lifeWheelAreas,
+  // );
+  // const updateLifeWheelArea = useLifeWheelStore(
+  //   (state) => state.updateLifeWheelArea,
+  // );
+  // const saveLifeWheelData = useLifeWheelStore(
+  //   (state) => state.saveLifeWheelData,
+  // );
+  // const loadLifeWheelData = useLifeWheelStore(
+  //   (state) => state.loadLifeWheelData,
+  // );
 
   // User Store für Kompatibilität
   const user = useUserStore((state) => state.user);
@@ -68,7 +70,7 @@ export default function LifeWheelScreen() {
 
   // Lokaler State für die Chart-Daten - wichtig für sofortige Updates
   const [lifeWheelAreas, setLifeWheelAreas] = useState<LifeWheelArea[]>([
-    ...storeLifeWheelAreas,
+    ...lifeWheel.areas,
   ]);
 
   // UI States
@@ -89,16 +91,16 @@ export default function LifeWheelScreen() {
 
   // Synchronisiere lokalen State mit Store bei Änderungen
   useEffect(() => {
-    setLifeWheelAreas([...storeLifeWheelAreas]);
-  }, [storeLifeWheelAreas]);
+    setLifeWheelAreas([...lifeWheel.areas]);
+  }, [lifeWheel.areas]);
 
   // Lade Daten beim ersten Render
-  useEffect(() => {
-    const loadData = async () => {
-      await loadLifeWheelData(user?.id);
-    };
-    loadData();
-  }, []);
+  // useEffect(() => {
+  //   const loadData = async () => {
+  //     await loadLifeWheelData(user?.id);
+  //   };
+  //   loadData();
+  // }, []);
 
   // ViewMode wird auf showTargetValues übertragen
   useEffect(() => {
@@ -142,18 +144,18 @@ export default function LifeWheelScreen() {
       chartUpdateCounter.current += 1;
 
       // Dann Store aktualisieren (kann im Hintergrund erfolgen)
-      await updateLifeWheelArea(areaId, currentValue, targetValue);
+      await lifeWheel.updateArea(areaId, currentValue, targetValue);
       setHasChanges(true);
     },
-    [updateLifeWheelArea],
+    [lifeWheel.updateArea],
   );
 
   // Speichern der Änderungen
   const handleSave = useCallback(async () => {
-    const success = await saveLifeWheelData(user?.id);
-
+    console.log("Speichern der Lebensrad-Daten...");
+    const success = await actions.saveAll();
+    console.log("Speichern abgeschlossen:", success);
     if (success) {
-      await saveUserData();
       setHasChanges(false);
 
       if (Platform.OS === "ios") {
@@ -174,7 +176,7 @@ export default function LifeWheelScreen() {
         "Beim Speichern ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
       );
     }
-  }, [saveLifeWheelData, saveUserData, user]);
+  }, [actions]);
 
   // Einsichten generieren basierend auf den Lebensrad-Werten
   const generateInsights = useCallback(() => {

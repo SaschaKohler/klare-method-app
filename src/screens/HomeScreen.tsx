@@ -1,7 +1,6 @@
 // src/screens/HomeScreen.optimized.tsx
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  StyleSheet,
   View,
   ScrollView,
   TouchableOpacity,
@@ -15,7 +14,6 @@ import {
   Button,
   Avatar,
   ProgressBar,
-  Divider,
   List,
   Chip,
   useTheme,
@@ -24,9 +22,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { lightKlareColors, darkKlareColors } from "../constants/theme";
-import { useThemeStore } from "../store";
 import { klareSteps } from "../data/klareMethodData";
-import { KlareLogo, KlareMethodCards } from "../components";
+import { KlareMethodCards } from "../components";
 import { useKlareStores } from "../hooks";
 import createStyles from "../constants/createStyles";
 
@@ -35,7 +32,6 @@ export default function HomeScreen() {
 
   // Use our custom hook instead of multiple useStore calls
   const { summary, theme, progression, actions, analytics } = useKlareStores();
-
   const [currentTime, setCurrentTime] = useState(new Date());
   const [todayTip, setTodayTip] = useState("");
 
@@ -126,13 +122,11 @@ export default function HomeScreen() {
       return "Guten Abend";
     }
   };
-
   const {
     user: userSummary,
     modules: modulesSummary,
     lifeWheel: lifeWheelSummary,
   } = summary;
-
   // Bestimme die nächsten Aktivitäten basierend auf verfügbaren Modulen
   const getNextActivities = useMemo(() => {
     const activities = [];

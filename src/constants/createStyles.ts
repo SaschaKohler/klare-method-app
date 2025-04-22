@@ -50,7 +50,11 @@ const createStyles = (theme: Theme, klareColors: any) =>
       marginLeft: 8,
       color: theme.colors.text,
     },
-    progressChip: {}, // Preserve original empty style
+    progressChip: {
+      position: "absolute",
+      top: -30,
+      right: -10,
+    },
     stageName: {
       fontSize: 16,
       fontWeight: "600",

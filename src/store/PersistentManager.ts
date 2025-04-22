@@ -1,13 +1,6 @@
 // src/store/persistManager.ts
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { storePersistConfigs } from "./persistConfig";
-import {
-  useUserStore,
-  useLifeWheelStore,
-  useProgressionStore,
-  useThemeStore,
-  useResourceStore,
-} from ".";
 
 export class PersistManager {
   // Speichere alle Store-Daten in ein Backup-Format

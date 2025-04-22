@@ -1,15 +1,23 @@
 // src/types/klare.ts
+import { Tables, TablesInsert, TablesUpdate } from "../types/supabase";
+
+type UserSummaryRow = Tables<"users">;
 
 // User-bezogene Typen
-export interface UserSummary {
-  name: string | null;
+export interface UserSummary extends UserSummaryRow {
   email: string | null;
-  progress: number;
   daysInProgram: number;
   currentStage: any | null; // Sollte mit entsprechendem Typ ersetzt werden
   nextStage: any | null; // Sollte mit entsprechendem Typ ersetzt werden
   joinDate: string | null;
-  streak: number;
+  completed_modules: string[] | null;
+  created_at: string | null;
+  id: string;
+  join_date: string | null;
+  last_active: string | null;
+  name: string;
+  progress: number | null;
+  streak: number | null;
 }
 
 // Lebensrad-bezogene Typen
@@ -84,8 +92,11 @@ export interface KlareStoreResult {
       targetValue: number,
     ) => Promise<void>;
     average: number;
+    // saveLifeWheelData: (userId: string) => Promise<boolean>;
+    loadLifeWheelData: (userId: string) => Promise<void>;
     findLowestAreas: (count?: number) => any[]; // Sollte mit entsprechendem Typ ersetzt werden
     calculateAverage: () => number;
+    reset: () => void;
   };
 
   progression: {

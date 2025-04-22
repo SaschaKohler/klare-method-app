@@ -2,7 +2,8 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../lib/supabase";
-import { LifeWheelArea, useLifeWheelStore } from "./useLifeWheelStore";
+import { LifeWheelArea } from "../types/store";
+import { useLifeWheelStore } from "./useLifeWheelStore";
 import { useProgressionStore } from "./useProgressionStore";
 import { AuthError, User } from "@supabase/supabase-js";
 import { SessionData, Stage, SupabaseResponse } from "../types/store";
@@ -338,12 +339,12 @@ export const useUserStore = create<UserState>((set, get) => ({
             })
             .eq("id", user.id);
 
+          //TODO: fix double saving
           // Auch die Lebensrad- und Progressionsdaten speichern
-          const progressionStore = useProgressionStore.getState();
-          const lifeWheelStore = useLifeWheelStore.getState();
-
-          await progressionStore.saveProgressionData(user.id);
-          await lifeWheelStore.saveLifeWheelData(user.id);
+          // const progressionStore = useProgressionStore.getState();
+          // const lifeWheelStore = useLifeWheelStore.getState();
+          // await progressionStore.saveProgressionData(user.id);
+          // await lifeWheelStore.saveLifeWheelData(user.id);
 
           return true;
         } catch (error) {

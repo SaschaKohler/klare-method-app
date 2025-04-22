@@ -7,7 +7,6 @@ import React, {
   useMemo,
 } from "react";
 import {
-  StyleSheet,
   View,
   ScrollView,
   TouchableOpacity,
@@ -42,12 +41,13 @@ import Animated, {
   withDelay,
 } from "react-native-reanimated";
 import { RootStackParamList } from "../types/navigation";
-import { useUserStore, useProgressionStore } from "../store";
+import { useProgressionStore } from "../store";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { loadModulesByStep, ModuleContent } from "../lib/contentService";
 import { KlareMethodNavigationTabs, TransformationList } from "../components";
 import createKlareMethodScreenStyles from "../constants/klareMethodScreenStyles";
+import { useKlareStores } from "../hooks/useKlareStores";
 
 // Import our services
 import {
@@ -85,6 +85,8 @@ export default function KlareMethodScreen() {
   const route = useRoute<KlareMethodScreenRouteProp>();
   const scrollViewRef = useRef<ScrollView>(null);
 
+  const { progression, theme: themeStore } = useKlareStores();
+
   // State für den aktiven KLARE-Schritt und den aktiven Tab
   const [activeStepId, setActiveStepId] = useState<"K" | "L" | "A" | "R" | "E">(
     route.params?.step || "K",
@@ -109,9 +111,9 @@ export default function KlareMethodScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Use the new progression store
-  const isModuleAvailable = useProgressionStore(
-    (state) => state.isModuleAvailable,
-  );
+  // const isModuleAvailable = useProgressionStore(
+  //   (state) => state.isModuleAvailable,
+  // );
 
   // Finde den aktiven Schritt
   const activeStep = klareSteps.find(
@@ -119,7 +121,7 @@ export default function KlareMethodScreen() {
   ) as KlareStep;
 
   const theme = useTheme();
-  const isDarkMode = theme.dark;
+  const isDarkMode = themeStore.isDarkMode;
   const themeKlareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const insets = useSafeAreaInsets();
 
@@ -477,8 +479,7 @@ export default function KlareMethodScreen() {
           </View>
         ) : (
           availableModules.map((module) => {
-            const isAvailable = isModuleAvailable(module.module_id);
-            console.log(isAvailable, module.id);
+            const isAvailable = progression.isModuleAvailable(module.module_id);
             return (
               <Card
                 key={module.id}

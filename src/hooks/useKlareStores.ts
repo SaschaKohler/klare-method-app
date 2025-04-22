@@ -163,9 +163,9 @@ export const useKlareStores = (): KlareStoreResult => {
         await updateLastActive();
 
         // Streak-Logik
-        if (user.lastActive) {
+        if (user?.lastActive) {
           const now = new Date();
-          const lastActive = new Date(user.lastActive);
+          const lastActive = new Date(user?.lastActive);
 
           // Setze Datum auf Mitternacht für Vergleich
           const today = new Date(
@@ -558,6 +558,7 @@ export const useKlareStores = (): KlareStoreResult => {
       average: calculateAverage(),
       findLowestAreas,
       calculateAverage,
+      resetLifeWheel,
     },
 
     // Progression

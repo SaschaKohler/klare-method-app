@@ -155,7 +155,7 @@ export const useLifeWheelStore = create<LifeWheelState>((set, get) => ({
 
   saveLifeWheelData: async (userId) => {
     const { lifeWheelAreas } = get();
-
+    console.log("(saveLifeWheelData)", lifeWheelAreas);
     try {
       // Lokales Speichern
       await AsyncStorage.setItem(
@@ -220,7 +220,7 @@ export const useLifeWheelStore = create<LifeWheelState>((set, get) => ({
       (acc, area) => acc + area.currentValue,
       0,
     );
-    return Math.round((sum / lifeWheelAreas.length) * 10) / 10;
+    return Math.round((sum / lifeWheelAreas.length) * 10);
   },
 
   // Findet die niedrigsten bewerteten Bereiche
