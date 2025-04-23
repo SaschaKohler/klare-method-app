@@ -1,5 +1,6 @@
 // src/types/klare.ts
 import { Tables, TablesInsert, TablesUpdate } from "../types/supabase";
+import { AuthError, User } from "@supabase/supabase-js";
 
 type UserSummaryRow = Tables<"users">;
 
@@ -68,7 +69,7 @@ export interface BackupMetadata {
 
 // Gesamter Rückgabetyp für useKlareStores
 export interface KlareStoreResult {
-  user: any; // Sollte mit entsprechendem Typ ersetzt werden
+  user: User | null; //TODO: check for type
   isLoading: boolean;
   isOnline: boolean;
 
@@ -81,7 +82,7 @@ export interface KlareStoreResult {
     ) => Promise<{ error: any | null }>;
     signOut: () => Promise<void>;
     isAuthenticated: boolean;
-    isAdmin: boolean;
+    // TODO:  isAdmin: boolean;
   };
 
   lifeWheel: {

@@ -7,7 +7,6 @@ import {
   useResourceStore,
 } from "../store";
 import { useCallback, useMemo } from "react";
-import { PersistManager } from "../store/PersistentManager";
 import { supabase } from "../lib/supabase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -18,12 +17,140 @@ import {
   BackupMetadata,
   KlareStoreResult,
 } from "../types/klare";
+
 /**
  * Custom hook that provides combined access to all KLARE method stores
  * and offers convenient methods for common operations
  */
 export const useKlareStores = (): KlareStoreResult => {
-  // === USER STORE ===
+  // === Extract state and methods from individual stores ===
+  const userStore = useUserStoreValues();
+  const lifeWheelStore = useLifeWheelStoreValues();
+  const progressionStore = useProgressionStoreValues();
+  const themeStore = useThemeStoreValues();
+  const resourcesStore = useResourceStoreValues();
+
+  // === Computed values & convenience methods ===
+  const computedValues = useComputedValues(
+    userStore,
+    lifeWheelStore,
+    progressionStore,
+    resourcesStore,
+  );
+
+  // === Persistence-related functions ===
+  const persistenceFunctions = usePersistenceFunctions(
+    userStore,
+    lifeWheelStore,
+    progressionStore,
+    resourcesStore,
+  );
+
+  // === Analytics & insights ===
+  const analyticsFunctions = useAnalyticsFunctions(
+    lifeWheelStore,
+    progressionStore,
+  );
+
+  // === Return combined interface ===
+  return {
+    // User
+    user: userStore.user,
+    isLoading: userStore.isLoading,
+    isOnline: userStore.isOnline,
+    auth: {
+      signIn: userStore.signIn,
+      signUp: userStore.signUp,
+      signOut: userStore.signOut,
+      isAuthenticated: !!userStore.user?.id,
+      // isAdmin: userStore.user?.isAdmin || false,
+    },
+
+    // Lebensrad
+    lifeWheel: {
+      areas: lifeWheelStore.lifeWheelAreas,
+      updateArea: lifeWheelStore.updateLifeWheelArea,
+      average: lifeWheelStore.calculateAverage(),
+      findLowestAreas: lifeWheelStore.findLowestAreas,
+      loadLifeWheelData: lifeWheelStore.loadLifeWheelData,
+      calculateAverage: lifeWheelStore.calculateAverage,
+      reset: lifeWheelStore.resetLifeWheel,
+    },
+
+    // Progression
+    progression: {
+      completedModules: progressionStore.completedModules,
+      completeModule: progressionStore.completeModule,
+      getModuleProgress: progressionStore.getModuleProgress,
+      getDaysInProgram: progressionStore.getDaysInProgram,
+      getCurrentStage: progressionStore.getCurrentStage,
+      getNextStage: progressionStore.getNextStage,
+      getAvailableModules: progressionStore.getAvailableModules,
+      isModuleAvailable: progressionStore.isModuleAvailable,
+      getModuleDetails: computedValues.getModuleDetails,
+      getStepProgressPercentage: computedValues.getStepProgressPercentage,
+    },
+
+    // Theme
+    theme: {
+      isDarkMode: themeStore.isDarkMode,
+      isSystemTheme: themeStore.isSystemTheme,
+      toggleTheme: themeStore.toggleTheme,
+      setSystemTheme: themeStore.setSystemTheme,
+      getActiveTheme: themeStore.getActiveTheme,
+    },
+
+    // Ressourcen
+    resources: {
+      all: resourcesStore.resources,
+      add: resourcesStore.addResource,
+      update: resourcesStore.updateResource,
+      delete: resourcesStore.deleteResource,
+      activate: resourcesStore.activateResource,
+      getByCategory: resourcesStore.getResourcesByCategory,
+      getTop: resourcesStore.getTopResources,
+      search: resourcesStore.searchResources,
+      getRecentlyActivated: resourcesStore.getRecentlyActivatedResources,
+    },
+
+    // Zusammenfassungen
+    summary: {
+      user: computedValues.userSummary,
+      lifeWheel: computedValues.lifeWheelSummary,
+      modules: computedValues.modulesSummary,
+      resources: computedValues.resourcesSummary,
+    },
+
+    // TODO: Analytik
+    analytics: {
+      weeklyTrends: analyticsFunctions.getWeeklyTrends(),
+      recommendations: analyticsFunctions.getRecommendations(),
+    },
+
+    // Allgemeine Aktionen
+    actions: {
+      saveAll: persistenceFunctions.saveAllData,
+      startSession: computedValues.startSession,
+      calculateTotalProgress: computedValues.calculateTotalProgress,
+    },
+
+    // Persistenz
+    persistence: {
+      createBackup: persistenceFunctions.createBackup,
+      restoreBackup: persistenceFunctions.restoreBackup,
+      syncWithCloud: persistenceFunctions.syncWithCloud,
+      restoreFromCloud: persistenceFunctions.restoreFromCloud,
+      clearAllPersistedData: persistenceFunctions.clearAllPersistedData,
+    },
+  };
+};
+
+// === Sub-hooks to organize store access ===
+
+/**
+ * Extract values from the user store
+ */
+const useUserStoreValues = () => {
   const user = useUserStore((state) => state.user);
   const isLoading = useUserStore((state) => state.isLoading);
   const isOnline = useUserStore((state) => state.isOnline);
@@ -36,7 +163,25 @@ export const useKlareStores = (): KlareStoreResult => {
   const updateStreak = useUserStore((state) => state.updateStreak);
   const loadUserData = useUserStore((state) => state.loadUserData);
 
-  // === LIFEWHEEL STORE ===
+  return {
+    user,
+    isLoading,
+    isOnline,
+    saveUserData,
+    signIn,
+    signUp,
+    signOut,
+    updateProgress,
+    updateLastActive,
+    updateStreak,
+    loadUserData,
+  };
+};
+
+/**
+ * Extract values from the life wheel store
+ */
+const useLifeWheelStoreValues = () => {
   const lifeWheelAreas = useLifeWheelStore((state) => state.lifeWheelAreas);
   const updateLifeWheelArea = useLifeWheelStore(
     (state) => state.updateLifeWheelArea,
@@ -51,7 +196,21 @@ export const useKlareStores = (): KlareStoreResult => {
   );
   const resetLifeWheel = useLifeWheelStore((state) => state.reset);
 
-  // === PROGRESSION STORE ===
+  return {
+    lifeWheelAreas,
+    updateLifeWheelArea,
+    calculateAverage,
+    findLowestAreas,
+    saveLifeWheelData,
+    loadLifeWheelData,
+    resetLifeWheel,
+  };
+};
+
+/**
+ * Extract values from the progression store
+ */
+const useProgressionStoreValues = () => {
   const completedModules = useProgressionStore(
     (state) => state.completedModules,
   );
@@ -84,14 +243,46 @@ export const useKlareStores = (): KlareStoreResult => {
     (state) => state.getDaysUntilUnlock,
   );
 
-  // === THEME STORE ===
+  return {
+    completedModules,
+    completeModule,
+    getModuleProgress,
+    getDaysInProgram,
+    getCurrentStage,
+    getNextStage,
+    getAvailableModules,
+    isModuleAvailable,
+    saveProgressionData,
+    loadProgressionData,
+    resetJoinDate,
+    getModuleUnlockDate,
+    getDaysUntilUnlock,
+  };
+};
+
+/**
+ * Extract values from the theme store
+ */
+const useThemeStoreValues = () => {
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
   const isSystemTheme = useThemeStore((state) => state.isSystemTheme);
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
   const setSystemTheme = useThemeStore((state) => state.setSystemTheme);
   const getActiveTheme = useThemeStore((state) => state.getActiveTheme);
 
-  // === RESOURCES STORE ===
+  return {
+    isDarkMode,
+    isSystemTheme,
+    toggleTheme,
+    setSystemTheme,
+    getActiveTheme,
+  };
+};
+
+/**
+ * Extract values from the resources store
+ */
+const useResourceStoreValues = () => {
   const resources = useResourceStore((state) =>
     state.getCurrentUserResources(),
   );
@@ -109,65 +300,66 @@ export const useKlareStores = (): KlareStoreResult => {
     (state) => state.getRecentlyActivatedResources,
   );
 
-  // === COMPUTED VALUES & CONVENIENCE METHODS ===
+  return {
+    resources,
+    loadResources,
+    addResource,
+    updateResource,
+    deleteResource,
+    activateResource,
+    getResourcesByCategory,
+    getTopResources,
+    searchResources,
+    getRecentlyActivatedResources,
+  };
+};
 
+/**
+ * Create computed values and convenience methods based on store data
+ */
+const useComputedValues = (
+  userStore,
+  lifeWheelStore,
+  progressionStore,
+  resourcesStore,
+) => {
   // Calculate total progress across all KLARE steps
   const calculateTotalProgress = useCallback(() => {
-    // Berechne den Fortschritt für jeden KLARE-Schritt
-    const kProgress = getModuleProgress("K");
-    const lProgress = getModuleProgress("L");
-    const aProgress = getModuleProgress("A");
-    const rProgress = getModuleProgress("R");
-    const eProgress = getModuleProgress("E");
+    // Calculate progress for each KLARE step
+    const kProgress = progressionStore.getModuleProgress("K");
+    const lProgress = progressionStore.getModuleProgress("L");
+    const aProgress = progressionStore.getModuleProgress("A");
+    const rProgress = progressionStore.getModuleProgress("R");
+    const eProgress = progressionStore.getModuleProgress("E");
 
-    // Gesamtfortschritt als gewichteter Durchschnitt
+    // Total progress as weighted average
     return Math.round(
       ((kProgress + lProgress + aProgress + rProgress + eProgress) / 5) * 100,
     );
-  }, [getModuleProgress]);
+  }, [progressionStore.getModuleProgress]);
 
   // Get progress for a specific step as a percentage
   const getStepProgressPercentage = useCallback(
     (step: "K" | "L" | "A" | "R" | "E") => {
-      return Math.round(getModuleProgress(step) * 100);
+      return Math.round(progressionStore.getModuleProgress(step) * 100);
     },
-    [getModuleProgress],
+    [progressionStore.getModuleProgress],
   );
-
-  // Convenience method to save all data at once
-  const saveAllData = useCallback(async () => {
-    if (!user) return false;
-
-    try {
-      // Save all data in parallel
-      const [userResult, lifeWheelResult, progressionResult] =
-        await Promise.all([
-          saveUserData(),
-          saveLifeWheelData(user.id),
-          saveProgressionData(user.id),
-        ]);
-
-      return userResult && lifeWheelResult && progressionResult;
-    } catch (error) {
-      console.error("Error saving all data:", error);
-      return false;
-    }
-  }, [user, saveUserData, saveLifeWheelData, saveProgressionData]);
 
   // Start a user session and track usage
   const startSession = useCallback(async () => {
-    // Verfolge Nutzungsaktivität
-    if (user?.id) {
+    // Track user activity
+    if (userStore.user?.id) {
       try {
-        // Aktualisiere lastActive
-        await updateLastActive();
+        // Update lastActive
+        await userStore.updateLastActive();
 
-        // Streak-Logik
-        if (user?.lastActive) {
+        // Streak logic
+        if (userStore.user?.lastActive) {
           const now = new Date();
-          const lastActive = new Date(user?.lastActive);
+          const lastActive = new Date(userStore.user?.lastActive);
 
-          // Setze Datum auf Mitternacht für Vergleich
+          // Set date to midnight for comparison
           const today = new Date(
             now.getFullYear(),
             now.getMonth(),
@@ -179,30 +371,30 @@ export const useKlareStores = (): KlareStoreResult => {
             lastActive.getDate(),
           );
 
-          // Berechne Tagesdifferenz
+          // Calculate day difference
           const diffTime = today.getTime() - lastDay.getTime();
           const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-          // Wenn genau ein Tag vergangen ist, erhöhe Streak
+          // If exactly one day has passed, increase streak
           if (diffDays === 1) {
-            await updateStreak((user.streak || 0) + 1);
+            await userStore.updateStreak((userStore.user.streak || 0) + 1);
           }
-          // Wenn mehr als ein Tag vergangen ist, setze Streak zurück
+          // If more than one day has passed, reset streak
           else if (diffDays > 1) {
-            await updateStreak(1); // Neuer Streak startet bei 1
+            await userStore.updateStreak(1); // New streak starts at 1
           }
-          // Bei gleichem Tag (diffDays === 0) bleibt Streak unverändert
+          // On the same day (diffDays === 0), streak remains unchanged
         }
       } catch (error) {
         console.error("Error updating user session:", error);
       }
     }
-  }, [user, updateLastActive, updateStreak]);
+  }, [userStore.user, userStore.updateLastActive, userStore.updateStreak]);
 
   // Get a single module's details by ID
   const getModuleDetails = useCallback(
     (moduleId: string) => {
-      // Bestimme, zu welchem KLARE-Schritt das Modul gehört
+      // Determine which KLARE step the module belongs to
       const step = moduleId.charAt(0).toUpperCase() as
         | "K"
         | "L"
@@ -213,52 +405,52 @@ export const useKlareStores = (): KlareStoreResult => {
       return {
         id: moduleId,
         step,
-        completed: completedModules.includes(moduleId),
-        available: isModuleAvailable(moduleId),
-        unlockDate: getModuleUnlockDate(moduleId),
-        daysUntilUnlock: getDaysUntilUnlock(moduleId),
+        completed: progressionStore.completedModules.includes(moduleId),
+        available: progressionStore.isModuleAvailable(moduleId),
+        unlockDate: progressionStore.getModuleUnlockDate(moduleId),
+        daysUntilUnlock: progressionStore.getDaysUntilUnlock(moduleId),
       };
     },
     [
-      completedModules,
-      isModuleAvailable,
-      getModuleUnlockDate,
-      getDaysUntilUnlock,
+      progressionStore.completedModules,
+      progressionStore.isModuleAvailable,
+      progressionStore.getModuleUnlockDate,
+      progressionStore.getDaysUntilUnlock,
     ],
   );
 
   // Create computed summaries
   const userSummary = useMemo<UserSummary | null>(() => {
-    if (!user) return null;
+    if (!userStore.user) return null;
 
     return {
-      name: user.name,
-      email: user.email,
+      name: userStore.user.name,
+      email: userStore.user.email,
       progress: calculateTotalProgress(),
-      daysInProgram: getDaysInProgram(),
-      currentStage: getCurrentStage(),
-      nextStage: getNextStage(),
-      joinDate: user.joinDate,
-      streak: user.streak || 0,
+      daysInProgram: progressionStore.getDaysInProgram(),
+      currentStage: progressionStore.getCurrentStage(),
+      nextStage: progressionStore.getNextStage(),
+      joinDate: userStore.user.joinDate,
+      streak: userStore.user.streak || 0,
     };
   }, [
-    user,
+    userStore.user,
     calculateTotalProgress,
-    getDaysInProgram,
-    getCurrentStage,
-    getNextStage,
+    progressionStore.getDaysInProgram,
+    progressionStore.getCurrentStage,
+    progressionStore.getNextStage,
   ]);
 
-  // LifeWheel-Zusammenfassung
+  // LifeWheel summary
   const lifeWheelSummary = useMemo<LifeWheelSummary>(() => {
     return {
-      areas: lifeWheelAreas,
-      average: calculateAverage(),
-      lowestAreas: findLowestAreas(2),
-      highestAreas: [...lifeWheelAreas]
+      areas: lifeWheelStore.lifeWheelAreas,
+      average: lifeWheelStore.calculateAverage(),
+      lowestAreas: lifeWheelStore.findLowestAreas(2),
+      highestAreas: [...lifeWheelStore.lifeWheelAreas]
         .sort((a, b) => b.currentValue - a.currentValue)
         .slice(0, 2),
-      gapAreas: lifeWheelAreas
+      gapAreas: lifeWheelStore.lifeWheelAreas
         .map((area) => ({
           ...area,
           gap: area.targetValue - area.currentValue,
@@ -266,7 +458,11 @@ export const useKlareStores = (): KlareStoreResult => {
         .sort((a, b) => b.gap - a.gap)
         .slice(0, 2),
     };
-  }, [lifeWheelAreas, calculateAverage, findLowestAreas]);
+  }, [
+    lifeWheelStore.lifeWheelAreas,
+    lifeWheelStore.calculateAverage,
+    lifeWheelStore.findLowestAreas,
+  ]);
 
   // Module summary
   const modulesSummary = useMemo<ModulesSummary>(() => {
@@ -277,49 +473,93 @@ export const useKlareStores = (): KlareStoreResult => {
       r: getStepProgressPercentage("R"),
       e: getStepProgressPercentage("E"),
       total: calculateTotalProgress(),
-      available: getAvailableModules(),
-      completed: completedModules,
-      currentStage: getCurrentStage(),
-      nextStage: getNextStage(),
+      available: progressionStore.getAvailableModules(),
+      completed: progressionStore.completedModules,
+      currentStage: progressionStore.getCurrentStage(),
+      nextStage: progressionStore.getNextStage(),
     };
   }, [
     getStepProgressPercentage,
     calculateTotalProgress,
-    getAvailableModules,
-    completedModules,
-    getCurrentStage,
-    getNextStage,
+    progressionStore.getAvailableModules,
+    progressionStore.completedModules,
+    progressionStore.getCurrentStage,
+    progressionStore.getNextStage,
   ]);
 
   // Resources summary
   const resourcesSummary = useMemo<ResourceSummary>(() => {
     return {
-      count: resources.length,
+      count: resourcesStore.resources.length,
       byCategory: {
-        physical: getResourcesByCategory("physical").length,
-        mental: getResourcesByCategory("mental").length,
-        emotional: getResourcesByCategory("emotional").length,
-        spiritual: getResourcesByCategory("spiritual").length,
-        social: getResourcesByCategory("social").length,
+        physical: resourcesStore.getResourcesByCategory("physical").length,
+        mental: resourcesStore.getResourcesByCategory("mental").length,
+        emotional: resourcesStore.getResourcesByCategory("emotional").length,
+        spiritual: resourcesStore.getResourcesByCategory("spiritual").length,
+        social: resourcesStore.getResourcesByCategory("social").length,
       },
-      topResources: getTopResources(3),
-      recentlyActivated: getRecentlyActivatedResources(3),
+      topResources: resourcesStore.getTopResources(3),
+      recentlyActivated: resourcesStore.getRecentlyActivatedResources(3),
     };
   }, [
-    resources,
-    getResourcesByCategory,
-    getTopResources,
-    getRecentlyActivatedResources,
+    resourcesStore.resources,
+    resourcesStore.getResourcesByCategory,
+    resourcesStore.getTopResources,
+    resourcesStore.getRecentlyActivatedResources,
   ]);
 
-  // === PERSISTENZ-BEZOGENE FUNKTIONEN ===
+  return {
+    calculateTotalProgress,
+    getStepProgressPercentage,
+    startSession,
+    getModuleDetails,
+    userSummary,
+    lifeWheelSummary,
+    modulesSummary,
+    resourcesSummary,
+  };
+};
 
-  // Vollständiges Backup erstellen
-  const createBackup = useCallback(async () => {
-    if (!user?.id) return null;
+/**
+ * Create persistence-related functions
+ */
+const usePersistenceFunctions = (
+  userStore,
+  lifeWheelStore,
+  progressionStore,
+  resourcesStore,
+) => {
+  // Convenience method to save all data at once
+  const saveAllData = useCallback(async () => {
+    if (!userStore.user) return false;
 
     try {
-      // Store-Daten sammeln
+      // Save all data in parallel
+      const [userResult, lifeWheelResult, progressionResult] =
+        await Promise.all([
+          userStore.saveUserData(),
+          lifeWheelStore.saveLifeWheelData(userStore.user.id),
+          progressionStore.saveProgressionData(userStore.user.id),
+        ]);
+
+      return userResult && lifeWheelResult && progressionResult;
+    } catch (error) {
+      console.error("Error saving all data:", error);
+      return false;
+    }
+  }, [
+    userStore.user,
+    userStore.saveUserData,
+    lifeWheelStore.saveLifeWheelData,
+    progressionStore.saveProgressionData,
+  ]);
+
+  // Create full backup
+  const createBackup = useCallback(async () => {
+    if (!userStore.user?.id) return null;
+
+    try {
+      // Collect store data
       const userData = await AsyncStorage.getItem("klare-user-storage");
       const lifeWheelData = await AsyncStorage.getItem(
         "klare-lifewheel-storage",
@@ -332,16 +572,16 @@ export const useKlareStores = (): KlareStoreResult => {
         "klare-resources-storage",
       );
 
-      // Metadaten erstellen
+      // Create metadata
       const metadata: BackupMetadata = {
         version: "1.0",
-        userId: user.id,
+        userId: userStore.user.id,
         createdAt: new Date().toISOString(),
-        appVersion: "1.0.0", // aus App-Konfiguration beziehen
-        description: "KLARE App Datensicherung",
+        appVersion: "1.0.0", // Get from app configuration
+        description: "KLARE App Data Backup",
       };
 
-      // Backup-Objekt erstellen
+      // Create backup object
       const backup = {
         metadata,
         user: userData ? JSON.parse(userData) : null,
@@ -356,9 +596,9 @@ export const useKlareStores = (): KlareStoreResult => {
       console.error("Error creating backup:", error);
       return null;
     }
-  }, [user]);
+  }, [userStore.user]);
 
-  // Backup wiederherstellen
+  // Restore backup
   const restoreBackup = useCallback(
     async (backup: any) => {
       try {
@@ -366,14 +606,14 @@ export const useKlareStores = (): KlareStoreResult => {
           throw new Error("Invalid backup format");
         }
 
-        // Optional: Versionsprüfung
+        // Optional: Version check
         if (backup.metadata.version !== "1.0") {
           console.warn(
             "Backup version mismatch. Attempting restoration anyway.",
           );
         }
 
-        // Daten wiederherstellen
+        // Restore data
         if (backup.user) {
           await AsyncStorage.setItem(
             "klare-user-storage",
@@ -409,13 +649,13 @@ export const useKlareStores = (): KlareStoreResult => {
           );
         }
 
-        // Stores neu laden
-        await loadUserData();
+        // Reload stores
+        await userStore.loadUserData();
 
-        if (user?.id) {
-          await loadLifeWheelData(user.id);
-          await loadProgressionData(user.id);
-          await loadResources(user.id);
+        if (userStore.user?.id) {
+          await lifeWheelStore.loadLifeWheelData(userStore.user.id);
+          await progressionStore.loadProgressionData(userStore.user.id);
+          await resourcesStore.loadResources(userStore.user.id);
         }
 
         return true;
@@ -424,22 +664,28 @@ export const useKlareStores = (): KlareStoreResult => {
         return false;
       }
     },
-    [loadUserData, loadLifeWheelData, loadProgressionData, loadResources, user],
+    [
+      userStore.loadUserData,
+      lifeWheelStore.loadLifeWheelData,
+      progressionStore.loadProgressionData,
+      resourcesStore.loadResources,
+      userStore.user,
+    ],
   );
 
-  // Mit Cloud synchronisieren
+  // Sync with cloud
   const syncWithCloud = useCallback(async () => {
-    if (!user?.id || !isOnline) return false;
+    if (!userStore.user?.id || !userStore.isOnline) return false;
 
     try {
-      // 1. Lokales Backup erstellen
+      // 1. Create local backup
       const backup = await createBackup();
       if (!backup) return false;
 
-      // 2. An Supabase senden
+      // 2. Send to Supabase
       const { error } = await supabase.from("user_backups").upsert(
         {
-          user_id: user.id,
+          user_id: userStore.user.id,
           backup_data: backup,
           created_at: new Date().toISOString(),
         },
@@ -455,23 +701,23 @@ export const useKlareStores = (): KlareStoreResult => {
       console.error("Error syncing with cloud:", error);
       return false;
     }
-  }, [user, isOnline, createBackup]);
+  }, [userStore.user, userStore.isOnline, createBackup]);
 
-  // Aus Cloud wiederherstellen
+  // Restore from cloud
   const restoreFromCloud = useCallback(async () => {
-    if (!user?.id || !isOnline) return false;
+    if (!userStore.user?.id || !userStore.isOnline) return false;
 
     try {
-      // 1. Daten von Supabase abrufen
+      // 1. Get data from Supabase
       const { data, error } = await supabase
         .from("user_backups")
         .select("backup_data")
-        .eq("user_id", user.id)
+        .eq("user_id", userStore.user.id)
         .single();
 
       if (error) throw error;
 
-      // 2. Lokal wiederherstellen
+      // 2. Restore locally
       if (data && data.backup_data) {
         return restoreBackup(data.backup_data);
       }
@@ -481,9 +727,9 @@ export const useKlareStores = (): KlareStoreResult => {
       console.error("Error restoring from cloud:", error);
       return false;
     }
-  }, [user, isOnline, restoreBackup]);
+  }, [userStore.user, userStore.isOnline, restoreBackup]);
 
-  // Alle Daten löschen
+  // Clear all data
   const clearAllPersistedData = useCallback(async () => {
     try {
       await AsyncStorage.removeItem("klare-user-storage");
@@ -499,133 +745,64 @@ export const useKlareStores = (): KlareStoreResult => {
     }
   }, []);
 
-  // === ANALYTIK & INSIGHTS ===
+  return {
+    saveAllData,
+    createBackup,
+    restoreBackup,
+    syncWithCloud,
+    restoreFromCloud,
+    clearAllPersistedData,
+  };
+};
 
-  // Wochentrendanalyse
+/**
+ * Create analytics and insights functions
+ */
+const useAnalyticsFunctions = (lifeWheelStore, progressionStore) => {
+  // Weekly trend analysis
   const getWeeklyTrends = useCallback(() => {
-    // Diese Funktion würde Trends über die letzten Wochen analysieren
-    // Sie könnte z.B. die Veränderung des Lebensrads oder Modulfortschritts verfolgen
+    // This function would analyze trends over the last few weeks
+    // For example, track changes in life wheel or module progress
 
-    // Beispielimplementierung
+    // Example implementation
     return {
       lifeWheelTrend: "improving", // 'improving', 'declining', 'stable'
       progressTrend: "improving",
-      mostImprovedArea: lifeWheelAreas[0]?.id || null,
-      leastImprovedArea: lifeWheelAreas[lifeWheelAreas.length - 1]?.id || null,
-      weeklyCompletion: completedModules.length > 0,
+      mostImprovedArea: lifeWheelStore.lifeWheelAreas[0]?.id || null,
+      leastImprovedArea:
+        lifeWheelStore.lifeWheelAreas[lifeWheelStore.lifeWheelAreas.length - 1]
+          ?.id || null,
+      weeklyCompletion: progressionStore.completedModules.length > 0,
     };
-  }, [lifeWheelAreas, completedModules]);
+  }, [lifeWheelStore.lifeWheelAreas, progressionStore.completedModules]);
 
-  // Nächste Empfehlungen und Vorschläge
+  // Next recommendations and suggestions
   const getRecommendations = useCallback(() => {
-    // Diese Funktion würde basierend auf den Nutzerdaten Empfehlungen geben
+    // This function would provide recommendations based on user data
 
-    // Empfehle das nächste verfügbare Modul
-    const availableModules = getAvailableModules();
+    // Recommend the next available module
+    const availableModules = progressionStore.getAvailableModules();
     const uncompletedModules = availableModules.filter(
-      (moduleId) => !completedModules.includes(moduleId),
+      (moduleId) => !progressionStore.completedModules.includes(moduleId),
     );
 
-    // Empfehle Konzentration auf die schwächsten Lebensbereiche
-    const weakestAreas = findLowestAreas(2);
+    // Recommend focusing on the weakest life areas
+    const weakestAreas = lifeWheelStore.findLowestAreas(2);
 
     return {
       nextModule: uncompletedModules[0] || null,
       focusAreas: weakestAreas,
-      dailyTip: "Konzentriere dich heute auf deine Stärken!", // Könnte auch aus einer Datenbank kommen
+      dailyTip: "Focus on your strengths today!", // Could also come from a database
     };
-  }, [getAvailableModules, completedModules, findLowestAreas]);
-
-  // === RÜCKGABE ===
+  }, [
+    progressionStore.getAvailableModules,
+    progressionStore.completedModules,
+    lifeWheelStore.findLowestAreas,
+  ]);
 
   return {
-    // User
-    user,
-    isLoading,
-    isOnline,
-    auth: {
-      signIn,
-      signUp,
-      signOut,
-      isAuthenticated: !!user?.id,
-      isAdmin: user?.isAdmin || false,
-    },
-
-    // Lebensrad
-    lifeWheel: {
-      areas: lifeWheelAreas,
-      updateArea: updateLifeWheelArea,
-      average: calculateAverage(),
-      findLowestAreas,
-      calculateAverage,
-      resetLifeWheel,
-    },
-
-    // Progression
-    progression: {
-      completedModules,
-      completeModule,
-      getModuleProgress,
-      getDaysInProgram,
-      getCurrentStage,
-      getNextStage,
-      getAvailableModules,
-      isModuleAvailable,
-      getModuleDetails,
-      getStepProgressPercentage,
-    },
-
-    // Theme
-    theme: {
-      isDarkMode,
-      isSystemTheme,
-      toggleTheme,
-      setSystemTheme,
-      getActiveTheme,
-    },
-
-    // Ressourcen
-    resources: {
-      all: resources,
-      add: addResource,
-      update: updateResource,
-      delete: deleteResource,
-      activate: activateResource,
-      getByCategory: getResourcesByCategory,
-      getTop: getTopResources,
-      search: searchResources,
-      getRecentlyActivated: getRecentlyActivatedResources,
-    },
-
-    // Zusammenfassungen
-    summary: {
-      user: userSummary,
-      lifeWheel: lifeWheelSummary,
-      modules: modulesSummary,
-      resources: resourcesSummary,
-    },
-
-    // Analytik
-    analytics: {
-      weeklyTrends: getWeeklyTrends(),
-      recommendations: getRecommendations(),
-    },
-
-    // Allgemeine Aktionen
-    actions: {
-      saveAll: saveAllData,
-      startSession,
-      calculateTotalProgress,
-    },
-
-    // Persistenz
-    persistence: {
-      createBackup,
-      restoreBackup,
-      syncWithCloud,
-      restoreFromCloud,
-      clearAllPersistedData,
-    },
+    getWeeklyTrends,
+    getRecommendations,
   };
 };
 
