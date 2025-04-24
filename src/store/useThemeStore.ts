@@ -12,6 +12,7 @@ interface ThemeState {
 }
 
 export const useThemeStore = create<ThemeState | Partial<ThemeState>>()(
+  console.log("useThemeStoreOld"),
   persist(
     (set, get) => ({
       isDarkMode: Appearance.getColorScheme() === "dark",

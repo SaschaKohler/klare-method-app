@@ -32,6 +32,7 @@ import { lightKlareColors, darkKlareColors } from "../constants/theme";
 import { useUserStore } from "../store/useUserStore";
 import { useThemeStore } from "../store/useThemeStore";
 import { createJournalEditorStyles } from "../constants/journalEditorStyles";
+import { useKlareStores } from "../hooks";
 
 // Typen für Tagebucheinträge
 type JournalEntry = {
@@ -60,6 +61,7 @@ export default function JournalEditorScreen() {
   const route = useRoute();
   const { entryId, templateId, date } = route.params || {};
 
+  const klareStore = useKlareStores();
   const user = useUserStore((state) => state.user);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -86,8 +88,7 @@ export default function JournalEditorScreen() {
 
   // Theme handling
   const theme = useTheme();
-  const { getActiveTheme } = useThemeStore();
-  const isDarkMode = getActiveTheme();
+  const isDarkMode = klareStore.theme.isDarkMode;
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const styles = useMemo(
     () => createJournalEditorStyles(theme, klareColors, isDarkMode),

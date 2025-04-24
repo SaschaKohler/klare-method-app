@@ -19,7 +19,7 @@ import { useUserStore } from "../store/useUserStore";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import KlareLogo from "../components/KlareLogo";
 import createAuthScreenStyles from "../constants/authScreenStyle";
-import { useThemeStore } from "../store/useThemeStore";
+// import { useThemeStore } from "../store/useThemeStore";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView, MotiText } from "moti";
 import { MotiPressable } from "moti/interactions";
@@ -43,8 +43,7 @@ export default function AuthScreen() {
 
   // Theme setup
   const theme = useTheme();
-  const { getActiveTheme } = useThemeStore();
-  const isDarkMode = getActiveTheme();
+  const isDarkMode = theme.dark;
   const activeKlareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const styles = useMemo(
     () => createAuthScreenStyles(theme, activeKlareColors),
@@ -644,3 +643,4 @@ export default function AuthScreen() {
     </SafeAreaView>
   );
 }
+

@@ -17,16 +17,18 @@ import { lightKlareColors, darkKlareColors } from "../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import ThemeToggle from "../components/ThemeToggle";
 import { useNavigation } from "@react-navigation/native";
+import { useKlareStores } from "../hooks";
 
 export default function ProfileScreen() {
-  const user = useUserStore((state) => state.user);
   const navigation = useNavigation();
-  const signOut = useUserStore((state) => state.signOut);
+
+  const { summary, auth, theme } = useKlareStores();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  const theme = useTheme();
-  const { getActiveTheme } = useThemeStore();
-  const isDarkMode = getActiveTheme();
+  const paperTheme = useTheme();
+  // const { getActiveTheme } = useThemeStore();
+  // const isDarkMode = getActiveTheme();
+  const isDarkMode = theme.isDarkMode;
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
 
   const handleLogout = () => {
@@ -37,7 +39,7 @@ export default function ProfileScreen() {
       },
       {
         text: "Abmelden",
-        onPress: signOut,
+        onPress: auth.signOut,
         style: "destructive",
       },
     ]);
@@ -45,20 +47,23 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      style={[
+        styles.container,
+        { backgroundColor: paperTheme.colors.background },
+      ]}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Avatar.Text
             size={80}
-            label={user?.name?.charAt(0) || "U"}
+            label={summary.user?.name?.charAt(0) || "U"}
             style={{ backgroundColor: klareColors.k }}
           />
-          <Text style={[styles.username, { color: theme.colors.text }]}>
-            {user?.name || "Benutzer"}
+          <Text style={[styles.username, { color: paperTheme.colors.text }]}>
+            {summary.user?.name || "Benutzer"}
           </Text>
-          <Text style={[styles.email, { color: theme.colors.text }]}>
-            {user?.email}
+          <Text style={[styles.email, { color: paperTheme.colors.text }]}>
+            {summary.user?.email}
           </Text>
         </View>
 
@@ -125,11 +130,14 @@ export default function ProfileScreen() {
                         { color: klareColors.k },
                       ]}
                     >
-                      {user?.progress || 0}%
+                      {summary.user?.progress || 0}%
                     </Text>
                   </View>
                   <Text
-                    style={[styles.progressText, { color: theme.colors.text }]}
+                    style={[
+                      styles.progressText,
+                      { color: paperTheme.colors.text },
+                    ]}
                   >
                     Gesamtfortschritt
                   </Text>
@@ -148,11 +156,14 @@ export default function ProfileScreen() {
                         { color: klareColors.k },
                       ]}
                     >
-                      {user?.streak || 0}
+                      {summary.user?.streak || 0}
                     </Text>
                   </View>
                   <Text
-                    style={[styles.progressText, { color: theme.colors.text }]}
+                    style={[
+                      styles.progressText,
+                      { color: paperTheme.colors.text },
+                    ]}
                   >
                     Streak
                   </Text>
@@ -171,11 +182,14 @@ export default function ProfileScreen() {
                         { color: klareColors.k },
                       ]}
                     >
-                      {user?.completedModules?.length || 0}
+                      {summary.modules.available.length || 0}
                     </Text>
                   </View>
                   <Text
-                    style={[styles.progressText, { color: theme.colors.text }]}
+                    style={[
+                      styles.progressText,
+                      { color: paperTheme.colors.text },
+                    ]}
                   >
                     Module
                   </Text>
@@ -293,4 +307,3 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
 });
-

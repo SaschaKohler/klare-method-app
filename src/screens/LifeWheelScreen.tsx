@@ -50,19 +50,6 @@ export default function LifeWheelScreen() {
   const navigation = useNavigation();
 
   const { summary, lifeWheel, theme: themeStore, actions } = useKlareStores();
-  // Store access
-  // const storeLifeWheelAreas = useLifeWheelStore(
-  //   (state) => state.lifeWheelAreas,
-  // );
-  // const updateLifeWheelArea = useLifeWheelStore(
-  //   (state) => state.updateLifeWheelArea,
-  // );
-  // const saveLifeWheelData = useLifeWheelStore(
-  //   (state) => state.saveLifeWheelData,
-  // );
-  // const loadLifeWheelData = useLifeWheelStore(
-  //   (state) => state.loadLifeWheelData,
-  // );
 
   // User Store für Kompatibilität
   const user = useUserStore((state) => state.user);

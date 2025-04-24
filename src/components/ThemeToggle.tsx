@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Switch, Text, useTheme } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeStore } from "../store/useThemeStore";
+import { useThemeStore } from "../store/useThemeStore.refactored";
 
 interface ThemeToggleProps {
   showLabel?: boolean;
@@ -83,4 +83,3 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
 });
-

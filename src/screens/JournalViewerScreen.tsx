@@ -32,9 +32,10 @@ import { format, parseISO } from "date-fns";
 import { de, he } from "date-fns/locale";
 import { supabase } from "../lib/supabase";
 import { lightKlareColors, darkKlareColors } from "../constants/theme";
-import { useThemeStore } from "../store/useThemeStore";
+// import { useThemeStore } from "../store/useThemeStore";
 import createStyles from "../constants/createStyles";
 import Markdown from "react-native-markdown-display";
+import { useKlareStores } from "../hooks";
 
 // Types for journal entries
 type JournalEntry = {
@@ -54,7 +55,7 @@ export default function JournalViewerScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { entryId } = route.params || {};
-
+  const klareStore = useKlareStores();
   const [isLoading, setIsLoading] = useState(true);
   const [entry, setEntry] = useState<JournalEntry | null>(null);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -63,8 +64,8 @@ export default function JournalViewerScreen() {
 
   // Theme handling
   const theme = useTheme();
-  const { getActiveTheme } = useThemeStore();
-  const isDarkMode = getActiveTheme();
+  const { getActiveTheme } = klareStore.theme;
+  const isDarkMode = klareStore.theme.isDarkMode;
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const styles = useMemo(
     () => createJournalViewerStyles(theme, klareColors),

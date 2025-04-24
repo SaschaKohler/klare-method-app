@@ -11,9 +11,10 @@ import {
 import { format, addDays, isSameDay } from "date-fns";
 import { de } from "date-fns/locale";
 import { useTheme } from "react-native-paper";
-import { useThemeStore } from "../store/useThemeStore";
+// import { useThemeStore } from "../store/useThemeStore";
 import { lightKlareColors, darkKlareColors } from "../constants/theme";
 import { createCalendarStripStyles } from "../constants/calendarStripsStyles";
+import { useKlareStores } from "../hooks";
 
 const { width } = Dimensions.get("window");
 const DAY_WIDTH = width / 7;
@@ -41,12 +42,13 @@ const CalendarStrip: React.FC<CalendarStripProps> = ({
   highlightDateTextStyle,
   highlightDateContainerStyle,
 }) => {
+  const klareStore = useKlareStores();
   const [dates, setDates] = useState<Date[]>([]);
   const scrollViewRef = React.useRef<ScrollView>(null);
 
   // Theme handling
   const theme = useTheme();
-  const { getActiveTheme } = useThemeStore();
+  const { getActiveTheme } = klareStore.theme;
   const isDarkMode = getActiveTheme();
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
 
