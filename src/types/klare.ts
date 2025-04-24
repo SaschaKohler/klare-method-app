@@ -1,7 +1,11 @@
 // src/types/klare.ts
 import { Tables, TablesInsert, TablesUpdate } from "../types/supabase";
 import { AuthError, User } from "@supabase/supabase-js";
-
+import {
+  JournalTemplate,
+  JournalTemplateCategory,
+  JournalEntry,
+} from "../services/JournalService";
 type UserSummaryRow = Tables<"users">;
 
 // User-bezogene Typen
@@ -56,6 +60,17 @@ export interface ResourceSummary {
   };
   topResources: any[]; // Sollte mit entsprechendem Typ ersetzt werden
   recentlyActivated: any[]; // Sollte mit entsprechendem Typ ersetzt werden
+}
+
+// Journal-bezogene Typen
+// TODO: Definiere den Typ für JournalEntry
+export interface JournalSummary {
+  totalEntries: number;
+  favoriteEntries: number;
+  entriesByMonth: Record<string, number>;
+  lastEntryDate: string | null;
+  averageMoodRating: number | null;
+  averageClarityRating: number | null;
 }
 
 // Backup-bezogene Typen
@@ -139,12 +154,41 @@ export interface KlareStoreResult {
     search: (searchTerm: string) => any[]; // Sollte mit entsprechendem Typ ersetzt werden
     getRecentlyActivated: (limit?: number) => any[]; // Sollte mit entsprechendem Typ ersetzt werden
   };
-
+  journal: {
+    entries: JournalEntry[];
+    templates: JournalTemplate[];
+    categories: JournalTemplateCategory[];
+    isLoading: boolean;
+    addEntry: (
+      userId: string,
+      entry: Omit<JournalEntry, "id" | "userId" | "createdAt" | "updatedAt">,
+    ) => Promise<JournalEntry>;
+    updateEntry: (
+      userId: string,
+      entryId: string,
+      updates: Partial<JournalEntry>,
+    ) => Promise<JournalEntry>;
+    deleteEntry: (userId: string, entryId: string) => Promise<void>;
+    toggleFavorite: (userId: string, entryId: string) => Promise<JournalEntry>;
+    toggleArchived: (userId: string, entryId: string) => Promise<JournalEntry>;
+    getEntriesByDate: (userId: string, date: Date) => Promise<JournalEntry[]>;
+    searchEntries: (
+      userId: string,
+      searchTerm: string,
+    ) => Promise<JournalEntry[]>;
+    getEntryById: (entryId: string) => JournalEntry | undefined;
+    getTemplateById: (templateId: string) => JournalTemplate | undefined;
+    getTemplatesByCategory: (categoryName: string | null) => JournalTemplate[];
+    loadEntries: (userId: string) => Promise<void>;
+    loadTemplates: () => Promise<void>;
+    loadCategories: () => Promise<void>;
+  };
   summary: {
     user: UserSummary | null;
     lifeWheel: LifeWheelSummary;
     modules: ModulesSummary;
     resources: ResourceSummary;
+    journal: JournalSummary;
   };
 
   analytics: {

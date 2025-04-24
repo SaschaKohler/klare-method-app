@@ -5,6 +5,7 @@ import {
   useThemeStore,
   useProgressionStore,
   useResourceStore,
+  useJournalStore,
 } from "../store";
 import { useCallback, useMemo } from "react";
 import { supabase } from "../lib/supabase";
@@ -29,6 +30,7 @@ export const useKlareStores = (): KlareStoreResult => {
   const progressionStore = useProgressionStoreValues();
   const themeStore = useThemeStoreValues();
   const resourcesStore = useResourceStoreValues();
+  const journalStore = useJournalStoreValues();
 
   // === Computed values & convenience methods ===
   const computedValues = useComputedValues(
@@ -36,6 +38,7 @@ export const useKlareStores = (): KlareStoreResult => {
     lifeWheelStore,
     progressionStore,
     resourcesStore,
+    journalStore,
   );
 
   // === Persistence-related functions ===
@@ -112,6 +115,25 @@ export const useKlareStores = (): KlareStoreResult => {
       search: resourcesStore.searchResources,
       getRecentlyActivated: resourcesStore.getRecentlyActivatedResources,
     },
+    journal: {
+      entries: journalStore.entries,
+      templates: journalStore.templates,
+      categories: journalStore.categories,
+      isLoading: journalStore.isLoading,
+      loadEntries: journalStore.loadEntries,
+      loadTemplates: journalStore.loadTemplates,
+      loadCategories: journalStore.loadCategories,
+      addEntry: journalStore.addEntry,
+      updateEntry: journalStore.updateEntry,
+      deleteEntry: journalStore.deleteEntry,
+      toggleFavorite: journalStore.toggleFavorite,
+      toggleArchived: journalStore.toggleArchived,
+      getEntriesByDate: journalStore.getEntriesByDate,
+      searchEntries: journalStore.searchEntries,
+      getEntryById: journalStore.getEntryById,
+      getTemplateById: journalStore.getTemplateById,
+      getTemplatesByCategory: journalStore.getTemplatesByCategory,
+    },
 
     // Zusammenfassungen
     summary: {
@@ -119,6 +141,7 @@ export const useKlareStores = (): KlareStoreResult => {
       lifeWheel: computedValues.lifeWheelSummary,
       modules: computedValues.modulesSummary,
       resources: computedValues.resourcesSummary,
+      journal: computedValues.journalSummary,
     },
 
     // TODO: Analytik
@@ -315,6 +338,51 @@ const useResourceStoreValues = () => {
 };
 
 /**
+ * Extract values from the journal store
+ */
+const useJournalStoreValues = () => {
+  const entries = useJournalStore((state) => state.entries);
+  const templates = useJournalStore((state) => state.templates);
+  const categories = useJournalStore((state) => state.categories);
+  const isLoading = useJournalStore((state) => state.isLoading);
+  const loadEntries = useJournalStore((state) => state.loadEntries);
+  const loadTemplates = useJournalStore((state) => state.loadTemplates);
+  const loadCategories = useJournalStore((state) => state.loadCategories);
+  const addEntry = useJournalStore((state) => state.addEntry);
+  const updateEntry = useJournalStore((state) => state.updateEntry);
+  const deleteEntry = useJournalStore((state) => state.deleteEntry);
+  const toggleFavorite = useJournalStore((state) => state.toggleFavorite);
+  const toggleArchived = useJournalStore((state) => state.toggleArchived);
+  const getEntriesByDate = useJournalStore((state) => state.getEntriesByDate);
+  const searchEntries = useJournalStore((state) => state.searchEntries);
+  const getEntryById = useJournalStore((state) => state.getEntryById);
+  const getTemplateById = useJournalStore((state) => state.getTemplateById);
+  const getTemplatesByCategory = useJournalStore(
+    (state) => state.getTemplatesByCategory,
+  );
+
+  return {
+    entries,
+    templates,
+    categories,
+    isLoading,
+    loadEntries,
+    loadTemplates,
+    loadCategories,
+    addEntry,
+    updateEntry,
+    deleteEntry,
+    toggleFavorite,
+    toggleArchived,
+    getEntriesByDate,
+    searchEntries,
+    getEntryById,
+    getTemplateById,
+    getTemplatesByCategory,
+  };
+};
+
+/**
  * Create computed values and convenience methods based on store data
  */
 const useComputedValues = (
@@ -322,6 +390,7 @@ const useComputedValues = (
   lifeWheelStore,
   progressionStore,
   resourcesStore,
+  journalStore,
 ) => {
   // Calculate total progress across all KLARE steps
   const calculateTotalProgress = useCallback(() => {
@@ -507,6 +576,62 @@ const useComputedValues = (
     resourcesStore.getTopResources,
     resourcesStore.getRecentlyActivatedResources,
   ]);
+  const journalSummary = useMemo<JournalSummary>(() => {
+    const entries = journalStore.entries;
+
+    // Calculate entries by month
+    const entriesByMonth: Record<string, number> = {};
+
+    // Calculate average ratings and other statistics
+    let totalMoodRating = 0;
+    let totalClarityRating = 0;
+    let moodRatingCount = 0;
+    let clarityRatingCount = 0;
+
+    // Get the most recent entry date
+    let lastEntryDate: string | null = null;
+
+    // Count favorite entries
+    let favoriteCount = 0;
+
+    entries.forEach((entry) => {
+      // Process by month
+      const month = entry.entryDate.substring(0, 7); // YYYY-MM
+      entriesByMonth[month] = (entriesByMonth[month] || 0) + 1;
+
+      // Process ratings
+      if (entry.moodRating) {
+        totalMoodRating += entry.moodRating;
+        moodRatingCount++;
+      }
+
+      if (entry.clarityRating) {
+        totalClarityRating += entry.clarityRating;
+        clarityRatingCount++;
+      }
+
+      // Check if this is the most recent entry
+      if (!lastEntryDate || entry.entryDate > lastEntryDate) {
+        lastEntryDate = entry.entryDate;
+      }
+
+      // Count favorites
+      if (entry.isFavorite) {
+        favoriteCount++;
+      }
+    });
+
+    return {
+      totalEntries: entries.length,
+      favoriteEntries: favoriteCount,
+      entriesByMonth,
+      lastEntryDate,
+      averageMoodRating:
+        moodRatingCount > 0 ? totalMoodRating / moodRatingCount : null,
+      averageClarityRating:
+        clarityRatingCount > 0 ? totalClarityRating / clarityRatingCount : null,
+    };
+  }, [journalStore.entries]);
 
   return {
     calculateTotalProgress,
@@ -517,6 +642,7 @@ const useComputedValues = (
     lifeWheelSummary,
     modulesSummary,
     resourcesSummary,
+    journalSummary,
   };
 };
 

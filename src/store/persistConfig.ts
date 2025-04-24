@@ -26,6 +26,10 @@ export const storePersistConfigs = {
     name: "klare-resources-storage",
     ...basePersistConfig,
   },
+  journal: {
+    name: "klare-journal-storage",
+    ...basePersistConfig,
+  },
   // Add other stores here as needed
 };
 

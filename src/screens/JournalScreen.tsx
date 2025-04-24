@@ -1,21 +1,18 @@
-// src/screens/JournalScreen.tsx
-import React, { useState, useEffect, useMemo, useRef } from "react";
+// src/screens/JournalScreen.tsx - Updated to use JournalStore
+import React, { useState, useEffect, useMemo } from "react";
 import {
-  StyleSheet,
   View,
   ScrollView,
   TouchableOpacity,
   FlatList,
   RefreshControl,
   Dimensions,
-  Platform,
 } from "react-native";
 import {
   Text,
   Card,
   Title,
   Button,
-  Divider,
   Searchbar,
   Chip,
   IconButton,
@@ -37,69 +34,49 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from "react-native-reanimated";
-import { supabase } from "../lib/supabase";
 import { lightKlareColors, darkKlareColors } from "../constants/theme";
-import { useUserStore } from "../store/useUserStore";
-import { useThemeStore } from "../store/useThemeStore";
-import createStyles from "../constants/createStyles";
 import CalendarStrip from "../components/CalendarStrip";
 import { createJournalStyles } from "../constants/journalStyles";
 
+// Import useKlareStores instead of individual stores
+import { useKlareStores } from "../hooks";
+import { JournalEntry, JournalTemplate } from "../services/JournalService";
+
 const { width } = Dimensions.get("window");
-
-// Typen für Tagebucheinträge
-type JournalEntry = {
-  id: string;
-  entry_date: string;
-  entry_content: string;
-  tags: string[];
-  mood_rating: number;
-  clarity_rating: number;
-  category: string;
-  is_favorite: boolean;
-  created_at: string;
-};
-
-// Typen für Vorlagen
-type JournalTemplate = {
-  id: string;
-  title: string;
-  description: string;
-  prompt_questions: string[];
-  category: string;
-  order_index: number;
-};
-
-// Typen für Kategorien
-type JournalTemplateCategory = {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  order_index: number;
-};
 
 export default function JournalScreen() {
   const navigation = useNavigation();
-  const user = useUserStore((state) => state.user);
+  const klareStore = useKlareStores();
+  const { user } = klareStore;
+  const {
+    entries,
+    categories,
+    templates,
+    isLoading: journalLoading,
+    loadEntries,
+    loadTemplates,
+    loadCategories,
+    getEntriesByDate,
+  } = klareStore.journal;
+
   const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [menuVisible, setMenuVisible] = useState(false);
   const [filterMenuVisible, setFilterMenuVisible] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [entries, setEntries] = useState<JournalEntry[]>([]);
-  const [templates, setTemplates] = useState<JournalTemplate[]>([]);
-  const [categories, setCategories] = useState<JournalTemplateCategory[]>([]);
   const [selectedTemplate, setSelectedTemplate] =
     useState<JournalTemplate | null>(null);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [entriesForSelectedDate, setEntriesForSelectedDate] = useState<
+    JournalEntry[]
+  >([]);
+  const [loading, setLoading] = useState(true);
 
   // Theme handling
   const theme = useTheme();
-  const { getActiveTheme } = useThemeStore();
+  const { getActiveTheme } = klareStore.theme;
   const isDarkMode = getActiveTheme();
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const styles = useMemo(
@@ -150,75 +127,61 @@ export default function JournalScreen() {
     },
   });
 
-  // Lade Tagebucheinträge
-  const fetchEntries = async () => {
-    try {
-      setLoading(true);
-
-      // Formatiere das Datum für die Datenbank-Abfrage (YYYY-MM-DD)
-      const formattedDate = format(selectedDate, "yyyy-MM-dd");
-
-      // Hole Einträge für den ausgewählten Tag
-      const { data, error } = await supabase
-        .from("user_journal_entries")
-        .select("*")
-        .eq("user_id", user?.id)
-        .gte("entry_date", `${formattedDate}T00:00:00`)
-        .lt("entry_date", `${formattedDate}T23:59:59`)
-        .order("entry_date", { ascending: false });
-
-      if (error) throw error;
-
-      setEntries(data || []);
-    } catch (error) {
-      console.error("Error fetching journal entries:", error);
-      // Hier könnte eine Fehlerbehandlung stattfinden
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  // Lade Vorlagen und Kategorien
-  const fetchTemplates = async () => {
-    try {
-      // Vorlagen laden
-      const { data: templateData, error: templateError } = await supabase
-        .from("journal_templates")
-        .select("*")
-        .order("order_index", { ascending: true });
-
-      if (templateError) throw templateError;
-
-      setTemplates(templateData || []);
-
-      // Kategorien laden
-      const { data: categoryData, error: categoryError } = await supabase
-        .from("journal_template_categories")
-        .select("*")
-        .order("order_index", { ascending: true });
-
-      if (categoryError) throw categoryError;
-
-      setCategories(categoryData || []);
-    } catch (error) {
-      console.error("Error fetching templates:", error);
-    }
-  };
-
-  // Lade Daten beim Öffnen des Screens
+  // Load journal data when the screen is focused
   useFocusEffect(
     React.useCallback(() => {
-      fetchEntries();
-      fetchTemplates();
-    }, [selectedDate, user?.id]),
+      const loadJournalData = async () => {
+        setLoading(true);
+        try {
+          if (user?.id) {
+            // Load all required data
+            await Promise.all([
+              loadEntries(user.id),
+              loadTemplates(),
+              loadCategories(),
+            ]);
+
+            // Get entries for the selected date
+            const dateEntries = await getEntriesByDate(user.id, selectedDate);
+            setEntriesForSelectedDate(dateEntries);
+          }
+        } catch (error) {
+          console.error("Error loading journal data:", error);
+        } finally {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      };
+
+      loadJournalData();
+    }, [user?.id, selectedDate]), // Re-run when user ID or selected date changes
   );
 
   // Refresh-Funktion
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    fetchEntries();
+    if (user?.id) {
+      // Use the synchronize function to get the latest data
+      await klareStore.journal.synchronize(user.id);
+      const dateEntries = await getEntriesByDate(user.id, selectedDate);
+      setEntriesForSelectedDate(dateEntries);
+    }
+    setRefreshing(false);
   };
+
+  // Update entries when selected date changes
+  useEffect(() => {
+    const fetchEntriesForDate = async () => {
+      if (user?.id) {
+        setLoading(true);
+        const dateEntries = await getEntriesByDate(user.id, selectedDate);
+        setEntriesForSelectedDate(dateEntries);
+        setLoading(false);
+      }
+    };
+
+    fetchEntriesForDate();
+  }, [selectedDate, user?.id]);
 
   // Formatiere das Datum für die Anzeige
   const formatEntryDate = (dateString: string) => {
@@ -234,7 +197,7 @@ export default function JournalScreen() {
   };
 
   // Erstelle einen neuen Eintrag
-  const createNewEntry = async (template?: JournalTemplate) => {
+  const createNewEntry = (template?: JournalTemplate) => {
     try {
       // Wenn eine Vorlage ausgewählt wurde, öffne den Editor mit der Vorlage
       if (template) {
@@ -316,7 +279,7 @@ export default function JournalScreen() {
             <Title style={styles.templateTitle}>{item.title}</Title>
             <Text style={styles.templateDescription}>{item.description}</Text>
             <View style={styles.templateQuestionsPreview}>
-              {item.prompt_questions.slice(0, 2).map((question, index) => (
+              {item.promptQuestions.slice(0, 2).map((question, index) => (
                 <Text
                   key={index}
                   style={styles.templateQuestion}
@@ -325,9 +288,9 @@ export default function JournalScreen() {
                   • {question}
                 </Text>
               ))}
-              {item.prompt_questions.length > 2 && (
+              {item.promptQuestions.length > 2 && (
                 <Text style={styles.templateQuestionMore}>
-                  +{item.prompt_questions.length - 2} weitere Fragen
+                  +{item.promptQuestions.length - 2} weitere Fragen
                 </Text>
               )}
             </View>
@@ -349,14 +312,14 @@ export default function JournalScreen() {
           <Card.Content>
             <View style={styles.entryHeader}>
               <Text style={styles.entryDate}>
-                {formatEntryDate(item.entry_date)}
+                {formatEntryDate(item.entryDate)}
               </Text>
-              {item.is_favorite && (
+              {item.isFavorite && (
                 <Ionicons name="star" size={16} color={klareColors.r} />
               )}
             </View>
             <Text style={styles.entryContent} numberOfLines={3}>
-              {item.entry_content}
+              {item.entryContent}
             </Text>
 
             {item.tags && item.tags.length > 0 && (
@@ -366,8 +329,8 @@ export default function JournalScreen() {
             )}
 
             <View style={styles.entryFooter}>
-              {item.mood_rating && renderMoodRating(item.mood_rating)}
-              {item.clarity_rating && (
+              {item.moodRating && renderMoodRating(item.moodRating)}
+              {item.clarityRating && (
                 <View style={styles.ratingContainer}>
                   <Ionicons
                     name="bulb-outline"
@@ -380,7 +343,7 @@ export default function JournalScreen() {
                       { color: klareColors.textSecondary },
                     ]}
                   >
-                    {item.clarity_rating}/10
+                    {item.clarityRating}/10
                   </Text>
                 </View>
               )}
@@ -518,7 +481,7 @@ export default function JournalScreen() {
           </Button>
         </View>
 
-        {entries.length === 0 ? (
+        {entriesForSelectedDate.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons
               name="book-outline"
@@ -538,7 +501,7 @@ export default function JournalScreen() {
           </View>
         ) : (
           <FlatList
-            data={entries}
+            data={entriesForSelectedDate}
             renderItem={renderEntry}
             scrollEnabled={false}
             keyExtractor={(item) => item.id}
