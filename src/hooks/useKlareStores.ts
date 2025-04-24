@@ -106,6 +106,7 @@ export const useKlareStores = (): KlareStoreResult => {
     // Ressourcen
     resources: {
       all: resourcesStore.resources,
+      loadResources: resourcesStore.loadResources,
       add: resourcesStore.addResource,
       update: resourcesStore.updateResource,
       delete: resourcesStore.deleteResource,
@@ -114,6 +115,7 @@ export const useKlareStores = (): KlareStoreResult => {
       getTop: resourcesStore.getTopResources,
       search: resourcesStore.searchResources,
       getRecentlyActivated: resourcesStore.getRecentlyActivatedResources,
+      isLoading: resourcesStore.isLoading,
     },
     journal: {
       entries: journalStore.entries,
@@ -576,6 +578,7 @@ const useComputedValues = (
     resourcesStore.getTopResources,
     resourcesStore.getRecentlyActivatedResources,
   ]);
+
   const journalSummary = useMemo<JournalSummary>(() => {
     const entries = journalStore.entries;
 

@@ -1,44 +1,59 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { storePersistConfigs } from "./persistConfig";
+// src/store/useThemeStore.ts
 import { Appearance } from "react-native";
+import { createBaseStore, BaseState } from "./createBaseStore";
 
-interface ThemeState {
+// Theme-State mit Basis-Funktionalität
+interface ThemeState extends BaseState {
+  // Daten
   isDarkMode: boolean;
   isSystemTheme: boolean;
+
+  // Aktionen
   toggleTheme: () => void;
   setSystemTheme: (useSystem: boolean) => void;
+
+  // Abfragen
   getActiveTheme: () => boolean;
 }
 
-export const useThemeStore = create<ThemeState | Partial<ThemeState>>()(
-  console.log("useThemeStoreOld"),
-  persist(
-    (set, get) => ({
-      isDarkMode: Appearance.getColorScheme() === "dark",
-      isSystemTheme: true,
+export const useThemeStore = createBaseStore<ThemeState>(
+  {
+    // Initial State
+    isDarkMode: Appearance.getColorScheme() === "dark",
+    isSystemTheme: true,
+    metadata: {
+      isLoading: false,
+      lastSync: null,
+      error: null,
+    },
+  },
+  (set, get) => ({
+    // Theme-spezifische Aktionen
+    toggleTheme: () => {
+      set((state) => ({
+        ...state,
+        isDarkMode: !state.isDarkMode,
+        isSystemTheme: false,
+      }));
+    },
 
-      toggleTheme: () =>
-        set((state) => ({
-          isDarkMode: !state.isDarkMode,
-          isSystemTheme: false,
-        })),
-
-      setSystemTheme: (useSystem: boolean) =>
-        set(() => ({
-          isSystemTheme: useSystem,
-          isDarkMode: useSystem
-            ? Appearance.getColorScheme() === "dark"
-            : get().isDarkMode,
-        })),
-
-      getActiveTheme: () => {
-        const state = get();
-        return state.isSystemTheme
+    setSystemTheme: (useSystem: boolean) => {
+      set((state) => ({
+        ...state,
+        isSystemTheme: useSystem,
+        isDarkMode: useSystem
           ? Appearance.getColorScheme() === "dark"
-          : state.isDarkMode;
-      },
-    }),
-    storePersistConfigs.theme,
-  ),
+          : state.isDarkMode,
+      }));
+    },
+
+    // Abfragen
+    getActiveTheme: () => {
+      const state = get();
+      return state.isSystemTheme
+        ? Appearance.getColorScheme() === "dark"
+        : state.isDarkMode;
+    },
+  }),
+  "theme",
 );

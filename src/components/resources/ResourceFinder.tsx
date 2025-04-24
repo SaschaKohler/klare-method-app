@@ -27,6 +27,7 @@ import * as Haptics from "expo-haptics";
 import { useResourceStore } from "../../store/useResourceStore";
 import { ResourceCategory } from "../../services/ResourceLibraryService";
 import { useUserStore } from "../../store/useUserStore";
+import { useKlareStores } from "../../hooks";
 
 // Props interface
 interface ResourceFinderProps {
@@ -85,9 +86,9 @@ const ResourceFinder = ({
   themeColor = "#8B5CF6",
   module,
 }: ResourceFinderProps) => {
-  const theme = useTheme();
-  const { user } = useUserStore();
-  const userId = user?.id || "guest";
+  const paperTheme = useTheme();
+
+  const { user, auth, theme, resources } = useKlareStores();
 
   // Core states
   const [currentStep, setCurrentStep] = useState(0);
@@ -102,8 +103,9 @@ const ResourceFinder = ({
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState(0);
 
   // Get resources from the store
-  const { addResource } = useResourceStore();
 
+  const userId = user.id || "guest";
+  //
   // Steps for the resource finder process
   const steps = [
     {
@@ -265,7 +267,7 @@ const ResourceFinder = ({
       console.log("Saving resource:", newResource);
 
       // Add to store
-      await addResource(userId, newResource);
+      await resources.add(userId, newResource);
 
       // Provide success feedback
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

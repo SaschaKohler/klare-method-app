@@ -145,6 +145,7 @@ export interface KlareStoreResult {
 
   resources: {
     all: any[]; // Sollte mit entsprechendem Typ ersetzt werden
+    loadResources: (userId: string) => Promise<any>;
     add: (userId: string, resource: any) => Promise<any>; // Sollte mit entsprechendem Typ ersetzt werden
     update: (userId: string, resourceId: string, updates: any) => Promise<any>; // Sollte mit entsprechendem Typ ersetzt werden
     delete: (userId: string, resourceId: string) => Promise<void>;
@@ -153,7 +154,9 @@ export interface KlareStoreResult {
     getTop: (limit?: number) => any[]; // Sollte mit entsprechendem Typ ersetzt werden
     search: (searchTerm: string) => any[]; // Sollte mit entsprechendem Typ ersetzt werden
     getRecentlyActivated: (limit?: number) => any[]; // Sollte mit entsprechendem Typ ersetzt werden
+    isLoading: boolean;
   };
+
   journal: {
     entries: JournalEntry[];
     templates: JournalTemplate[];

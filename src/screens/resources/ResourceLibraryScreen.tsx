@@ -7,9 +7,9 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import ResourceLibrary from "../../components/resources/ResourceLibrary";
 import CustomHeader from "../../components/CustomHeader";
-import { useThemeStore } from "../../store";
 import { darkKlareColors, lightKlareColors } from "../../constants/theme";
 import ResourceFinder from "../../components/resources/ResourceFinder";
+import { useKlareStores } from "../../hooks";
 
 /**
  * Bildschirm, der die vollständige Ressourcenbibliothek anzeigt und den Zugriff auf
@@ -17,9 +17,9 @@ import ResourceFinder from "../../components/resources/ResourceFinder";
  */
 export default function ResourceLibraryScreen() {
   const navigation = useNavigation();
-  const theme = useTheme();
-  const { getActiveTheme } = useThemeStore();
-  const isDarkMode = getActiveTheme();
+  const { theme } = useKlareStores();
+  const paperTheme = useTheme();
+  const isDarkMode = theme.isDarkMode;
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
 
   // State für den Ressourcen-Finder-Modal
@@ -38,11 +38,14 @@ export default function ResourceLibraryScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      style={[
+        styles.container,
+        { backgroundColor: paperTheme.colors.background },
+      ]}
     >
       <StatusBar
         barStyle={isDarkMode ? "light-content" : "dark-content"}
-        backgroundColor={isDarkMode ? theme.colors.background : "#ffffff"}
+        backgroundColor={isDarkMode ? paperTheme.colors.background : "#ffffff"}
       />
 
       {/* Header */}
@@ -57,7 +60,7 @@ export default function ResourceLibraryScreen() {
       {!isResourceFinderVisible && (
         <View style={styles.libraryContainer}>
           <ResourceLibrary
-            themeColor={klareColors.l}
+            paperThemeColor={klareColors.l}
             onAddResource={handleAddResource}
           />
         </View>
@@ -68,7 +71,7 @@ export default function ResourceLibraryScreen() {
         <View style={styles.finderContainer}>
           <ResourceFinder
             onComplete={handleResourceFinderComplete}
-            themeColor={klareColors.l}
+            paperThemeColor={klareColors.l}
           />
         </View>
       )}

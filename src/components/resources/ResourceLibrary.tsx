@@ -31,9 +31,10 @@ import {
   ResourceCategory,
   resourceLibraryService,
 } from "../../services/ResourceLibraryService";
-import { useResourceStore } from "../../store/useResourceStore";
-import { useUserStore } from "../../store/useUserStore";
+// import { useResourceStore } from "../../store/useResourceStore";
+// import { useUserStore } from "../../store/useUserStore";
 import EditResource from "../../screens/resources/EditResource";
+import { useKlareStores } from "../../hooks";
 
 interface ResourceLibraryProps {
   themeColor?: string;
@@ -46,7 +47,7 @@ const ResourceLibrary = ({
 }: ResourceLibraryProps) => {
   const theme = useTheme();
   const navigation = useNavigation();
-  const { user } = useUserStore();
+  const { user, resources } = useKlareStores();
   const userId = user?.id || "guest";
 
   // Local state
@@ -65,38 +66,25 @@ const ResourceLibrary = ({
     null,
   );
 
-  // Resource store
-  const {
-    resources,
-    isLoading,
-    loadResources,
-    deleteResource,
-    activateResource,
-    searchResources,
-    getResourcesByCategory,
-    getTopResources,
-    getRecentlyActivatedResources,
-  } = useResourceStore();
-
   // Filter resources by userId
-  const userResources = resources.filter((r) => r.userId === userId);
+  // const userResources = resources.all;
 
   // Load resources on mount
   useEffect(() => {
-    loadResources(userId);
-  }, [userId, loadResources]);
+    resources.loadResources(userId);
+  }, [userId, resources.loadResources]);
 
   // Handle pull-to-refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadResources(userId);
+    await resources.loadResources(userId);
     setRefreshing(false);
-  }, [userId, loadResources]);
+  }, [userId, resources.loadResources]);
 
   // Handle resource activation
   const handleActivateResource = async (resourceId: string) => {
     try {
-      await activateResource(userId, resourceId);
+      await resources.activate(userId, resourceId);
     } catch (error) {
       console.error("Error activating resource:", error);
     }
@@ -107,7 +95,7 @@ const ResourceLibrary = ({
     if (!selectedResource) return;
 
     try {
-      await deleteResource(userId, selectedResource.id);
+      await resources.delete(userId, selectedResource.id);
       setDeleteDialogVisible(false);
       setSelectedResource(null);
     } catch (error) {
@@ -122,33 +110,32 @@ const ResourceLibrary = ({
 
     switch (viewMode) {
       case "recent":
-        filteredResources = getRecentlyActivatedResources(5);
+        filteredResources = resources.getRecentlyActivated(5);
         break;
       case "top":
-        filteredResources = getTopResources(5);
+        filteredResources = resources.getTop(5);
         break;
       case "all":
       default:
-        filteredResources = userResources;
+        filteredResources = resources.all;
         break;
     }
 
     // Then apply category filter if set
     if (filterCategory) {
-      filteredResources = filteredResources.filter(
-        (r) => r.category === filterCategory,
-      );
+      filteredResources = resources.getByCategory(filterCategory);
     }
 
     // Then apply search filter if query exists
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filteredResources = filteredResources.filter(
-        (r) =>
-          r.name.toLowerCase().includes(query) ||
-          (r.description && r.description.toLowerCase().includes(query)) ||
-          (r.activationTips && r.activationTips.toLowerCase().includes(query)),
-      );
+      // filteredResources = filteredResources.filter(
+      //   (r) =>
+      //     r.name.toLowerCase().includes(query) ||
+      //     (r.description && r.description.toLowerCase().includes(query)) ||
+      //     (r.activationTips && r.activationTips.toLowerCase().includes(query)),
+      // );
+      filteredResources = resources.search(query);
     }
 
     return filteredResources;
@@ -445,77 +432,78 @@ const ResourceLibrary = ({
       </View>
 
       {/* View mode tabs */}
-      <View style={styles.viewModeTabs}>
-        <TouchableOpacity
-          style={[
-            styles.viewModeTab,
-            viewMode === "all" && [
-              styles.activeTab,
-              { borderBottomColor: themeColor },
-            ],
-          ]}
-          onPress={() => setViewMode("all")}
-        >
-          <Text
+      {resources.all.length > 0 ? (
+        <View style={styles.viewModeTabs}>
+          <TouchableOpacity
             style={[
-              styles.viewModeText,
+              styles.viewModeTab,
               viewMode === "all" && [
-                styles.activeTabText,
-                { color: themeColor },
+                styles.activeTab,
+                { borderBottomColor: themeColor },
               ],
             ]}
+            onPress={() => setViewMode("all")}
           >
-            Alle
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.viewModeText,
+                viewMode === "all" && [
+                  styles.activeTabText,
+                  { color: themeColor },
+                ],
+              ]}
+            >
+              Alle
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.viewModeTab,
-            viewMode === "top" && [
-              styles.activeTab,
-              { borderBottomColor: themeColor },
-            ],
-          ]}
-          onPress={() => setViewMode("top")}
-        >
-          <Text
+          <TouchableOpacity
             style={[
-              styles.viewModeText,
+              styles.viewModeTab,
               viewMode === "top" && [
-                styles.activeTabText,
-                { color: themeColor },
+                styles.activeTab,
+                { borderBottomColor: themeColor },
               ],
             ]}
+            onPress={() => setViewMode("top")}
           >
-            Top 5
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.viewModeText,
+                viewMode === "top" && [
+                  styles.activeTabText,
+                  { color: themeColor },
+                ],
+              ]}
+            >
+              Top 5
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.viewModeTab,
-            viewMode === "recent" && [
-              styles.activeTab,
-              { borderBottomColor: themeColor },
-            ],
-          ]}
-          onPress={() => setViewMode("recent")}
-        >
-          <Text
+          <TouchableOpacity
             style={[
-              styles.viewModeText,
+              styles.viewModeTab,
               viewMode === "recent" && [
-                styles.activeTabText,
-                { color: themeColor },
+                styles.activeTab,
+                { borderBottomColor: themeColor },
               ],
             ]}
+            onPress={() => setViewMode("recent")}
           >
-            Kürzlich
-          </Text>
-        </TouchableOpacity>
-      </View>
-
+            <Text
+              style={[
+                styles.viewModeText,
+                viewMode === "recent" && [
+                  styles.activeTabText,
+                  { color: themeColor },
+                ],
+              ]}
+            >
+              Kürzlich
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
       {/* Category filter chips (only shown when filter is active) */}
       {filterCategory && (
         <View style={styles.filterChipsContainer}>
@@ -546,7 +534,7 @@ const ResourceLibrary = ({
           />
         }
       >
-        {isLoading ? (
+        {resources.isLoading ? (
           renderLoadingState()
         ) : displayResources.length === 0 ? (
           renderEmptyState()

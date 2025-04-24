@@ -2,22 +2,23 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Switch, Text, useTheme } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
-import { useThemeStore } from "../store/useThemeStore.refactored";
+import { useThemeStore } from "../store/useThemeStore";
+import { useKlareStores } from "../hooks";
 
 interface ThemeToggleProps {
   showLabel?: boolean;
 }
 
 export default function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
-  const theme = useTheme();
-  const { getActiveTheme, toggleTheme, isSystemTheme, setSystemTheme } =
-    useThemeStore();
-  const isDarkMode = getActiveTheme();
+  const paperTheme = useTheme();
+  const klareStores = useKlareStores();
+  const { theme } = useKlareStores();
+  const isDarkMode = theme.isDarkMode;
 
   return (
     <View style={styles.container}>
       {showLabel && (
-        <Text style={[styles.label, { color: theme.colors.tertiary }]}>
+        <Text style={[styles.label, { color: paperTheme.colors.tertiary }]}>
           {isDarkMode ? "Dunkelmodus" : "Hellmodus"}
         </Text>
       )}
@@ -26,31 +27,37 @@ export default function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
         <Ionicons
           name="sunny"
           size={20}
-          color={!isDarkMode ? theme.colors.primary : theme.colors.secondary}
+          color={
+            !isDarkMode
+              ? paperTheme.colors.primary
+              : paperTheme.colors.secondary
+          }
         />
 
         <Switch
           value={isDarkMode}
-          onValueChange={toggleTheme}
-          color={theme.colors.primary}
+          onValueChange={theme.toggleTheme}
+          color={paperTheme.colors.primary}
           style={styles.switch}
         />
 
         <Ionicons
           name="moon"
           size={20}
-          color={isDarkMode ? theme.colors.secondary : theme.colors.primary}
+          color={
+            isDarkMode ? paperTheme.colors.secondary : paperTheme.colors.primary
+          }
         />
       </View>
 
       <View style={styles.systemRow}>
         <Switch
-          value={isSystemTheme}
-          onValueChange={setSystemTheme}
-          color={theme.colors.primary}
+          value={theme.isSystemTheme}
+          onValueChange={theme.setSystemTheme}
+          color={paperTheme.colors.primary}
           style={styles.systemSwitch}
         />
-        <Text style={{ color: theme.colors.primary, fontSize: 12 }}>
+        <Text style={{ color: paperTheme.colors.primary, fontSize: 12 }}>
           Systemeinstellung verwenden
         </Text>
       </View>
