@@ -1,13 +1,11 @@
-import React from "react";
-import { StyleSheet, View, ScrollView } from "react-native";
-import { Text, Card, Title, Paragraph, Button } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import React from "react";
+import { ScrollView, StyleSheet } from "react-native";
+import { Button, Card, Paragraph, Text, Title } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { klareColors } from "../constants/theme";
 
 export default function LearnScreen() {
-  const navigation = useNavigation();
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>

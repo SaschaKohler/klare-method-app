@@ -1,62 +1,58 @@
 // src/screens/KlareMethodScreen.tsx
+import { Ionicons } from "@expo/vector-icons";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { StatusBar } from "expo-status-bar";
 import React, {
-  useState,
-  useEffect,
   useCallback,
-  useRef,
+  useEffect,
   useMemo,
+  useRef,
+  useState,
 } from "react";
 import {
-  View,
+  ActivityIndicator,
+  Platform,
   ScrollView,
   TouchableOpacity,
-  Platform,
-  ActivityIndicator,
+  View,
 } from "react-native";
 import {
-  Text,
-  Card,
-  Title,
-  Paragraph,
   Button,
-  List,
+  Card,
   Chip,
+  List,
+  Paragraph,
+  Text,
+  Title,
   useTheme,
 } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
-import { klareSteps, KlareStep } from "../data/klareMethodData";
-import {
-  darkKlareColors,
-  klareColors,
-  lightKlareColors,
-} from "../constants/theme";
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
-  withTiming,
-  interpolateColor,
-  withSequence,
+  useSharedValue,
   withDelay,
+  withSequence,
+  withTiming,
 } from "react-native-reanimated";
-import { RootStackParamList } from "../types/navigation";
-import { useProgressionStore } from "../store";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import { loadModulesByStep, ModuleContent } from "../lib/contentService";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { KlareMethodNavigationTabs, TransformationList } from "../components";
 import createKlareMethodScreenStyles from "../constants/klareMethodScreenStyles";
+import { darkKlareColors, lightKlareColors } from "../constants/theme";
+import { KlareStep, klareSteps } from "../data/klareMethodData";
 import { useKlareStores } from "../hooks/useKlareStores";
+import { loadModulesByStep, ModuleContent } from "../lib/contentService";
+import { RootStackParamList } from "../types/navigation";
 
 // Import our services
 import {
-  getTransformationPaths,
   getPracticalExercises,
   getSupportingQuestions,
-  TransformationPoint,
+  getTransformationPaths,
   PracticalExercise,
   SupportingQuestion,
+  TransformationPoint,
 } from "../services/transformationService";
 
 type KlareMethodScreenRouteProp = RouteProp<RootStackParamList, "KlareMethod">;
@@ -68,17 +64,6 @@ type TabType =
   | "exercises"
   | "questions"
   | "modules";
-
-// Add dark theme modifications in KLARE colors
-export const klareColorsDark = {
-  ...klareColors,
-  background: "#121212", // Very dark background
-  surface: "#1E1E1E", // Dark surface color
-  text: "#E0E0E0", // Light text for dark background
-  textSecondary: "#A0A0A0", // Secondary text for dark background
-  border: "#333333", // Dark border color
-  accent: "#BB86FC", // Purple accent for dark theme
-};
 
 export default function KlareMethodScreen() {
   const navigation = useNavigation();
@@ -109,11 +94,6 @@ export default function KlareMethodScreen() {
   // Zugriff auf Module
   const [availableModules, setAvailableModules] = useState<ModuleContent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Use the new progression store
-  // const isModuleAvailable = useProgressionStore(
-  //   (state) => state.isModuleAvailable,
-  // );
 
   // Finde den aktiven Schritt
   const activeStep = klareSteps.find(
@@ -207,15 +187,6 @@ export default function KlareMethodScreen() {
   }, [activeStepId, backgroundColorProgress, iconSizeProgress, contentOpacity]);
 
   // Animierte Styles
-  const animatedHeaderStyle = useAnimatedStyle(() => {
-    return {
-      backgroundColor: interpolateColor(
-        backgroundColorProgress.value,
-        [0, 1],
-        ["rgba(255, 255, 255, 0.8)", `${activeStep.color}20`],
-      ),
-    };
-  });
 
   const animatedIconContainerStyle = useAnimatedStyle(() => {
     return {
@@ -391,7 +362,7 @@ export default function KlareMethodScreen() {
               titleStyle={{ fontSize: 15 }}
               description={exercise.description}
               descriptionNumberOfLines={2}
-              left={(props) => (
+              left={() => (
                 <View
                   style={[
                     styles.exerciseIcon,
@@ -430,7 +401,7 @@ export default function KlareMethodScreen() {
           <Text style={styles.loadingText}>Fragen werden geladen...</Text>
         </View>
       ) : (
-        supportingQuestions.map((question, index) => (
+        supportingQuestions.map((question) => (
           <View
             key={question.id}
             style={[
@@ -545,6 +516,7 @@ export default function KlareMethodScreen() {
                         color={themeKlareColors.textSecondary}
                       />
                       <Text style={styles.moduleDurationText}>
+                        // TODO: duration on module
                         {module.duration} Min.
                       </Text>
                     </View>
@@ -602,7 +574,7 @@ export default function KlareMethodScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar
         style={isDarkMode ? "light" : "dark"}
-        backgroundColor={isDarkMode ? klareColorsDark.background : "white"}
+        backgroundColor={isDarkMode ? themeKlareColors.background : "white"}
       />
       <View style={styles.header}>
         <View style={styles.headerLeftContainer}>

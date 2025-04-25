@@ -12,6 +12,7 @@ export const lightKlareColors = {
   cardBackground: "#FFFFFF",
   text: "#1F2937",
   textSecondary: "#6B7280",
+  surface: "#FEFEFE", // Dark surface color
   border: "#E5E7EB",
 };
 
@@ -27,6 +28,8 @@ export const darkKlareColors = {
   text: "#F9FAFB", // Light text
   textSecondary: "#D1D5DB", // Light secondary text
   border: "#374151", // Dark border
+  surface: "#1E1E1E", // Dark surface color
+  accent: "#BB86FC", // Purple accent for dark theme
 };
 
 export const windowWidth = Dimensions.get("window").width;
@@ -42,7 +45,10 @@ export const lightTheme = {
     background: lightKlareColors.background,
     surface: lightKlareColors.cardBackground,
     text: lightKlareColors.text,
-    backdrop: 'rgba(0, 0, 0, 0.5)',
+    textSecondary: lightKlareColors.textSecondary,
+    border: lightKlareColors.border,
+    surfaceVariant: lightKlareColors.surface,
+    backdrop: "rgba(0, 0, 0, 0.5)",
   },
   dark: false,
 };
@@ -57,7 +63,9 @@ export const darkTheme = {
     background: darkKlareColors.background,
     surface: darkKlareColors.cardBackground,
     text: darkKlareColors.text,
-    backdrop: 'rgba(0, 0, 0, 0.8)',
+    textSecondary: darkKlareColors.textSecondary,
+    border: darkKlareColors.border,
+    backdrop: "rgba(0, 0, 0, 0.8)",
   },
   dark: true,
 };
@@ -65,3 +73,4 @@ export const darkTheme = {
 // For backward compatibility
 export const theme = lightTheme;
 export const klareColors = lightKlareColors;
+

@@ -1,59 +1,53 @@
 // src/screens/LifeWheelScreen.tsx
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { BlurView } from "expo-blur";
+import { StatusBar } from "expo-status-bar";
 import React, {
-  useState,
   useCallback,
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import {
-  StyleSheet,
-  View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   TouchableOpacity,
-  Alert,
-  Platform,
-  KeyboardAvoidingView,
+  View,
 } from "react-native";
 import {
-  Text,
-  Card,
-  Paragraph,
-  Divider,
   Button,
-  IconButton,
-  useTheme,
+  Card,
+  Divider,
+  Paragraph,
   SegmentedButtons,
+  Text,
+  useTheme,
 } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { useUserStore, useLifeWheelStore } from "../store";
 import {
-  darkKlareColors,
-  klareColors,
-  lightKlareColors,
-} from "../constants/theme";
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import {
   LifeWheelChart,
   LifeWheelEditor,
   LifeWheelLegend,
 } from "../components";
-import { BlurView } from "expo-blur";
-import { StatusBar } from "expo-status-bar";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import createLifeWheelScreenStyles from "../constants/lifeWheelScreenStyles";
-import { LifeWheelArea } from "../types/store";
+import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { useKlareStores } from "../hooks/useKlareStores";
+import { useUserStore } from "../store";
+import { LifeWheelArea } from "../types/store";
 
 export default function LifeWheelScreen() {
   const navigation = useNavigation();
 
-  const { summary, lifeWheel, theme: themeStore, actions } = useKlareStores();
+  const { lifeWheel, actions } = useKlareStores();
 
   // User Store für Kompatibilität
-  const user = useUserStore((state) => state.user);
-  const saveUserData = useUserStore((state) => state.saveUserData);
 
   // Lokaler State für die Chart-Daten - wichtig für sofortige Updates
   const [lifeWheelAreas, setLifeWheelAreas] = useState<LifeWheelArea[]>([

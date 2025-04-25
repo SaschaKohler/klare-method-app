@@ -1,38 +1,37 @@
 // src/screens/JournalEditorScreen.tsx
-import React, { useState, useEffect, useMemo, useRef } from "react";
-import {
-  View,
-  ScrollView,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-import {
-  Text,
-  Appbar,
-  Chip,
-  Divider,
-  Button,
-  IconButton,
-  Portal,
-  Dialog,
-  Menu,
-  Surface,
-  useTheme,
-  ActivityIndicator,
-} from "react-native-paper";
-import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { MotiView } from "moti";
+import Slider from "@react-native-community/slider";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { format, parseISO } from "date-fns";
 import { de } from "date-fns/locale";
-import Slider from "@react-native-community/slider";
-import { supabase } from "../lib/supabase";
-import { lightKlareColors, darkKlareColors } from "../constants/theme";
-import { useUserStore } from "../store/useUserStore";
-import { useThemeStore } from "../store/useThemeStore";
+import { MotiView } from "moti";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  TextInput,
+  View,
+} from "react-native";
+import {
+  ActivityIndicator,
+  Appbar,
+  Button,
+  Chip,
+  Dialog,
+  Divider,
+  IconButton,
+  Menu,
+  Portal,
+  Surface,
+  Text,
+  useTheme,
+} from "react-native-paper";
 import { createJournalEditorStyles } from "../constants/journalEditorStyles";
+import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { useKlareStores } from "../hooks";
+import { supabase } from "../lib/supabase";
+import { useUserStore } from "../store/useUserStore";
 
 // Typen für Tagebucheinträge
 type JournalEntry = {

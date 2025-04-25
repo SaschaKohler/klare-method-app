@@ -1,27 +1,26 @@
 import React, { useMemo, useState } from "react";
 import {
-  View,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   Pressable,
+  ScrollView,
+  View,
 } from "react-native";
 import {
-  Text,
-  TextInput,
   Button,
   HelperText,
-  useTheme,
+  Text,
+  TextInput,
   TouchableRipple,
+  useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUserStore } from "../store/useUserStore";
-import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import KlareLogo from "../components/KlareLogo";
 import createAuthScreenStyles from "../constants/authScreenStyle";
-// import { useThemeStore } from "../store/useThemeStore";
+import { darkKlareColors, lightKlareColors } from "../constants/theme";
+import { useUserStore } from "../store/useUserStore";
 import { Ionicons } from "@expo/vector-icons";
-import { MotiView, MotiText } from "moti";
+import { MotiText, MotiView } from "moti";
 import { MotiPressable } from "moti/interactions";
 
 // Auth states
@@ -643,4 +642,3 @@ export default function AuthScreen() {
     </SafeAreaView>
   );
 }
-

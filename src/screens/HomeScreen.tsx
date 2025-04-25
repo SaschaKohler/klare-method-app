@@ -1,31 +1,31 @@
 // src/screens/HomeScreen.optimized.tsx
-import React, { useState, useEffect, useMemo } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  View,
+  Animated,
+  ImageBackground,
   ScrollView,
   TouchableOpacity,
-  ImageBackground,
-  Animated,
+  View,
 } from "react-native";
 import {
-  Text,
-  Card,
-  Title,
-  Button,
   Avatar,
-  ProgressBar,
-  List,
+  Button,
+  Card,
   Chip,
+  List,
+  ProgressBar,
+  Text,
+  Title,
   useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { lightKlareColors, darkKlareColors } from "../constants/theme";
-import { klareSteps } from "../data/klareMethodData";
 import { KlareMethodCards } from "../components";
-import { useKlareStores } from "../hooks";
 import createStyles from "../constants/createStyles";
+import { darkKlareColors, lightKlareColors } from "../constants/theme";
+import { klareSteps } from "../data/klareMethodData";
+import { useKlareStores } from "../hooks";
 
 export default function HomeScreen() {
   const navigation = useNavigation();

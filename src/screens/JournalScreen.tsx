@@ -1,55 +1,51 @@
 // src/screens/JournalScreen.tsx - Updated to use JournalStore
-import React, { useState, useEffect, useMemo } from "react";
-import {
-  View,
-  ScrollView,
-  TouchableOpacity,
-  FlatList,
-  RefreshControl,
-  Dimensions,
-} from "react-native";
-import {
-  Text,
-  Card,
-  Title,
-  Button,
-  Searchbar,
-  Chip,
-  IconButton,
-  Menu,
-  FAB,
-  useTheme,
-  ActivityIndicator,
-} from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { format, isToday, isYesterday, parseISO, subDays } from "date-fns";
 import { de } from "date-fns/locale";
 import { MotiView } from "moti";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  FlatList,
+  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import {
+  ActivityIndicator,
+  Button,
+  Card,
+  Chip,
+  FAB,
+  IconButton,
+  Menu,
+  Searchbar,
+  Text,
+  Title,
+  useTheme,
+} from "react-native-paper";
 import Animated, {
-  useSharedValue,
+  Extrapolation,
+  interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  interpolate,
-  Extrapolation,
+  useSharedValue,
 } from "react-native-reanimated";
-import { lightKlareColors, darkKlareColors } from "../constants/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
 import CalendarStrip from "../components/CalendarStrip";
 import { createJournalStyles } from "../constants/journalStyles";
+import { darkKlareColors, lightKlareColors } from "../constants/theme";
 
 // Import useKlareStores instead of individual stores
 import { useKlareStores } from "../hooks";
 import { JournalEntry, JournalTemplate } from "../services/JournalService";
-
-const { width } = Dimensions.get("window");
 
 export default function JournalScreen() {
   const navigation = useNavigation();
   const klareStore = useKlareStores();
   const { user } = klareStore;
   const {
-    entries,
     categories,
     templates,
     isLoading: journalLoading,
@@ -63,9 +59,11 @@ export default function JournalScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [menuVisible, setMenuVisible] = useState(false);
+  //FIX:
   const [filterMenuVisible, setFilterMenuVisible] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  //FIX:
   const [selectedTemplate, setSelectedTemplate] =
     useState<JournalTemplate | null>(null);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);

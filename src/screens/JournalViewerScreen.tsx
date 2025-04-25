@@ -1,39 +1,29 @@
 // src/screens/JournalViewerScreen.tsx
-import React, { useState, useEffect, useMemo } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { format, parseISO } from "date-fns";
+import { de } from "date-fns/locale";
+import { MotiView } from "moti";
+import React, { useEffect, useMemo, useState } from "react";
+import { Alert, ScrollView, Share, StyleSheet, View } from "react-native";
 import {
-  StyleSheet,
-  View,
-  ScrollView,
-  Share,
-  Alert,
-  Platform,
-  TouchableOpacity,
-} from "react-native";
-import {
-  Text,
-  Appbar,
-  Chip,
-  Divider,
-  Button,
-  useTheme,
-  Surface,
   ActivityIndicator,
-  IconButton,
-  Menu,
+  Appbar,
+  Button,
+  Chip,
   Dialog,
-  Portal,
+  Divider,
   FAB,
+  Menu,
+  Portal,
+  Surface,
+  Text,
+  useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { MotiView, MotiText } from "moti";
-import { format, parseISO } from "date-fns";
-import { de, he } from "date-fns/locale";
+import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { supabase } from "../lib/supabase";
-import { lightKlareColors, darkKlareColors } from "../constants/theme";
 // import { useThemeStore } from "../store/useThemeStore";
-import createStyles from "../constants/createStyles";
 import Markdown from "react-native-markdown-display";
 import { useKlareStores } from "../hooks";
 
@@ -64,7 +54,6 @@ export default function JournalViewerScreen() {
 
   // Theme handling
   const theme = useTheme();
-  const { getActiveTheme } = klareStore.theme;
   const isDarkMode = klareStore.theme.isDarkMode;
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const styles = useMemo(
@@ -560,7 +549,7 @@ export default function JournalViewerScreen() {
 }
 
 // Styles for JournalViewerScreen
-const createJournalViewerStyles = (theme: any, klareColors: any) =>
+const createJournalViewerStyles = (theme: any, klareColors: string) =>
   StyleSheet.create({
     container: {
       flex: 1,

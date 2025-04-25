@@ -22,13 +22,12 @@ import { useKlareStores } from "../hooks";
 export default function ProfileScreen() {
   const navigation = useNavigation();
 
-  const { summary, auth, theme } = useKlareStores();
+  const { summary, auth, theme: klareTheme } = useKlareStores();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const paperTheme = useTheme();
-  // const { getActiveTheme } = useThemeStore();
-  // const isDarkMode = getActiveTheme();
-  const isDarkMode = theme.isDarkMode;
+
+  const isDarkMode = klareTheme.isDarkMode;
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
 
   const handleLogout = () => {

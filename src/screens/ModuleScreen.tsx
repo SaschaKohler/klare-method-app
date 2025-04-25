@@ -1,15 +1,15 @@
 // src/screens/ModuleScreen.tsx
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
 import {
-  Text,
-  useTheme,
+  ActivityIndicator,
   Button,
   IconButton,
-  ActivityIndicator,
+  Text,
+  useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation, useRoute } from "@react-navigation/native";
 
 // Import content service functions
 import {
@@ -22,12 +22,12 @@ import {
 import { useUserStore } from "../store/useUserStore";
 
 // Import module-specific components
+import { LModuleComponent } from "../components/modules";
 import ModuleContentComponent from "../components/modules/ModuleContent";
 import ModuleExercise from "../components/modules/ModuleExercise";
 import ModuleQuiz from "../components/modules/ModuleQuiz";
-import { LModuleComponent } from "../components/modules";
-import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import createModuleScreenStyles from "../constants/moduleScreenStyles";
+import { darkKlareColors, lightKlareColors } from "../constants/theme";
 // import ModuleVideoComponent from "../components/modules/ModuleVideo";
 
 const ModuleScreen = () => {
@@ -278,49 +278,5 @@ const ModuleScreen = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#ffffff",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  centeredContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  errorText: {
-    color: "red",
-    marginBottom: 16,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  moduleSelector: {
-    flex: 1,
-    padding: 16,
-  },
-  moduleSelectorTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  moduleSelectorButton: {
-    marginBottom: 8,
-  },
-});
 
 export default ModuleScreen;
