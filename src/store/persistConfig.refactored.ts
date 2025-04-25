@@ -9,6 +9,7 @@ import {
   JournalTemplateCategory,
 } from "../services/JournalService";
 import { Resource } from "../services/ResourceLibraryService";
+import { VisionBoard, VisionBoardItem } from "../services/VisionBoardService";
 
 // Basiskonfiguration für die Zustand-Persistenz
 export const basePersistConfig = {
@@ -49,6 +50,12 @@ interface JournalStatePersist {
   lastSync: string | null;
 }
 
+interface VisionBoardStatePersist {
+  visionBoard: VisionBoard | null;
+  items: VisionBoardItem[];
+  lastSync: string | null;
+}
+
 // Typisierte Struktur für alle Store-Persistenzkonfigurationen
 export interface StorePersistConfigs {
   user: PersistOptions<Record<string, unknown>, UserStatePersist>;
@@ -57,6 +64,7 @@ export interface StorePersistConfigs {
   theme: PersistOptions<Record<string, unknown>, ThemeStatePersist>;
   resources: PersistOptions<Record<string, unknown>, ResourceStatePersist>;
   journal: PersistOptions<Record<string, unknown>, JournalStatePersist>;
+  visionBoard: PersistOptions<Record<string, unknown>, VisionBoardStatePersist>;
   [key: string]: PersistOptions<
     Record<string, unknown>,
     Record<string, unknown>
@@ -117,6 +125,16 @@ export const storePersistConfigs: StorePersistConfigs = {
       entries: state.entries as JournalEntry[],
       templates: state.templates as JournalTemplate[],
       categories: state.categories as JournalTemplateCategory[],
+      lastSync: state.lastSync as string | null,
+      // isLoading und error sollten nicht persistiert werden
+    }),
+  },
+  visionBoard: {
+    name: "klare-vision-board-storage",
+    ...basePersistConfig,
+    partialize: (state): VisionBoardStatePersist => ({
+      visionBoard: state.visionBoard as VisionBoard | null,
+      items: state.items as VisionBoardItem[],
       lastSync: state.lastSync as string | null,
       // isLoading und error sollten nicht persistiert werden
     }),

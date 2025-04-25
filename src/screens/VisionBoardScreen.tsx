@@ -1,55 +1,43 @@
 // src/screens/VisionBoardScreen.tsx
-import React, { useState, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { StatusBar } from "expo-status-bar";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  StyleSheet,
-  ScrollView,
-  Alert,
   ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  View,
 } from "react-native";
 import {
-  Text,
   Button,
-  useTheme,
-  Portal,
   Dialog,
-  TextInput,
   FAB,
+  Portal,
+  Text,
+  TextInput,
+  useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { StatusBar } from "expo-status-bar";
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
-import { supabase } from "../lib/supabase";
-import { useUserStore } from "../store";
-import { RootStackParamList } from "../types/navigation";
-import { CustomHeader } from "../components";
 import VisionBoardEditor from "../components/vision-board/VisionBoardEditor";
-import { Tables, TablesInsert, TablesUpdate } from "../types/supabase";
+import { supabase } from "../lib/supabase";
+import { useUserStore, useVisionBoardStore } from "../store";
+import { RootStackParamList } from "../types/navigation";
+import { useKlareStores } from "../hooks";
 
 type VisionBoardRouteProp = RouteProp<RootStackParamList, "VisionBoard">;
 
-type VisionBoardRow = Tables<"vision_boards">;
-type VisionBoardInsert = TablesInsert<"vision_boards">;
-type VisionBoardUpdate = TablesUpdate<"vision_boards">;
-
-type VisionBoardItem = Tables<"vision_board_items">;
-type VisionBoardItemInsert = TablesInsert<"vision_board_items">;
-type VisionBoardItemUpdate = TablesUpdate<"vision_board_items">;
-
-interface VisionBoard extends VisionBoardRow {
-  items?: VisionBoardItem[];
-}
-
 const VisionBoardScreen = () => {
-  const navigation = useNavigation();
   const route = useRoute<VisionBoardRouteProp>();
   const theme = useTheme();
-  const user = useUserStore((state) => state.user);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [visionBoards, setVisionBoards] = useState<VisionBoard[]>([]);
-  const [activeBoard, setActiveBoard] = useState<VisionBoard | null>(null);
+  //TODO: stores direkt statt  klareStores-hook
+
+  const { user } = useUserStore();
+  const visionBoardStore = useVisionBoardStore();
+
+  const [activeBoard, setActiveBoard] = useState(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newBoardTitle, setNewBoardTitle] = useState("");
   const [newBoardDescription, setNewBoardDescription] = useState("");
@@ -67,238 +55,14 @@ const VisionBoardScreen = () => {
   ];
 
   useEffect(() => {
-    loadVisionBoards();
+    // Wenn der Benutzer angemeldet ist, lade die Vision Boards
+    if (user?.id) {
+      visionBoardStore.loadVisionBoard(user.id);
+    }
   }, [user]);
-
-  // Lade alle Vision Boards des Benutzers
-  const loadVisionBoards = async () => {
-    if (!user?.id) {
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      // Lade alle Vision Boards des Benutzers
-      const { data: boardsData, error: boardsError } = await supabase
-        .from("vision_boards")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      console.log("Vision Boards:", boardsData);
-      if (boardsError) throw boardsError;
-
-      // Für jedes Board die zugehörigen Items laden
-      const boardsWithItems = await Promise.all(
-        boardsData.map(async (board) => {
-          const { data: itemsData, error: itemsError } = await supabase
-            .from("vision_board_items")
-            .select("*")
-            .eq("user_id", user.id)
-            .filter("vision_board_id", "eq", board.id);
-
-          if (itemsError) throw itemsError;
-
-          return {
-            ...board,
-            items: itemsData || [],
-          };
-        }),
-      );
-
-      setVisionBoards(boardsWithItems);
-
-      // Setze das aktive Board auf das neueste, falls vorhanden
-      if (boardsWithItems.length > 0) {
-        setActiveBoard(boardsWithItems[0]);
-      }
-    } catch (error) {
-      console.error("Fehler beim Laden der Vision Boards:", error);
-      Alert.alert("Fehler", "Die Vision Boards konnten nicht geladen werden.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Speichere ein neues oder aktualisiere ein bestehendes Vision Board
-  const saveVisionBoard = async (
-    board: VisionBoardInsert & { items?: VisionBoardItemInsert[] },
-  ) => {
-    if (!user?.id) {
-      Alert.alert(
-        "Fehler",
-        "Sie müssen angemeldet sein, um ein Vision Board zu speichern.",
-      );
-      return;
-    }
-
-    try {
-      // Wenn das Board bereits eine ID hat, aktualisieren, sonst neu erstellen
-      if (board.id) {
-        // Board aktualisieren
-        const { error: updateError } = await supabase
-          .from("vision_boards")
-          .update({
-            title: board.title,
-            description: board.description,
-            background_type: board.background_type,
-            background_value: board.background_value,
-            layout_type: board.layout_type,
-            updated_at: new Date(),
-          })
-          .eq("id", board.id);
-
-        if (updateError) throw updateError;
-
-        // Bestehende Items löschen und neue einfügen
-        const { error: deleteError } = await supabase
-          .from("vision_board_items")
-          .delete()
-          .eq("vision_board_id", board.id);
-
-        if (deleteError) throw deleteError;
-      } else {
-        // Neues Board erstellen
-        const { data: newBoard, error: insertError } = await supabase
-          .from("vision_boards")
-          .insert([
-            {
-              user_id: user.id,
-              title: board.title,
-              description: board.description,
-              background_type: board.background_type,
-              background_value: board.background_value,
-              layout_type: board.layout_type,
-            },
-          ])
-          .select()
-          .single();
-
-        if (insertError) throw insertError;
-
-        // ID des neuen Boards für die Items verwenden
-        board.id = newBoard.id;
-      }
-
-      // Items einfügen
-      if (board.items && board.items.length > 0) {
-        const itemsToInsert = board.items.map((item) => ({
-          user_id: user.id,
-          vision_board_id: board.id,
-          life_area: item.life_area,
-          title: item.title,
-          description: item.description || "",
-          image_url: item.image_url || null,
-          position_x: Number(item.position_x.toFixed(2)),
-          position_y: Number(item.position_y.toFixed(2)),
-          width: Number(item.width.toFixed(2)),
-          height: Number(item.height.toFixed(2)),
-          scale: Number(item.scale.toFixed(2)),
-          rotation: Number(item.rotation.toFixed(2)),
-          color: item.color || null,
-        }));
-
-        const { error: itemsError } = await supabase
-          .from("vision_board_items")
-          .insert(itemsToInsert);
-
-        if (itemsError) throw itemsError;
-      }
-
-      // Liste der Boards neu laden
-      await loadVisionBoards();
-
-      Alert.alert("Erfolg", "Das Vision Board wurde erfolgreich gespeichert.");
-    } catch (error) {
-      console.error("Fehler beim Speichern des Vision Boards:", error);
-      Alert.alert(
-        "Fehler",
-        "Das Vision Board konnte nicht gespeichert werden.",
-      );
-    }
-  };
-
-  // Lösche ein Vision Board
-  const deleteVisionBoard = async (boardId: string) => {
-    try {
-      // Bestätigungsdialog
-      Alert.alert(
-        "Vision Board löschen",
-        "Sind Sie sicher, dass Sie dieses Vision Board löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
-        [
-          { text: "Abbrechen", style: "cancel" },
-          {
-            text: "Löschen",
-            style: "destructive",
-            onPress: async () => {
-              // Zuerst alle zugehörigen Items löschen
-              const { error: itemsError } = await supabase
-                .from("vision_board_items")
-                .delete()
-                .eq("vision_board_id", boardId);
-
-              if (itemsError) throw itemsError;
-
-              // Dann das Board selbst löschen
-              const { error: boardError } = await supabase
-                .from("vision_boards")
-                .delete()
-                .eq("id", boardId);
-
-              if (boardError) throw boardError;
-
-              // Liste der Boards neu laden
-              await loadVisionBoards();
-
-              // Wenn das gelöschte Board das aktive war, setze aktives Board zurück
-              if (activeBoard?.id === boardId) {
-                setActiveBoard(
-                  visionBoards.length > 1 ? visionBoards[0] : null,
-                );
-              }
-
-              Alert.alert(
-                "Erfolg",
-                "Das Vision Board wurde erfolgreich gelöscht.",
-              );
-            },
-          },
-        ],
-      );
-    } catch (error) {
-      console.error("Fehler beim Löschen des Vision Boards:", error);
-      Alert.alert("Fehler", "Das Vision Board konnte nicht gelöscht werden.");
-    }
-  };
-
-  // Erstelle ein neues Vision Board
-  const createNewVisionBoard = () => {
-    if (!newBoardTitle.trim()) {
-      Alert.alert(
-        "Fehler",
-        "Bitte geben Sie einen Titel für das Vision Board ein.",
-      );
-      return;
-    }
-
-    const newBoard: VisionBoard = {
-      title: newBoardTitle,
-      description: newBoardDescription,
-      background_type: "gradient",
-      background_value: "gradient_primary",
-      layout_type: "grid",
-      items: [],
-    };
-
-    setActiveBoard(newBoard);
-    setIsCreateDialogOpen(false);
-    setNewBoardTitle("");
-    setNewBoardDescription("");
-  };
-
   // Rendern des Vision Board Editors oder der Board-Auswahl
   const renderContent = () => {
-    if (isLoading) {
+    if (visionBoardStore.metadata.isLoading) {
       return (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -307,17 +71,26 @@ const VisionBoardScreen = () => {
       );
     }
 
-    if (activeBoard) {
+    if (activeBoard || visionBoardStore.visionBoard) {
       // Wenn ein aktives Board vorhanden ist, zeige den Editor
+      const boardToEdit = activeBoard || visionBoardStore.visionBoard;
+      console.log("Vision Board to edit:", boardToEdit);
       return (
         <VisionBoardEditor
-          initialBoard={activeBoard}
+          initialBoard={boardToEdit}
           lifeAreas={lifeAreas}
-          onSave={saveVisionBoard}
+          onSave={(board) => {
+            if (user?.id) {
+              visionBoardStore.saveVisionBoard(user?.id, board);
+            }
+          }}
         />
       );
     }
 
+    const visionBoards = visionBoardStore.visionBoard
+      ? [visionBoardStore.visionBoard]
+      : [];
     // Sonst zeige die Board-Auswahl oder eine Willkommensnachricht
     return (
       <ScrollView
@@ -364,7 +137,7 @@ const VisionBoardScreen = () => {
                 </Text>
 
                 <Text style={styles.boardCardItemCount}>
-                  {board.items?.length || 0} Elemente
+                  {visionBoardStore.items?.length || 0} Elemente
                 </Text>
 
                 <View style={styles.boardCardActions}>
@@ -376,7 +149,60 @@ const VisionBoardScreen = () => {
                   </Button>
                   <Button
                     mode="outlined"
-                    onPress={() => board.id && deleteVisionBoard(board.id)}
+                    onPress={() => {
+                      if (board.id && user?.id) {
+                        // For now, let's use Alert since we don't have delete in our klareVisionBoards store yet
+                        Alert.alert(
+                          "Vision Board löschen",
+                          "Sind Sie sicher, dass Sie dieses Vision Board löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+                          [
+                            { text: "Abbrechen", style: "cancel" },
+                            {
+                              text: "Löschen",
+                              style: "destructive",
+                              onPress: async () => {
+                                try {
+                                  const { error: itemsError } = await supabase
+                                    .from("vision_board_items")
+                                    .delete()
+                                    .eq("vision_board_id", board.id);
+
+                                  if (itemsError) throw itemsError;
+
+                                  const { error: boardError } = await supabase
+                                    .from("vision_boards")
+                                    .delete()
+                                    .eq("id", board.id);
+
+                                  if (boardError) throw boardError;
+
+                                  // Reload vision boards
+                                  visionBoardStore.loadVisionBoard(user?.id);
+
+                                  if (activeBoard?.id === board.id) {
+                                    setActiveBoard(null);
+                                  }
+
+                                  Alert.alert(
+                                    "Erfolg",
+                                    "Das Vision Board wurde erfolgreich gelöscht.",
+                                  );
+                                } catch (error) {
+                                  console.error(
+                                    "Error deleting vision board:",
+                                    error,
+                                  );
+                                  Alert.alert(
+                                    "Fehler",
+                                    "Das Vision Board konnte nicht gelöscht werden.",
+                                  );
+                                }
+                              },
+                            },
+                          ],
+                        );
+                      }
+                    }}
                     style={{ marginLeft: 8 }}
                   >
                     Löschen
@@ -412,7 +238,7 @@ const VisionBoardScreen = () => {
 
       {renderContent()}
 
-      {!activeBoard && (
+      {!activeBoard && !visionBoardStore.visionBoard && (
         <FAB
           style={[styles.fab, { backgroundColor: theme.colors.primary }]}
           icon="plus"
@@ -448,7 +274,27 @@ const VisionBoardScreen = () => {
             <Button onPress={() => setIsCreateDialogOpen(false)}>
               Abbrechen
             </Button>
-            <Button onPress={createNewVisionBoard}>Erstellen</Button>
+            <Button
+              onPress={() => {
+                if (!newBoardTitle.trim()) {
+                  Alert.alert("Fehler", "Bitte geben Sie einen Titel ein.");
+                  return;
+                }
+                if (user?.id) {
+                  // Erstellen Sie ein neues Vision Board
+                  visionBoardStore.createVisionBoard(
+                    user?.id,
+                    newBoardTitle,
+                    newBoardDescription,
+                  );
+                  setIsCreateDialogOpen(false);
+                  setNewBoardTitle("");
+                  setNewBoardDescription("");
+                }
+              }}
+            >
+              Erstellen
+            </Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>

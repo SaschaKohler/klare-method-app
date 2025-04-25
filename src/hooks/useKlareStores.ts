@@ -6,6 +6,7 @@ import {
   useProgressionStore,
   useResourceStore,
   useJournalStore,
+  useVisionBoardStore,
 } from "../store";
 import { useCallback, useMemo } from "react";
 import { supabase } from "../lib/supabase";
@@ -18,6 +19,7 @@ import {
   BackupMetadata,
   KlareStoreResult,
 } from "../types/klare";
+import { isLoading } from "expo-font";
 
 /**
  * Custom hook that provides combined access to all KLARE method stores
@@ -31,6 +33,7 @@ export const useKlareStores = (): KlareStoreResult => {
   const themeStore = useThemeStoreValues();
   const resourcesStore = useResourceStoreValues();
   const journalStore = useJournalStoreValues();
+  const visionBoardStore = useVisionBoardStoreValues();
 
   // === Computed values & convenience methods ===
   const computedValues = useComputedValues(
@@ -136,7 +139,12 @@ export const useKlareStores = (): KlareStoreResult => {
       getTemplateById: journalStore.getTemplateById,
       getTemplatesByCategory: journalStore.getTemplatesByCategory,
     },
-
+    visionBoards: {
+      visionBoard: visionBoardStore.visionBoard,
+      loadBoard: visionBoardStore.loadVisionBoard,
+      createBoard: visionBoardStore.createVisionBoard,
+      saveBoard: visionBoardStore.saveVisionBoard,
+    },
     // Zusammenfassungen
     summary: {
       user: computedValues.userSummary,
@@ -336,6 +344,23 @@ const useResourceStoreValues = () => {
     getTopResources,
     searchResources,
     getRecentlyActivatedResources,
+  };
+};
+
+/**
+ * Extract values from the vision board store
+ */
+const useVisionBoardStoreValues = () => {
+  const visionBoard = useVisionBoardStore((state) => state.visionBoard);
+  const loadVisionBoard = useVisionBoardStore((state) => state.loadVisionBoard);
+  const createVisionBoard = useVisionBoardStore(
+    (state) => state.createVisionBoard,
+  );
+
+  return {
+    visionBoard,
+    loadVisionBoard,
+    createVisionBoard,
   };
 };
 

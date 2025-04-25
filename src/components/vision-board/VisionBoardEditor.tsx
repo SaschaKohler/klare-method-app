@@ -89,16 +89,19 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
   };
 
   // State für das Vision Board
-  const [board, setBoard] = useState<VisionBoard>(
-    initialBoard || {
-      title: "Mein Vision Board",
-      description: "Meine persönliche Lebensvision",
-      background_type: "gradient",
-      background_value: "gradient_primary",
-      layout_type: "grid",
-      items: [],
-    },
-  );
+  const [board, setBoard] = useState<
+    VisionBoard & { items: VisionBoardItem[] }
+  >({
+    title: "Mein Vision Board",
+    description: "Meine persönliche Lebensvision",
+    background_type: "gradient",
+    background_value: "gradient_primary",
+    layout_type: "grid",
+    items: [],
+    ...(initialBoard || {}),
+    // Stellen Sie sicher, dass items immer ein Array ist
+    items: (initialBoard && initialBoard.items) || [],
+  });
 
   const [selectedItem, setSelectedItem] = useState<VisionBoardItem | null>(
     null,
@@ -350,6 +353,8 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
 
   // Hilfsfunktion zum Rendern der Items
   const renderItems = () => {
+    if (!board.items || !Array.isArray(board.items)) return null;
+
     return board.items.map((item, index) => {
       const id = item.id || `temp-${index}`;
       const isSelected = selectedItem?.id === item.id;

@@ -6,6 +6,7 @@ import {
   JournalTemplateCategory,
   JournalEntry,
 } from "../services/JournalService";
+import { VisionBoard } from "../services/VisionBoardService";
 type UserSummaryRow = Tables<"users">;
 
 // User-bezogene Typen
@@ -186,6 +187,24 @@ export interface KlareStoreResult {
     loadTemplates: () => Promise<void>;
     loadCategories: () => Promise<void>;
   };
+  visionBoards: {
+    visionBoard: VisionBoard | null; // Sollte mit entsprechendem Typ ersetzt werden
+    loadVisionBoard: (userId: string) => Promise<void>;
+    createVisionBoard: (userId: string) => Promise<any>; // Sollte mit entsprechendem Typ ersetzt werden
+    // saveUserVisionBoard: (
+    //   board: any, // Sollte mit entsprechendem Typ ersetzt werden
+    //   userId?: string,
+    // ) => Promise<any>; // Sollte mit entsprechendem Typ ersetzt werden
+    // addItem: (userId: string, item: any) => Promise<any>; // Sollte mit entsprechendem Typ ersetzt werden
+    // updateItem: (
+    //   userId: string,
+    //   itemId: string,
+    //   updates: Partial<any>, // Sollte mit entsprechendem Typ ersetzt werden
+    // ) => Promise<any>; // Sollte mit entsprechendem Typ ersetzt werden
+    // deleteItem: (userId: string, itemId: string) => Promise<void>;
+    // synchronize: (userId: string) => Promise<boolean>;
+  };
+
   summary: {
     user: UserSummary | null;
     lifeWheel: LifeWheelSummary;
