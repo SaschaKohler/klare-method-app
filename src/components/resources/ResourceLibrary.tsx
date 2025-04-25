@@ -67,7 +67,6 @@ const ResourceLibrary = ({
   );
 
   // Filter resources by userId
-  // const userResources = resources.all;
 
   // Load resources on mount
   useEffect(() => {
@@ -129,12 +128,6 @@ const ResourceLibrary = ({
     // Then apply search filter if query exists
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      // filteredResources = filteredResources.filter(
-      //   (r) =>
-      //     r.name.toLowerCase().includes(query) ||
-      //     (r.description && r.description.toLowerCase().includes(query)) ||
-      //     (r.activationTips && r.activationTips.toLowerCase().includes(query)),
-      // );
       filteredResources = resources.search(query);
     }
 
