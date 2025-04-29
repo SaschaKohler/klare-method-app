@@ -205,8 +205,8 @@ class VisionBoardService {
           ...itemsToInsert,
         ];
 
-        await AsyncStorage.setItem(
-          `${VISION_BOARD_ITEM_STORAGE_KEY}_${session.session.user.id}`,
+        mmkvStorage.set(
+          StorageKeys.VISION_BOARD,
           JSON.stringify(this.visionBoardItemCache[session.session.user.id]),
         );
       }
