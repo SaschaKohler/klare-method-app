@@ -133,6 +133,17 @@ export default function App() {
 
   const [storageFailed, setStorageFailed] = useState(false);
 
+  // Check storage availability
+  useEffect(() => {
+    try {
+      mmkvStorage.set('__test__', 'test');
+      mmkvStorage.delete('__test__');
+    } catch (e) {
+      console.error('Storage initialization failed:', e);
+      setStorageFailed(true);
+    }
+  }, []);
+
   if (!appReady) {
     if (storageFailed) {
       return (
