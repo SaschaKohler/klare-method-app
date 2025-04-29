@@ -108,11 +108,6 @@ export const useUserStore = createBaseStore<UserState>(
       try {
         mmkvStorage.set(StorageKeys.USER, JSON.stringify(...get().user));
 
-        // await AsyncStorage.setItem(
-        //   "userData",
-        //   JSON.stringify({ ...get().user }),
-        // );
-
         // Wenn online, synchronisiere mit Supabase
         if (isOnline) {
           try {
@@ -139,10 +134,7 @@ export const useUserStore = createBaseStore<UserState>(
 
       // Speichere immer lokal
       try {
-        await AsyncStorage.setItem(
-          "userData",
-          JSON.stringify({ ...get().user }),
-        );
+        mmkvStorage.set(StorageKeys.USER, JSON.stringify(...get().user));
 
         // Wenn online, synchronisiere mit Supabase
         if (isOnline) {
@@ -176,10 +168,7 @@ export const useUserStore = createBaseStore<UserState>(
 
       // Speichere immer lokal
       try {
-        await AsyncStorage.setItem(
-          "userData",
-          JSON.stringify({ ...get().user }),
-        );
+        mmkvStorage.set(StorageKeys.USER, JSON.stringify(...get().user));
 
         // Wenn online, synchronisiere mit Supabase
         if (isOnline) {
@@ -199,11 +188,13 @@ export const useUserStore = createBaseStore<UserState>(
 
       try {
         // OFFLINE-FIRST ANSATZ: Zuerst lokale Daten laden
-        const userData = await AsyncStorage.getItem("userData");
-        const completedModulesData =
-          await AsyncStorage.getItem("completedModules");
-        const lifeWheelData = await AsyncStorage.getItem("lifeWheelAreas");
+        const userData = mmkvStorage.getString(StorageKeys.USER);
+        const completedModulesData = mmkvStorage.getString(
+          StorageKeys.PROGRESSION,
+        );
 
+        const lifeWheelData = mmkvStorage.getString(StorageKeys.LIFE_WHEEL);
+        console.log("Lade Benutzerdaten...", userData);
         // Lokale Daten setzen, falls vorhanden
         if (userData) {
           set({ user: JSON.parse(userData) });
@@ -292,10 +283,7 @@ export const useUserStore = createBaseStore<UserState>(
                 });
 
                 // Lokal speichern
-                await AsyncStorage.setItem(
-                  "userData",
-                  JSON.stringify(get().user),
-                );
+                mmkvStorage.set(StorageKeys.USER, JSON.stringify(userData));
               } else {
                 // Benutzer existiert nicht, neuen erstellen
                 const now = new Date().toISOString();
@@ -608,4 +596,5 @@ export const useUserStore = createBaseStore<UserState>(
       set({ lifeWheelAreas: lifeWheelStore.lifeWheelAreas });
     },
   }),
+  StorageKeys.USER,
 );
