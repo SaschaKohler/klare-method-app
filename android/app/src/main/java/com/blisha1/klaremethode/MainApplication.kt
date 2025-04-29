@@ -1,4 +1,4 @@
-package com.deinname.klaremethode
+package com.blisha1.klaremethode
 
 import android.app.Application
 import android.content.res.Configuration

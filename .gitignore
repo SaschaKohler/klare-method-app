@@ -57,3 +57,4 @@ DerivedData
 *.xcuserstate
 project.xcworkspace
 ios/.xcode.env.local
+.aider*

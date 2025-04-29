@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'KLARE Methode'
+rootProject.name = 'klare-methode'
 
 dependencyResolutionManagement {
   versionCatalogs {

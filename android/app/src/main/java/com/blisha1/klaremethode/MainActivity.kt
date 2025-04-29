@@ -1,4 +1,4 @@
-package com.deinname.klaremethode
+package com.blisha1.klaremethode
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
