@@ -35,17 +35,26 @@ export default function App() {
   
   // Debug store hydration status
   useEffect(() => {
-    const stores = [
-      useUserStore.persist,
-      useThemeStore.persist,
-      useResourceStore.persist
-    ];
-    
-    stores.forEach(store => {
-      store.subscribe(() => {
-        console.log(`${store.options.name} hydration status:`, store.getState()._hasHydrated);
-      });
-    });
+    const debugHydration = async () => {
+      const stores = [
+        { name: 'user', store: useUserStore },
+        { name: 'theme', store: useThemeStore },
+        { name: 'resources', store: useResourceStore }
+      ];
+
+      for (const {name, store} of stores) {
+        const hydrated = await store.persist.hasHydrated();
+        console.log(`${name} store hydrated:`, hydrated);
+        
+        const unsub = store.persist.onFinishHydration(() => {
+          console.log(`${name} store finished hydrating`);
+        });
+        
+        return () => unsub();
+      }
+    };
+
+    debugHydration();
   }, []);
   // Theme management
   const colorScheme = useColorScheme();
