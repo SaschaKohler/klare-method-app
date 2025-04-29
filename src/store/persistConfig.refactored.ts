@@ -1,6 +1,6 @@
 // src/store/persistConfig.ts
-import { storage } from '../App';
 import { createJSONStorage, PersistOptions } from "zustand/middleware";
+import { mmkvStorage } from './mmkvStorage';
 import { User } from "@supabase/supabase-js";
 import { LifeWheelArea } from "../types/store";
 import {
@@ -14,11 +14,36 @@ import { VisionBoard, VisionBoardItem } from "../services/VisionBoardService";
 // Basiskonfiguration für die Zustand-Persistenz
 export const basePersistConfig = {
   storage: createJSONStorage(() => ({
-    setItem: (name, value) => mmkvStorage.set(name, value),
-    getItem: (name) => mmkvStorage.getString(name) || null,
-    removeItem: (name) => mmkvStorage.delete(name),
+    setItem: (name, value) => {
+      try {
+        mmkvStorage.set(name, value);
+      } catch (error) {
+        console.error('MMKV setItem failed:', error);
+      }
+    },
+    getItem: (name) => {
+      try {
+        return mmkvStorage.getString(name) ?? null;
+      } catch (error) {
+        console.error('MMKV getItem failed:', error);
+        return null;
+      }
+    },
+    removeItem: (name) => {
+      try {
+        mmkvStorage.delete(name);
+      } catch (error) {
+        console.error('MMKV removeItem failed:', error);
+      }
+    },
   })),
-  version: 1, // Versionsinfo für potenzielle Migrationspfade
+  version: 1,
+  // Error handling für Hydration
+  onRehydrateStorage: () => (state, error) => {
+    if (error) {
+      console.error('Error during storage rehydration:', error);
+    }
+  },
 };
 
 // Typdefinitionen für persistierte Teilzustände jedes Stores
