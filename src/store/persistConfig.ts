@@ -1,8 +1,14 @@
-import { storage } from '../App';
+import { MMKV } from 'react-native-mmkv';
 import { createJSONStorage } from "zustand/middleware";
 
+export const mmkvStorage = new MMKV();
+
 export const basePersistConfig = {
-  storage: createJSONStorage(() => storage),
+  storage: createJSONStorage(() => ({
+    setItem: (name, value) => mmkvStorage.set(name, value),
+    getItem: (name) => mmkvStorage.getString(name) || null,
+    removeItem: (name) => mmkvStorage.delete(name),
+  })),
 };
 
 export const storePersistConfigs = {

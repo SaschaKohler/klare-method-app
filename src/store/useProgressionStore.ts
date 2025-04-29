@@ -1,5 +1,7 @@
 // src/store/useProgressionStore.ts
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { basePersistConfig } from "./persistConfig";
 import { supabase } from "../lib/supabase";
 import { progressionStages, ProgressionStage } from "../data/progression";
 
@@ -84,7 +86,9 @@ const MODULE_IDS_BY_STEP = {
   ],
 };
 
-export const useProgressionStore = create<ProgressionState>((set, get) => ({
+export const useProgressionStore = create<ProgressionState>()(
+  persist(
+    (set, get) => ({
   completedModules: [],
   moduleProgressCache: {},
   joinDate: null,
@@ -110,11 +114,6 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
 
     // Lokal speichern
     try {
-      await AsyncStorage.setItem(
-        "completedModules",
-        JSON.stringify(updatedModules),
-      );
-
       // Wenn eine UserId vorhanden ist, mit Supabase synchronisieren
       if (userId) {
         try {
@@ -413,4 +412,14 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
     const newJoinDate = new Date().toISOString();
     set({ joinDate: newJoinDate });
   },
-}));
+    }),
+    {
+      name: "klare-progression-storage",
+      ...basePersistConfig,
+      partialize: (state) => ({
+        completedModules: state.completedModules,
+        joinDate: state.joinDate,
+      }),
+    },
+  ),
+);

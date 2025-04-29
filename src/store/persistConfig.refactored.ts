@@ -13,7 +13,11 @@ import { VisionBoard, VisionBoardItem } from "../services/VisionBoardService";
 
 // Basiskonfiguration für die Zustand-Persistenz
 export const basePersistConfig = {
-  storage: createJSONStorage(() => MMKV),
+  storage: createJSONStorage(() => ({
+    setItem: (name, value) => mmkvStorage.set(name, value),
+    getItem: (name) => mmkvStorage.getString(name) || null,
+    removeItem: (name) => mmkvStorage.delete(name),
+  })),
   version: 1, // Versionsinfo für potenzielle Migrationspfade
 };
 
