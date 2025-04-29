@@ -1,6 +1,6 @@
 // src/store/useUserStore.ts
 import { create } from "zustand";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { StorageKeys } from "./mmkvStorage";
 import { supabase } from "../lib/supabase";
 import { LifeWheelArea } from "../types/store";
 import { useLifeWheelStore } from "./useLifeWheelStore";
@@ -68,7 +68,22 @@ export function calculateTotalProgress(): number {
   );
 }
 
-export const useUserStore = create<UserState>((set, get) => ({
+export const useUserStore = createBaseStore<UserState>(
+  {
+    user: null,
+    isLoading: true,
+    isOnline: false,
+    // Legacy properties
+    lifeWheelAreas: [],
+    completedModules: [],
+    moduleProgressCache: {},
+    metadata: {
+      isLoading: false,
+      lastSync: null,
+      error: null,
+    },
+  },
+  (set, get) => ({
   user: null,
   isLoading: true,
   isOnline: false,

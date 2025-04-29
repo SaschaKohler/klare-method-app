@@ -49,10 +49,15 @@ export const useThemeStore = createBaseStore<ThemeState>(
 
     // Abfragen
     getActiveTheme: () => {
-      const state = get();
-      return state.isSystemTheme
-        ? Appearance.getColorScheme() === "dark"
-        : state.isDarkMode;
+      try {
+        const state = get();
+        return state.isSystemTheme
+          ? Appearance.getColorScheme() === "dark"
+          : state.isDarkMode;
+      } catch (error) {
+        console.error('Error getting active theme:', error);
+        return false; // Fallback to light theme
+      }
     },
   }),
   "theme",

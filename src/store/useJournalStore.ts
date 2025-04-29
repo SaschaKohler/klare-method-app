@@ -291,5 +291,5 @@ export const useJournalStore = createBaseStore<JournalStoreState>(
       }
     },
   }),
-  "journal",
+  StorageKeys.JOURNAL,
 );

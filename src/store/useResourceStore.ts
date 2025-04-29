@@ -199,5 +199,5 @@ export const useResourceStore = createBaseStore<ResourceStoreState>(
       return get().currentUserResources;
     },
   }),
-  "resources",
+  StorageKeys.RESOURCES,
 );
