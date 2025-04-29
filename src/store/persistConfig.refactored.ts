@@ -1,8 +1,6 @@
 // src/store/persistConfig.ts
-import { MMKVLoader } from 'react-native-mmkv-storage';
+import { storage } from '../App';
 import { createJSONStorage, PersistOptions } from "zustand/middleware";
-
-const MMKV = new MMKVLoader().initialize();
 import { User } from "@supabase/supabase-js";
 import { LifeWheelArea } from "../types/store";
 import {

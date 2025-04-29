@@ -12,8 +12,10 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KlareLogo } from "./src/components";
 import MainNavigator from "./src/navigation/MainNavigator";
 import { lightTheme, darkTheme } from "./src/constants/theme";
-import { MMKVLoader } from 'react-native-mmkv-storage';
-const MMKV = new MMKVLoader().initialize();
+import { MMKV } from 'react-native-mmkv';
+
+// Initialize MMKV
+export const storage = new MMKV();
 import {
   useUserStore,
   useThemeStore,
