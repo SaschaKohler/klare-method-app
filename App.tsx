@@ -31,8 +31,6 @@ import {
   useVisionBoardStore,
   useResourceStore,
 } from "./src/store";
-import { prepare } from "@react-three/fiber/dist/declarations/src/core/renderer";
-
 // Splash Screen während des Ladens anzeigen
 SplashScreen.preventAutoHideAsync();
 
