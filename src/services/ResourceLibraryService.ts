@@ -43,7 +43,6 @@ class ResourceLibraryService {
       }
 
       // Try to get from local storage
-      const localKey = `${RESOURCES_STORAGE_KEY}_${userId}`;
       const localData = mmkvStorage.getString(StorageKeys.RESOURCES);
 
       let resources: Resource[] = [];
@@ -121,7 +120,7 @@ class ResourceLibraryService {
 
       // Update local storage
       const localKey = `${RESOURCES_STORAGE_KEY}_${userId}`;
-      await AsyncStorage.setItem(localKey, JSON.stringify(resources));
+      mmkvStorage.set(StorageKeys.RESOURCES, JSON.stringify(resources));
 
       // Update cache
       this.resourcesCache[userId] = resources;
@@ -183,7 +182,7 @@ class ResourceLibraryService {
 
       // Update local storage
       const localKey = `${RESOURCES_STORAGE_KEY}_${userId}`;
-      await AsyncStorage.setItem(localKey, JSON.stringify(resources));
+      mmkvStorage.set(StorageKeys.RESOURCES, JSON.stringify(resources));
 
       // Update cache
       this.resourcesCache[userId] = resources;
@@ -237,7 +236,7 @@ class ResourceLibraryService {
 
       // Update local storage
       const localKey = `${RESOURCES_STORAGE_KEY}_${userId}`;
-      await AsyncStorage.setItem(localKey, JSON.stringify(updatedResources));
+      mmkvStorage.set(StorageKeys.RESOURCES, JSON.stringify(updatedResources));
 
       // Update cache
       this.resourcesCache[userId] = updatedResources;

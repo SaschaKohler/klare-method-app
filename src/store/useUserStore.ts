@@ -7,7 +7,7 @@ import { useLifeWheelStore } from "./useLifeWheelStore";
 import { useProgressionStore } from "./useProgressionStore";
 import { AuthError, User } from "@supabase/supabase-js";
 import { SessionData, Stage, SupabaseResponse } from "../types/store";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { mmkvStorage, StorageKeys } from "../store/mmkvStorage";
 import { createBaseStore } from "./createBaseStore";
 
 interface UserState {
