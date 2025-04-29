@@ -1,5 +1,5 @@
 // src/store/persistManager.ts
-// import AsyncStorage from "@react-native-async-storage/async-storage";
+import { mmkvStorage } from './mmkvStorage';
 import { storePersistConfigs } from "./persistConfig";
 
 export class PersistManager {
@@ -12,7 +12,7 @@ export class PersistManager {
 
     for (const key of storeKeys) {
       try {
-        const data = await AsyncStorage.getItem(key);
+        const data = mmkvStorage.getString(key);
         if (data) {
           backup[key] = JSON.parse(data);
         }
@@ -42,7 +42,7 @@ export class PersistManager {
     for (const [key, data] of Object.entries(backup)) {
       if (key !== "metadata") {
         try {
-          await AsyncStorage.setItem(key, JSON.stringify(data));
+          mmkvStorage.set(key, JSON.stringify(data));
         } catch (error) {
           console.error(`Failed to restore ${key}:`, error);
         }
@@ -54,8 +54,8 @@ export class PersistManager {
   }
 
   // Alle Store-Daten exportieren (für Cloud-Sync)
-  static async exportStoreData(userId: string) {
-    const backup = await this.createBackup();
+  static exportStoreData(userId: string) {
+    const backup = this.createBackup();
     return {
       userId,
       storeData: backup,
@@ -64,8 +64,8 @@ export class PersistManager {
   }
 
   // Store-Daten aus Cloud importieren
-  static async importStoreData(cloudData: any) {
-    // Validierung und dann Wiederherstellung
+  static importStoreData(cloudData: any) {
+    // Validation and restoration
     return this.restoreBackup(cloudData.storeData);
   }
 
@@ -77,7 +77,7 @@ export class PersistManager {
 
     for (const key of storeKeys) {
       try {
-        await AsyncStorage.removeItem(key);
+        mmkvStorage.delete(key);
       } catch (error) {
         console.error(`Failed to clear ${key}:`, error);
       }
