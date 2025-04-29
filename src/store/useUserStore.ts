@@ -1,13 +1,12 @@
 // src/store/useUserStore.ts
 import { create } from "zustand";
-import { StorageKeys } from "./mmkvStorage";
+import { mmkvStorage, StorageKeys } from "./mmkvStorage";
 import { supabase } from "../lib/supabase";
 import { LifeWheelArea } from "../types/store";
 import { useLifeWheelStore } from "./useLifeWheelStore";
 import { useProgressionStore } from "./useProgressionStore";
 import { AuthError, User } from "@supabase/supabase-js";
 import { SessionData, Stage, SupabaseResponse } from "../types/store";
-import { mmkvStorage, StorageKeys } from "../store/mmkvStorage";
 import { createBaseStore } from "./createBaseStore";
 
 interface UserState {
@@ -107,10 +106,12 @@ export const useUserStore = createBaseStore<UserState>(
 
       // Speichere immer lokal
       try {
-        await AsyncStorage.setItem(
-          "userData",
-          JSON.stringify({ ...get().user }),
-        );
+        mmkvStorage.set(StorageKeys.USER, JSON.stringify(...get().user));
+
+        // await AsyncStorage.setItem(
+        //   "userData",
+        //   JSON.stringify({ ...get().user }),
+        // );
 
         // Wenn online, synchronisiere mit Supabase
         if (isOnline) {
