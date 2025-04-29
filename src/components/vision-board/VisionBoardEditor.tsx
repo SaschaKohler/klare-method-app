@@ -24,7 +24,7 @@ import {
   SegmentedButtons,
 } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
+import * as ImagePicker from 'expo-image-picker';
 import { supabase } from "../../lib/supabase";
 import { useThemeStore, useUserStore } from "../../store";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -606,30 +606,34 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                 icon="image"
                 onPress={async () => {
                   try {
-                    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-                    if (!permissionResult.granted) {
-                      Alert.alert('Berechtigung benötigt', 'Wir benötigen Zugriff auf Ihre Fotos, um Bilder hinzufügen zu können.');
+                    // Request permissions first
+                    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                    if (status !== 'granted') {
+                      Alert.alert(
+                        'Permission required',
+                        'Sorry, we need camera roll permissions to make this work!'
+                      );
                       return;
                     }
 
-                    const result = await ImagePicker.launchImageLibraryAsync({
+                    // Launch image picker
+                    let result = await ImagePicker.launchImageLibraryAsync({
                       mediaTypes: ImagePicker.MediaTypeOptions.Images,
                       allowsEditing: true,
                       aspect: [4, 3],
                       quality: 1,
                     });
 
-                    if (!result.canceled && result.assets && result.assets.length > 0) {
+                    if (!result.canceled) {
                       const imageUri = result.assets[0].uri;
                       const publicUrl = await visionBoardService.uploadImage(imageUri, user?.id || '');
-                      
                       setSelectedItem(prev => 
                         prev ? { ...prev, image_url: publicUrl } : null
                       );
                     }
                   } catch (error) {
                     console.error('Error picking image:', error);
-                    Alert.alert('Fehler', 'Beim Auswählen des Bildes ist ein Fehler aufgetreten.');
+                    Alert.alert('Error', 'Failed to pick image');
                   }
                 }}
               >
