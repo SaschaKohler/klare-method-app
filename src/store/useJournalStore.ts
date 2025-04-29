@@ -10,6 +10,7 @@ import {
 } from "../services/JournalService";
 import { storePersistConfigs } from "./persistConfig.refactored";
 import { createBaseStore, BaseState } from "./createBaseStore";
+import { StorageKeys } from "./mmkvStorage";
 
 interface JournalStoreState extends BaseState {
   // State

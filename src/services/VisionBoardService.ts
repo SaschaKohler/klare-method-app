@@ -30,7 +30,6 @@ class VisionBoardService {
         return this.visionBoardCache[userId];
       }
 
-      const localKey = `${VISION_BOARD_STORAGE_KEY}_${userId}`;
       const localData = mmkvStorage.getString(StorageKeys.VISION_BOARD);
 
       let visionBoards: VisionBoard[] = [];

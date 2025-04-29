@@ -7,6 +7,8 @@ import {
   VisionBoard,
   VisionBoardItem,
 } from "../services/VisionBoardService";
+import VisionBoardScreen from "../screens/VisionBoardScreen";
+import { mmkvStorage, StorageKeys } from "./mmkvStorage";
 
 interface VisionBoardStoreState extends BaseState {
   // State
@@ -274,5 +276,5 @@ export const useVisionBoardStore = createBaseStore<VisionBoardStoreState>(
       return items.filter((item) => item.life_area === categoryName);
     },
   }),
-  "visionBoardStore",
+  StorageKeys.VISION_BOARD,
 );

@@ -176,9 +176,9 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
         const { lifeWheelAreas } = get();
 
         // Lokal speichern
-        await AsyncStorage.setItem(
-          "lifeWheelAreas",
-          JSON.stringify(lifeWheelAreas),
+        mmkvStorage.set(
+          StorageKeys.LIFE_WHEEL,
+          JSON.stringify(get().lifeWheelAreas),
         );
 
         // Mit Server synchronisieren wenn UserId vorhanden

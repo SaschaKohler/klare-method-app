@@ -122,15 +122,6 @@ export default function App() {
     async function prepare() {
       try {
         // Test AsyncStorage availability
-        try {
-          await AsyncStorage.setItem("@storage_test", "test");
-          await AsyncStorage.getItem("@storage_test");
-          await AsyncStorage.removeItem("@storage_test");
-          console.log("AsyncStorage test successful");
-        } catch (storageError) {
-          console.error("AsyncStorage test failed:", storageError);
-          throw new Error("Storage initialization failed");
-        }
 
         await loadUserData();
 
