@@ -24,7 +24,7 @@ import {
   SegmentedButtons,
 } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from 'expo-image-picker';
+import * as ImagePicker from "expo-image-picker";
 import { supabase } from "../../lib/supabase";
 import { useThemeStore, useUserStore } from "../../store";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -32,6 +32,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Tables, TablesInsert } from "../../types/supabase";
 import { Theme } from "react-native-paper/lib/typescript/types";
 import { darkKlareColors, lightKlareColors } from "../../constants/theme";
+import { visionBoardService } from "../../services/VisionBoardService";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -607,11 +608,12 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                 onPress={async () => {
                   try {
                     // Request permissions first
-                    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-                    if (status !== 'granted') {
+                    const { status } =
+                      await ImagePicker.requestMediaLibraryPermissionsAsync();
+                    if (status !== "granted") {
                       Alert.alert(
-                        'Permission required',
-                        'Sorry, we need camera roll permissions to make this work!'
+                        "Permission required",
+                        "Sorry, we need camera roll permissions to make this work!",
                       );
                       return;
                     }
@@ -626,14 +628,17 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
 
                     if (!result.canceled) {
                       const imageUri = result.assets[0].uri;
-                      const publicUrl = await visionBoardService.uploadImage(imageUri, user?.id || '');
-                      setSelectedItem(prev => 
-                        prev ? { ...prev, image_url: publicUrl } : null
+                      const publicUrl = await visionBoardService.uploadImage(
+                        imageUri,
+                        user?.id || "",
+                      );
+                      setSelectedItem((prev) =>
+                        prev ? { ...prev, image_url: publicUrl } : null,
                       );
                     }
                   } catch (error) {
-                    console.error('Error picking image:', error);
-                    Alert.alert('Error', 'Failed to pick image');
+                    console.error("Error picking image:", error);
+                    Alert.alert("Error", "Failed to pick image");
                   }
                 }}
               >
