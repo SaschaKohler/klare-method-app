@@ -12,10 +12,18 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KlareLogo } from "./src/components";
 import MainNavigator from "./src/navigation/MainNavigator";
 import { lightTheme, darkTheme } from "./src/constants/theme";
-import { MMKVLoader } from 'react-native-mmkv-storage';
+import { MMKV, Mode } from "react-native-mmkv";
+
+// export const storage = new MMKV({
+//   id: `user-${userId}-storage`,
+//   path: `${USER_DIRECTORY}/storage`,
+//   encryptionKey: 'hunter2',
+//   mode: Mode.MULTI_PROCESS,
+//   readOnly: false
+// })
 
 // Initialize MMKV
-export const storage = new MMKVLoader().initialize();
+export const storage = new MMKV();
 import {
   useUserStore,
   useThemeStore,
@@ -35,34 +43,36 @@ export default function App() {
   // User store
   const loadUserData = useUserStore((state) => state.loadUserData);
   const { loadResources } = useResourceStore();
-  
+
   // Debug store hydration status
   useEffect(() => {
     const debugHydration = async () => {
       const stores = [
-        { name: 'user', store: useUserStore },
-        { name: 'theme', store: useThemeStore },
-        { name: 'resources', store: useResourceStore },
-        { name: 'visionBoard', store: useVisionBoardStore }
+        { name: "user", store: useUserStore },
+        { name: "theme", store: useThemeStore },
+        { name: "resources", store: useResourceStore },
+        { name: "visionBoard", store: useVisionBoardStore },
       ];
 
       // Special debug for VisionBoardStore
-      const visionBoardUnsub = useVisionBoardStore.persist.onFinishHydration(() => {
-        console.log('VisionBoardStore hydration state:', {
-          hasHydrated: useVisionBoardStore.persist.hasHydrated(),
-          storage: useVisionBoardStore.persist.getOptions().storage
-        });
-      });
+      const visionBoardUnsub = useVisionBoardStore.persist.onFinishHydration(
+        () => {
+          console.log("VisionBoardStore hydration state:", {
+            hasHydrated: useVisionBoardStore.persist.hasHydrated(),
+            storage: useVisionBoardStore.persist.getOptions().storage,
+          });
+        },
+      );
 
-      for (const {name, store} of stores) {
+      for (const { name, store } of stores) {
         try {
           const hydrated = await store.persist.hasHydrated();
           console.log(`${name} store hydrated:`, hydrated);
-          
+
           const unsub = store.persist.onFinishHydration(() => {
             console.log(`${name} store finished hydrating`);
           });
-          
+
           return () => {
             unsub();
             visionBoardUnsub();
@@ -113,21 +123,21 @@ export default function App() {
       try {
         // Test AsyncStorage availability
         try {
-          await AsyncStorage.setItem('@storage_test', 'test');
-          await AsyncStorage.getItem('@storage_test');
-          await AsyncStorage.removeItem('@storage_test');
-          console.log('AsyncStorage test successful');
+          await AsyncStorage.setItem("@storage_test", "test");
+          await AsyncStorage.getItem("@storage_test");
+          await AsyncStorage.removeItem("@storage_test");
+          console.log("AsyncStorage test successful");
         } catch (storageError) {
-          console.error('AsyncStorage test failed:', storageError);
-          throw new Error('Storage initialization failed');
+          console.error("AsyncStorage test failed:", storageError);
+          throw new Error("Storage initialization failed");
         }
 
         await loadUserData();
 
         // Beliebige andere Vorbereitungen hier
       } catch (e) {
-        console.warn('App initialization failed:', e);
-        if (e.message.includes('Storage')) {
+        console.warn("App initialization failed:", e);
+        if (e.message.includes("Storage")) {
           setStorageFailed(true);
         }
       } finally {
@@ -144,12 +154,14 @@ export default function App() {
   if (!appReady) {
     if (storageFailed) {
       return (
-        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
           <Text>App konnte nicht gestartet werden. Bitte neu starten.</Text>
-          <Button 
-            onPress={() => prepare()} 
+          <Button
+            onPress={() => prepare()}
             mode="contained"
-            style={{marginTop: 20}}
+            style={{ marginTop: 20 }}
           >
             Erneut versuchen
           </Button>

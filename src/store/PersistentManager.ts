@@ -1,5 +1,5 @@
 // src/store/persistManager.ts
-import AsyncStorage from "@react-native-async-storage/async-storage";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
 import { storePersistConfigs } from "./persistConfig";
 
 export class PersistManager {
