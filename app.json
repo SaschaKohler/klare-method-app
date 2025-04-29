@@ -16,14 +16,23 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.blisha1.klaremethode"
+      "bundleIdentifier": "com.blisha1.klaremethode",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos for vision board creation",
+        "NSPhotoLibraryAddUsageDescription": "Allow $(PRODUCT_NAME) to save photos to your library"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.blisha1.klaremethode"
+      "package": "com.blisha1.klaremethode",
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
