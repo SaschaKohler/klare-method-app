@@ -43,7 +43,7 @@ export const useResourceStore = createBaseStore<ResourceStoreState>(
   {
     // initial state
     resources: [],
-    currentUserResources: [],
+    currentUserResources: [] as Resource[],
     metadata: {
       isLoading: false,
       lastSync: null,
@@ -149,36 +149,48 @@ export const useResourceStore = createBaseStore<ResourceStoreState>(
     },
 
     getResourcesByCategory: (category: ResourceCategory) => {
-      return get().currentUserResources.filter((r) => r.category === category);
+      const resources = get().currentUserResources;
+      return Array.isArray(resources) 
+        ? resources.filter((r) => r.category === category)
+        : [];
     },
 
     getTopResources: (limit: number = 5) => {
-      return [...get().currentUserResources]
-        .sort((a, b) => b.rating - a.rating)
-        .slice(0, limit);
+      const resources = get().currentUserResources;
+      return Array.isArray(resources)
+        ? [...resources]
+            .sort((a, b) => b.rating - a.rating)
+            .slice(0, limit)
+        : [];
     },
 
     getRecentlyActivatedResources: (limit: number = 5) => {
-      return [...get().currentUserResources]
-        .filter((r) => r.lastActivated)
-        .sort((a, b) => {
-          if (!a.lastActivated || !b.lastActivated) return 0;
-          return (
-            new Date(b.lastActivated).getTime() -
-            new Date(a.lastActivated).getTime()
-          );
-        })
-        .slice(0, limit);
+      const resources = get().currentUserResources;
+      return Array.isArray(resources)
+        ? [...resources]
+            .filter((r) => r.lastActivated)
+            .sort((a, b) => {
+              if (!a.lastActivated || !b.lastActivated) return 0;
+              return (
+                new Date(b.lastActivated).getTime() -
+                new Date(a.lastActivated).getTime()
+              );
+            })
+            .slice(0, limit)
+        : [];
     },
 
     searchResources: (searchTerm: string) => {
+      const resources = get().currentUserResources;
       const term = searchTerm.toLowerCase();
-      return get().currentUserResources.filter(
-        (r) =>
-          r.name.toLowerCase().includes(term) ||
-          (r.description && r.description.toLowerCase().includes(term)) ||
-          (r.activationTips && r.activationTips.toLowerCase().includes(term)),
-      );
+      return Array.isArray(resources)
+        ? resources.filter(
+            (r) =>
+              r.name.toLowerCase().includes(term) ||
+              (r.description && r.description.toLowerCase().includes(term)) ||
+              (r.activationTips && r.activationTips.toLowerCase().includes(term))
+          )
+        : [];
     },
 
     setCurrentUserResources: async (userId: string) => {
