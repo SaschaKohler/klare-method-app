@@ -1,5 +1,5 @@
 // src/store/useLifeWheelStore.ts
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { mmkvStorage, StorageKeys } from "./mmkvStorage";
 import { supabase } from "../lib/supabase";
 import { LifeWheelArea } from "../types/store";
 import { createBaseStore, BaseState } from "./createBaseStore";
@@ -82,7 +82,7 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
         get().setError(null);
 
         // Lokale Daten laden
-        const lifeWheelData = await AsyncStorage.getItem("lifeWheelAreas");
+        const lifeWheelData = mmkvStorage.getString(StorageKeys.LIFE_WHEEL);
         if (lifeWheelData) {
           set((state) => ({
             ...state,
@@ -125,8 +125,8 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
               }));
 
               // Lokal speichern
-              await AsyncStorage.setItem(
-                "lifeWheelAreas",
+              mmkvStorage.set(
+                StorageKeys.LIFE_WHEEL,
                 JSON.stringify(formattedWheelData),
               );
 
@@ -156,8 +156,8 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
         }));
 
         // Lokal speichern
-        await AsyncStorage.setItem(
-          "lifeWheelAreas",
+        mmkvStorage.set(
+          StorageKeys.LIFE_WHEEL,
           JSON.stringify(get().lifeWheelAreas),
         );
       } catch (error) {
@@ -265,5 +265,5 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
         .slice(0, count);
     },
   }),
-  "lifeWheel",
+  StorageKeys.LIFE_WHEEL,
 );
