@@ -2,11 +2,7 @@ import { storage } from '../App';
 import { createJSONStorage } from "zustand/middleware";
 
 export const basePersistConfig = {
-  storage: createJSONStorage(() => ({
-    setItem: (name, value) => storage.set(name, value),
-    getItem: (name) => storage.getString(name) || null,
-    removeItem: (name) => storage.delete(name),
-  })),
+  storage: createJSONStorage(() => storage),
 };
 
 export const storePersistConfigs = {
