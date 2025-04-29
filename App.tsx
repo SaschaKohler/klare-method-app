@@ -12,6 +12,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KlareLogo } from "./src/components";
 import MainNavigator from "./src/navigation/MainNavigator";
 import { lightTheme, darkTheme } from "./src/constants/theme";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   useUserStore,
   useThemeStore,
@@ -31,6 +32,21 @@ export default function App() {
   // User store
   const loadUserData = useUserStore((state) => state.loadUserData);
   const { loadResources } = useResourceStore();
+  
+  // Debug store hydration status
+  useEffect(() => {
+    const stores = [
+      useUserStore.persist,
+      useThemeStore.persist,
+      useResourceStore.persist
+    ];
+    
+    stores.forEach(store => {
+      store.subscribe(() => {
+        console.log(`${store.options.name} hydration status:`, store.getState()._hasHydrated);
+      });
+    });
+  }, []);
   // Theme management
   const colorScheme = useColorScheme();
   const { getActiveTheme, isSystemTheme, setSystemTheme } = useThemeStore();
@@ -67,11 +83,25 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
+        // Test AsyncStorage availability
+        try {
+          await AsyncStorage.setItem('@storage_test', 'test');
+          await AsyncStorage.getItem('@storage_test');
+          await AsyncStorage.removeItem('@storage_test');
+          console.log('AsyncStorage test successful');
+        } catch (storageError) {
+          console.error('AsyncStorage test failed:', storageError);
+          throw new Error('Storage initialization failed');
+        }
+
         await loadUserData();
 
         // Beliebige andere Vorbereitungen hier
       } catch (e) {
-        console.warn(e);
+        console.warn('App initialization failed:', e);
+        if (e.message.includes('Storage')) {
+          setStorageFailed(true);
+        }
       } finally {
         setAppReady(true);
         SplashScreen.hideAsync();
@@ -81,7 +111,23 @@ export default function App() {
     prepare();
   }, [loadUserData]);
 
+  const [storageFailed, setStorageFailed] = useState(false);
+
   if (!appReady) {
+    if (storageFailed) {
+      return (
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <Text>App konnte nicht gestartet werden. Bitte neu starten.</Text>
+          <Button 
+            onPress={() => prepare()} 
+            mode="contained"
+            style={{marginTop: 20}}
+          >
+            Erneut versuchen
+          </Button>
+        </View>
+      );
+    }
     return (
       <View
         style={{
