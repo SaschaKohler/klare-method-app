@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, useColorScheme, AppState, AppStateStatus } from "react-native";
+import {
+  View,
+  useColorScheme,
+  AppState,
+  AppStateStatus,
+  Button,
+  Text,
+} from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { Provider as PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -12,7 +19,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KlareLogo } from "./src/components";
 import MainNavigator from "./src/navigation/MainNavigator";
 import { lightTheme, darkTheme } from "./src/constants/theme";
-import { mmkvStorage as storage } from './src/store/mmkvStorage';
+import { mmkvStorage, mmkvStorage as storage } from "./src/store/mmkvStorage";
 
 // MMKV is now initialized in src/store/mmkvStorage.ts
 import {
@@ -24,6 +31,7 @@ import {
   useVisionBoardStore,
   useResourceStore,
 } from "./src/store";
+import { prepare } from "@react-three/fiber/dist/declarations/src/core/renderer";
 
 // Splash Screen während des Ladens anzeigen
 SplashScreen.preventAutoHideAsync();
@@ -136,10 +144,10 @@ export default function App() {
   // Check storage availability
   useEffect(() => {
     try {
-      mmkvStorage.set('__test__', 'test');
-      mmkvStorage.delete('__test__');
+      mmkvStorage.set("__test__", "test");
+      mmkvStorage.delete("__test__");
     } catch (e) {
-      console.error('Storage initialization failed:', e);
+      console.error("Storage initialization failed:", e);
       setStorageFailed(true);
     }
   }, []);
