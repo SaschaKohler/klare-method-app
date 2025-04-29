@@ -119,7 +119,6 @@ class ResourceLibraryService {
       resources.push(newResource);
 
       // Update local storage
-      const localKey = `${RESOURCES_STORAGE_KEY}_${userId}`;
       mmkvStorage.set(StorageKeys.RESOURCES, JSON.stringify(resources));
 
       // Update cache
@@ -181,7 +180,6 @@ class ResourceLibraryService {
       resources[resourceIndex] = updatedResource;
 
       // Update local storage
-      const localKey = `${RESOURCES_STORAGE_KEY}_${userId}`;
       mmkvStorage.set(StorageKeys.RESOURCES, JSON.stringify(resources));
 
       // Update cache
@@ -235,7 +233,6 @@ class ResourceLibraryService {
       const updatedResources = resources.filter((r) => r.id !== resourceId);
 
       // Update local storage
-      const localKey = `${RESOURCES_STORAGE_KEY}_${userId}`;
       mmkvStorage.set(StorageKeys.RESOURCES, JSON.stringify(updatedResources));
 
       // Update cache
