@@ -273,30 +273,56 @@ class VisionBoardService {
   }
 
   async uploadImage(fileUri: string, userId: string): Promise<string> {
+    if (!userId) {
+      throw new Error('User ID is required for image upload');
+    }
+
     try {
-      const fileExt = fileUri.split('.').pop();
+      const fileExt = fileUri.split('.').pop()?.toLowerCase();
+      if (!fileExt || !['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
+        throw new Error('Unsupported image format');
+      }
+
       const fileName = `${userId}-${Date.now()}.${fileExt}`;
       const filePath = `vision-board/${fileName}`;
 
+      // Convert to blob if needed (for web compatibility)
+      const formData = new FormData();
+      formData.append('file', {
+        uri: fileUri,
+        type: `image/${fileExt}`,
+        name: fileName,
+      });
+
       const { data, error } = await supabase.storage
         .from('vision-board-images')
-        .upload(filePath, {
-          uri: fileUri,
-          type: `image/${fileExt}`,
-          name: fileName,
-        });
+        .upload(filePath, formData);
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(`Upload failed: ${error.message}`);
+      }
 
-      // Get public URL
+      // Get public URL with cache busting
       const { data: { publicUrl } } = supabase.storage
         .from('vision-board-images')
-        .getPublicUrl(filePath);
+        .getPublicUrl(filePath, {
+          download: false,
+          transform: {
+            width: 800,
+            height: 800,
+            resize: 'contain',
+            quality: 80
+          }
+        });
 
-      return publicUrl;
+      return `${publicUrl}?t=${Date.now()}`;
     } catch (error) {
-      console.error('Error uploading image:', error);
-      throw error;
+      console.error('Image upload error:', error);
+      throw new Error(
+        error instanceof Error 
+          ? error.message 
+          : 'Failed to upload image'
+      );
     }
   }
 

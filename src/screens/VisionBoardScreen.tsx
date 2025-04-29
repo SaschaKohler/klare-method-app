@@ -22,6 +22,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import VisionBoardEditor from "../components/vision-board/VisionBoardEditor";
 import { supabase } from "../lib/supabase";
+import { visionBoardService } from "../services/VisionBoardService";
 import { useUserStore, useVisionBoardStore } from "../store";
 import { RootStackParamList } from "../types/navigation";
 import { useKlareStores } from "../hooks";
@@ -61,7 +62,25 @@ const VisionBoardScreen = () => {
     }
   }, [user]);
   // Rendern des Vision Board Editors oder der Board-Auswahl
+  const [error, setError] = useState<string | null>(null);
+
   const renderContent = () => {
+    if (error) {
+      return (
+        <View style={styles.centered}>
+          <Text style={{ color: theme.colors.error }}>
+            Error: {error}
+          </Text>
+          <Button 
+            mode="contained" 
+            onPress={() => setError(null)}
+            style={{ marginTop: 16 }}
+          >
+            Try Again
+          </Button>
+        </View>
+      );
+    }
     if (visionBoardStore.metadata.isLoading) {
       return (
         <View style={styles.centered}>
@@ -79,9 +98,18 @@ const VisionBoardScreen = () => {
         <VisionBoardEditor
           initialBoard={boardToEdit}
           lifeAreas={lifeAreas}
-          onSave={(board) => {
-            if (user?.id) {
-              visionBoardStore.saveVisionBoard(user?.id, board);
+          onSave={async (board) => {
+            try {
+              if (user?.id) {
+                await visionBoardStore.saveVisionBoard(user.id, board);
+              }
+            } catch (e) {
+              setError(
+                e instanceof Error 
+                  ? e.message 
+                  : 'Failed to save vision board'
+              );
+              console.error('Save error:', e);
             }
           }}
         />
