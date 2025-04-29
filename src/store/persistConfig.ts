@@ -33,22 +33,3 @@ export const storePersistConfigs = {
   // Add other stores here as needed
 };
 
-export async function persistData(key: string, data: any) {
-  try {
-    await AsyncStorage.setItem(key, JSON.stringify(data));
-    return true;
-  } catch (e) {
-    console.error("Error saving data", e);
-    return false;
-  }
-}
-
-export async function loadPersistedData(key: string) {
-  try {
-    const data = await AsyncStorage.getItem(key);
-    return data ? JSON.parse(data) : null;
-  } catch (e) {
-    console.error("Error loading data", e);
-    return null;
-  }
-}

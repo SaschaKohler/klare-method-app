@@ -1,6 +1,5 @@
 // src/store/useProgressionStore.ts
 import { create } from "zustand";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../lib/supabase";
 import { progressionStages, ProgressionStage } from "../data/progression";
 
@@ -308,20 +307,6 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
     set({ isLoading: true });
 
     try {
-      // OFFLINE-FIRST ANSATZ: Zuerst lokale Daten laden
-      const completedModulesData =
-        await AsyncStorage.getItem("completedModules");
-      const joinDateData = await AsyncStorage.getItem("joinDate");
-
-      // Lokale Daten setzen, falls vorhanden
-      if (completedModulesData) {
-        set({ completedModules: JSON.parse(completedModulesData) });
-      }
-
-      if (joinDateData) {
-        set({ joinDate: joinDateData });
-      }
-
       // Wenn eine UserId vorhanden ist, versuche Daten vom Server zu laden
       if (userId) {
         try {
@@ -359,19 +344,10 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
           if (moduleData) {
             const completedModules = moduleData.map((m: any) => m.module_id);
             set({ completedModules });
-
-            // Lokal speichern
-            await AsyncStorage.setItem(
-              "completedModules",
-              JSON.stringify(completedModules),
-            );
           }
 
           if (userData && userData.join_date) {
             set({ joinDate: userData.join_date });
-
-            // Lokal speichern
-            await AsyncStorage.setItem("joinDate", userData.join_date);
           }
         } catch (syncError) {
           console.error("Fehler bei der Online-Synchronisierung:", syncError);
@@ -386,19 +362,9 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
   },
 
   saveProgressionData: async (userId) => {
-    const { completedModules, joinDate } = get();
+    const { completedModules } = get();
 
     try {
-      // Lokales Speichern
-      await AsyncStorage.setItem(
-        "completedModules",
-        JSON.stringify(completedModules),
-      );
-
-      if (joinDate) {
-        await AsyncStorage.setItem("joinDate", joinDate);
-      }
-
       // Wenn eine UserId vorhanden ist, mit Supabase synchronisieren
       if (userId) {
         try {
@@ -445,10 +411,6 @@ export const useProgressionStore = create<ProgressionState>((set, get) => ({
   resetJoinDate: async () => {
     // Aktuelles Datum als Startdatum setzen
     const newJoinDate = new Date().toISOString();
-
     set({ joinDate: newJoinDate });
-
-    // Lokal speichern
-    await AsyncStorage.setItem("joinDate", newJoinDate);
   },
 }));

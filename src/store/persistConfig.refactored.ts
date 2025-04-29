@@ -148,29 +148,3 @@ export const storePersistConfigs: StorePersistConfigs = {
   },
 };
 
-// Hilfsfunktionen zur manuellen Persistenz (veraltet, aber für Kompatibilität beibehalten)
-export async function persistData<T>(key: string, data: T): Promise<boolean> {
-  try {
-    await AsyncStorage.setItem(key, JSON.stringify(data));
-    console.warn(
-      "persistData is deprecated. Use Zustand persist middleware instead.",
-    );
-    return true;
-  } catch (e) {
-    console.error("Error saving data", e);
-    return false;
-  }
-}
-
-export async function loadPersistedData<T>(key: string): Promise<T | null> {
-  try {
-    const data = await AsyncStorage.getItem(key);
-    console.warn(
-      "loadPersistedData is deprecated. Use Zustand persist middleware instead.",
-    );
-    return data ? (JSON.parse(data) as T) : null;
-  } catch (e) {
-    console.error("Error loading data", e);
-    return null;
-  }
-}
