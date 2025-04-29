@@ -102,7 +102,9 @@ export const useUserStore = createBaseStore<UserState>(
 
       set((state) => ({
         user: { ...state.user!, progress },
-      }));
+        }),
+        StorageKeys.USER_RESOURCES,
+      );
 
       // Speichere immer lokal
       try {
