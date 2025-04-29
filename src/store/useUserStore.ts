@@ -122,7 +122,8 @@ export const useUserStore = createBaseStore<UserState>(
           }
         }
       } catch (error) {
-        console.error("Fehler beim Speichern des Fortschritts:", error);
+        console.error("MMKV storage error:", error);
+        // MMKV operations are synchronous so we don't need to handle async errors
       }
     },
 
@@ -325,7 +326,7 @@ export const useUserStore = createBaseStore<UserState>(
                 });
 
                 // Lokal speichern
-                await AsyncStorage.setItem("userData", JSON.stringify(user));
+                mmkvStorage.set(StorageKeys.USER, JSON.stringify(user));
 
                 // Datum im Progression-Store setzen
                 await progressionStore.resetJoinDate();
@@ -354,7 +355,7 @@ export const useUserStore = createBaseStore<UserState>(
       try {
         // Lokales Speichern
         if (user) {
-          await AsyncStorage.setItem("userData", JSON.stringify(user));
+          mmkvStorage.set(StorageKeys.USER, JSON.stringify(user));
         }
 
         // Wenn online und eingeloggt, mit Supabase synchronisieren
@@ -482,7 +483,7 @@ export const useUserStore = createBaseStore<UserState>(
             });
 
             // Lokal speichern
-            await AsyncStorage.setItem("userData", JSON.stringify(get().user));
+            mmkvStorage.set(StorageKeys.USER, JSON.stringify(get().user));
 
             return { error: null };
           } catch (createError) {
@@ -506,10 +507,10 @@ export const useUserStore = createBaseStore<UserState>(
         await supabase.auth.signOut();
 
         // Lokale Daten löschen
-        await AsyncStorage.removeItem("userData");
-        await AsyncStorage.removeItem("lifeWheelAreas");
-        await AsyncStorage.removeItem("completedModules");
-        await AsyncStorage.removeItem("joinDate");
+        mmkvStorage.delete(StorageKeys.USER);
+        mmkvStorage.delete(StorageKeys.LIFE_WHEEL);
+        mmkvStorage.delete(StorageKeys.PROGRESSION);
+        // joinDate is now handled by progressionStore
 
         // Store zurücksetzen
         set({

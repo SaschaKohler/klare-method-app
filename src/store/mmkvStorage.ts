@@ -11,5 +11,7 @@ export enum StorageKeys {
   THEME = 'klare-theme-storage',
   RESOURCES = 'klare-resources-storage',
   JOURNAL = 'klare-journal-storage',
-  VISION_BOARD = 'klare-vision-board-storage'
+  VISION_BOARD = 'klare-vision-board-storage',
+  COMPLETED_MODULES = 'klare-completed-modules',
+  JOIN_DATE = 'klare-join-date'
 }
