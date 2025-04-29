@@ -6,6 +6,7 @@ import {
   resourceLibraryService,
 } from "../services/ResourceLibraryService";
 import { createBaseStore, BaseState } from "./createBaseStore";
+import { StorageKeys } from "./mmkvStorage";
 
 interface ResourceStoreState extends BaseState {
   // State
