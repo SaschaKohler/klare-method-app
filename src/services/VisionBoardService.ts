@@ -272,6 +272,34 @@ class VisionBoardService {
     }
   }
 
+  async uploadImage(fileUri: string, userId: string): Promise<string> {
+    try {
+      const fileExt = fileUri.split('.').pop();
+      const fileName = `${userId}-${Date.now()}.${fileExt}`;
+      const filePath = `vision-board/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('vision-board-images')
+        .upload(filePath, {
+          uri: fileUri,
+          type: `image/${fileExt}`,
+          name: fileName,
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('vision-board-images')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  }
+
   async createNewVisionBoard(
     title: string,
     description: string,
@@ -286,7 +314,7 @@ class VisionBoardService {
       layout_type: "grid",
       is_active: true,
       user_id: userId,
-      items: [], // Stelle sicher, dass items immer definiert ist
+      items: [],
     };
 
     return newBoard;

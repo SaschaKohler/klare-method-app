@@ -605,11 +605,32 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                 mode="outlined"
                 icon="image"
                 onPress={async () => {
-                  // Hier würde normalerweise ein Image Picker geöffnet
-                  Alert.alert(
-                    "Info",
-                    "Bildauswahl in dieser Demo nicht implementiert",
-                  );
+                  try {
+                    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                    if (!permissionResult.granted) {
+                      Alert.alert('Berechtigung benötigt', 'Wir benötigen Zugriff auf Ihre Fotos, um Bilder hinzufügen zu können.');
+                      return;
+                    }
+
+                    const result = await ImagePicker.launchImageLibraryAsync({
+                      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                      allowsEditing: true,
+                      aspect: [4, 3],
+                      quality: 1,
+                    });
+
+                    if (!result.canceled && result.assets && result.assets.length > 0) {
+                      const imageUri = result.assets[0].uri;
+                      const publicUrl = await visionBoardService.uploadImage(imageUri, user?.id || '');
+                      
+                      setSelectedItem(prev => 
+                        prev ? { ...prev, image_url: publicUrl } : null
+                      );
+                    }
+                  } catch (error) {
+                    console.error('Error picking image:', error);
+                    Alert.alert('Fehler', 'Beim Auswählen des Bildes ist ein Fehler aufgetreten.');
+                  }
                 }}
               >
                 Bild hinzufügen

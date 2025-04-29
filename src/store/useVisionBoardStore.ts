@@ -152,22 +152,34 @@ export const useVisionBoardStore = createBaseStore<VisionBoardStoreState>(
 
     addItem: async (userId, item) => {
       try {
-        // Dies ist eine Platzhalterimplementierung - Sie müssen die tatsächliche
-        // Logik zum Hinzufügen eines Elements zum Vision Board in Ihrem VisionBoardService implementieren
+        get().setLoading(true);
+        
+        // Wenn ein Bild vorhanden ist, hochladen
+        if (item.image_url && item.image_url.startsWith('file:')) {
+          const publicUrl = await visionBoardService.uploadImage(item.image_url, userId);
+          item.image_url = publicUrl;
+        }
 
-        // Für jetzt fügen wir es einfach zum lokalen State hinzu
         const newItem = {
-          id: Date.now().toString(), // Temporäre ID
+          id: Date.now().toString(),
           ...item,
           user_id: userId,
           vision_board_id: get().visionBoard?.id || "",
         } as VisionBoardItem;
 
+        // Speichern in der Datenbank
+        const savedBoard = await visionBoardService.saveUserVisionBoard({
+          ...get().visionBoard!,
+          items: [...get().items, newItem],
+        }, userId);
+
         set((state) => ({
           ...state,
-          items: [...state.items, newItem],
+          visionBoard: savedBoard,
+          items: savedBoard.items || [...state.items, newItem],
         }));
 
+        get().setLoading(false);
         return newItem;
       } catch (error) {
         console.error("Error adding vision board item:", error);
