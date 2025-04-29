@@ -1,5 +1,5 @@
 // src/services/ResourceLibraryService.ts
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { mmkvStorage, StorageKeys } from "../store/mmkvStorage";
 import uuid from "react-native-uuid";
 import { supabase } from "../lib/supabase";
 import { RawResourceData } from "../types/store";
@@ -28,7 +28,7 @@ export enum ResourceCategory {
 }
 
 // Storage keys
-const RESOURCES_STORAGE_KEY = "user_resources";
+// Using StorageKeys.RESOURCES instead
 
 class ResourceLibraryService {
   // Cache resources in memory for faster access
@@ -44,7 +44,7 @@ class ResourceLibraryService {
 
       // Try to get from local storage
       const localKey = `${RESOURCES_STORAGE_KEY}_${userId}`;
-      const localData = await AsyncStorage.getItem(localKey);
+      const localData = mmkvStorage.getString(StorageKeys.RESOURCES);
 
       let resources: Resource[] = [];
 
@@ -79,7 +79,7 @@ class ResourceLibraryService {
             );
 
             // Update local storage with server data
-            await AsyncStorage.setItem(localKey, JSON.stringify(resources));
+            mmkvStorage.set(StorageKeys.RESOURCES, JSON.stringify(resources));
           }
         } catch (error) {
           console.error("Error fetching resources from server:", error);

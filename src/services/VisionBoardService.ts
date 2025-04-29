@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { mmkvStorage, StorageKeys } from "../store/mmkvStorage";
 import uuid from "react-native-uuid";
 import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
@@ -18,8 +18,7 @@ export interface VisionBoard extends VisionBoardRow {
 export interface VisionBoardItem extends VisionBoardItemTable {}
 
 // Ändern Sie den Key, um Konflikte mit der Zustand-Persist-Middleware zu vermeiden
-const VISION_BOARD_STORAGE_KEY = "klare-vision-board-service-storage";
-const VISION_BOARD_ITEM_STORAGE_KEY = "user_vision_board_items_service";
+// Using StorageKeys.VISION_BOARD instead
 
 class VisionBoardService {
   private visionBoardCache: Record<string, VisionBoard[]> = {};
@@ -32,7 +31,7 @@ class VisionBoardService {
       }
 
       const localKey = `${VISION_BOARD_STORAGE_KEY}_${userId}`;
-      const localData = await AsyncStorage.getItem(localKey);
+      const localData = mmkvStorage.getString(StorageKeys.VISION_BOARD);
 
       let visionBoards: VisionBoard[] = [];
 
@@ -72,7 +71,7 @@ class VisionBoardService {
       }
 
       this.visionBoardCache[userId] = visionBoards;
-      await AsyncStorage.setItem(localKey, JSON.stringify(visionBoards));
+      mmkvStorage.set(StorageKeys.VISION_BOARD, JSON.stringify(visionBoards));
 
       return visionBoards;
     } catch (error) {

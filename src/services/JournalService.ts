@@ -1,5 +1,5 @@
 // src/services/JournalService.ts
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { mmkvStorage, StorageKeys } from "../store/mmkvStorage";
 import uuid from "react-native-uuid";
 import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
@@ -38,8 +38,7 @@ export interface JournalTemplateCategory {
 }
 
 // Storage keys
-const JOURNAL_ENTRIES_STORAGE_KEY = "user_journal_entries";
-const JOURNAL_STORAGE_KEY = "klare-journal-storage";
+// Storage keys now come from StorageKeys enum
 
 class JournalService {
   // Cache entries in memory for faster access
@@ -57,7 +56,7 @@ class JournalService {
 
       // Try to get from local storage
       const localKey = `${JOURNAL_ENTRIES_STORAGE_KEY}_${userId}`;
-      const localData = await AsyncStorage.getItem(localKey);
+      const localData = mmkvStorage.getString(StorageKeys.JOURNAL);
 
       let entries: JournalEntry[] = [];
 
@@ -94,7 +93,7 @@ class JournalService {
             );
 
             // Update local storage with server data
-            await AsyncStorage.setItem(localKey, JSON.stringify(entries));
+            mmkvStorage.set(StorageKeys.JOURNAL, JSON.stringify(entries));
           }
         } catch (error) {
           console.error("Error fetching journal entries from server:", error);
