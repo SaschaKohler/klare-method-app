@@ -39,18 +39,34 @@ export default function App() {
       const stores = [
         { name: 'user', store: useUserStore },
         { name: 'theme', store: useThemeStore },
-        { name: 'resources', store: useResourceStore }
+        { name: 'resources', store: useResourceStore },
+        { name: 'visionBoard', store: useVisionBoardStore }
       ];
 
-      for (const {name, store} of stores) {
-        const hydrated = await store.persist.hasHydrated();
-        console.log(`${name} store hydrated:`, hydrated);
-        
-        const unsub = store.persist.onFinishHydration(() => {
-          console.log(`${name} store finished hydrating`);
+      // Special debug for VisionBoardStore
+      const visionBoardUnsub = useVisionBoardStore.persist.onFinishHydration(() => {
+        console.log('VisionBoardStore hydration state:', {
+          hasHydrated: useVisionBoardStore.persist.hasHydrated(),
+          storage: useVisionBoardStore.persist.getOptions().storage
         });
-        
-        return () => unsub();
+      });
+
+      for (const {name, store} of stores) {
+        try {
+          const hydrated = await store.persist.hasHydrated();
+          console.log(`${name} store hydrated:`, hydrated);
+          
+          const unsub = store.persist.onFinishHydration(() => {
+            console.log(`${name} store finished hydrating`);
+          });
+          
+          return () => {
+            unsub();
+            visionBoardUnsub();
+          };
+        } catch (error) {
+          console.error(`${name} store hydration check failed:`, error);
+        }
       }
     };
 

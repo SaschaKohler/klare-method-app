@@ -136,8 +136,15 @@ export const storePersistConfigs: StorePersistConfigs = {
       visionBoard: state.visionBoard as VisionBoard | null,
       items: state.items as VisionBoardItem[],
       lastSync: state.lastSync as string | null,
-      // isLoading und error sollten nicht persistiert werden
     }),
+    // Add explicit error handling
+    onRehydrateStorage: () => (state, error) => {
+      if (error) {
+        console.error('VisionBoardStore hydration error:', error);
+      } else {
+        console.log('VisionBoardStore hydrated successfully');
+      }
+    },
   },
 };
 
