@@ -12,18 +12,9 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KlareLogo } from "./src/components";
 import MainNavigator from "./src/navigation/MainNavigator";
 import { lightTheme, darkTheme } from "./src/constants/theme";
-import { MMKV, Mode } from "react-native-mmkv";
+import { mmkvStorage as storage } from './src/store/mmkvStorage';
 
-// export const storage = new MMKV({
-//   id: `user-${userId}-storage`,
-//   path: `${USER_DIRECTORY}/storage`,
-//   encryptionKey: 'hunter2',
-//   mode: Mode.MULTI_PROCESS,
-//   readOnly: false
-// })
-
-// Initialize MMKV
-export const storage = new MMKV();
+// MMKV is now initialized in src/store/mmkvStorage.ts
 import {
   useUserStore,
   useThemeStore,
