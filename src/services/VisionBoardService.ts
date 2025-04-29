@@ -121,8 +121,8 @@ class VisionBoardService {
           ];
         }
 
-        await AsyncStorage.setItem(
-          `${VISION_BOARD_STORAGE_KEY}_${session.session.user.id}`,
+        mmkvStorage.set(
+          StorageKeys.VISION_BOARD,
           JSON.stringify(this.visionBoardCache[session.session.user.id]),
         );
       } else {
@@ -152,8 +152,8 @@ class VisionBoardService {
           { ...newBoard, items: items || [] },
         ];
 
-        await AsyncStorage.setItem(
-          `${VISION_BOARD_STORAGE_KEY}_${userId}`,
+        mmkvStorage.set(
+          StorageKeys.VISION_BOARD,
           JSON.stringify(this.visionBoardCache[userId]),
         );
       }

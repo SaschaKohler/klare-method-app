@@ -55,7 +55,6 @@ class JournalService {
       }
 
       // Try to get from local storage
-      const localKey = `${JOURNAL_ENTRIES_STORAGE_KEY}_${userId}`;
       const localData = mmkvStorage.getString(StorageKeys.JOURNAL);
 
       let entries: JournalEntry[] = [];
@@ -154,7 +153,7 @@ class JournalService {
 
       // Update local storage
       const localKey = `${JOURNAL_ENTRIES_STORAGE_KEY}_${userId}`;
-      await AsyncStorage.setItem(localKey, JSON.stringify(entries));
+      mmkvStorage.set(StorageKeys.JOURNAL, JSON.stringify(entries));
 
       // Update cache
       this.entriesCache[userId] = entries;
@@ -217,8 +216,7 @@ class JournalService {
       entries[entryIndex] = updatedEntry;
 
       // Update local storage
-      const localKey = `${JOURNAL_ENTRIES_STORAGE_KEY}_${userId}`;
-      await AsyncStorage.setItem(localKey, JSON.stringify(entries));
+      mmkvStorage.set(StorageKeys.JOURNAL, JSON.stringify(entries));
 
       // Update cache
       this.entriesCache[userId] = entries;
