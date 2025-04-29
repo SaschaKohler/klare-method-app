@@ -1,6 +1,8 @@
 // src/store/persistConfig.ts
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MMKVLoader } from 'react-native-mmkv-storage';
 import { createJSONStorage, PersistOptions } from "zustand/middleware";
+
+const MMKV = new MMKVLoader().initialize();
 import { User } from "@supabase/supabase-js";
 import { LifeWheelArea } from "../types/store";
 import {
@@ -13,7 +15,7 @@ import { VisionBoard, VisionBoardItem } from "../services/VisionBoardService";
 
 // Basiskonfiguration für die Zustand-Persistenz
 export const basePersistConfig = {
-  storage: createJSONStorage(() => AsyncStorage),
+  storage: createJSONStorage(() => MMKV),
   version: 1, // Versionsinfo für potenzielle Migrationspfade
 };
 

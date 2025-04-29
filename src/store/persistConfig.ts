@@ -1,8 +1,10 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MMKVLoader } from 'react-native-mmkv-storage';
 import { createJSONStorage } from "zustand/middleware";
 
+const MMKV = new MMKVLoader().initialize();
+
 export const basePersistConfig = {
-  storage: createJSONStorage(() => AsyncStorage),
+  storage: createJSONStorage(() => MMKV),
 };
 
 export const storePersistConfigs = {
