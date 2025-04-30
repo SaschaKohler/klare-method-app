@@ -24,17 +24,18 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={{ overflow: "visible" }}>
-      <View
-        style={[
-          styles.container,
-          {
-            paddingTop: noTopPadding ? 0 : insets.top,
-            backgroundColor: theme.colors.surface,
-          },
-        ]}
-      >
-        <View style={styles.content}>
+    <View style={styles.shadowWrapper}>
+      <View style={{ overflow: "visible" }}>
+        <View
+          style={[
+            styles.container,
+            {
+              paddingTop: noTopPadding ? 0 : insets.top,
+              backgroundColor: theme.colors.surface,
+            },
+          ]}
+        >
+          <View style={styles.content}>
           {showBack && (
             <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
               <Text style={styles.backText}>Zurück</Text>
@@ -79,6 +80,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
+    backgroundColor: "transparent",
   },
   content: {
     flexDirection: "row",

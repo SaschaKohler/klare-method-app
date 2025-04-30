@@ -30,7 +30,6 @@ class VisionBoardService {
 
   private async initializeBucket() {
     try {
-      // Check if bucket exists first
       const { data: buckets } = await supabase.storage.listBuckets();
       const bucketExists = buckets?.some(b => b.name === 'vision-board-images');
       
@@ -40,16 +39,7 @@ class VisionBoardService {
           allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif'],
           fileSizeLimit: 1024 * 1024 * 5 // 5MB
         });
-        
-        // Wait a moment for bucket to be ready
-        await new Promise(resolve => setTimeout(resolve, 1000));
       }
-
-      // Double check public access
-      await supabase
-        .storage
-        .from('vision-board-images')
-        .setPublic(true);
     } catch (error) {
       console.error('Failed to initialize vision board bucket:', error);
     }
