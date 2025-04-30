@@ -30,19 +30,26 @@ class VisionBoardService {
 
   private async initializeBucket() {
     try {
-      // Create bucket if not exists
-      await supabase.storage.createBucket('vision-board-images', {
-        public: true,
-        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif'],
-        fileSizeLimit: 1024 * 1024 * 5 // 5MB
-      }).catch(() => ({}));
+      // Check if bucket exists first
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.some(b => b.name === 'vision-board-images');
+      
+      if (!bucketExists) {
+        await supabase.storage.createBucket('vision-board-images', {
+          public: true,
+          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif'],
+          fileSizeLimit: 1024 * 1024 * 5 // 5MB
+        });
+        
+        // Wait a moment for bucket to be ready
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
 
-      // Ensure public access
+      // Double check public access
       await supabase
         .storage
         .from('vision-board-images')
-        .setPublic(true)
-        .catch(() => ({}));
+        .setPublic(true);
     } catch (error) {
       console.error('Failed to initialize vision board bucket:', error);
     }
@@ -336,7 +343,10 @@ class VisionBoardService {
         .from('vision-board-images')
         .upload(filePath, formData, {
           upsert: true,
-          contentType: `image/${fileExt}`
+          contentType: `image/${fileExt}`,
+          cacheControl: '3600',
+          duplex: 'half',
+          owner: userId
         });
 
       if (error) {
