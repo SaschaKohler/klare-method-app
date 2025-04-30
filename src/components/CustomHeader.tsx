@@ -29,11 +29,12 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
         styles.container,
         { 
           paddingTop: noTopPadding ? 0 : insets.top, 
-          backgroundColor: theme.colors.surface 
+          backgroundColor: theme.colors.surface,
+          overflow: 'visible' // Move overflow to outer container
         },
       ]}
     >
-      <View style={styles.content}>
+      <View style={[styles.content, {overflow: 'hidden'}]}>
         {showBack && (
           <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
             <Text style={styles.backText}>Zurück</Text>

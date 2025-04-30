@@ -294,16 +294,26 @@ class VisionBoardService {
         name: fileName,
       });
 
+      // First ensure the bucket exists
+      const { error: bucketError } = await supabase.storage.createBucket('vision-board-images', {
+        public: true,
+        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif'],
+        fileSizeLimit: 1024 * 1024 * 5 // 5MB
+      }).catch(() => ({})); // Ignore error if bucket already exists
+
       const { data, error } = await supabase.storage
         .from('vision-board-images')
-        .upload(filePath, formData);
+        .upload(filePath, formData, {
+          upsert: true,
+          contentType: `image/${fileExt}`
+        });
 
       if (error) {
         throw new Error(`Upload failed: ${error.message}`);
       }
 
       // Get public URL with cache busting
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = await supabase.storage
         .from('vision-board-images')
         .getPublicUrl(filePath, {
           download: false,
@@ -318,11 +328,13 @@ class VisionBoardService {
       return `${publicUrl}?t=${Date.now()}`;
     } catch (error) {
       console.error('Image upload error:', error);
-      throw new Error(
-        error instanceof Error 
-          ? error.message 
-          : 'Failed to upload image'
-      );
+      let errorMessage = 'Failed to upload image';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      throw new Error(errorMessage);
     }
   }
 
