@@ -623,18 +623,45 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                       mediaTypes: ImagePicker.MediaTypeOptions.Images,
                       allowsEditing: true,
                       aspect: [4, 3],
-                      quality: 1,
+                      quality: 0.8,
                     });
 
-                    if (!result.canceled) {
+                    if (
+                      !result.canceled &&
+                      result.assets &&
+                      result.assets.length > 0
+                    ) {
                       const imageUri = result.assets[0].uri;
-                      const publicUrl = await visionBoardService.uploadImage(
-                        imageUri,
-                        user?.id || "",
-                      );
-                      setSelectedItem((prev) =>
-                        prev ? { ...prev, image_url: publicUrl } : null,
-                      );
+
+                      try {
+                        // Show loading indicator
+                        Alert.alert(
+                          "Uploading",
+                          "Please wait while we upload your image...",
+                        );
+
+                        // Upload the image
+                        const publicUrl = await visionBoardService.uploadImage(
+                          imageUri,
+                          user?.id || "",
+                        );
+
+                        console.log("Image uploaded successfully:", publicUrl);
+
+                        // Update the selected item with the image URL
+                        setSelectedItem((prev) =>
+                          prev ? { ...prev, image_url: publicUrl } : null,
+                        );
+
+                        // Dismiss loading alert
+                        Alert.alert("Success", "Image uploaded successfully!");
+                      } catch (error) {
+                        console.error("Image upload error:", error);
+                        Alert.alert(
+                          "Error",
+                          "Failed to upload image. Please try again.",
+                        );
+                      }
                     }
                   } catch (error) {
                     console.error("Error picking image:", error);

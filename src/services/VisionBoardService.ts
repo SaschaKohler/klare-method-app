@@ -31,17 +31,19 @@ class VisionBoardService {
   private async initializeBucket() {
     try {
       const { data: buckets } = await supabase.storage.listBuckets();
-      const bucketExists = buckets?.some(b => b.name === 'vision-board-images');
-      
+      const bucketExists = buckets?.some(
+        (b) => b.name === "vision-board-images",
+      );
+
       if (!bucketExists) {
-        await supabase.storage.createBucket('vision-board-images', {
+        await supabase.storage.createBucket("vision-board-images", {
           public: true,
-          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif'],
-          fileSizeLimit: 1024 * 1024 * 5 // 5MB
+          allowedMimeTypes: ["image/jpeg", "image/png", "image/gif"],
+          fileSizeLimit: 1024 * 1024 * 5, // 5MB
         });
       }
     } catch (error) {
-      console.error('Failed to initialize vision board bucket:', error);
+      console.error("Failed to initialize vision board bucket:", error);
     }
   }
 
@@ -295,76 +297,53 @@ class VisionBoardService {
 
   async uploadImage(fileUri: string, userId: string): Promise<string> {
     if (!userId) {
-      throw new Error('User ID is required for image upload');
+      throw new Error("User ID is required for image upload");
     }
 
     try {
-      const fileExt = fileUri.split('.').pop()?.toLowerCase();
-      if (!fileExt || !['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
-        throw new Error('Unsupported image format');
+      const fileExt = fileUri.split(".").pop()?.toLowerCase();
+      if (!fileExt || !["jpg", "jpeg", "png", "gif"].includes(fileExt)) {
+        throw new Error("Unsupported image format");
       }
 
-      const fileName = `${userId}-${Date.now()}.${fileExt}`;
-      const filePath = `vision-board/${fileName}`;
+      const fileName = `${Date.now()}.${fileExt}`;
+      // Make sure the user ID is the first folder segment to match the RLS policy
+      const filePath = `${userId}/vision-board/${fileName}`;
 
-      // Convert to blob if needed (for web compatibility)
-      const formData = new FormData();
-      formData.append('file', {
-        uri: fileUri,
-        type: `image/${fileExt}`,
-        name: fileName,
-      });
-
-      // First ensure the bucket exists with proper permissions
-      const { error: bucketError } = await supabase.storage.createBucket('vision-board-images', {
-        public: true,
-        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif'],
-        fileSizeLimit: 1024 * 1024 * 5 // 5MB
-      }).catch(() => ({})); // Ignore error if bucket already exists
-
-      // Ensure public access is set via bucket creation
-      // No need for separate setPublic call as it's handled in bucket creation
+      // Convert uri to blob for React Native
+      const response = await fetch(fileUri);
+      const blob = await response.blob();
 
       const { data, error } = await supabase.storage
-        .from('vision-board-images')
-        .upload(filePath, formData, {
+        .from("vision-board-images")
+        .upload(filePath, blob, {
           upsert: true,
           contentType: `image/${fileExt}`,
-          cacheControl: '3600',
-          duplex: 'half',
-          owner: userId
+          cacheControl: "3600",
         });
 
       if (error) {
+        console.error("Image upload error:", error);
         throw new Error(`Upload failed: ${error.message}`);
       }
 
-      // Get public URL with cache busting
-      const { data: { publicUrl } } = await supabase.storage
-        .from('vision-board-images')
-        .getPublicUrl(filePath, {
-          download: false,
-          transform: {
-            width: 800,
-            height: 800,
-            resize: 'contain',
-            quality: 80
-          }
-        });
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("vision-board-images").getPublicUrl(filePath);
 
       return `${publicUrl}?t=${Date.now()}`;
     } catch (error) {
-      console.error('Image upload error:', error);
-      let errorMessage = 'Failed to upload image';
+      console.error("Image upload error:", error);
+      let errorMessage = "Failed to upload image";
       if (error instanceof Error) {
         errorMessage = error.message;
-      } else if (typeof error === 'string') {
+      } else if (typeof error === "string") {
         errorMessage = error;
       }
       throw new Error(errorMessage);
     }
   }
-
   async createNewVisionBoard(
     title: string,
     description: string,

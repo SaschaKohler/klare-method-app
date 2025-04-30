@@ -36,30 +36,31 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
           ]}
         >
           <View style={styles.content}>
-          {showBack && (
-            <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
-              <Text style={styles.backText}>Zurück</Text>
-            </TouchableOpacity>
-          )}
+            {showBack && (
+              <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
+                <Text style={styles.backText}>Zurück</Text>
+              </TouchableOpacity>
+            )}
 
-          {title ? (
-            <Text style={styles.title}>{title}</Text>
-          ) : showLogo ? (
-            <View style={styles.logoContainer}>
-              <KlareLogo size={30} spacing={4} animated={true} />
-            </View>
-          ) : null}
+            {title ? (
+              <Text style={styles.title}>{title}</Text>
+            ) : showLogo ? (
+              <View style={styles.logoContainer}>
+                <KlareLogo size={30} spacing={4} animated={true} />
+              </View>
+            ) : null}
 
-          <View style={styles.rightContainer} />
+            <View style={styles.rightContainer} />
+          </View>
         </View>
-      </View>
-      <View style={styles.shadowWrapper}>
-        <View
-          style={{
-            height: 1,
-            backgroundColor: theme.colors.border,
-          }}
-        />
+        {/* <View style={styles.shadowWrapper}> */}
+        {/*   <View */}
+        {/*     style={{ */}
+        {/*       height: 1, */}
+        {/*       backgroundColor: theme.colors.border, */}
+        {/*     }} */}
+        {/*   /> */}
+        {/* </View> */}
       </View>
     </View>
   );
