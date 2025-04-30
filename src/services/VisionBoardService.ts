@@ -332,12 +332,8 @@ class VisionBoardService {
         fileSizeLimit: 1024 * 1024 * 5 // 5MB
       }).catch(() => ({})); // Ignore error if bucket already exists
 
-      // Set bucket policies if needed
-      await supabase
-        .storage
-        .from('vision-board-images')
-        .setPublic(true)
-        .catch(() => ({}));
+      // Ensure public access is set via bucket creation
+      // No need for separate setPublic call as it's handled in bucket creation
 
       const { data, error } = await supabase.storage
         .from('vision-board-images')

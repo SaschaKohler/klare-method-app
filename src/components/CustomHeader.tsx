@@ -59,12 +59,14 @@ const styles = StyleSheet.create({
   container: {
     borderBottomWidth: 1,
     borderBottomColor: klareColors.border,
+    backgroundColor: '#fff',
+  },
+  shadowWrapper: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
-    backgroundColor: '#fff',
   },
   content: {
     flexDirection: 'row',
