@@ -24,6 +24,30 @@ class VisionBoardService {
   private visionBoardCache: Record<string, VisionBoard[]> = {};
   private visionBoardItemCache: Record<string, VisionBoardItem[]> = {};
 
+  constructor() {
+    this.initializeBucket();
+  }
+
+  private async initializeBucket() {
+    try {
+      // Create bucket if not exists
+      await supabase.storage.createBucket('vision-board-images', {
+        public: true,
+        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif'],
+        fileSizeLimit: 1024 * 1024 * 5 // 5MB
+      }).catch(() => ({}));
+
+      // Ensure public access
+      await supabase
+        .storage
+        .from('vision-board-images')
+        .setPublic(true)
+        .catch(() => ({}));
+    } catch (error) {
+      console.error('Failed to initialize vision board bucket:', error);
+    }
+  }
+
   async getUserVisionBoard(userId: string): Promise<VisionBoard[]> {
     try {
       if (this.visionBoardCache[userId]) {
@@ -294,12 +318,19 @@ class VisionBoardService {
         name: fileName,
       });
 
-      // First ensure the bucket exists
+      // First ensure the bucket exists with proper permissions
       const { error: bucketError } = await supabase.storage.createBucket('vision-board-images', {
         public: true,
         allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif'],
         fileSizeLimit: 1024 * 1024 * 5 // 5MB
       }).catch(() => ({})); // Ignore error if bucket already exists
+
+      // Set bucket policies if needed
+      await supabase
+        .storage
+        .from('vision-board-images')
+        .setPublic(true)
+        .catch(() => ({}));
 
       const { data, error } = await supabase.storage
         .from('vision-board-images')
