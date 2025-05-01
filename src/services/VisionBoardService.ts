@@ -334,13 +334,18 @@ class VisionBoardService {
 
       console.log("Original public URL:", publicUrl);
       
-      // For iOS simulator compatibility, ensure URL is properly formatted
-      // and doesn't have problematic query parameters
-      const cleanUrl = publicUrl.split('?')[0];
+      // Ensure URL is properly formatted for all platforms
+      let cleanUrl = publicUrl;
       
-      console.log("Cleaned URL for image:", cleanUrl);
+      // Handle cases where URL might be relative
+      if (!cleanUrl.startsWith('http')) {
+        cleanUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${filePath}`;
+      }
       
-      // Return clean URL without query parameters
+      // Remove any query parameters that might cause issues
+      cleanUrl = cleanUrl.split('?')[0];
+      
+      console.log("Final image URL:", cleanUrl);
       return cleanUrl;
     } catch (error) {
       console.error("Image upload error:", error);

@@ -422,19 +422,21 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                   onLoad={() => console.log("Image loaded successfully:", item.image_url)}
                   onError={(e) => {
                     console.error("Image loading error:", e.nativeEvent.error, item.image_url);
-                    // For iOS simulator, sometimes we need to try different URL formats
-                    Alert.alert(
-                      "Image Error",
-                      "Could not load the image. The URL might be invalid.",
-                      [
-                        {
-                          text: "OK",
-                          onPress: () => {
-                            // We could implement a retry mechanism here if needed
-                          }
-                        }
-                      ]
-                    );
+                    
+                    // Try alternative URL format if first attempt fails
+                    if (item.image_url && !item.image_url.startsWith('http')) {
+                      const alternativeUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${item.image_url}`;
+                      console.log("Trying alternative URL:", alternativeUrl);
+                      setSelectedItem(prev => 
+                        prev ? { ...prev, image_url: alternativeUrl } : null
+                      );
+                    } else {
+                      Alert.alert(
+                        "Image Error",
+                        "Could not load the image. Please try uploading again.",
+                        [{ text: "OK" }]
+                      );
+                    }
                   }}
                 />
               )}
@@ -667,26 +669,11 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
 
                         console.log("Image uploaded successfully:", publicUrl);
 
-                        // Make sure the URL is properly formatted
-                        let formattedUrl = publicUrl;
-                        if (!publicUrl.startsWith('http')) {
-                          formattedUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${publicUrl}`;
-                        }
+                        console.log("Uploaded image URL:", publicUrl);
                         
-                        // Remove any query parameters that might cause issues
-                        formattedUrl = formattedUrl.split('?')[0];
-                        
-                        console.log("Formatted image URL:", formattedUrl);
-                        
-                        // For iOS simulator, log additional information
-                        if (Platform.OS === 'ios') {
-                          console.log("Running on iOS - Platform version:", Platform.Version);
-                          console.log("Is simulator:", Platform.constants.uiMode?.indexOf('simulator') !== -1);
-                        }
-
                         // Update the selected item with the image URL
                         setSelectedItem((prev) =>
-                          prev ? { ...prev, image_url: formattedUrl } : null,
+                          prev ? { ...prev, image_url: publicUrl } : null,
                         );
 
                         // Dismiss loading alert
