@@ -5,8 +5,11 @@ import { LogBox } from 'react-native';
 LogBox.ignoreLogs([
   'MMKV initialization failed',
   'Failed to create a new MMKV instance',
+  'React Native is not running on-device',
 ]);
 
+// Import our storage utility to initialize it early
+import './src/utils/storage';
 import App from './App';
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
