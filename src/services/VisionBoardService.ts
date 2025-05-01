@@ -334,12 +334,6 @@ class VisionBoardService {
 
       console.log("Original public URL:", publicUrl);
       
-      // Ensure URL is properly formatted for all platforms
-      let cleanUrl = publicUrl;
-      
-      // Handle cases where URL might be relative
-      if (!cleanUrl.startsWith('http')) {
-        cleanUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${filePath}`;
       }
       
       // Ensure URL is properly formatted
