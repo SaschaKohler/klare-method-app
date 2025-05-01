@@ -1,6 +1,6 @@
 // src/store/useUserStore.ts
 import { create } from "zustand";
-import { mmkvStorage, StorageKeys } from "./mmkvStorage";
+import { unifiedStorage, StorageKeys } from "../storage/unifiedStorage";
 import { supabase } from "../lib/supabase";
 import { LifeWheelArea } from "../types/store";
 import { useLifeWheelStore } from "./useLifeWheelStore";
@@ -100,15 +100,16 @@ export const useUserStore = createBaseStore<UserState>(
       const { user, isOnline } = get();
       if (!user) return;
 
-      set((state) => ({
-        user: { ...state.user!, progress },
+      set(
+        (state) => ({
+          user: { ...state.user!, progress },
         }),
         StorageKeys.USER_RESOURCES,
       );
 
       // Speichere immer lokal
       try {
-        mmkvStorage.set(StorageKeys.USER, JSON.stringify(...get().user));
+        unifiedStorage.set(StorageKeys.USER, JSON.stringify(...get().user));
 
         // Wenn online, synchronisiere mit Supabase
         if (isOnline) {
@@ -136,7 +137,7 @@ export const useUserStore = createBaseStore<UserState>(
 
       // Speichere immer lokal
       try {
-        mmkvStorage.set(StorageKeys.USER, JSON.stringify(...get().user));
+        unifiedStorage.set(StorageKeys.USER, JSON.stringify(...get().user));
 
         // Wenn online, synchronisiere mit Supabase
         if (isOnline) {
@@ -170,7 +171,7 @@ export const useUserStore = createBaseStore<UserState>(
 
       // Speichere immer lokal
       try {
-        mmkvStorage.set(StorageKeys.USER, JSON.stringify(...get().user));
+        unifiedStorage.set(StorageKeys.USER, JSON.stringify(...get().user));
 
         // Wenn online, synchronisiere mit Supabase
         if (isOnline) {
@@ -190,12 +191,12 @@ export const useUserStore = createBaseStore<UserState>(
 
       try {
         // OFFLINE-FIRST ANSATZ: Zuerst lokale Daten laden
-        const userData = mmkvStorage.getString(StorageKeys.USER);
-        const completedModulesData = mmkvStorage.getString(
+        const userData = unifiedStorage.getString(StorageKeys.USER);
+        const completedModulesData = unifiedStorage.getString(
           StorageKeys.PROGRESSION,
         );
 
-        const lifeWheelData = mmkvStorage.getString(StorageKeys.LIFE_WHEEL);
+        const lifeWheelData = unifiedStorage.getString(StorageKeys.LIFE_WHEEL);
         console.log("Lade Benutzerdaten...", userData);
         // Lokale Daten setzen, falls vorhanden
         if (userData) {
@@ -285,7 +286,7 @@ export const useUserStore = createBaseStore<UserState>(
                 });
 
                 // Lokal speichern
-                mmkvStorage.set(StorageKeys.USER, JSON.stringify(userData));
+                unifiedStorage.set(StorageKeys.USER, JSON.stringify(userData));
               } else {
                 // Benutzer existiert nicht, neuen erstellen
                 const now = new Date().toISOString();
@@ -316,7 +317,7 @@ export const useUserStore = createBaseStore<UserState>(
                 });
 
                 // Lokal speichern
-                mmkvStorage.set(StorageKeys.USER, JSON.stringify(user));
+                unifiedStorage.set(StorageKeys.USER, JSON.stringify(user));
 
                 // Datum im Progression-Store setzen
                 await progressionStore.resetJoinDate();
@@ -345,7 +346,7 @@ export const useUserStore = createBaseStore<UserState>(
       try {
         // Lokales Speichern
         if (user) {
-          mmkvStorage.set(StorageKeys.USER, JSON.stringify(user));
+          unifiedStorage.set(StorageKeys.USER, JSON.stringify(user));
         }
 
         // Wenn online und eingeloggt, mit Supabase synchronisieren
@@ -473,7 +474,7 @@ export const useUserStore = createBaseStore<UserState>(
             });
 
             // Lokal speichern
-            mmkvStorage.set(StorageKeys.USER, JSON.stringify(get().user));
+            unifiedStorage.set(StorageKeys.USER, JSON.stringify(get().user));
 
             return { error: null };
           } catch (createError) {
@@ -497,9 +498,9 @@ export const useUserStore = createBaseStore<UserState>(
         await supabase.auth.signOut();
 
         // Lokale Daten löschen
-        mmkvStorage.delete(StorageKeys.USER);
-        mmkvStorage.delete(StorageKeys.LIFE_WHEEL);
-        mmkvStorage.delete(StorageKeys.PROGRESSION);
+        unifiedStorage.delete(StorageKeys.USER);
+        unifiedStorage.delete(StorageKeys.LIFE_WHEEL);
+        unifiedStorage.delete(StorageKeys.PROGRESSION);
         // joinDate is now handled by progressionStore
 
         // Store zurücksetzen

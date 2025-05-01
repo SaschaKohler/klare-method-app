@@ -1,6 +1,4 @@
 // src/store/useJournalStore.ts
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { format } from "date-fns";
 import {
   journalService,
@@ -8,9 +6,8 @@ import {
   JournalTemplate,
   JournalTemplateCategory,
 } from "../services/JournalService";
-import { storePersistConfigs } from "./persistConfig.refactored";
 import { createBaseStore, BaseState } from "./createBaseStore";
-import { StorageKeys } from "./mmkvStorage";
+import { StorageKeys } from "../storage/unifiedStorage";
 
 interface JournalStoreState extends BaseState {
   // State

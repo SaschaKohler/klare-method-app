@@ -1,7 +1,7 @@
 // src/store/createBaseStore.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { storePersistConfigs } from "./persistConfig.refactored";
+import { storePersistConfigs } from "./persistConfig";
 
 // Basisstruktur für Metadaten
 export interface BaseMetadata {

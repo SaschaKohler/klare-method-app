@@ -1,4 +1,4 @@
-import { mmkvStorage, StorageKeys } from "../store/mmkvStorage";
+import { unifiedStorage, StorageKeys } from "../storage/unifiedStorage";
 import uuid from "react-native-uuid";
 import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
@@ -53,7 +53,7 @@ class VisionBoardService {
         return this.visionBoardCache[userId];
       }
 
-      const localData = mmkvStorage.getString(StorageKeys.VISION_BOARD);
+      const localData = unifiedStorage.getString(StorageKeys.VISION_BOARD);
 
       let visionBoards: VisionBoard[] = [];
 
@@ -93,7 +93,10 @@ class VisionBoardService {
       }
 
       this.visionBoardCache[userId] = visionBoards;
-      mmkvStorage.set(StorageKeys.VISION_BOARD, JSON.stringify(visionBoards));
+      unifiedStorage.set(
+        StorageKeys.VISION_BOARD,
+        JSON.stringify(visionBoards),
+      );
 
       return visionBoards;
     } catch (error) {
@@ -143,7 +146,7 @@ class VisionBoardService {
           ];
         }
 
-        mmkvStorage.set(
+        unifiedStorage.set(
           StorageKeys.VISION_BOARD,
           JSON.stringify(this.visionBoardCache[session.session.user.id]),
         );
@@ -174,7 +177,7 @@ class VisionBoardService {
           { ...newBoard, items: items || [] },
         ];
 
-        mmkvStorage.set(
+        unifiedStorage.set(
           StorageKeys.VISION_BOARD,
           JSON.stringify(this.visionBoardCache[userId]),
         );
@@ -228,7 +231,7 @@ class VisionBoardService {
           ...itemsToInsert,
         ];
 
-        mmkvStorage.set(
+        unifiedStorage.set(
           StorageKeys.VISION_BOARD,
           JSON.stringify(this.visionBoardItemCache[session.session.user.id]),
         );
@@ -285,7 +288,7 @@ class VisionBoardService {
         (board) => board.id !== boardId,
       );
 
-      mmkvStorage.set(
+      unifiedStorage.set(
         StorageKeys.VISION_BOARD,
         JSON.stringify(this.visionBoardCache[userId]),
       );
@@ -333,20 +336,20 @@ class VisionBoardService {
       } = supabase.storage.from("vision-board-images").getPublicUrl(filePath);
 
       console.log("Original public URL:", publicUrl);
-      
+
       // Ensure URL is properly formatted
       let cleanUrl = publicUrl;
-      
+
       // Handle cases where URL might be relative
-      if (!cleanUrl.startsWith('http')) {
+      if (!cleanUrl.startsWith("http")) {
         cleanUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${filePath}`;
       }
-      
+
       // For iOS simulator, we need to use the download URL
-      if (Platform.OS === 'ios' && Platform.isTesting) {
+      if (Platform.OS === "ios" && Platform.isTesting) {
         cleanUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${filePath}`;
       }
-      
+
       console.log("Final image URL:", cleanUrl);
       return cleanUrl;
     } catch (error) {

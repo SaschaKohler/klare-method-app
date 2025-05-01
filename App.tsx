@@ -1,36 +1,33 @@
-import React, { useEffect, useState } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
 import {
-  View,
-  useColorScheme,
   AppState,
   AppStateStatus,
   Button,
   Text,
+  View,
+  useColorScheme,
 } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
-import { Provider as PaperProvider } from "react-native-paper";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import * as SplashScreen from "expo-splash-screen";
-import { StatusBar } from "expo-status-bar";
-import "react-native-reanimated";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Provider as PaperProvider } from "react-native-paper";
+import "react-native-reanimated";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Import from barrel exports
 import { KlareLogo } from "./src/components";
+import { darkTheme, lightTheme } from "./src/constants/theme";
 import MainNavigator from "./src/navigation/MainNavigator";
-import { lightTheme, darkTheme } from "./src/constants/theme";
-import { mmkvStorage, mmkvStorage as storage } from "./src/store/mmkvStorage";
 
 // MMKV is now initialized in src/store/mmkvStorage.ts
 import {
-  useUserStore,
-  useThemeStore,
-  useLifeWheelStore,
-  useProgressionStore,
-  useJournalStore,
-  useVisionBoardStore,
   useResourceStore,
+  useThemeStore,
+  useUserStore,
+  useVisionBoardStore,
 } from "./src/store";
+import { unifiedStorage } from "./src/storage/unifiedStorage";
 // Splash Screen während des Ladens anzeigen
 SplashScreen.preventAutoHideAsync();
 
@@ -141,13 +138,21 @@ export default function App() {
 
   // Check storage availability
   useEffect(() => {
-    try {
-      mmkvStorage.set("__test__", "test");
-      mmkvStorage.delete("__test__");
-    } catch (e) {
-      console.error("Storage initialization failed:", e);
-      setStorageFailed(true);
-    }
+    const testStorage = async () => {
+      try {
+        // Try unified storage first (which handles fallbacks internally)
+        unifiedStorage.set("__test__", "test");
+        unifiedStorage.delete("__test__");
+        console.log(
+          `Storage check passed using ${unifiedStorage.getStorageType()}`,
+        );
+      } catch (e) {
+        console.error("All storage options failed:", e);
+        setStorageFailed(true);
+      }
+    };
+
+    testStorage();
   }, []);
 
   if (!appReady) {

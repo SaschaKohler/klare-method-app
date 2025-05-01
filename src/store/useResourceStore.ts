@@ -6,7 +6,7 @@ import {
   resourceLibraryService,
 } from "../services/ResourceLibraryService";
 import { createBaseStore, BaseState } from "./createBaseStore";
-import { StorageKeys } from "./mmkvStorage";
+import { StorageKeys } from "../storage/unifiedStorage";
 
 interface ResourceStoreState extends BaseState {
   // State
@@ -150,7 +150,7 @@ export const useResourceStore = createBaseStore<ResourceStoreState>(
 
     getResourcesByCategory: (category: ResourceCategory) => {
       const resources = get().currentUserResources;
-      return Array.isArray(resources) 
+      return Array.isArray(resources)
         ? resources.filter((r) => r.category === category)
         : [];
     },
@@ -158,9 +158,7 @@ export const useResourceStore = createBaseStore<ResourceStoreState>(
     getTopResources: (limit: number = 5) => {
       const resources = get().currentUserResources;
       return Array.isArray(resources)
-        ? [...resources]
-            .sort((a, b) => b.rating - a.rating)
-            .slice(0, limit)
+        ? [...resources].sort((a, b) => b.rating - a.rating).slice(0, limit)
         : [];
     },
 
@@ -188,7 +186,8 @@ export const useResourceStore = createBaseStore<ResourceStoreState>(
             (r) =>
               r.name.toLowerCase().includes(term) ||
               (r.description && r.description.toLowerCase().includes(term)) ||
-              (r.activationTips && r.activationTips.toLowerCase().includes(term))
+              (r.activationTips &&
+                r.activationTips.toLowerCase().includes(term)),
           )
         : [];
     },

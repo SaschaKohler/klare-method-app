@@ -1,5 +1,5 @@
 // src/services/JournalService.ts
-import { mmkvStorage, StorageKeys } from "../store/mmkvStorage";
+import { unifiedStorage, StorageKeys } from "../storage/unifiedStorage";
 import uuid from "react-native-uuid";
 import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
@@ -55,7 +55,7 @@ class JournalService {
       }
 
       // Try to get from local storage
-      const localData = mmkvStorage.getString(StorageKeys.JOURNAL);
+      const localData = unifiedStorage.getString(StorageKeys.JOURNAL);
 
       let entries: JournalEntry[] = [];
 
@@ -92,7 +92,7 @@ class JournalService {
             );
 
             // Update local storage with server data
-            mmkvStorage.set(StorageKeys.JOURNAL, JSON.stringify(entries));
+            unifiedStorage.set(StorageKeys.JOURNAL, JSON.stringify(entries));
           }
         } catch (error) {
           console.error("Error fetching journal entries from server:", error);
@@ -153,7 +153,7 @@ class JournalService {
 
       // Update local storage
       const localKey = `${JOURNAL_ENTRIES_STORAGE_KEY}_${userId}`;
-      mmkvStorage.set(StorageKeys.JOURNAL, JSON.stringify(entries));
+      unifiedStorage.set(StorageKeys.JOURNAL, JSON.stringify(entries));
 
       // Update cache
       this.entriesCache[userId] = entries;
@@ -216,7 +216,7 @@ class JournalService {
       entries[entryIndex] = updatedEntry;
 
       // Update local storage
-      mmkvStorage.set(StorageKeys.JOURNAL, JSON.stringify(entries));
+      unifiedStorage.set(StorageKeys.JOURNAL, JSON.stringify(entries));
 
       // Update cache
       this.entriesCache[userId] = entries;

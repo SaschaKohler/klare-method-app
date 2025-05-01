@@ -1,14 +1,10 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { createBaseStore, BaseState } from "./createBaseStore";
-import { storePersistConfigs } from "./persistConfig.refactored";
 import {
   visionBoardService,
   VisionBoard,
   VisionBoardItem,
 } from "../services/VisionBoardService";
-import VisionBoardScreen from "../screens/VisionBoardScreen";
-import { mmkvStorage, StorageKeys } from "./mmkvStorage";
+import { StorageKeys } from "../storage/unifiedStorage";
 
 interface VisionBoardStoreState extends BaseState {
   // State
@@ -153,10 +149,13 @@ export const useVisionBoardStore = createBaseStore<VisionBoardStoreState>(
     addItem: async (userId, item) => {
       try {
         get().setLoading(true);
-        
+
         // Wenn ein Bild vorhanden ist, hochladen
-        if (item.image_url && item.image_url.startsWith('file:')) {
-          const publicUrl = await visionBoardService.uploadImage(item.image_url, userId);
+        if (item.image_url && item.image_url.startsWith("file:")) {
+          const publicUrl = await visionBoardService.uploadImage(
+            item.image_url,
+            userId,
+          );
           item.image_url = publicUrl;
         }
 
@@ -168,10 +167,13 @@ export const useVisionBoardStore = createBaseStore<VisionBoardStoreState>(
         } as VisionBoardItem;
 
         // Speichern in der Datenbank
-        const savedBoard = await visionBoardService.saveUserVisionBoard({
-          ...get().visionBoard!,
-          items: [...get().items, newItem],
-        }, userId);
+        const savedBoard = await visionBoardService.saveUserVisionBoard(
+          {
+            ...get().visionBoard!,
+            items: [...get().items, newItem],
+          },
+          userId,
+        );
 
         set((state) => ({
           ...state,

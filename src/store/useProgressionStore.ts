@@ -1,7 +1,7 @@
 // src/store/useProgressionStore.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { basePersistConfig } from "./persistConfig";
+import { storePersistConfigs } from "./persistConfig";
 import { supabase } from "../lib/supabase";
 import { progressionStages, ProgressionStage } from "../data/progression";
 
@@ -89,333 +89,344 @@ const MODULE_IDS_BY_STEP = {
 export const useProgressionStore = create<ProgressionState>()(
   persist(
     (set, get) => ({
-  completedModules: [],
-  moduleProgressCache: {},
-  joinDate: null,
-  isLoading: false,
-
-  completeModule: async (moduleId, userId) => {
-    const { completedModules } = get();
-
-    // Prüfen, ob das Modul bereits abgeschlossen ist
-    if (completedModules.includes(moduleId)) {
-      return; // Nichts tun, wenn bereits abgeschlossen
-    }
-
-    // Neue Liste erstellen
-    const updatedModules = [...completedModules, moduleId];
-
-    // State aktualisieren
-    set((state) => ({
-      completedModules: updatedModules,
-      // Gesamten Cache löschen, da sich der Fortschritt geändert hat
+      completedModules: [],
       moduleProgressCache: {},
-    }));
+      joinDate: null,
+      isLoading: false,
 
-    // Lokal speichern
-    try {
-      // Wenn eine UserId vorhanden ist, mit Supabase synchronisieren
-      if (userId) {
+      completeModule: async (moduleId, userId) => {
+        const { completedModules } = get();
+
+        // Prüfen, ob das Modul bereits abgeschlossen ist
+        if (completedModules.includes(moduleId)) {
+          return; // Nichts tun, wenn bereits abgeschlossen
+        }
+
+        // Neue Liste erstellen
+        const updatedModules = [...completedModules, moduleId];
+
+        // State aktualisieren
+        set((state) => ({
+          completedModules: updatedModules,
+          // Gesamten Cache löschen, da sich der Fortschritt geändert hat
+          moduleProgressCache: {},
+        }));
+
+        // Lokal speichern
         try {
-          await supabase.from("completed_modules").insert({
-            user_id: userId,
-            module_id: moduleId,
-            completed_at: new Date().toISOString(),
-          });
+          // Wenn eine UserId vorhanden ist, mit Supabase synchronisieren
+          if (userId) {
+            try {
+              await supabase.from("completed_modules").insert({
+                user_id: userId,
+                module_id: moduleId,
+                completed_at: new Date().toISOString(),
+              });
+            } catch (error) {
+              console.error(
+                "Fehler beim Speichern des abgeschlossenen Moduls:",
+                error,
+              );
+            }
+          }
         } catch (error) {
           console.error(
-            "Fehler beim Speichern des abgeschlossenen Moduls:",
+            "Fehler beim lokalen Speichern des abgeschlossenen Moduls:",
             error,
           );
         }
-      }
-    } catch (error) {
-      console.error(
-        "Fehler beim lokalen Speichern des abgeschlossenen Moduls:",
-        error,
-      );
-    }
-  },
-
-  getModuleProgress: (stepId) => {
-    const { completedModules, moduleProgressCache } = get();
-
-    // Cache-Schlüssel erstellen
-    const cacheKey = `${stepId}-${completedModules.join(",")}`;
-
-    // Wenn ein Cache-Wert existiert, diesen zurückgeben
-    if (moduleProgressCache[cacheKey] !== undefined) {
-      return moduleProgressCache[cacheKey];
-    }
-
-    // Andernfalls neu berechnen
-    const moduleIds = MODULE_IDS_BY_STEP[stepId] || [];
-    if (moduleIds.length === 0) return 0;
-
-    const completedCount = moduleIds.filter((id) =>
-      completedModules.includes(id),
-    ).length;
-    const progress = completedCount / moduleIds.length;
-
-    // Im Cache speichern
-    set((state) => ({
-      moduleProgressCache: {
-        ...state.moduleProgressCache,
-        [cacheKey]: progress,
       },
-    }));
 
-    return progress;
-  },
+      getModuleProgress: (stepId) => {
+        const { completedModules, moduleProgressCache } = get();
 
-  getDaysInProgram: () => {
-    const { joinDate } = get();
-    if (!joinDate) return 0;
+        // Cache-Schlüssel erstellen
+        const cacheKey = `${stepId}-${completedModules.join(",")}`;
 
-    const joinDateObj = new Date(joinDate);
-    const today = new Date();
-    const diffTime = Math.abs(today.getTime() - joinDateObj.getTime());
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    return diffDays;
-  },
-
-  getCurrentStage: () => {
-    const daysInProgram = get().getDaysInProgram();
-    const completedModules = get().completedModules;
-
-    // Finde die höchste Stufe, bei der alle Voraussetzungen erfüllt sind
-    let currentStage: ProgressionStage | null = null;
-
-    for (const stage of progressionStages) {
-      // Zeitliche Voraussetzung erfüllt?
-      if (stage.requiredDays <= daysInProgram) {
-        // Inhaltliche Voraussetzungen erfüllt?
-        const allRequiredCompleted = stage.requiredModules.every((moduleId) =>
-          completedModules.includes(moduleId),
-        );
-
-        if (allRequiredCompleted) {
-          // Speichere höchste Stufe (Annahme: progressionStages ist sortiert)
-          currentStage = stage;
+        // Wenn ein Cache-Wert existiert, diesen zurückgeben
+        if (moduleProgressCache[cacheKey] !== undefined) {
+          return moduleProgressCache[cacheKey];
         }
-      }
-    }
 
-    return currentStage;
-  },
+        // Andernfalls neu berechnen
+        const moduleIds = MODULE_IDS_BY_STEP[stepId] || [];
+        if (moduleIds.length === 0) return 0;
 
-  getNextStage: () => {
-    const currentStage = get().getCurrentStage();
+        const completedCount = moduleIds.filter((id) =>
+          completedModules.includes(id),
+        ).length;
+        const progress = completedCount / moduleIds.length;
 
-    if (!currentStage) {
-      // Wenn keine aktuelle Stufe vorhanden ist, nimm die erste
-      return progressionStages[0] || null;
-    }
+        // Im Cache speichern
+        set((state) => ({
+          moduleProgressCache: {
+            ...state.moduleProgressCache,
+            [cacheKey]: progress,
+          },
+        }));
 
-    // Finde die nächste Stufe anhand des Index
-    const currentIndex = progressionStages.findIndex(
-      (stage) => stage.id === currentStage.id,
-    );
-    if (currentIndex === -1 || currentIndex === progressionStages.length - 1) {
-      return null; // Keine nächste Stufe vorhanden
-    }
+        return progress;
+      },
 
-    return progressionStages[currentIndex + 1];
-  },
+      getDaysInProgram: () => {
+        const { joinDate } = get();
+        if (!joinDate) return 0;
 
-  getAvailableModules: () => {
-    const { getDaysInProgram, completedModules } = get();
-    const daysInProgram = getDaysInProgram();
-
-    // Set für eindeutige Module
-    const availableModulesSet = new Set<string>();
-
-    // Gehe durch alle Progressionsstufen
-    for (const stage of progressionStages) {
-      // Prüfen, ob die zeitliche Voraussetzung erfüllt ist
-      if (stage.requiredDays <= daysInProgram) {
-        // Prüfen, ob alle erforderlichen Module abgeschlossen sind
-        const allRequiredCompleted = stage.requiredModules.every((moduleId) =>
-          completedModules.includes(moduleId),
-        );
-
-        // Wenn alle Voraussetzungen erfüllt sind, Module freischalten
-        if (allRequiredCompleted) {
-          stage.unlocksModules.forEach((moduleId) =>
-            availableModulesSet.add(moduleId),
-          );
-        }
-      }
-    }
-
-    return Array.from(availableModulesSet);
-  },
-
-  isModuleAvailable: (moduleId) => {
-    //
-    // Für Testzwecke: Alle "K" (Klarheit) Module sind verfügbar
-    // TODO: Diese Zeile entfernen, wenn die Testphase vorbei ist
-    if (
-      moduleId.startsWith("k-") ||
-      moduleId.startsWith("l-") ||
-      moduleId.startsWith("a-") ||
-      moduleId.startsWith("r-") ||
-      moduleId.startsWith("e-")
-    ) {
-      return true;
-    }
-
-    // Normale Verfügbarkeitsprüfung für andere Module
-    return get().getAvailableModules().includes(moduleId);
-  },
-
-  getModuleUnlockDate: (moduleId) => {
-    const { joinDate } = get();
-    if (!joinDate) return null;
-
-    // Finde die Stufe, in der das Modul freigeschaltet wird
-    for (const stage of progressionStages) {
-      if (stage.unlocksModules.includes(moduleId)) {
-        // Berechne das Freischaltdatum
         const joinDateObj = new Date(joinDate);
-        const unlockDate = new Date(joinDateObj);
-        unlockDate.setDate(joinDateObj.getDate() + stage.requiredDays);
+        const today = new Date();
+        const diffTime = Math.abs(today.getTime() - joinDateObj.getTime());
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-        return unlockDate;
-      }
-    }
+        return diffDays;
+      },
 
-    return null; // Modul nicht gefunden
-  },
+      getCurrentStage: () => {
+        const daysInProgram = get().getDaysInProgram();
+        const completedModules = get().completedModules;
 
-  getDaysUntilUnlock: (moduleId) => {
-    const unlockDate = get().getModuleUnlockDate(moduleId);
-    if (!unlockDate) return -1; // Nicht bekannt
+        // Finde die höchste Stufe, bei der alle Voraussetzungen erfüllt sind
+        let currentStage: ProgressionStage | null = null;
 
-    const today = new Date();
-    if (unlockDate <= today) return 0; // Bereits verfügbar
+        for (const stage of progressionStages) {
+          // Zeitliche Voraussetzung erfüllt?
+          if (stage.requiredDays <= daysInProgram) {
+            // Inhaltliche Voraussetzungen erfüllt?
+            const allRequiredCompleted = stage.requiredModules.every(
+              (moduleId) => completedModules.includes(moduleId),
+            );
 
-    const diffTime = Math.abs(unlockDate.getTime() - today.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    return diffDays;
-  },
-
-  loadProgressionData: async (userId) => {
-    set({ isLoading: true });
-
-    try {
-      // Wenn eine UserId vorhanden ist, versuche Daten vom Server zu laden
-      if (userId) {
-        try {
-          // Timeout nach 3 Sekunden
-          const timeout = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Network timeout")), 3000),
-          );
-
-          // Abgeschlossene Module aus Supabase holen
-          const moduleDataPromise = supabase
-            .from("completed_modules")
-            .select("module_id")
-            .eq("user_id", userId);
-
-          // User-Daten holen für joinDate
-          const userDataPromise = supabase
-            .from("users")
-            .select("join_date")
-            .eq("id", userId)
-            .single();
-
-          // Race zwischen Timeout und tatsächlichen Netzwerkaufrufen
-          const [moduleResult, userResult] = await Promise.all([
-            Promise.race([moduleDataPromise, timeout]),
-            Promise.race([userDataPromise, timeout]),
-          ]);
-
-          const { data: moduleData, error: moduleError } = moduleResult as any;
-          const { data: userData, error: userError } = userResult as any;
-
-          if (moduleError) throw moduleError;
-          if (userError) throw userError;
-
-          // Daten in den Store setzen
-          if (moduleData) {
-            const completedModules = moduleData.map((m: any) => m.module_id);
-            set({ completedModules });
+            if (allRequiredCompleted) {
+              // Speichere höchste Stufe (Annahme: progressionStages ist sortiert)
+              currentStage = stage;
+            }
           }
-
-          if (userData && userData.join_date) {
-            set({ joinDate: userData.join_date });
-          }
-        } catch (syncError) {
-          console.error("Fehler bei der Online-Synchronisierung:", syncError);
-          // Kein throw hier, da wir bereits lokale Daten geladen haben
         }
-      }
-    } catch (error) {
-      console.error("Fehler beim Laden der Progressionsdaten:", error);
-    } finally {
-      set({ isLoading: false });
-    }
-  },
 
-  saveProgressionData: async (userId) => {
-    const { completedModules } = get();
+        return currentStage;
+      },
 
-    try {
-      // Wenn eine UserId vorhanden ist, mit Supabase synchronisieren
-      if (userId) {
+      getNextStage: () => {
+        const currentStage = get().getCurrentStage();
+
+        if (!currentStage) {
+          // Wenn keine aktuelle Stufe vorhanden ist, nimm die erste
+          return progressionStages[0] || null;
+        }
+
+        // Finde die nächste Stufe anhand des Index
+        const currentIndex = progressionStages.findIndex(
+          (stage) => stage.id === currentStage.id,
+        );
+        if (
+          currentIndex === -1 ||
+          currentIndex === progressionStages.length - 1
+        ) {
+          return null; // Keine nächste Stufe vorhanden
+        }
+
+        return progressionStages[currentIndex + 1];
+      },
+
+      getAvailableModules: () => {
+        const { getDaysInProgram, completedModules } = get();
+        const daysInProgram = getDaysInProgram();
+
+        // Set für eindeutige Module
+        const availableModulesSet = new Set<string>();
+
+        // Gehe durch alle Progressionsstufen
+        for (const stage of progressionStages) {
+          // Prüfen, ob die zeitliche Voraussetzung erfüllt ist
+          if (stage.requiredDays <= daysInProgram) {
+            // Prüfen, ob alle erforderlichen Module abgeschlossen sind
+            const allRequiredCompleted = stage.requiredModules.every(
+              (moduleId) => completedModules.includes(moduleId),
+            );
+
+            // Wenn alle Voraussetzungen erfüllt sind, Module freischalten
+            if (allRequiredCompleted) {
+              stage.unlocksModules.forEach((moduleId) =>
+                availableModulesSet.add(moduleId),
+              );
+            }
+          }
+        }
+
+        return Array.from(availableModulesSet);
+      },
+
+      isModuleAvailable: (moduleId) => {
+        //
+        // Für Testzwecke: Alle "K" (Klarheit) Module sind verfügbar
+        // TODO: Diese Zeile entfernen, wenn die Testphase vorbei ist
+        if (
+          moduleId.startsWith("k-") ||
+          moduleId.startsWith("l-") ||
+          moduleId.startsWith("a-") ||
+          moduleId.startsWith("r-") ||
+          moduleId.startsWith("e-")
+        ) {
+          return true;
+        }
+
+        // Normale Verfügbarkeitsprüfung für andere Module
+        return get().getAvailableModules().includes(moduleId);
+      },
+
+      getModuleUnlockDate: (moduleId) => {
+        const { joinDate } = get();
+        if (!joinDate) return null;
+
+        // Finde die Stufe, in der das Modul freigeschaltet wird
+        for (const stage of progressionStages) {
+          if (stage.unlocksModules.includes(moduleId)) {
+            // Berechne das Freischaltdatum
+            const joinDateObj = new Date(joinDate);
+            const unlockDate = new Date(joinDateObj);
+            unlockDate.setDate(joinDateObj.getDate() + stage.requiredDays);
+
+            return unlockDate;
+          }
+        }
+
+        return null; // Modul nicht gefunden
+      },
+
+      getDaysUntilUnlock: (moduleId) => {
+        const unlockDate = get().getModuleUnlockDate(moduleId);
+        if (!unlockDate) return -1; // Nicht bekannt
+
+        const today = new Date();
+        if (unlockDate <= today) return 0; // Bereits verfügbar
+
+        const diffTime = Math.abs(unlockDate.getTime() - today.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        return diffDays;
+      },
+
+      loadProgressionData: async (userId) => {
+        set({ isLoading: true });
+
         try {
-          // Abgeschlossene Module synchronisieren
-          // Zuerst alle bestehenden Module abrufen
-          const { data: existingModules } = await supabase
-            .from("completed_modules")
-            .select("module_id")
-            .eq("user_id", userId);
+          // Wenn eine UserId vorhanden ist, versuche Daten vom Server zu laden
+          if (userId) {
+            try {
+              // Timeout nach 3 Sekunden
+              const timeout = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Network timeout")), 3000),
+              );
 
-          const existingModuleIds = existingModules
-            ? existingModules.map((m: any) => m.module_id)
-            : [];
+              // Abgeschlossene Module aus Supabase holen
+              const moduleDataPromise = supabase
+                .from("completed_modules")
+                .select("module_id")
+                .eq("user_id", userId);
 
-          // Neue Module einfügen
-          const newModules = completedModules.filter(
-            (moduleId) => !existingModuleIds.includes(moduleId),
-          );
+              // User-Daten holen für joinDate
+              const userDataPromise = supabase
+                .from("users")
+                .select("join_date")
+                .eq("id", userId)
+                .single();
 
-          if (newModules.length > 0) {
-            const modulesToInsert = newModules.map((moduleId) => ({
-              user_id: userId,
-              module_id: moduleId,
-              completed_at: new Date().toISOString(),
-            }));
+              // Race zwischen Timeout und tatsächlichen Netzwerkaufrufen
+              const [moduleResult, userResult] = await Promise.all([
+                Promise.race([moduleDataPromise, timeout]),
+                Promise.race([userDataPromise, timeout]),
+              ]);
 
-            await supabase.from("completed_modules").insert(modulesToInsert);
+              const { data: moduleData, error: moduleError } =
+                moduleResult as any;
+              const { data: userData, error: userError } = userResult as any;
+
+              if (moduleError) throw moduleError;
+              if (userError) throw userError;
+
+              // Daten in den Store setzen
+              if (moduleData) {
+                const completedModules = moduleData.map(
+                  (m: any) => m.module_id,
+                );
+                set({ completedModules });
+              }
+
+              if (userData && userData.join_date) {
+                set({ joinDate: userData.join_date });
+              }
+            } catch (syncError) {
+              console.error(
+                "Fehler bei der Online-Synchronisierung:",
+                syncError,
+              );
+              // Kein throw hier, da wir bereits lokale Daten geladen haben
+            }
+          }
+        } catch (error) {
+          console.error("Fehler beim Laden der Progressionsdaten:", error);
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      saveProgressionData: async (userId) => {
+        const { completedModules } = get();
+
+        try {
+          // Wenn eine UserId vorhanden ist, mit Supabase synchronisieren
+          if (userId) {
+            try {
+              // Abgeschlossene Module synchronisieren
+              // Zuerst alle bestehenden Module abrufen
+              const { data: existingModules } = await supabase
+                .from("completed_modules")
+                .select("module_id")
+                .eq("user_id", userId);
+
+              const existingModuleIds = existingModules
+                ? existingModules.map((m: any) => m.module_id)
+                : [];
+
+              // Neue Module einfügen
+              const newModules = completedModules.filter(
+                (moduleId) => !existingModuleIds.includes(moduleId),
+              );
+
+              if (newModules.length > 0) {
+                const modulesToInsert = newModules.map((moduleId) => ({
+                  user_id: userId,
+                  module_id: moduleId,
+                  completed_at: new Date().toISOString(),
+                }));
+
+                await supabase
+                  .from("completed_modules")
+                  .insert(modulesToInsert);
+              }
+
+              return true;
+            } catch (error) {
+              console.error("Fehler bei der Serversynchronisierung:", error);
+              return false;
+            }
           }
 
           return true;
         } catch (error) {
-          console.error("Fehler bei der Serversynchronisierung:", error);
+          console.error("Fehler beim Speichern der Progressionsdaten:", error);
           return false;
         }
-      }
+      },
 
-      return true;
-    } catch (error) {
-      console.error("Fehler beim Speichern der Progressionsdaten:", error);
-      return false;
-    }
-  },
-
-  resetJoinDate: async () => {
-    // Aktuelles Datum als Startdatum setzen
-    const newJoinDate = new Date().toISOString();
-    set({ joinDate: newJoinDate });
-  },
+      resetJoinDate: async () => {
+        // Aktuelles Datum als Startdatum setzen
+        const newJoinDate = new Date().toISOString();
+        set({ joinDate: newJoinDate });
+      },
     }),
     {
       name: "klare-progression-storage",
-      ...basePersistConfig,
+      ...storePersistConfigs,
       partialize: (state) => ({
         completedModules: state.completedModules,
         joinDate: state.joinDate,

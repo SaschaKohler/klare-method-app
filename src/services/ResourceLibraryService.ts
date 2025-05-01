@@ -1,5 +1,5 @@
 // src/services/ResourceLibraryService.ts
-import { mmkvStorage, StorageKeys } from "../store/mmkvStorage";
+import { unifiedStorage, StorageKeys } from "../storage/unifiedStorage";
 import uuid from "react-native-uuid";
 import { supabase } from "../lib/supabase";
 import { RawResourceData } from "../types/store";
@@ -43,7 +43,7 @@ class ResourceLibraryService {
       }
 
       // Try to get from local storage
-      const localData = mmkvStorage.getString(StorageKeys.RESOURCES);
+      const localData = unifiedStorage.getString(StorageKeys.RESOURCES);
 
       let resources: Resource[] = [];
 
@@ -78,7 +78,10 @@ class ResourceLibraryService {
             );
 
             // Update local storage with server data
-            mmkvStorage.set(StorageKeys.RESOURCES, JSON.stringify(resources));
+            unifiedStorage.set(
+              StorageKeys.RESOURCES,
+              JSON.stringify(resources),
+            );
           }
         } catch (error) {
           console.error("Error fetching resources from server:", error);
@@ -119,7 +122,7 @@ class ResourceLibraryService {
       resources.push(newResource);
 
       // Update local storage
-      mmkvStorage.set(StorageKeys.RESOURCES, JSON.stringify(resources));
+      unifiedStorage.set(StorageKeys.RESOURCES, JSON.stringify(resources));
 
       // Update cache
       this.resourcesCache[userId] = resources;
@@ -180,7 +183,7 @@ class ResourceLibraryService {
       resources[resourceIndex] = updatedResource;
 
       // Update local storage
-      mmkvStorage.set(StorageKeys.RESOURCES, JSON.stringify(resources));
+      unifiedStorage.set(StorageKeys.RESOURCES, JSON.stringify(resources));
 
       // Update cache
       this.resourcesCache[userId] = resources;
@@ -233,7 +236,10 @@ class ResourceLibraryService {
       const updatedResources = resources.filter((r) => r.id !== resourceId);
 
       // Update local storage
-      mmkvStorage.set(StorageKeys.RESOURCES, JSON.stringify(updatedResources));
+      unifiedStorage.set(
+        StorageKeys.RESOURCES,
+        JSON.stringify(updatedResources),
+      );
 
       // Update cache
       this.resourcesCache[userId] = updatedResources;
