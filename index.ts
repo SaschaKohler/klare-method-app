@@ -1,4 +1,11 @@
 import { registerRootComponent } from 'expo';
+import { LogBox } from 'react-native';
+
+// Suppress MMKV error when using remote debugging
+LogBox.ignoreLogs([
+  'MMKV initialization failed',
+  'Failed to create a new MMKV instance',
+]);
 
 import App from './App';
 
