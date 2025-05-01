@@ -417,6 +417,7 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                   source={{ uri: item.image_url }}
                   style={styles.itemImage}
                   resizeMode="cover"
+                  onError={(e) => console.error("Image loading error:", e.nativeEvent.error, item.image_url)}
                 />
               )}
 
@@ -648,9 +649,16 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
 
                         console.log("Image uploaded successfully:", publicUrl);
 
+                        // Make sure the URL is properly formatted
+                        const formattedUrl = publicUrl.startsWith('http') 
+                          ? publicUrl 
+                          : `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${publicUrl}`;
+
+                        console.log("Formatted image URL:", formattedUrl);
+
                         // Update the selected item with the image URL
                         setSelectedItem((prev) =>
-                          prev ? { ...prev, image_url: publicUrl } : null,
+                          prev ? { ...prev, image_url: formattedUrl } : null,
                         );
 
                         // Dismiss loading alert
@@ -676,6 +684,10 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                 <Image
                   source={{ uri: selectedItem.image_url }}
                   style={styles.imagePreview}
+                  onError={(e) => {
+                    console.error("Preview image error:", e.nativeEvent.error, selectedItem.image_url);
+                    Alert.alert("Image Error", "Could not load the image. The URL might be invalid.");
+                  }}
                 />
               )}
             </View>
