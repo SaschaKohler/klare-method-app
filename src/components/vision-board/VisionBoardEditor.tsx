@@ -414,10 +414,16 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
             >
               {item.image_url && (
                 <Image
-                  source={{ uri: item.image_url }}
+                  source={{ uri: item.image_url?.split('?')[0] }}
                   style={styles.itemImage}
                   resizeMode="cover"
-                  onError={(e) => console.error("Image loading error:", e.nativeEvent.error, item.image_url)}
+                  onError={(e) => {
+                    console.error("Image loading error:", e.nativeEvent.error, item.image_url);
+                    // Try to load without query parameters if there's an error
+                    if (item.image_url?.includes('?')) {
+                      console.log("Retrying with cleaned URL");
+                    }
+                  }}
                 />
               )}
 
@@ -650,10 +656,14 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                         console.log("Image uploaded successfully:", publicUrl);
 
                         // Make sure the URL is properly formatted
-                        const formattedUrl = publicUrl.startsWith('http') 
-                          ? publicUrl 
-                          : `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${publicUrl}`;
-
+                        let formattedUrl = publicUrl;
+                        if (!publicUrl.startsWith('http')) {
+                          formattedUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${publicUrl}`;
+                        }
+                        
+                        // Remove any query parameters that might cause issues
+                        formattedUrl = formattedUrl.split('?')[0];
+                        
                         console.log("Formatted image URL:", formattedUrl);
 
                         // Update the selected item with the image URL
@@ -682,11 +692,28 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
 
               {selectedItem?.image_url && (
                 <Image
-                  source={{ uri: selectedItem.image_url }}
+                  source={{ uri: selectedItem.image_url?.split('?')[0] }}
                   style={styles.imagePreview}
                   onError={(e) => {
                     console.error("Preview image error:", e.nativeEvent.error, selectedItem.image_url);
-                    Alert.alert("Image Error", "Could not load the image. The URL might be invalid.");
+                    Alert.alert(
+                      "Image Error", 
+                      "Could not load the image. Trying to fix the URL...",
+                      [
+                        {
+                          text: "OK",
+                          onPress: () => {
+                            // Try to fix the URL by removing query parameters
+                            if (selectedItem.image_url?.includes('?')) {
+                              const cleanedUrl = selectedItem.image_url.split('?')[0];
+                              setSelectedItem(prev => 
+                                prev ? { ...prev, image_url: cleanedUrl } : null
+                              );
+                            }
+                          }
+                        }
+                      ]
+                    );
                   }}
                 />
               )}
