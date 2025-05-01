@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
 
 import { Tables, TablesInsert } from "../types/supabase";
-import { Alert } from "react-native";
+import { Alert, Platform } from "react-native";
 
 type VisionBoardRow = Tables<"vision_boards">;
 type VisionBoardInsert = TablesInsert<"vision_boards">;
@@ -342,11 +342,20 @@ class VisionBoardService {
         cleanUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${filePath}`;
       }
       
-      // Add cache busting parameter for iOS simulator
-      const timestamp = Date.now();
-      cleanUrl = `${cleanUrl.split('?')[0]}?t=${timestamp}`;
+      // Ensure URL is properly formatted
+      let cleanUrl = publicUrl;
       
-      console.log("Final image URL with cache busting:", cleanUrl);
+      // Handle cases where URL might be relative
+      if (!cleanUrl.startsWith('http')) {
+        cleanUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${filePath}`;
+      }
+      
+      // For iOS simulator, we need to use the download URL
+      if (Platform.OS === 'ios' && Platform.isTesting) {
+        cleanUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${filePath}`;
+      }
+      
+      console.log("Final image URL:", cleanUrl);
       return cleanUrl;
     } catch (error) {
       console.error("Image upload error:", error);

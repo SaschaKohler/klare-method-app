@@ -423,19 +423,55 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                   onError={(e) => {
                     console.error("Image loading error:", e.nativeEvent.error, item.image_url);
                     
-                    // Try alternative URL format if first attempt fails
-                    if (item.image_url && !item.image_url.startsWith('http')) {
-                      const alternativeUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${item.image_url}`;
-                      console.log("Trying alternative URL:", alternativeUrl);
-                      setSelectedItem(prev => 
-                        prev ? { ...prev, image_url: alternativeUrl } : null
-                      );
-                    } else {
-                      Alert.alert(
-                        "Image Error",
-                        "Could not load the image. Please try uploading again.",
-                        [{ text: "OK" }]
-                      );
+                    // Try multiple fallback strategies
+                    if (item.image_url) {
+                      // 1. Try removing cache busting parameter
+                      const cleanUrl = item.image_url.split('?')[0];
+                      console.log("Trying clean URL:", cleanUrl);
+                      
+                      // 2. Try direct download first
+                      const downloadUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${item.image_url.split('/').pop()}`;
+                      console.log("Trying download URL:", downloadUrl);
+                      
+                      // 3. Try signed URL as last resort
+                      const getSignedUrl = async () => {
+                        try {
+                          const { data } = await supabase.storage
+                            .from('vision-board-images')
+                            .createSignedUrl(item.image_url.split('/').pop() || '', 3600);
+                          return data?.signedUrl;
+                        } catch (error) {
+                          console.error("Error creating signed URL:", error);
+                          return null;
+                        }
+                      };
+                      
+                      // Try each strategy in sequence
+                      const tryUrls = async () => {
+                        // Try clean URL first
+                        setSelectedItem(prev => 
+                          prev ? { ...prev, image_url: cleanUrl } : null
+                        );
+                        
+                        // If still fails after 1 second, try download URL
+                        setTimeout(() => {
+                          setSelectedItem(prev => 
+                            prev ? { ...prev, image_url: downloadUrl } : null
+                          );
+                          
+                          // If still fails after another second, try signed URL
+                          setTimeout(async () => {
+                            const signedUrl = await getSignedUrl();
+                            if (signedUrl) {
+                              setSelectedItem(prev => 
+                                prev ? { ...prev, image_url: signedUrl } : null
+                              );
+                            }
+                          }, 1000);
+                        }, 1000);
+                      };
+                      
+                      tryUrls();
                     }
                   }}
                 />
