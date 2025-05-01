@@ -285,8 +285,8 @@ class VisionBoardService {
         (board) => board.id !== boardId,
       );
 
-      await AsyncStorage.setItem(
-        `${VISION_BOARD_STORAGE_KEY}_${userId}`,
+      mmkvStorage.set(
+        StorageKeys.VISION_BOARD,
         JSON.stringify(this.visionBoardCache[userId]),
       );
     } catch (error) {
@@ -327,12 +327,13 @@ class VisionBoardService {
         throw new Error(`Upload failed: ${error.message}`);
       }
 
-      // Get public URL
+      // Get public URL without query parameters
       const {
         data: { publicUrl },
       } = supabase.storage.from("vision-board-images").getPublicUrl(filePath);
 
-      return `${publicUrl}?t=${Date.now()}`;
+      // Return clean URL without query parameters
+      return publicUrl;
     } catch (error) {
       console.error("Image upload error:", error);
       let errorMessage = "Failed to upload image";
