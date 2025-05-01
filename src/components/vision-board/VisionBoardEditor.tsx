@@ -11,6 +11,7 @@ import {
   Alert,
   Animated,
   PanResponder,
+  Platform,
 } from "react-native";
 import {
   Text,
@@ -414,15 +415,26 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
             >
               {item.image_url && (
                 <Image
-                  source={{ uri: item.image_url?.split('?')[0] }}
+                  source={{ uri: item.image_url }}
                   style={styles.itemImage}
                   resizeMode="cover"
+                  onLoadStart={() => console.log("Starting to load image:", item.image_url)}
+                  onLoad={() => console.log("Image loaded successfully:", item.image_url)}
                   onError={(e) => {
                     console.error("Image loading error:", e.nativeEvent.error, item.image_url);
-                    // Try to load without query parameters if there's an error
-                    if (item.image_url?.includes('?')) {
-                      console.log("Retrying with cleaned URL");
-                    }
+                    // For iOS simulator, sometimes we need to try different URL formats
+                    Alert.alert(
+                      "Image Error",
+                      "Could not load the image. The URL might be invalid.",
+                      [
+                        {
+                          text: "OK",
+                          onPress: () => {
+                            // We could implement a retry mechanism here if needed
+                          }
+                        }
+                      ]
+                    );
                   }}
                 />
               )}
@@ -665,6 +677,12 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                         formattedUrl = formattedUrl.split('?')[0];
                         
                         console.log("Formatted image URL:", formattedUrl);
+                        
+                        // For iOS simulator, log additional information
+                        if (Platform.OS === 'ios') {
+                          console.log("Running on iOS - Platform version:", Platform.Version);
+                          console.log("Is simulator:", Platform.constants.uiMode?.indexOf('simulator') !== -1);
+                        }
 
                         // Update the selected item with the image URL
                         setSelectedItem((prev) =>
@@ -692,25 +710,36 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
 
               {selectedItem?.image_url && (
                 <Image
-                  source={{ uri: selectedItem.image_url?.split('?')[0] }}
+                  source={{ uri: selectedItem.image_url }}
                   style={styles.imagePreview}
+                  onLoadStart={() => console.log("Starting to load preview image:", selectedItem.image_url)}
+                  onLoad={() => console.log("Preview image loaded successfully")}
                   onError={(e) => {
                     console.error("Preview image error:", e.nativeEvent.error, selectedItem.image_url);
+                    
+                    // For iOS simulator compatibility
+                    const isSimulator = Platform.OS === 'ios' && !Platform.isPad && !Platform.isTVOS && (Platform.constants.uiMode?.indexOf('simulator') !== -1);
+                    
+                    if (isSimulator) {
+                      console.log("Running on iOS simulator - attempting alternative image loading approach");
+                    }
+                    
                     Alert.alert(
                       "Image Error", 
-                      "Could not load the image. Trying to fix the URL...",
+                      "Could not load the image. The URL might be invalid.",
                       [
                         {
-                          text: "OK",
+                          text: "Retry",
                           onPress: () => {
-                            // Try to fix the URL by removing query parameters
-                            if (selectedItem.image_url?.includes('?')) {
-                              const cleanedUrl = selectedItem.image_url.split('?')[0];
-                              setSelectedItem(prev => 
-                                prev ? { ...prev, image_url: cleanedUrl } : null
-                              );
-                            }
+                            // Force a re-render by updating the state slightly
+                            setSelectedItem(prev => 
+                              prev ? { ...prev, image_url: prev.image_url + '' } : null
+                            );
                           }
+                        },
+                        {
+                          text: "OK",
+                          style: "cancel"
                         }
                       ]
                     );

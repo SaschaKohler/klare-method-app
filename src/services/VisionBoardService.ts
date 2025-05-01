@@ -332,8 +332,16 @@ class VisionBoardService {
         data: { publicUrl },
       } = supabase.storage.from("vision-board-images").getPublicUrl(filePath);
 
+      console.log("Original public URL:", publicUrl);
+      
+      // For iOS simulator compatibility, ensure URL is properly formatted
+      // and doesn't have problematic query parameters
+      const cleanUrl = publicUrl.split('?')[0];
+      
+      console.log("Cleaned URL for image:", cleanUrl);
+      
       // Return clean URL without query parameters
-      return publicUrl;
+      return cleanUrl;
     } catch (error) {
       console.error("Image upload error:", error);
       let errorMessage = "Failed to upload image";
