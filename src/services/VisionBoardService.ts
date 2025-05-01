@@ -342,10 +342,11 @@ class VisionBoardService {
         cleanUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${filePath}`;
       }
       
-      // Remove any query parameters that might cause issues
-      cleanUrl = cleanUrl.split('?')[0];
+      // Add cache busting parameter for iOS simulator
+      const timestamp = Date.now();
+      cleanUrl = `${cleanUrl.split('?')[0]}?t=${timestamp}`;
       
-      console.log("Final image URL:", cleanUrl);
+      console.log("Final image URL with cache busting:", cleanUrl);
       return cleanUrl;
     } catch (error) {
       console.error("Image upload error:", error);

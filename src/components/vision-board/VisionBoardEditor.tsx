@@ -700,36 +700,32 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                   source={{ uri: selectedItem.image_url }}
                   style={styles.imagePreview}
                   onLoadStart={() => console.log("Starting to load preview image:", selectedItem.image_url)}
-                  onLoad={() => console.log("Preview image loaded successfully")}
+                  onLoad={() => {
+                    console.log("Preview image loaded successfully");
+                    console.log("Image dimensions:", {
+                      width: e.nativeEvent.source.width,
+                      height: e.nativeEvent.source.height
+                    });
+                  }}
                   onError={(e) => {
                     console.error("Preview image error:", e.nativeEvent.error, selectedItem.image_url);
                     
-                    // For iOS simulator compatibility
-                    const isSimulator = Platform.OS === 'ios' && !Platform.isPad && !Platform.isTVOS && (Platform.constants.uiMode?.indexOf('simulator') !== -1);
+                    // Try adding cache busting parameter
+                    const timestamp = Date.now();
+                    const retryUrl = `${selectedItem.image_url.split('?')[0]}?t=${timestamp}`;
+                    console.log("Trying with cache busting URL:", retryUrl);
                     
-                    if (isSimulator) {
-                      console.log("Running on iOS simulator - attempting alternative image loading approach");
-                    }
-                    
-                    Alert.alert(
-                      "Image Error", 
-                      "Could not load the image. The URL might be invalid.",
-                      [
-                        {
-                          text: "Retry",
-                          onPress: () => {
-                            // Force a re-render by updating the state slightly
-                            setSelectedItem(prev => 
-                              prev ? { ...prev, image_url: prev.image_url + '' } : null
-                            );
-                          }
-                        },
-                        {
-                          text: "OK",
-                          style: "cancel"
-                        }
-                      ]
+                    setSelectedItem(prev => 
+                      prev ? { ...prev, image_url: retryUrl } : null
                     );
+                    
+                    // Log more debug info
+                    console.log("Platform info:", {
+                      OS: Platform.OS,
+                      Version: Platform.Version,
+                      isSimulator: Platform.isTesting,
+                      constants: Platform.constants
+                    });
                   }}
                 />
               )}
