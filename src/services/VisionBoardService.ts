@@ -334,8 +334,6 @@ class VisionBoardService {
 
       console.log("Original public URL:", publicUrl);
       
-      }
-      
       // Ensure URL is properly formatted
       let cleanUrl = publicUrl;
       
