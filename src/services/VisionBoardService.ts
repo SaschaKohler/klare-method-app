@@ -2,13 +2,12 @@ import { unifiedStorage, StorageKeys } from "../storage/unifiedStorage";
 import uuid from "react-native-uuid";
 import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
-
-import { Tables, TablesInsert } from "../types/supabase";
 import { Alert, Platform } from "react-native";
+import * as FileSystem from "expo-file-system";
+import { Tables, TablesInsert } from "../types/supabase";
 
 type VisionBoardRow = Tables<"vision_boards">;
 type VisionBoardInsert = TablesInsert<"vision_boards">;
-
 type VisionBoardItemTable = Tables<"vision_board_items">;
 
 export interface VisionBoard extends VisionBoardRow {
@@ -17,81 +16,121 @@ export interface VisionBoard extends VisionBoardRow {
 
 export interface VisionBoardItem extends VisionBoardItemTable {}
 
-// Ändern Sie den Key, um Konflikte mit der Zustand-Persist-Middleware zu vermeiden
-// Using StorageKeys.VISION_BOARD instead
-
+/**
+ * VisionBoardService - Handles interactions between the app and Supabase for vision boards
+ *
+ * Follows best practices:
+ * - Consistent cache management
+ * - Optimized database operations
+ * - Robust error handling
+ * - Proper offline/online sync
+ */
 class VisionBoardService {
+  // Cache for better performance and offline capabilities
   private visionBoardCache: Record<string, VisionBoard[]> = {};
-  private visionBoardItemCache: Record<string, VisionBoardItem[]> = {};
 
   constructor() {
     this.initializeBucket();
   }
 
+  /**
+   * Initialize the storage bucket if it doesn't exist
+   */
   private async initializeBucket() {
     try {
-      const { data: buckets } = await supabase.storage.listBuckets();
+      // Instead of trying to create a bucket, verify it exists
+      const { data: buckets, error } = await supabase.storage.listBuckets();
+
+      if (error) {
+        console.error("Error listing storage buckets:", error);
+        return;
+      }
+
       const bucketExists = buckets?.some(
         (b) => b.name === "vision-board-images",
       );
 
       if (!bucketExists) {
-        await supabase.storage.createBucket("vision-board-images", {
-          public: true,
-          allowedMimeTypes: ["image/jpeg", "image/png", "image/gif"],
-          fileSizeLimit: 1024 * 1024 * 5, // 5MB
-        });
+        // Just log a warning instead of trying to create the bucket
+        console.warn(
+          "The 'vision-board-images' bucket doesn't exist. " +
+            "Please create it in the Supabase dashboard.",
+        );
+      } else {
+        console.log("Vision board images bucket exists");
       }
     } catch (error) {
-      console.error("Failed to initialize vision board bucket:", error);
+      console.error("Failed to check vision board bucket:", error);
     }
   }
-
+  /**
+   * Get vision boards for a user with proper caching and offline support
+   */
   async getUserVisionBoard(userId: string): Promise<VisionBoard[]> {
     try {
+      // Try local cache first
       if (this.visionBoardCache[userId]) {
         return this.visionBoardCache[userId];
       }
 
+      // Try AsyncStorage
       const localData = unifiedStorage.getString(StorageKeys.VISION_BOARD);
-
       let visionBoards: VisionBoard[] = [];
 
       if (localData) {
         visionBoards = JSON.parse(localData);
       }
 
+      // Check if we're online and can fetch from Supabase
       const { data: session } = await supabase.auth.getSession();
       if (session?.session) {
-        const { data, error } = await supabase
-          .from("vision_boards")
-          .select("*")
-          .eq("user_id", userId);
+        try {
+          // Fetch vision boards with a single query
+          const { data: boardsData, error: boardsError } = await supabase
+            .from("vision_boards")
+            .select("*")
+            .eq("user_id", userId);
 
-        if (error) {
-          throw new Error(error.message);
-        }
+          if (boardsError) {
+            console.error("Error fetching vision boards:", boardsError);
+          } else if (boardsData && boardsData.length > 0) {
+            // Prepare the list of boards with formatted dates
+            const boardsList = boardsData.map((board) => ({
+              ...board,
+              created_at: board.created_at
+                ? format(new Date(board.created_at), "yyyy-MM-dd")
+                : format(new Date(), "yyyy-MM-dd"),
+              items: [],
+            }));
 
-        if (data) {
-          visionBoards = data.map((board) => ({
-            ...board,
-            created_at: format(new Date(board.created_at), "yyyy-MM-dd"),
-          }));
-
-          // Laden wir auch die Items für jedes Board
-          for (const board of visionBoards) {
+            // Fetch all items for all boards in a single query
+            const boardIds = boardsList.map((board) => board.id);
             const { data: itemsData, error: itemsError } = await supabase
               .from("vision_board_items")
               .select("*")
-              .eq("vision_board_id", board.id);
+              .in("vision_board_id", boardIds);
 
-            if (!itemsError && itemsData) {
-              board.items = itemsData;
+            if (itemsError) {
+              console.error("Error fetching vision board items:", itemsError);
+            } else if (itemsData) {
+              // Assign items to their respective boards
+              boardsList.forEach((board) => {
+                board.items = itemsData.filter(
+                  (item) => item.vision_board_id === board.id,
+                );
+              });
             }
+
+            // Update with the latest data
+            visionBoards = boardsList;
           }
+        } catch (error) {
+          console.error("Error during Supabase fetch:", error);
+          // Continue with cached data if online fetch fails
         }
       }
 
+      // Update cache and storage
       this.visionBoardCache[userId] = visionBoards;
       unifiedStorage.set(
         StorageKeys.VISION_BOARD,
@@ -105,54 +144,42 @@ class VisionBoardService {
     }
   }
 
+  /**
+   * Save or update a vision board with optimized database operations
+   */
   async saveUserVisionBoard(
     board: VisionBoard & { items?: VisionBoardItem[] },
     userId?: string,
   ): Promise<VisionBoard> {
     try {
+      // Check authentication
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session) {
         throw new Error("User not authenticated");
       }
 
-      // Extrahiere die items aus dem board-Objekt, weil sie nicht Teil der vision_boards-Tabelle sind
+      // Extract items for separate handling
       const { items, ...boardData } = board;
+      let updatedBoard: VisionBoard;
 
+      // Update or insert the board
       if (board.id) {
-        // Update existing board - ohne das items-Feld
-        const { error } = await supabase
+        // Update existing board
+        const { data, error } = await supabase
           .from("vision_boards")
           .update(boardData)
-          .eq("id", board.id);
+          .eq("id", board.id)
+          .select()
+          .single();
 
         if (error) {
-          throw new Error(error.message);
+          throw new Error(`Failed to update vision board: ${error.message}`);
         }
 
-        // Aktualisiere den Cache
-        const existingBoardIndex = this.visionBoardCache[
-          session.session.user.id
-        ]?.findIndex((cachedBoard) => cachedBoard.id === board.id);
-
-        if (existingBoardIndex !== -1 && existingBoardIndex !== undefined) {
-          this.visionBoardCache[session.session.user.id][existingBoardIndex] = {
-            ...boardData,
-            items: items || [],
-          };
-        } else {
-          this.visionBoardCache[session.session.user.id] = [
-            ...(this.visionBoardCache[session.session.user.id] || []),
-            { ...boardData, items: items || [] },
-          ];
-        }
-
-        unifiedStorage.set(
-          StorageKeys.VISION_BOARD,
-          JSON.stringify(this.visionBoardCache[session.session.user.id]),
-        );
+        updatedBoard = data;
       } else {
-        // Neues Board erstellen - ohne das items-Feld
-        const { data: newBoard, error: insertError } = await supabase
+        // Create new board
+        const { data, error } = await supabase
           .from("vision_boards")
           .insert({
             user_id: userId,
@@ -166,44 +193,22 @@ class VisionBoardService {
           .select()
           .single();
 
-        if (insertError) {
-          throw new Error(insertError.message);
+        if (error) {
+          throw new Error(`Failed to create vision board: ${error.message}`);
         }
 
-        board.id = newBoard?.id;
-
-        this.visionBoardCache[userId] = [
-          ...(this.visionBoardCache[userId] || []),
-          { ...newBoard, items: items || [] },
-        ];
-
-        unifiedStorage.set(
-          StorageKeys.VISION_BOARD,
-          JSON.stringify(this.visionBoardCache[userId]),
-        );
+        updatedBoard = data;
       }
 
-      // Wenn wir items haben, müssen wir zuerst die alten Items löschen und dann die neuen einfügen
-      if (board.id && items && items.length > 0) {
-        // Lösche alte Items für dieses Board
-        const { error: deleteError } = await supabase
-          .from("vision_board_items")
-          .delete()
-          .eq("vision_board_id", board.id);
-
-        if (deleteError) {
-          console.warn("Error deleting old items:", deleteError);
-          // Wir fahren trotzdem fort
-        }
-
-        // Füge neue Items hinzu
-        const itemsToInsert = items.map((item) => {
+      // Process items if board was created/updated successfully
+      if (updatedBoard.id && items && items.length > 0) {
+        // Optimize item updates using upsert instead of delete-then-insert
+        const itemsToUpsert = items.map((item) => {
           const id = item.id || uuid.v4().toString();
-
           return {
             id: id,
             user_id: userId,
-            vision_board_id: board.id,
+            vision_board_id: updatedBoard.id,
             life_area: item.life_area,
             title: item.title,
             description: item.description || "",
@@ -218,140 +223,235 @@ class VisionBoardService {
           };
         });
 
-        const { error: itemError } = await supabase
+        // Get current items to detect deletions
+        const { data: existingItems } = await supabase
           .from("vision_board_items")
-          .insert(itemsToInsert);
+          .select("id")
+          .eq("vision_board_id", updatedBoard.id);
 
-        if (itemError) {
-          throw new Error(itemError.message);
+        // Find items to delete (exist in database but not in the updated items list)
+        if (existingItems && existingItems.length > 0) {
+          const currentIds = existingItems.map((item) => item.id);
+          const updatedIds = itemsToUpsert.map((item) => item.id);
+          const idsToDelete = currentIds.filter(
+            (id) => !updatedIds.includes(id),
+          );
+
+          // Delete removed items
+          if (idsToDelete.length > 0) {
+            const { error: deleteError } = await supabase
+              .from("vision_board_items")
+              .delete()
+              .in("id", idsToDelete);
+
+            if (deleteError) {
+              console.warn("Error deleting removed items:", deleteError);
+            }
+          }
         }
 
-        this.visionBoardItemCache[session.session.user.id] = [
-          ...(this.visionBoardItemCache[session.session.user.id] || []),
-          ...itemsToInsert,
-        ];
+        // Upsert items (create new ones, update existing ones)
+        const { error: upsertError } = await supabase
+          .from("vision_board_items")
+          .upsert(itemsToUpsert, { onConflict: "id" });
 
-        unifiedStorage.set(
-          StorageKeys.VISION_BOARD,
-          JSON.stringify(this.visionBoardItemCache[session.session.user.id]),
-        );
+        if (upsertError) {
+          throw new Error(
+            `Failed to save vision board items: ${upsertError.message}`,
+          );
+        }
+
+        // Add items to the updated board
+        updatedBoard.items = itemsToUpsert;
+      } else {
+        updatedBoard.items = [];
       }
 
-      // Gib das vollständige Board mit Items zurück
-      return { ...boardData, id: board.id, items: items || [] };
+      // Update cache
+      this.updateCache(userId || session.session.user.id, updatedBoard);
+
+      return updatedBoard;
     } catch (error) {
       console.error("Error saving vision board:", error);
       throw error;
     }
   }
 
+  /**
+   * Delete a vision board with proper confirmation and error handling
+   */
   async deleteVisionBoard(boardId: string, userId: string): Promise<void> {
-    try {
+    return new Promise((resolve, reject) => {
       Alert.alert(
         "Vision Board löschen",
         "Sind Sie sicher, dass Sie dieses Vision Board löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
         [
-          { text: "Abbrechen", style: "cancel" },
+          {
+            text: "Abbrechen",
+            style: "cancel",
+            onPress: () => reject(new Error("User cancelled")),
+          },
           {
             text: "Löschen",
             style: "destructive",
             onPress: async () => {
-              // Zuerst alle zugehörigen Items löschen
-              const { error: itemsError } = await supabase
-                .from("vision_board_items")
-                .delete()
-                .eq("vision_board_id", boardId);
+              try {
+                // Use RPC call to handle cascading delete on the server
+                const { error } = await supabase.rpc("delete_vision_board", {
+                  board_id: boardId,
+                });
 
-              if (itemsError) throw itemsError;
+                if (error) {
+                  throw error;
+                }
 
-              // Dann das Board selbst löschen
-              const { error: boardError } = await supabase
-                .from("vision_boards")
-                .delete()
-                .eq("id", boardId);
+                // Update cache
+                if (this.visionBoardCache[userId]) {
+                  this.visionBoardCache[userId] = this.visionBoardCache[
+                    userId
+                  ].filter((board) => board.id !== boardId);
 
-              if (boardError) throw boardError;
+                  unifiedStorage.set(
+                    StorageKeys.VISION_BOARD,
+                    JSON.stringify(this.visionBoardCache[userId]),
+                  );
+                }
 
-              // Liste der Boards neu laden
-              await this.getUserVisionBoard(userId);
+                Alert.alert(
+                  "Erfolg",
+                  "Das Vision Board wurde erfolgreich gelöscht.",
+                );
 
-              Alert.alert(
-                "Erfolg",
-                "Das Vision Board wurde erfolgreich gelöscht.",
-              );
+                resolve();
+              } catch (error) {
+                console.error("Error deleting vision board:", error);
+                Alert.alert(
+                  "Fehler",
+                  "Das Vision Board konnte nicht gelöscht werden.",
+                );
+                reject(error);
+              }
             },
           },
         ],
+        {
+          cancelable: true,
+          onDismiss: () => reject(new Error("User dismissed")),
+        },
       );
-
-      this.visionBoardCache[userId] = this.visionBoardCache[userId].filter(
-        (board) => board.id !== boardId,
-      );
-
-      unifiedStorage.set(
-        StorageKeys.VISION_BOARD,
-        JSON.stringify(this.visionBoardCache[userId]),
-      );
-    } catch (error) {
-      console.error("Error deleting vision board:", error);
-      throw error;
-    }
+    });
   }
 
+  /**
+   * Upload an image to Supabase Storage with improved error handling
+   */
   async uploadImage(fileUri: string, userId: string): Promise<string> {
     if (!userId) {
       throw new Error("User ID is required for image upload");
     }
 
     try {
-      const fileExt = fileUri.split(".").pop()?.toLowerCase();
-      if (!fileExt || !["jpg", "jpeg", "png", "gif"].includes(fileExt)) {
-        throw new Error("Unsupported image format");
+      console.log("Starting improved image upload process for URI:", fileUri);
+
+      // Verify file exists
+      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      console.log("File info:", fileInfo);
+
+      if (!fileInfo.exists) {
+        throw new Error(`File does not exist: ${fileUri}`);
       }
 
-      const fileName = `${Date.now()}.${fileExt}`;
-      // Make sure the user ID is the first folder segment to match the RLS policy
-      const filePath = `${userId}/vision-board/${fileName}`;
+      if (fileInfo.size === 0) {
+        throw new Error(`File is empty (0 bytes): ${fileUri}`);
+      }
 
-      // Convert uri to blob for React Native
-      const response = await fetch(fileUri);
-      const blob = await response.blob();
+      // Extract file extension and validate
+      const fileExt = fileUri.split(".").pop()?.toLowerCase();
+      if (!fileExt || !["jpg", "jpeg", "png", "gif"].includes(fileExt)) {
+        throw new Error(`Unsupported image format: ${fileExt}`);
+      }
 
+      // Create unique filename
+      const timestamp = Date.now();
+      const fileName = `${timestamp}.${fileExt}`;
+      console.log(`Preparing to upload image to ${fileName}`);
+
+      // IMPROVED APPROACH: Create a temporary file with base64 encoding
+      // This gives us more control over the image data format
+
+      // Create a temporary directory if it doesn't exist
+      const tempDir = FileSystem.cacheDirectory + "temp/";
+      const dirInfo = await FileSystem.getInfoAsync(tempDir);
+      if (!dirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(tempDir, { intermediates: true });
+      }
+
+      // Copy the file to our temp directory
+      const tempFilePath = tempDir + fileName;
+      await FileSystem.copyAsync({
+        from: fileUri,
+        to: tempFilePath,
+      });
+
+      console.log(`Copied image to temp location: ${tempFilePath}`);
+
+      // Read as base64
+      const base64Data = await FileSystem.readAsStringAsync(tempFilePath, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      console.log(`Read ${base64Data.length} bytes of base64 data`);
+
+      if (!base64Data || base64Data.length === 0) {
+        throw new Error("Failed to read image data as base64");
+      }
+
+      // Upload directly with base64 data
       const { data, error } = await supabase.storage
         .from("vision-board-images")
-        .upload(filePath, blob, {
+        .upload(fileName, base64Data, {
+          contentType: `image/${fileExt === "jpg" ? "jpeg" : fileExt}`,
           upsert: true,
-          contentType: `image/${fileExt}`,
-          cacheControl: "3600",
         });
 
       if (error) {
-        console.error("Image upload error:", error);
+        console.error("Upload error:", error);
         throw new Error(`Upload failed: ${error.message}`);
       }
 
-      // Get public URL without query parameters
+      console.log("Upload successful:", data?.path);
+
+      // Clean up temp file
+      await FileSystem.deleteAsync(tempFilePath, { idempotent: true });
+
+      // Get public URL with cache-busting parameter
       const {
         data: { publicUrl },
-      } = supabase.storage.from("vision-board-images").getPublicUrl(filePath);
+      } = supabase.storage.from("vision-board-images").getPublicUrl(fileName);
 
-      console.log("Original public URL:", publicUrl);
+      const finalUrl = `${publicUrl}?t=${timestamp}`;
+      console.log("Final image URL:", finalUrl);
 
-      // Ensure URL is properly formatted
-      let cleanUrl = publicUrl;
+      // Verify the image is accessible
+      try {
+        const checkResponse = await fetch(finalUrl, { method: "HEAD" });
+        console.log("Image verification status:", checkResponse.status);
 
-      // Handle cases where URL might be relative
-      if (!cleanUrl.startsWith("http")) {
-        cleanUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${filePath}`;
+        if (!checkResponse.ok) {
+          console.warn(
+            "Image URL might not be immediately accessible:",
+            checkResponse.status,
+          );
+        }
+      } catch (verifyError) {
+        console.warn(
+          "Image verification warning (this is normal):",
+          verifyError,
+        );
+        // Continue anyway, as this might just be a CORS issue
       }
 
-      // For iOS simulator, we need to use the download URL
-      if (Platform.OS === "ios" && Platform.isTesting) {
-        cleanUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${filePath}`;
-      }
-
-      console.log("Final image URL:", cleanUrl);
-      return cleanUrl;
+      return finalUrl;
     } catch (error) {
       console.error("Image upload error:", error);
       let errorMessage = "Failed to upload image";
@@ -363,13 +463,16 @@ class VisionBoardService {
       throw new Error(errorMessage);
     }
   }
+
+  /**
+   * Create a new vision board with default values
+   */
   async createNewVisionBoard(
     title: string,
     description: string,
     userId: string,
   ): Promise<VisionBoard> {
-    console.log("Creating new vision board...");
-    const newBoard: VisionBoard = {
+    return {
       title: title || "Neues Vision Board",
       description: description || "",
       background_type: "gradient",
@@ -379,8 +482,34 @@ class VisionBoardService {
       user_id: userId,
       items: [],
     };
+  }
 
-    return newBoard;
+  /**
+   * Update local cache with new board data
+   */
+  private updateCache(userId: string, updatedBoard: VisionBoard): void {
+    // Initialize cache if needed
+    if (!this.visionBoardCache[userId]) {
+      this.visionBoardCache[userId] = [];
+    }
+
+    // Find existing board index
+    const existingBoardIndex = this.visionBoardCache[userId].findIndex(
+      (board) => board.id === updatedBoard.id,
+    );
+
+    // Update or add board
+    if (existingBoardIndex !== -1) {
+      this.visionBoardCache[userId][existingBoardIndex] = updatedBoard;
+    } else {
+      this.visionBoardCache[userId].push(updatedBoard);
+    }
+
+    // Update storage
+    unifiedStorage.set(
+      StorageKeys.VISION_BOARD,
+      JSON.stringify(this.visionBoardCache[userId]),
+    );
   }
 }
 

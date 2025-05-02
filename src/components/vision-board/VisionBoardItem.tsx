@@ -59,11 +59,47 @@ const VisionBoardItem: React.FC<VisionBoardItemProps> = ({
           ]}
         >
           {image_url && (
-            <Image
-              source={{ uri: image_url }}
-              style={styles.image}
-              resizeMode="cover"
-            />
+            <View style={styles.imageContainer}>
+              <Image
+                source={{
+                  uri: image_url,
+                  // Add cache: 'reload' to force refresh the image
+                  cache: "reload",
+                  // Add headers to prevent caching issues
+                  headers: {
+                    "Cache-Control": "no-cache",
+                    Pragma: "no-cache",
+                  },
+                }}
+                style={styles.image}
+                // Use 'contain' instead of 'cover' to help with decoding issues
+                resizeMode="contain"
+                // Add default quality prop
+                quality={0.8}
+                // Add loading indicator
+                onLoadStart={() =>
+                  console.log(
+                    "Starting to load image in VisionBoardItem:",
+                    image_url,
+                  )
+                }
+                onLoad={() =>
+                  console.log("Image loaded successfully in VisionBoardItem")
+                }
+                onError={(e) => {
+                  console.error(
+                    "Image loading error in VisionBoardItem:",
+                    e.nativeEvent.error,
+                  );
+                  console.log("Failed image URL:", image_url);
+                }}
+              />
+
+              {/* Add a fallback placeholder */}
+              <View style={styles.imagePlaceholder}>
+                <Text>Loading...</Text>
+              </View>
+            </View>
           )}
 
           <View style={styles.content}>
@@ -101,6 +137,23 @@ const VisionBoardItem: React.FC<VisionBoardItemProps> = ({
 };
 
 const styles = StyleSheet.create({
+  imageContainer: {
+    width: "100%",
+    height: "60%",
+    position: "relative",
+    backgroundColor: "#f0f0f0",
+    overflow: "hidden",
+  },
+  imagePlaceholder: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: -1,
+  },
   container: {
     position: "absolute",
   },

@@ -415,63 +415,64 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
             >
               {item.image_url && (
                 <Image
-                  source={{ uri: item.image_url }}
+                  source={{
+                    uri: item.image_url,
+                    // Force image refresh
+                    cache: "reload",
+                    // Prevent caching
+                    headers: {
+                      "Cache-Control": "no-cache",
+                      Pragma: "no-cache",
+                    },
+                  }}
                   style={styles.itemImage}
-                  resizeMode="cover"
-                  onLoadStart={() => console.log("Starting to load image:", item.image_url)}
-                  onLoad={() => console.log("Image loaded successfully:", item.image_url)}
+                  // Use contain instead of cover for better decoding
+                  resizeMode="contain"
+                  // Add default quality
+                  quality={0.8}
+                  // Progress tracking
+                  onLoadStart={() =>
+                    console.log("Starting to load image:", item.image_url)
+                  }
+                  onLoad={() =>
+                    console.log("Image loaded successfully:", item.image_url)
+                  }
                   onError={(e) => {
-                    console.error("Image loading error:", e.nativeEvent.error, item.image_url);
-                    
-                    // Try multiple fallback strategies
-                    if (item.image_url) {
-                      // 1. Try removing cache busting parameter
-                      const cleanUrl = item.image_url.split('?')[0];
-                      console.log("Trying clean URL:", cleanUrl);
-                      
-                      // 2. Try direct download first
-                      const downloadUrl = `${supabase.supabaseUrl}/storage/v1/object/public/vision-board-images/${item.image_url.split('/').pop()}`;
-                      console.log("Trying download URL:", downloadUrl);
-                      
-                      // 3. Try signed URL as last resort
-                      const getSignedUrl = async () => {
-                        try {
-                          const { data } = await supabase.storage
-                            .from('vision-board-images')
-                            .createSignedUrl(item.image_url.split('/').pop() || '', 3600);
-                          return data?.signedUrl;
-                        } catch (error) {
-                          console.error("Error creating signed URL:", error);
-                          return null;
-                        }
-                      };
-                      
-                      // Try each strategy in sequence
-                      const tryUrls = async () => {
-                        // Try clean URL first
-                        setSelectedItem(prev => 
-                          prev ? { ...prev, image_url: cleanUrl } : null
-                        );
-                        
-                        // If still fails after 1 second, try download URL
-                        setTimeout(() => {
-                          setSelectedItem(prev => 
-                            prev ? { ...prev, image_url: downloadUrl } : null
-                          );
-                          
-                          // If still fails after another second, try signed URL
-                          setTimeout(async () => {
-                            const signedUrl = await getSignedUrl();
-                            if (signedUrl) {
-                              setSelectedItem(prev => 
-                                prev ? { ...prev, image_url: signedUrl } : null
-                              );
-                            }
-                          }, 1000);
-                        }, 1000);
-                      };
-                      
-                      tryUrls();
+                    console.error(
+                      "Image loading error:",
+                      e.nativeEvent.error,
+                      item.image_url,
+                    );
+
+                    // Try with a simpler URL format
+                    try {
+                      // Get the base URL without query parameters
+                      const baseUrl = item.image_url.split("?")[0];
+                      // Add simple timestamp parameter
+                      const timestamp = Date.now();
+                      const retryUrl = `${baseUrl}?t=${timestamp}`;
+
+                      console.log("Retrying with simplified URL:", retryUrl);
+
+                      // Update the item with the new URL
+                      const updatedItems = [...board.items];
+                      const itemIndex = updatedItems.findIndex(
+                        (i) => i.id === item.id,
+                      );
+
+                      if (itemIndex !== -1) {
+                        updatedItems[itemIndex] = {
+                          ...updatedItems[itemIndex],
+                          image_url: retryUrl,
+                        };
+
+                        setBoard((prev) => ({
+                          ...prev,
+                          items: updatedItems,
+                        }));
+                      }
+                    } catch (err) {
+                      console.error("Error updating image URL:", err);
                     }
                   }}
                 />
@@ -677,7 +678,7 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
 
                     // Launch image picker
                     let result = await ImagePicker.launchImageLibraryAsync({
-                      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                      mediaTypes: ImagePicker.MediaTypeOptions.Images, // Updated to new API
                       allowsEditing: true,
                       aspect: [4, 3],
                       quality: 0.8,
@@ -689,6 +690,12 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                       result.assets.length > 0
                     ) {
                       const imageUri = result.assets[0].uri;
+                      console.log("Selected image URI:", imageUri);
+
+                      // Verify file properties
+                      if (!imageUri) {
+                        throw new Error("No image URI returned from picker");
+                      }
 
                       try {
                         // Show loading indicator
@@ -703,10 +710,11 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                           user?.id || "",
                         );
 
-                        console.log("Image uploaded successfully:", publicUrl);
+                        console.log(
+                          "Image uploaded successfully, URL:",
+                          publicUrl,
+                        );
 
-                        console.log("Uploaded image URL:", publicUrl);
-                        
                         // Update the selected item with the image URL
                         setSelectedItem((prev) =>
                           prev ? { ...prev, image_url: publicUrl } : null,
@@ -718,7 +726,7 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                         console.error("Image upload error:", error);
                         Alert.alert(
                           "Error",
-                          "Failed to upload image. Please try again.",
+                          `Failed to upload image: ${error instanceof Error ? error.message : "Unknown error"}`,
                         );
                       }
                     }
@@ -732,38 +740,59 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
               </Button>
 
               {selectedItem?.image_url && (
-                <Image
-                  source={{ uri: selectedItem.image_url }}
-                  style={styles.imagePreview}
-                  onLoadStart={() => console.log("Starting to load preview image:", selectedItem.image_url)}
-                  onLoad={() => {
-                    console.log("Preview image loaded successfully");
-                    console.log("Image dimensions:", {
-                      width: e.nativeEvent.source.width,
-                      height: e.nativeEvent.source.height
-                    });
-                  }}
-                  onError={(e) => {
-                    console.error("Preview image error:", e.nativeEvent.error, selectedItem.image_url);
-                    
-                    // Try adding cache busting parameter
-                    const timestamp = Date.now();
-                    const retryUrl = `${selectedItem.image_url.split('?')[0]}?t=${timestamp}`;
-                    console.log("Trying with cache busting URL:", retryUrl);
-                    
-                    setSelectedItem(prev => 
-                      prev ? { ...prev, image_url: retryUrl } : null
-                    );
-                    
-                    // Log more debug info
-                    console.log("Platform info:", {
-                      OS: Platform.OS,
-                      Version: Platform.Version,
-                      isSimulator: Platform.isTesting,
-                      constants: Platform.constants
-                    });
-                  }}
-                />
+                <View style={styles.imagePreviewContainer}>
+                  <Image
+                    source={{
+                      uri: selectedItem.image_url,
+                      // Force refresh
+                      cache: "reload",
+                      // Prevent caching
+                      headers: {
+                        "Cache-Control": "no-cache",
+                        Pragma: "no-cache",
+                      },
+                    }}
+                    style={styles.imagePreview}
+                    // Use contain for better compatibility
+                    resizeMode="contain"
+                    // Add default quality
+                    quality={0.8}
+                    // Progress tracking
+                    onLoadStart={() =>
+                      console.log(
+                        "Starting to load preview image:",
+                        selectedItem.image_url,
+                      )
+                    }
+                    onLoad={() =>
+                      console.log("Preview image loaded successfully")
+                    }
+                    onError={(e) => {
+                      console.error(
+                        "Preview image error:",
+                        e.nativeEvent.error,
+                        selectedItem.image_url,
+                      );
+
+                      try {
+                        // Try with simpler URL format
+                        const baseUrl = selectedItem.image_url.split("?")[0];
+                        const timestamp = Date.now();
+                        const retryUrl = `${baseUrl}?t=${timestamp}`;
+
+                        console.log("Trying simplified URL:", retryUrl);
+
+                        setSelectedItem((prev) =>
+                          prev ? { ...prev, image_url: retryUrl } : null,
+                        );
+                      } catch (err) {
+                        console.error("Error updating preview image URL:", err);
+                      }
+                    }}
+                  />
+                  {/* Add loading indicator */}
+                  <Text style={styles.loadingText}>Loading image...</Text>
+                </View>
               )}
             </View>
           </Dialog.Content>
@@ -905,6 +934,25 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
 
 const createStyles = (theme: Theme, klareColors: any) =>
   StyleSheet.create({
+    imagePreviewContainer: {
+      width: "100%",
+      height: 150,
+      marginTop: 8,
+      borderRadius: 4,
+      backgroundColor: "#f0f0f0",
+      overflow: "hidden",
+      alignItems: "center",
+      justifyContent: "center",
+      position: "relative",
+    },
+    imagePreview: {
+      width: "100%",
+      height: "100%",
+    },
+    loadingText: {
+      position: "absolute",
+      zIndex: -1,
+    },
     container: {
       flex: 1,
       position: "relative",
