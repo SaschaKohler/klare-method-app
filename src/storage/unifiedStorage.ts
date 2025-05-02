@@ -8,12 +8,12 @@ import { createJSONStorage } from "zustand/middleware";
  */
 export enum StorageKeys {
   USER = "klare-user-storage",
-  LIFE_WHEEL = "klare-life-wheel-storage",
+  LIFE_WHEEL = "klare-lifeWheel-storage",
   PROGRESSION = "klare-progression-storage",
   THEME = "klare-theme-storage",
   RESOURCES = "klare-resources-storage",
   JOURNAL = "klare-journal-storage",
-  VISION_BOARD = "klare-vision-board-storage",
+  VISION_BOARD = "klare-visionBoard-storage",
   COMPLETED_MODULES = "klare-completed-modules",
   JOIN_DATE = "klare-join-date",
   USER_RESOURCES = "klare-user-resources",
@@ -26,8 +26,10 @@ class UnifiedStorage {
   private mmkv: MMKV | null = null;
   private isMMKVAvailable: boolean = false;
   private storageId: string;
+  // Track storage availability after initialization
+  private storageAvailable: boolean = false;
 
-  constructor(id: string = "klare-default-storage") {
+  constructor(id: string = "klare-app-storage") {
     this.storageId = id;
     this.initializeStorage();
   }
@@ -46,6 +48,7 @@ class UnifiedStorage {
       this.mmkv.delete("__test__");
 
       this.isMMKVAvailable = true;
+      this.storageAvailable = true;
       console.log(`MMKV storage (${this.storageId}) initialized successfully`);
     } catch (error) {
       this.isMMKVAvailable = false;
@@ -54,6 +57,24 @@ class UnifiedStorage {
         `MMKV not available for ${this.storageId}, falling back to AsyncStorage`,
       );
       console.error("MMKV initialization failed:", error);
+
+      // Verify AsyncStorage is available
+      this.checkAsyncStorageAvailability();
+    }
+  }
+
+  /**
+   * Check if AsyncStorage is available as fallback
+   */
+  private async checkAsyncStorageAvailability(): Promise<void> {
+    try {
+      await AsyncStorage.setItem("__storage_test__", "test");
+      await AsyncStorage.removeItem("__storage_test__");
+      this.storageAvailable = true;
+      console.log("Storage check passed using AsyncStorage");
+    } catch (e) {
+      this.storageAvailable = false;
+      console.error("AsyncStorage is not available:", e);
     }
   }
 
@@ -64,7 +85,7 @@ class UnifiedStorage {
     try {
       if (this.isMMKVAvailable && this.mmkv) {
         this.mmkv.set(key, value);
-      } else {
+      } else if (this.storageAvailable) {
         // Schedule async operation but don't wait for it
         AsyncStorage.setItem(key, value).catch((e) =>
           console.error(`AsyncStorage setItem failed for ${key}:`, e),
@@ -72,10 +93,6 @@ class UnifiedStorage {
       }
     } catch (error) {
       console.error(`Storage set failed for ${key}:`, error);
-      // Attempt AsyncStorage as last resort
-      AsyncStorage.setItem(key, value).catch((e) =>
-        console.error(`AsyncStorage fallback setItem failed for ${key}:`, e),
-      );
     }
   }
 
@@ -88,7 +105,6 @@ class UnifiedStorage {
         return this.mmkv.getString(key);
       } else {
         // For synchronous APIs, we can't return AsyncStorage value directly
-        // The caller should handle this case appropriately
         console.log(
           `Synchronous getString not available for ${key} in AsyncStorage fallback mode`,
         );
@@ -107,9 +123,10 @@ class UnifiedStorage {
     try {
       if (this.isMMKVAvailable && this.mmkv) {
         return this.mmkv.getString(key) || null;
-      } else {
+      } else if (this.storageAvailable) {
         return await AsyncStorage.getItem(key);
       }
+      return null;
     } catch (error) {
       console.error(`Storage getStringAsync failed for ${key}:`, error);
       return null;
@@ -123,7 +140,7 @@ class UnifiedStorage {
     try {
       if (this.isMMKVAvailable && this.mmkv) {
         this.mmkv.delete(key);
-      } else {
+      } else if (this.storageAvailable) {
         // Schedule async operation but don't wait for it
         AsyncStorage.removeItem(key).catch((e) =>
           console.error(`AsyncStorage removeItem failed for ${key}:`, e),
@@ -131,10 +148,6 @@ class UnifiedStorage {
       }
     } catch (error) {
       console.error(`Storage delete failed for ${key}:`, error);
-      // Attempt AsyncStorage as last resort
-      AsyncStorage.removeItem(key).catch((e) =>
-        console.error(`AsyncStorage fallback removeItem failed for ${key}:`, e),
-      );
     }
   }
 
@@ -145,7 +158,7 @@ class UnifiedStorage {
     try {
       if (this.isMMKVAvailable && this.mmkv) {
         this.mmkv.clearAll();
-      } else {
+      } else if (this.storageAvailable) {
         // Schedule async operation but don't wait for it
         AsyncStorage.clear().catch((e) =>
           console.error("AsyncStorage clear failed:", e),
@@ -153,24 +166,32 @@ class UnifiedStorage {
       }
     } catch (error) {
       console.error("Storage clearAll failed:", error);
-      // Attempt AsyncStorage as last resort
-      AsyncStorage.clear().catch((e) =>
-        console.error("AsyncStorage fallback clear failed:", e),
-      );
     }
   }
 
   /**
-   * Create a Zustand-compatible storage object
+   * Create a Zustand-compatible storage object that uses async methods with fallbacks
    */
   createZustandStorage() {
-    return createJSONStorage(() => ({
+    return createJSONStorage<unknown>(() => ({
       setItem: (name: string, value: string) => {
         this.set(name, value);
       },
       getItem: (name: string) => {
         const value = this.getString(name);
-        return value || null;
+
+        // Return a Promise that will always resolve (even if with null)
+        // This prevents Zustand from getting stuck waiting for an undefined Promise
+        if (this.isMMKVAvailable) {
+          return Promise.resolve(value || null);
+        } else if (this.storageAvailable) {
+          return AsyncStorage.getItem(name).catch((err) => {
+            console.error(`Error getting ${name} from AsyncStorage:`, err);
+            return null;
+          });
+        } else {
+          return Promise.resolve(null);
+        }
       },
       removeItem: (name: string) => {
         this.delete(name);
@@ -182,14 +203,18 @@ class UnifiedStorage {
    * Check if MMKV is available
    */
   isAvailable(): boolean {
-    return this.isMMKVAvailable;
+    return this.isMMKVAvailable || this.storageAvailable;
   }
 
   /**
    * Get storage type for diagnostic purposes
    */
   getStorageType(): string {
-    return this.isMMKVAvailable ? "MMKV" : "AsyncStorage";
+    return this.isMMKVAvailable
+      ? "MMKV"
+      : this.storageAvailable
+        ? "AsyncStorage"
+        : "None";
   }
 }
 
@@ -198,6 +223,6 @@ export const unifiedStorage = new UnifiedStorage("klare-app-storage");
 
 // Export a function to create store-specific storage instances
 export function createStoreStorage(storeKey: string) {
-  const storage = new UnifiedStorage(`klare-${storeKey}-storage`);
+  const storage = new UnifiedStorage(storeKey);
   return storage.createZustandStorage();
 }
