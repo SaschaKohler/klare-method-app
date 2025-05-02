@@ -1,3 +1,32 @@
+#!/bin/bash
+
+# Navigate to your project directory
+cd /Users/saschakohler/Documents/01_Development/Active_Projects/klare-methode-app
+
+echo "Completely resetting your project and setting up with Yarn classic..."
+
+# 1. Remove ALL Yarn-related files and directories
+echo "Removing all Yarn configuration files..."
+rm -rf .yarn
+rm -rf .yarnrc
+rm -rf .yarnrc.yml
+rm -rf yarn.lock
+rm -rf .pnp.*
+
+# 2. Remove npm lock file and node_modules
+echo "Removing node_modules and npm lock file..."
+rm -rf node_modules
+rm -rf package-lock.json
+
+# 3. Clean caches
+echo "Cleaning caches..."
+watchman watch-del-all 2>/dev/null || echo "Watchman not running or not installed"
+rm -rf $TMPDIR/metro-* 2>/dev/null || echo "No Metro cache to clear"
+rm -rf $TMPDIR/haste-map-* 2>/dev/null || echo "No Haste map cache to clear"
+
+# 4. Update package.json - Fix main entry and add resolutions
+echo "Updating package.json..."
+cat >package.json <<EOL
 {
   "name": "klare-methode-app",
   "version": "1.0.0",
@@ -9,7 +38,7 @@
     "web": "expo start --web",
     "e2e": "maestro test e2e/flows",
     "test": "jest",
-    "clean": "watchman watch-del-all && rm -rf node_modules && rm -rf /var/folders/7f/cz70pt696q38cqpzdx7_0tdc0000gn/T//metro-* && yarn install"
+    "clean": "watchman watch-del-all && rm -rf node_modules && rm -rf $TMPDIR/metro-* && yarn install"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "1.23.1",
@@ -111,7 +140,73 @@
       "!src/**/*.d.ts"
     ],
     "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/src/"
+      "^@/(.*)$": "<rootDir>/src/$1"
     }
   }
 }
+EOL
+
+# 5. Update babel.config.js with module resolver
+echo "Updating babel.config.js..."
+cat >babel.config.js <<EOL
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: ["babel-preset-expo"],
+    plugins: [
+      [
+        "module:react-native-dotenv",
+        {
+          moduleName: "@env",
+          path: ".env",
+          blacklist: null,
+          whitelist: null,
+          safe: false,
+          allowUndefined: true,
+        },
+      ],
+      ["module-resolver", {
+        alias: {
+          "react-native": "./node_modules/react-native",
+          "react": "./node_modules/react"
+        }
+      }],
+      "react-native-reanimated/plugin",
+    ],
+  };
+};
+EOL
+
+# 6. Update metro.config.js with explicit resolution
+echo "Updating metro.config.js..."
+cat >metro.config.js <<EOL
+// Learn more https://docs.expo.io/guides/customizing-metro
+const { getDefaultConfig } = require('expo/metro-config');
+const path = require('path');
+
+/** @type {import('expo/metro-config').MetroConfig} */
+const config = getDefaultConfig(__dirname);
+
+// Add explicit resolution for react-native
+config.resolver.extraNodeModules = {
+  'react-native': path.resolve(__dirname, 'node_modules/react-native'),
+  'react': path.resolve(__dirname, 'node_modules/react'),
+};
+
+module.exports = config;
+EOL
+
+# 7. Install dependencies with yarn classic
+echo "Installing dependencies with yarn classic..."
+npm install -g yarn@1.22.19 # Install a specific stable version of yarn classic
+yarn --version
+
+# This is critical - make sure we're using yarn classic
+yarn install
+
+# 8. Start the app with a clean environment
+echo "Starting expo with a clean cache..."
+yarn start --reset-cache
+
+echo "Completed reset and setup with Yarn classic."
+echo "Your project should now be working with Yarn package management."
