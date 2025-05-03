@@ -208,6 +208,7 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
   // Funktion zum Hinzufügen eines neuen Items
   const addItem = async (newItem: Partial<VisionBoardItem>) => {
     const defaultItem: VisionBoardItem = {
+      id: uuid.v4().toString(), // Ensure every new item has a unique ID
       life_area: lifeAreas[0],
       title: "Neues Element",
       description: "",
@@ -221,6 +222,73 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
     };
 
     const item = { ...defaultItem, ...newItem };
+
+    // Create new refs for the new item
+    const id = item.id;
+    positionRefs.current[id] = new Animated.ValueXY({
+      x: item.position_x,
+      y: item.position_y,
+    });
+    scaleRefs.current[id] = new Animated.Value(item.scale || 1);
+    rotationRefs.current[id] = new Animated.Value(item.rotation || 0);
+
+    if (!readOnly) {
+      panResponderRefs.current[id] = PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderGrant: () => {
+          // Bring item to front
+          const newItems = [...board.items];
+          const itemIndex = newItems.findIndex(i => i.id === id);
+          if (itemIndex !== -1) {
+            const [item] = newItems.splice(itemIndex, 1);
+            newItems.push(item);
+            setBoard(prev => ({...prev, items: newItems}));
+          }
+
+          positionRefs.current[id].setOffset({
+            x: positionRefs.current[id].x._value,
+            y: positionRefs.current[id].y._value,
+          });
+          positionRefs.current[id].setValue({ x: 0, y: 0 });
+          setSelectedItem(item);
+        },
+        onPanResponderMove: Animated.event(
+          [
+            null,
+            {
+              dx: positionRefs.current[id].x,
+              dy: positionRefs.current[id].y,
+            },
+          ],
+          { 
+            useNativeDriver: false,
+            listener: (e, gestureState) => {
+              scaleRefs.current[id].setValue(1.05);
+            }
+          },
+        ),
+        onPanResponderRelease: () => {
+          positionRefs.current[id].flattenOffset();
+          scaleRefs.current[id].setValue(1);
+
+          // Update the item's position in state
+          const newItems = [...board.items];
+          const itemIndex = newItems.findIndex(i => i.id === id);
+          if (itemIndex !== -1) {
+            newItems[itemIndex] = {
+              ...newItems[itemIndex],
+              position_x: positionRefs.current[id].x._value,
+              position_y: positionRefs.current[id].y._value,
+            };
+            setBoard(prev => ({ ...prev, items: newItems }));
+          }
+        },
+        onPanResponderTerminate: () => {
+          scaleRefs.current[id].setValue(1);
+        }
+      });
+    }
 
     const newItems = [...board.items, item];
     setBoard((prev) => ({ ...prev, items: newItems }));
@@ -410,7 +478,13 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
         transform: [
           { translateX: positionRefs.current[id].x },
           { translateY: positionRefs.current[id].y },
-          { scale: scaleRefs.current[id] },
+          { 
+            scale: scaleRefs.current[id].interpolate({
+              inputRange: [0.8, 1, 1.05],
+              outputRange: [0.8, 1, 1.05],
+              extrapolate: 'clamp'
+            }) 
+          },
           {
             rotate: rotationRefs.current[id].interpolate({
               inputRange: [0, 360],
