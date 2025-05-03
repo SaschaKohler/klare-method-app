@@ -431,6 +431,7 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                 isSelected && styles.selectedItem,
                 { backgroundColor: item.color || theme.colors.surface },
               ]}
+              contentStyle={{ width: '100%', height: '100%' }}
             >
               {item.image_url ? (
                 <Image
