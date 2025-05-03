@@ -74,21 +74,49 @@ const VisionBoardItem: React.FC<VisionBoardItemProps> = ({
             </View>
           )}
 
-          <View style={styles.content}>
+          <View style={[styles.content, { backgroundColor: color || theme.colors.surface }]}>
             <Text
-              style={[styles.title, { color: theme.colors.onSurface }]}
+              style={[styles.title, { 
+                color: theme.colors.onSurface,
+                backgroundColor: 'rgba(255,255,255,0.7)',
+                padding: 4,
+                borderRadius: 4
+              }]}
               numberOfLines={2}
             >
               {title}
             </Text>
 
             {description && (
-              <Text style={styles.description} numberOfLines={2}>
+              <Text 
+                style={[
+                  styles.description, 
+                  { 
+                    color: theme.colors.onSurface,
+                    backgroundColor: 'rgba(255,255,255,0.7)',
+                    padding: 4,
+                    borderRadius: 4
+                  }
+                ]} 
+                numberOfLines={2}
+              >
                 {description}
               </Text>
             )}
 
-            <Chip style={styles.areaChip} textStyle={{ fontSize: 10 }} compact>
+            <Chip 
+              style={[
+                styles.areaChip, 
+                { 
+                  backgroundColor: theme.colors.primaryContainer 
+                }
+              ]} 
+              textStyle={{ 
+                fontSize: 10,
+                color: theme.colors.onPrimaryContainer
+              }} 
+              compact
+            >
               {life_area}
             </Chip>
           </View>
@@ -152,20 +180,21 @@ const styles = StyleSheet.create({
     padding: 8,
     flex: 1,
     justifyContent: "space-between",
+    backgroundColor: 'rgba(255,255,255,0.8)',
   },
   title: {
     fontWeight: "bold",
     fontSize: 14,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   description: {
     fontSize: 12,
-    opacity: 0.7,
+    marginBottom: 4,
     flex: 1,
   },
   areaChip: {
     alignSelf: "flex-start",
-    height: 20,
+    height: 24,
     marginTop: 4,
   },
   selectedIndicator: {
