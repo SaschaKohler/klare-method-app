@@ -134,57 +134,63 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
 
   useEffect(() => {
     // Initialize PanResponder for each item
+    const newPositionRefs: Record<string, Animated.ValueXY> = {};
+    const newScaleRefs: Record<string, Animated.Value> = {};
+    const newRotationRefs: Record<string, Animated.Value> = {};
+    const newPanResponderRefs: Record<string, any> = {};
+
     board.items.forEach((item, index) => {
       const id = item.id || `temp-${index}`;
 
-      if (!positionRefs.current[id]) {
-        positionRefs.current[id] = new Animated.ValueXY({
-          x: item.position_x,
-          y: item.position_y,
-        });
-      }
+      // Initialize refs if they don't exist
+      newPositionRefs[id] = positionRefs.current[id] || new Animated.ValueXY({
+        x: item.position_x,
+        y: item.position_y,
+      });
 
-      if (!scaleRefs.current[id]) {
-        scaleRefs.current[id] = new Animated.Value(item.scale || 1);
-      }
+      newScaleRefs[id] = scaleRefs.current[id] || new Animated.Value(item.scale || 1);
+      newRotationRefs[id] = rotationRefs.current[id] || new Animated.Value(item.rotation || 0);
 
-      if (!rotationRefs.current[id]) {
-        rotationRefs.current[id] = new Animated.Value(item.rotation || 0);
-      }
-
-      if (!panResponderRefs.current[id] && !readOnly) {
-        panResponderRefs.current[id] = PanResponder.create({
+      if (!readOnly) {
+        newPanResponderRefs[id] = panResponderRefs.current[id] || PanResponder.create({
           onStartShouldSetPanResponder: () => true,
           onMoveShouldSetPanResponder: () => true,
-          onPanResponderGrant: () => {
+          onPanResponderGrant: (e, gestureState) => {
             // Bring item to front
             const newItems = [...board.items];
             const itemIndex = newItems.findIndex(i => (i.id || `temp-${index}`) === id);
             if (itemIndex !== -1) {
               const [item] = newItems.splice(itemIndex, 1);
               newItems.push(item);
-              setBoard(prev => ({ ...prev, items: newItems }));
+              setBoard(prev => ({...prev, items: newItems}));
             }
 
-            positionRefs.current[id].setOffset({
-              x: positionRefs.current[id].x._value,
-              y: positionRefs.current[id].y._value,
+            newPositionRefs[id].setOffset({
+              x: newPositionRefs[id].x._value,
+              y: newPositionRefs[id].y._value,
             });
-            positionRefs.current[id].setValue({ x: 0, y: 0 });
+            newPositionRefs[id].setValue({ x: 0, y: 0 });
             setSelectedItem(item);
           },
           onPanResponderMove: Animated.event(
             [
               null,
               {
-                dx: positionRefs.current[id].x,
-                dy: positionRefs.current[id].y,
+                dx: newPositionRefs[id].x,
+                dy: newPositionRefs[id].y,
               },
             ],
-            { useNativeDriver: false },
+            { 
+              useNativeDriver: false,
+              listener: (e, gestureState) => {
+                // Smooth movement feedback
+                newScaleRefs[id].setValue(1.05);
+              }
+            },
           ),
           onPanResponderRelease: () => {
-            positionRefs.current[id].flattenOffset();
+            newPositionRefs[id].flattenOffset();
+            newScaleRefs[id].setValue(1);
 
             // Update the item's position in state
             const newItems = [...board.items];
@@ -194,15 +200,24 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
             if (itemIndex !== -1) {
               newItems[itemIndex] = {
                 ...newItems[itemIndex],
-                position_x: positionRefs.current[id].x._value,
-                position_y: positionRefs.current[id].y._value,
+                position_x: newPositionRefs[id].x._value,
+                position_y: newPositionRefs[id].y._value,
               };
               setBoard((prev) => ({ ...prev, items: newItems }));
             }
           },
+          onPanResponderTerminate: () => {
+            newScaleRefs[id].setValue(1);
+          }
         });
       }
     });
+
+    // Update all refs at once
+    positionRefs.current = newPositionRefs;
+    scaleRefs.current = newScaleRefs;
+    rotationRefs.current = newRotationRefs;
+    panResponderRefs.current = newPanResponderRefs;
   }, [board.items, readOnly]);
 
   // Funktion zum Hinzufügen eines neuen Items
