@@ -432,77 +432,40 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                 { backgroundColor: item.color || theme.colors.surface },
               ]}
             >
-              {item.image_url && (
+              {item.image_url ? (
                 <Image
-                  source={{
-                    uri: item.image_url,
-                    // Force image refresh
-                    cache: "reload",
-                    // Prevent caching
-                    headers: {
-                      "Cache-Control": "no-cache",
-                      Pragma: "no-cache",
-                    },
-                  }}
+                  source={{ uri: item.image_url }}
                   style={styles.itemImage}
-                  resizeMode="cover"
-                  quality={0.8}
+                  resizeMode="contain"
                   onError={(e) => {
-                    console.error(
-                      "Image loading error:",
-                      e.nativeEvent.error,
-                      item.image_url,
-                    );
-
-                    // Try with a simpler URL format
-                    try {
-                      // Get the base URL without query parameters
-                      const baseUrl = item.image_url.split("?")[0];
-                      const timestamp = Date.now();
-                      const retryUrl = `${baseUrl}?t=${timestamp}`;
-                      console.log("Retrying with simplified URL:", retryUrl);
-
-                      // Update the item with the new URL
-                      const updatedItems = [...board.items];
-                      const itemIndex = updatedItems.findIndex(
-                        (i) => i.id === item.id,
+                    console.error('Image load error:', e.nativeEvent.error);
+                    // Try with timestamp cache busting
+                    const baseUrl = item.image_url?.split('?')[0];
+                    if (baseUrl) {
+                      const retryUrl = `${baseUrl}?t=${Date.now()}`;
+                      const updatedItems = board.items.map(i => 
+                        i.id === item.id ? {...i, image_url: retryUrl} : i
                       );
-
-                      if (itemIndex !== -1) {
-                        updatedItems[itemIndex] = {
-                          ...updatedItems[itemIndex],
-                          image_url: retryUrl,
-                        };
-
-                        setBoard((prev) => ({
-                          ...prev,
-                          items: updatedItems,
-                        }));
-                      }
-                    } catch (err) {
-                      console.error("Error updating image URL:", err);
+                      setBoard(prev => ({...prev, items: updatedItems}));
                     }
                   }}
                 />
-              )} : (
-                <View 
-                  style={[
-                    styles.itemImage, 
-                    {
-                      backgroundColor: itemColor,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }
-                  ]}
-                >
-                  {/* Icon basierend auf Lebensbereich */}
+              ) : (
+                <View style={[
+                  styles.itemImage, 
+                  {
+                    backgroundColor: item.color || theme.colors.surface,
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }
+                ]}>
                   <Ionicons
                     name={getIconForLifeArea(item.life_area)}
                     size={36}
-                    color={'rgba(255,255,255,0.9)'}
+                    color={theme.colors.onSurface}
                   />
                 </View>
-              )    
+              )}
 
 
               <View style={styles.itemContent}>
