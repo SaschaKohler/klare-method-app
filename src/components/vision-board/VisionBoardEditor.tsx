@@ -491,60 +491,7 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                 >
                   {item.life_area}
                 </Chip>
-              </View>    },
-                  }}
-                  style={styles.itemImage}
-                  // Use contain instead of cover for better decoding
-                  resizeMode="contain"
-                  // Add default quality
-                  quality={0.8}
-                  // Progress tracking
-                  onLoadStart={() =>
-                    console.log("Starting to load image:", item.image_url)
-                  }
-                  onLoad={() =>
-                    console.log("Image loaded successfully:", item.image_url)
-                  }
-                  onError={(e) => {
-                    console.error(
-                      "Image loading error:",
-                      e.nativeEvent.error,
-                      item.image_url,
-                    );
-
-                    // Try with a simpler URL format
-                    try {
-                      // Get the base URL without query parameters
-                      const baseUrl = item.image_url.split("?")[0];
-                      // Add simple timestamp parameter
-                      const timestamp = Date.now();
-                      const retryUrl = `${baseUrl}?t=${timestamp}`;
-
-                      console.log("Retrying with simplified URL:", retryUrl);
-
-                      // Update the item with the new URL
-                      const updatedItems = [...board.items];
-                      const itemIndex = updatedItems.findIndex(
-                        (i) => i.id === item.id,
-                      );
-
-                      if (itemIndex !== -1) {
-                        updatedItems[itemIndex] = {
-                          ...updatedItems[itemIndex],
-                          image_url: retryUrl,
-                        };
-
-                        setBoard((prev) => ({
-                          ...prev,
-                          items: updatedItems,
-                        }));
-                      }
-                    } catch (err) {
-                      console.error("Error updating image URL:", err);
-                    }
-                  }}
-                />
-              )}
+              </View>
 
             </Card>
           </TouchableOpacity>
