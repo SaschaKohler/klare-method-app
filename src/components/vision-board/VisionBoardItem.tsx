@@ -61,38 +61,10 @@ const VisionBoardItem: React.FC<VisionBoardItemProps> = ({
           {image_url && (
             <View style={styles.imageContainer}>
               <Image
-                source={{
-                  uri: image_url,
-                  // Add cache: 'reload' to force refresh the image
-                  cache: "reload",
-                  // Add headers to prevent caching issues
-                  headers: {
-                    "Cache-Control": "no-cache",
-                    Pragma: "no-cache",
-                  },
-                }}
+                source={{ uri: image_url }}
                 style={styles.image}
-                // Use 'contain' instead of 'cover' to help with decoding issues
                 resizeMode="contain"
-                // Add default quality prop
-                quality={0.8}
-                // Add loading indicator
-                onLoadStart={() =>
-                  console.log(
-                    "Starting to load image in VisionBoardItem:",
-                    image_url,
-                  )
-                }
-                onLoad={() =>
-                  console.log("Image loaded successfully in VisionBoardItem")
-                }
-                onError={(e) => {
-                  console.error(
-                    "Image loading error in VisionBoardItem:",
-                    e.nativeEvent.error,
-                  );
-                  console.log("Failed image URL:", image_url);
-                }}
+                onError={(e) => console.error('Image load error:', e.nativeEvent.error)}
               />
 
               {/* Add a fallback placeholder */}

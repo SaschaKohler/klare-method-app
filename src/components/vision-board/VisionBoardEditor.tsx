@@ -698,35 +698,17 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                       }
 
                       try {
-                        // Show loading indicator
-                        Alert.alert(
-                          "Uploading",
-                          "Please wait while we upload your image...",
-                        );
-
-                        // Upload the image
                         const publicUrl = await visionBoardService.uploadImage(
                           imageUri,
-                          user?.id || "",
+                          user?.id || ""
                         );
-
-                        console.log(
-                          "Image uploaded successfully, URL:",
-                          publicUrl,
+                        setSelectedItem(prev => 
+                          prev ? { ...prev, image_url: publicUrl } : null
                         );
-
-                        // Update the selected item with the image URL
-                        setSelectedItem((prev) =>
-                          prev ? { ...prev, image_url: publicUrl } : null,
-                        );
-
-                        // Dismiss loading alert
-                        Alert.alert("Success", "Image uploaded successfully!");
                       } catch (error) {
-                        console.error("Image upload error:", error);
                         Alert.alert(
-                          "Error",
-                          `Failed to upload image: ${error instanceof Error ? error.message : "Unknown error"}`,
+                          "Error", 
+                          "Couldn't upload image. Please try again."
                         );
                       }
                     }

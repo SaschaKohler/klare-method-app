@@ -343,124 +343,52 @@ class VisionBoardService {
   }
 
   /**
-   * Upload an image to Supabase Storage with improved error handling
+   * Simplified image upload to Supabase Storage
    */
   async uploadImage(fileUri: string, userId: string): Promise<string> {
-    if (!userId) {
-      throw new Error("User ID is required for image upload");
-    }
+    if (!userId) throw new Error("User ID is required");
 
     try {
-      console.log("Starting improved image upload process for URI:", fileUri);
-
-      // Verify file exists
-      const fileInfo = await FileSystem.getInfoAsync(fileUri);
-      console.log("File info:", fileInfo);
-
-      if (!fileInfo.exists) {
-        throw new Error(`File does not exist: ${fileUri}`);
+      const fileExt = fileUri.split('.').pop()?.toLowerCase();
+      if (!fileExt || !['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
+        throw new Error('Unsupported image format');
       }
 
-      if (fileInfo.size === 0) {
-        throw new Error(`File is empty (0 bytes): ${fileUri}`);
-      }
-
-      // Extract file extension and validate
-      const fileExt = fileUri.split(".").pop()?.toLowerCase();
-      if (!fileExt || !["jpg", "jpeg", "png", "gif"].includes(fileExt)) {
-        throw new Error(`Unsupported image format: ${fileExt}`);
-      }
-
-      // Create unique filename
-      const timestamp = Date.now();
-      const fileName = `${timestamp}.${fileExt}`;
-      console.log(`Preparing to upload image to ${fileName}`);
-
-      // IMPROVED APPROACH: Create a temporary file with base64 encoding
-      // This gives us more control over the image data format
-
-      // Create a temporary directory if it doesn't exist
-      const tempDir = FileSystem.cacheDirectory + "temp/";
-      const dirInfo = await FileSystem.getInfoAsync(tempDir);
-      if (!dirInfo.exists) {
-        await FileSystem.makeDirectoryAsync(tempDir, { intermediates: true });
-      }
-
-      // Copy the file to our temp directory
-      const tempFilePath = tempDir + fileName;
-      await FileSystem.copyAsync({
-        from: fileUri,
-        to: tempFilePath,
-      });
-
-      console.log(`Copied image to temp location: ${tempFilePath}`);
-
-      // Read as base64
-      const base64Data = await FileSystem.readAsStringAsync(tempFilePath, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      console.log(`Read ${base64Data.length} bytes of base64 data`);
-
-      if (!base64Data || base64Data.length === 0) {
-        throw new Error("Failed to read image data as base64");
-      }
-
-      // Upload directly with base64 data
+      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+      
       const { data, error } = await supabase.storage
-        .from("vision-board-images")
-        .upload(fileName, base64Data, {
-          contentType: `image/${fileExt === "jpg" ? "jpeg" : fileExt}`,
-          upsert: true,
+        .from('vision-board-images')
+        .upload(fileName, { uri: fileUri }, {
+          contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`,
+          upsert: true
         });
 
-      if (error) {
-        console.error("Upload error:", error);
-        throw new Error(`Upload failed: ${error.message}`);
-      }
+      if (error) throw error;
 
-      console.log("Upload successful:", data?.path);
+      const { data: { publicUrl } } = supabase.storage
+        .from('vision-board-images')
+        .getPublicUrl(fileName);
 
-      // Clean up temp file
-      await FileSystem.deleteAsync(tempFilePath, { idempotent: true });
-
-      // Get public URL with cache-busting parameter
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("vision-board-images").getPublicUrl(fileName);
-
-      const finalUrl = `${publicUrl}?t=${timestamp}`;
-      console.log("Final image URL:", finalUrl);
-
-      // Verify the image is accessible
-      try {
-        const checkResponse = await fetch(finalUrl, { method: "HEAD" });
-        console.log("Image verification status:", checkResponse.status);
-
-        if (!checkResponse.ok) {
-          console.warn(
-            "Image URL might not be immediately accessible:",
-            checkResponse.status,
-          );
-        }
-      } catch (verifyError) {
-        console.warn(
-          "Image verification warning (this is normal):",
-          verifyError,
-        );
-        // Continue anyway, as this might just be a CORS issue
-      }
-
-      return finalUrl;
+      return `${publicUrl}?t=${Date.now()}`;
     } catch (error) {
-      console.error("Image upload error:", error);
-      let errorMessage = "Failed to upload image";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === "string") {
-        errorMessage = error;
-      }
-      throw new Error(errorMessage);
+      console.error('Upload error:', error);
+      throw new Error('Failed to upload image');
+    }
+  }
+
+  /**
+   * Get signed URL for image download
+   */
+  async getImageUrl(imagePath: string): Promise<string> {
+    try {
+      const { data } = supabase.storage
+        .from('vision-board-images')
+        .getPublicUrl(imagePath);
+
+      return `${data.publicUrl}?t=${Date.now()}`;
+    } catch (error) {
+      console.error('Download error:', error);
+      throw new Error('Failed to get image URL');
     }
   }
 
