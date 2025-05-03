@@ -56,6 +56,22 @@ const getItemPosition = (index: number, itemCount: number, radius: number) => {
   return { x, y };
 };
 
+// Hilfsfunktion, um basierend auf dem Lebensbereich ein passendes Icon zu bestimmen
+const getIconForLifeArea = (lifeArea: string): string => {
+  const iconMap: Record<string, string> = {
+    "Karriere/Berufung": "briefcase",
+    "Beziehungen/Familie": "heart",
+    "Gesundheit/Wohlbefinden": "fitness",
+    "Persönliches Wachstum": "leaf",
+    "Finanzen/Wohlstand": "cash",
+    "Spiritualität/Sinn": "star",
+    "Wohnumfeld/Lebensraum": "home",
+    "Freizeit/Hobbies": "bicycle",
+  };
+
+  return iconMap[lifeArea] || "image";
+};
+
 const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
   initialBoard,
   lifeAreas,
@@ -75,19 +91,16 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
     [theme, klareColors],
   );
 
+  // Erweiterte Hintergrundmöglichkeiten
   const BACKGROUNDS = {
-    gradient_primary: [`${theme.colors.primary}`, `${theme.colors.secondary}`],
-    gradient_secondary: [
-      `${theme.colors.secondary}`,
-      `${theme.colors.tertiary}`,
-    ],
+    gradient_primary: [klareColors.k, klareColors.l],
+    gradient_secondary: [klareColors.a, klareColors.r],
+    gradient_tertiary: [klareColors.e, klareColors.l],
+    gradient_quaternary: [klareColors.r, klareColors.k],
+    // Kommentierte Bilder, die, wenn verfügbar, einbezogen werden könnten
     // mountains: require("../../assets/visionboard/mountains.jpg"),
     // ocean: require("../../assets/visionboard/ocean.jpg"),
     // forest: require("../../assets/visionboard/forest.jpg"),
-    // sunrise: require("../../assets/visionboard/sunrise.jpg"),
-    // stars: require("../../assets/visionboard/stars.jpg"),
-    // abstract: require("../../assets/visionboard/abstract.jpg"),
-    // minimal: require("../../assets/visionboard/minimal.jpg"),
   };
 
   // State für das Vision Board
@@ -316,13 +329,8 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
   const renderBackground = () => {
     const { background_type, background_value } = board;
 
-    if (
-      background_type === "gradient" &&
-      background_value.startsWith("gradient_")
-    ) {
-      const gradientColors = BACKGROUNDS[
-        background_value as keyof typeof BACKGROUNDS
-      ] as string[];
+    if (background_type === "gradient" && background_value.startsWith("gradient_")) {
+      const gradientColors = BACKGROUNDS[background_value as keyof typeof BACKGROUNDS] as string[];
       return (
         <LinearGradient
           colors={gradientColors}
@@ -331,22 +339,33 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
           end={{ x: 1, y: 1 }}
         />
       );
-    } else if (background_type === "image") {
-      const imageSource =
-        BACKGROUNDS[background_value as keyof typeof BACKGROUNDS];
+    } else if (background_type === "image" && BACKGROUNDS[background_value as keyof typeof BACKGROUNDS]) {
+      const imageSource = BACKGROUNDS[background_value as keyof typeof BACKGROUNDS];
       return (
-        <Image
-          source={imageSource}
-          style={[StyleSheet.absoluteFill, { resizeMode: "cover" }]}
-        />
+        <View style={StyleSheet.absoluteFill}>
+          <Image
+            source={imageSource}
+            style={[StyleSheet.absoluteFill, { resizeMode: "cover" }]}
+          />
+          {/* Overlay für bessere Lesbarkeit der Items */}
+          <View 
+            style={[
+              StyleSheet.absoluteFill, 
+              { 
+                backgroundColor: isDarkMode ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.2)' 
+              }
+            ]}
+          />
+        </View>
       );
     } else {
       // Default Farbe
+      const defaultBackground = isDarkMode ? klareColors.background : theme.colors.background;
       return (
         <View
           style={[
             StyleSheet.absoluteFill,
-            { backgroundColor: background_value || theme.colors.background },
+            { backgroundColor: background_value || defaultBackground },
           ]}
         />
       );
@@ -426,6 +445,91 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                     },
                   }}
                   style={styles.itemImage}
+                  resizeMode="cover"
+                  quality={0.8}
+                  onError={(e) => {
+                    console.error(
+                      "Image loading error:",
+                      e.nativeEvent.error,
+                      item.image_url,
+                    );
+
+                    // Try with a simpler URL format
+                    try {
+                      // Get the base URL without query parameters
+                      const baseUrl = item.image_url.split("?")[0];
+                      const timestamp = Date.now();
+                      const retryUrl = `${baseUrl}?t=${timestamp}`;
+                      console.log("Retrying with simplified URL:", retryUrl);
+
+                      // Update the item with the new URL
+                      const updatedItems = [...board.items];
+                      const itemIndex = updatedItems.findIndex(
+                        (i) => i.id === item.id,
+                      );
+
+                      if (itemIndex !== -1) {
+                        updatedItems[itemIndex] = {
+                          ...updatedItems[itemIndex],
+                          image_url: retryUrl,
+                        };
+
+                        setBoard((prev) => ({
+                          ...prev,
+                          items: updatedItems,
+                        }));
+                      }
+                    } catch (err) {
+                      console.error("Error updating image URL:", err);
+                    }
+                  }}
+                />
+              )} : (
+                <View 
+                  style={[
+                    styles.itemImage, 
+                    {
+                      backgroundColor: itemColor,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }
+                  ]}
+                >
+                  {/* Icon basierend auf Lebensbereich */}
+                  <Ionicons
+                    name={getIconForLifeArea(item.life_area)}
+                    size={36}
+                    color={'rgba(255,255,255,0.9)'}
+                  />
+                </View>
+              )    
+
+
+              <View style={styles.itemContent}>
+                <Text
+                  style={[styles.itemTitle]}
+                  numberOfLines={1}
+                >
+                  {item.title || "Ohne Titel"}
+                </Text>
+
+                {item.description && (
+                  <Text style={styles.itemDescription} numberOfLines={2}>
+                    {item.description}
+                  </Text>
+                )}
+
+                <Chip
+                  style={styles.areaChip}
+                  textStyle={{ fontSize: 10 }}
+                  mode="flat"
+                  compact
+                >
+                  {item.life_area}
+                </Chip>
+              </View>    },
+                  }}
+                  style={styles.itemImage}
                   // Use contain instead of cover for better decoding
                   resizeMode="contain"
                   // Add default quality
@@ -478,28 +582,6 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                 />
               )}
 
-              <View style={styles.itemContent}>
-                <Text
-                  style={[styles.itemTitle, { color: theme.colors.onSurface }]}
-                  numberOfLines={2}
-                >
-                  {item.title}
-                </Text>
-
-                {item.description && (
-                  <Text style={styles.itemDescription} numberOfLines={2}>
-                    {item.description}
-                  </Text>
-                )}
-
-                <Chip
-                  style={styles.areaChip}
-                  textStyle={{ fontSize: 10 }}
-                  compact
-                >
-                  {item.life_area}
-                </Chip>
-              </View>
             </Card>
           </TouchableOpacity>
         </Animated.View>
@@ -525,9 +607,9 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                 changeLayout(value as "grid" | "freeform" | "circle")
               }
               buttons={[
-                { value: "grid", label: "Raster" },
-                { value: "freeform", label: "Frei" },
-                { value: "circle", label: "Kreis" },
+                { value: "grid", label: "Raster", icon: "grid" },
+                { value: "freeform", label: "Frei", icon: "move" },
+                { value: "circle", label: "Kreis", icon: "circle-outline" },
               ]}
               style={styles.segmentedButtons}
             />
@@ -552,13 +634,11 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 />
-                <Text style={styles.backgroundLabel}>Blau</Text>
+                <Text style={styles.backgroundLabel}>Indigo/Violet</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() =>
-                  changeBackground("gradient", "gradient_secondary")
-                }
+                onPress={() => changeBackground("gradient", "gradient_secondary")}
                 style={[
                   styles.backgroundOption,
                   board.background_value === "gradient_secondary" &&
@@ -571,7 +651,41 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 />
-                <Text style={styles.backgroundLabel}>Lila</Text>
+                <Text style={styles.backgroundLabel}>Pink/Amber</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                onPress={() => changeBackground("gradient", "gradient_tertiary")}
+                style={[
+                  styles.backgroundOption,
+                  board.background_value === "gradient_tertiary" &&
+                    styles.selectedBackground,
+                ]}
+              >
+                <LinearGradient
+                  colors={BACKGROUNDS.gradient_tertiary as string[]}
+                  style={styles.backgroundPreview}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
+                <Text style={styles.backgroundLabel}>Emerald/Violet</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                onPress={() => changeBackground("gradient", "gradient_quaternary")}
+                style={[
+                  styles.backgroundOption,
+                  board.background_value === "gradient_quaternary" &&
+                    styles.selectedBackground,
+                ]}
+              >
+                <LinearGradient
+                  colors={BACKGROUNDS.gradient_quaternary as string[]}
+                  style={styles.backgroundPreview}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
+                <Text style={styles.backgroundLabel}>Amber/Indigo</Text>
               </TouchableOpacity>
 
               {Object.entries(BACKGROUNDS)
@@ -873,15 +987,28 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
                 life_area: lifeAreas[0],
                 title: "",
                 description: "",
-                position_x: 50,
-                position_y: 50,
-                width: 150,
-                height: 150,
+                position_x: Math.random() * 100 + 50,
+                position_y: Math.random() * 100 + 50,
+                width: 160,
+                height: 160,
                 scale: 1,
                 rotation: 0,
               });
               setIsAddingItem(true);
               setIsEditingItem(true);
+            }}
+            style={{ 
+              borderRadius: 24, 
+              paddingHorizontal: 16,
+              elevation: 4,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4
+            }}
+            labelStyle={{ 
+              fontSize: 16, 
+              marginLeft: 8
             }}
           >
             Neues Element
@@ -891,17 +1018,35 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
             <View style={styles.itemActions}>
               <IconButton
                 icon="pencil"
-                size={20}
+                size={24}
+                mode="contained-tonal"
                 onPress={() => setIsEditingItem(true)}
+                style={{ marginHorizontal: 4 }}
               />
               <IconButton
                 icon="delete"
-                size={20}
+                size={24}
+                mode="contained-tonal"
                 onPress={() => {
                   if (selectedItem.id) {
-                    deleteItem(selectedItem.id);
+                    Alert.alert(
+                      "Element löschen",
+                      "Möchten Sie dieses Element wirklich löschen?",
+                      [
+                        {
+                          text: "Abbrechen",
+                          style: "cancel"
+                        },
+                        { 
+                          text: "Löschen", 
+                          onPress: () => deleteItem(selectedItem.id as string),
+                          style: "destructive"
+                        }
+                      ]
+                    );
                   }
                 }}
+                style={{ marginHorizontal: 4 }}
               />
             </View>
           )}
@@ -914,174 +1059,240 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
   );
 };
 
-const createStyles = (theme: Theme, klareColors: any) =>
+const createStyles = (theme: Theme, klareColors: any, isDarkMode = false) =>
   StyleSheet.create({
+    // Image Styling
     imagePreviewContainer: {
       width: "100%",
       height: 150,
-      marginTop: 8,
-      borderRadius: 4,
-      backgroundColor: "#f0f0f0",
+      marginTop: 12,
+      borderRadius: 8,
+      backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
       overflow: "hidden",
       alignItems: "center",
       justifyContent: "center",
       position: "relative",
+      borderWidth: 1,
+      borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
     },
     imagePreview: {
       width: "100%",
       height: "100%",
+      borderRadius: 8,
     },
     loadingText: {
       position: "absolute",
+      opacity: 0.7,
+      color: theme.colors.onSurface,
       zIndex: -1,
     },
+    
+    // Container Styling
     container: {
       flex: 1,
       position: "relative",
     },
+    
+    // Header Styling
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       padding: 16,
+      paddingTop: 12,
       zIndex: 2,
+      backgroundColor: 'rgba(0,0,0,0.1)',
+      borderBottomWidth: 1,
+      borderBottomColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
     },
     headerActions: {
       flexDirection: "row",
       alignItems: "center",
     },
     title: {
-      fontSize: 20,
-      fontWeight: "bold",
-      color: theme.colors.onSurface,
-      // textShadowColor: "rgba(0, 0, 0, 0.75)",
-      textShadowOffset: { width: 1, height: 1 },
+      fontSize: 22,
+      fontWeight: "700",
+      color: isDarkMode ? '#FFFFFF' : '#000000',
+      textShadowColor: isDarkMode ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)',
+      textShadowOffset: { width: 0, height: 1 },
       textShadowRadius: 2,
     },
     titleInput: {
-      fontSize: 20,
-      fontWeight: "bold",
-      color: theme.colors.background,
-      backgroundColor: `${theme.colors.surface}20`,
-      borderRadius: 4,
+      fontSize: 22,
+      fontWeight: "700",
+      color: theme.colors.onSurface,
+      backgroundColor: isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.8)',
+      borderRadius: 8,
       padding: 8,
+      paddingHorizontal: 12,
       minWidth: 200,
+      borderWidth: 1,
+      borderColor: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
     },
+    
+    // Board Container Styling
     boardContainer: {
       flex: 1,
     },
     boardContent: {
       minHeight: 800,
+      padding: 4,
     },
     board: {
       flex: 1,
       position: "relative",
     },
+    
+    // Item Card Styling
     itemCard: {
       width: "100%",
       height: "100%",
-      borderRadius: 8,
-      // overflow: "hidden",
-    },
-    selectedItem: {
-      borderWidth: 1,
-      borderColor: "#fff",
+      borderRadius: 12,
+      overflow: "hidden",
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
-      elevation: 5,
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: 2,
+      borderWidth: 1,
+      borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+    },
+    selectedItem: {
+      borderWidth: 2,
+      borderColor: theme.colors.primary,
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.4,
+      shadowRadius: 8,
+      elevation: 8,
     },
     itemImage: {
       width: "100%",
       height: "60%",
+      borderTopLeftRadius: 12,
+      borderTopRightRadius: 12,
     },
     itemContent: {
-      padding: 8,
+      padding: 12,
       flex: 1,
       justifyContent: "space-between",
+      backgroundColor: isDarkMode ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.8)',
     },
     itemTitle: {
       fontWeight: "bold",
       fontSize: 14,
-      marginBottom: 2,
+      marginBottom: 4,
+      color: theme.colors.onSurface,
     },
     itemDescription: {
       fontSize: 12,
-      opacity: 0.7,
+      color: theme.colors.onSurfaceVariant,
+      marginBottom: 8,
       flex: 1,
     },
     areaChip: {
       alignSelf: "flex-start",
-      height: 70,
+      borderRadius: 12,
+      backgroundColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
+      height: 'auto',
       marginTop: 4,
     },
+    
+    // Toolbar Styling
     toolbar: {
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
-      paddingVertical: 12,
+      paddingVertical: 16,
       paddingHorizontal: 16,
-      backgroundColor: theme.colors.bold,
+      backgroundColor: isDarkMode ? 'rgba(0,0,0,0.8)' : theme.colors.surface,
       borderTopWidth: 1,
-      borderTopColor: "rgba(0, 0, 0, 0.1)",
+      borderTopColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 4,
     },
     itemActions: {
       flexDirection: "row",
       marginLeft: "auto",
     },
+    
+    // Dialog Inputs Styling
     input: {
-      backgroundColor: "rgba(255, 255, 255, 0.7)",
-      borderRadius: 4,
-      padding: 8,
-      marginBottom: 12,
+      backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 16,
+      color: theme.colors.onSurface,
+      borderWidth: 1,
+      borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
     },
     textArea: {
       minHeight: 80,
       textAlignVertical: "top",
     },
     imageSection: {
-      marginTop: 12,
+      marginTop: 16,
       alignItems: "center",
-    },
-    imagePreview: {
       width: "100%",
-      height: 150,
-      marginTop: 8,
-      borderRadius: 4,
     },
+    
+    // Settings Dialog Styling
     settingsLabel: {
       fontWeight: "bold",
-      marginTop: 12,
+      marginTop: 16,
       marginBottom: 8,
+      fontSize: 16,
+      color: theme.colors.onSurface,
     },
     segmentedButtons: {
-      marginBottom: 12,
+      marginBottom: 16,
     },
     backgroundSelector: {
       flexDirection: "row",
       paddingVertical: 8,
+      minHeight: 100,
     },
     backgroundOption: {
-      marginRight: 12,
+      marginRight: 16,
       alignItems: "center",
-      width: 80,
+      width: 100,
+      marginBottom: 8,
     },
     backgroundPreview: {
-      width: 80,
-      height: 60,
-      borderRadius: 4,
+      width: 100,
+      height: 70,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+      overflow: "hidden",
     },
     backgroundLabel: {
-      marginTop: 4,
-      fontSize: 12,
+      marginTop: 8,
+      fontSize: 14,
       textAlign: "center",
+      color: theme.colors.onSurface,
     },
     selectedBackground: {
-      borderWidth: 2,
-      borderColor: "#007AFF",
-      borderRadius: 6,
+      borderWidth: 3,
+      borderColor: theme.colors.primary,
+      borderRadius: 10,
     },
+    
+    // Extra helpers
+    backButton: {
+      marginRight: 8,
+    },
+    chip: {
+      margin: 4,
+    }
   });
 
 export default VisionBoardEditor;
