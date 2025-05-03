@@ -133,7 +133,7 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
   const rotationRefs = useRef<{ [key: string]: Animated.Value }>({});
 
   useEffect(() => {
-    // Initialisiere PanResponder für jedes Item
+    // Initialize PanResponder for each item
     board.items.forEach((item, index) => {
       const id = item.id || `temp-${index}`;
 
@@ -155,7 +155,17 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
       if (!panResponderRefs.current[id] && !readOnly) {
         panResponderRefs.current[id] = PanResponder.create({
           onStartShouldSetPanResponder: () => true,
+          onMoveShouldSetPanResponder: () => true,
           onPanResponderGrant: () => {
+            // Bring item to front
+            const newItems = [...board.items];
+            const itemIndex = newItems.findIndex(i => (i.id || `temp-${index}`) === id);
+            if (itemIndex !== -1) {
+              const [item] = newItems.splice(itemIndex, 1);
+              newItems.push(item);
+              setBoard(prev => ({ ...prev, items: newItems }));
+            }
+
             positionRefs.current[id].setOffset({
               x: positionRefs.current[id].x._value,
               y: positionRefs.current[id].y._value,
@@ -268,12 +278,12 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
     }));
   };
 
-  // Funktion zum Ändern des Layouts
+  // Function to change layout
   const changeLayout = (layoutType: "grid" | "freeform" | "circle") => {
     let newItems = [...board.items];
 
     if (layoutType === "grid") {
-      // Anordnen in einem Raster
+      // Arrange in grid
       const itemsPerRow = Math.ceil(Math.sqrt(newItems.length));
       const itemSize = (SCREEN_WIDTH - 60) / itemsPerRow;
 
@@ -290,9 +300,9 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
         };
       });
     } else if (layoutType === "circle") {
-      // Anordnen in einem Kreis
-      const centerX = SCREEN_WIDTH / 2 - 75; // Mittelwert - halbe Itembreite
-      const centerY = 300; // Etwa in der Mitte des Bildschirms
+      // Arrange in circle
+      const centerX = SCREEN_WIDTH / 2 - 75;
+      const centerY = 300;
       const radius = Math.min(centerX, centerY) * 0.7;
 
       newItems = newItems.map((item, index) => {
@@ -305,7 +315,7 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
         };
       });
     }
-    // Bei freeform bleibt alles wie es ist
+    // For freeform, keep current positions
 
     setBoard((prev) => ({
       ...prev,
@@ -313,7 +323,7 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
       items: newItems,
     }));
 
-    // Position-Refs aktualisieren
+    // Update position refs
     newItems.forEach((item, index) => {
       const id = item.id || `temp-${index}`;
       if (positionRefs.current[id]) {
@@ -411,7 +421,12 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
         position: "absolute",
         width: item.width,
         height: item.height,
-        zIndex: isSelected ? 10 : 1,
+        zIndex: isSelected ? 100 : board.items.indexOf(item) + 1,
+        shadowColor: isSelected ? theme.colors.primary : "#000",
+        shadowOffset: { width: 0, height: isSelected ? 4 : 2 },
+        shadowOpacity: isSelected ? 0.4 : 0.2,
+        shadowRadius: isSelected ? 8 : 4,
+        elevation: isSelected ? 8 : 4,
       };
 
       return (
