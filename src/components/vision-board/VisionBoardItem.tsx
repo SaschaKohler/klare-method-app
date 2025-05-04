@@ -64,7 +64,9 @@ const VisionBoardItem: React.FC<VisionBoardItemProps> = ({
                 source={{ uri: image_url }}
                 style={styles.image}
                 resizeMode="contain"
-                onError={(e) => console.error('Image load error:', e.nativeEvent.error)}
+                onError={(e) =>
+                  console.error("Image load error:", e.nativeEvent.error)
+                }
               />
 
               {/* Add a fallback placeholder */}
@@ -74,47 +76,55 @@ const VisionBoardItem: React.FC<VisionBoardItemProps> = ({
             </View>
           )}
 
-          <View style={[styles.content, { backgroundColor: color || theme.colors.surface }]}>
+          <View
+            style={[
+              styles.content,
+              { backgroundColor: color || theme.colors.surface },
+            ]}
+          >
             <Text
-              style={[styles.title, { 
-                color: theme.colors.onSurface,
-                backgroundColor: 'rgba(255,255,255,0.7)',
-                padding: 4,
-                borderRadius: 4
-              }]}
+              style={[
+                styles.title,
+                {
+                  color: theme.colors.onSurface,
+                  backgroundColor: "rgba(255,255,255,0.7)",
+                  padding: 4,
+                  borderRadius: 4,
+                },
+              ]}
               numberOfLines={2}
             >
               {title}
             </Text>
 
             {description && (
-              <Text 
+              <Text
                 style={[
-                  styles.description, 
-                  { 
+                  styles.description,
+                  {
                     color: theme.colors.onSurface,
-                    backgroundColor: 'rgba(255,255,255,0.7)',
+                    backgroundColor: "rgba(255,255,255,0.7)",
                     padding: 4,
-                    borderRadius: 4
-                  }
-                ]} 
+                    borderRadius: 4,
+                  },
+                ]}
                 numberOfLines={2}
               >
                 {description}
               </Text>
             )}
 
-            <Chip 
+            <Chip
               style={[
-                styles.areaChip, 
-                { 
-                  backgroundColor: theme.colors.primaryContainer 
-                }
-              ]} 
-              textStyle={{ 
+                styles.areaChip,
+                {
+                  backgroundColor: theme.colors.primaryContainer,
+                },
+              ]}
+              textStyle={{
                 fontSize: 10,
-                color: theme.colors.onPrimaryContainer
-              }} 
+                color: theme.colors.onPrimaryContainer,
+              }}
               compact
             >
               {life_area}
@@ -180,7 +190,7 @@ const styles = StyleSheet.create({
     padding: 8,
     flex: 1,
     justifyContent: "space-between",
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: "rgba(255,255,255,0.8)",
   },
   title: {
     fontWeight: "bold",
@@ -195,7 +205,7 @@ const styles = StyleSheet.create({
   areaChip: {
     alignSelf: "flex-start",
     height: 24,
-    marginTop: 4,
+    marginTop: 1,
   },
   selectedIndicator: {
     position: "absolute",
