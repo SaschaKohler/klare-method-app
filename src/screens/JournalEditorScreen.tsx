@@ -31,7 +31,7 @@ import {
 import { createJournalEditorStyles } from "../constants/journalEditorStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { useKlareStores } from "../hooks";
-import { supabase } from "../lib/supabase";
+import { JournalService } from "../services/JournalService";
 import { useUserStore } from "../store/useUserStore";
 
 // Typen für Tagebucheinträge
@@ -106,24 +106,17 @@ export default function JournalEditorScreen() {
       if (entryId) {
         // Lade einen bestehenden Eintrag
         try {
-          const { data, error } = await supabase
-            .from("user_journal_entries")
-            .select("*")
-            .eq("id", entryId)
-            .single();
-
-          if (error) throw error;
-
-          if (data) {
+          const existingEntry = await JournalService.getEntryById(entryId);
+          if (existingEntry) {
             setEntry({
-              id: data.id,
-              entry_date: data.entry_date,
-              entry_content: data.entry_content,
-              tags: data.tags || [],
-              mood_rating: data.mood_rating || 5,
-              clarity_rating: data.clarity_rating || 5,
-              category: data.category || "general",
-              is_favorite: data.is_favorite || false,
+              id: existingEntry.id,
+              entry_date: existingEntry.entryDate,
+              entry_content: existingEntry.entryContent,
+              tags: existingEntry.tags || [],
+              mood_rating: existingEntry.moodRating || 5,
+              clarity_rating: existingEntry.clarityRating || 5,
+              category: existingEntry.category || "general",
+              is_favorite: existingEntry.isFavorite || false,
             });
           }
         } catch (error) {
@@ -204,47 +197,29 @@ export default function JournalEditorScreen() {
 
     try {
       const entryData = {
-        entry_content: entry.entry_content,
+        id: entry.id,
+        entryContent: entry.entry_content,
+        entryDate: entry.entry_date,
         tags: entry.tags,
-        mood_rating: entry.mood_rating,
-        clarity_rating: entry.clarity_rating,
+        moodRating: entry.mood_rating,
+        clarityRating: entry.clarity_rating,
         category: entry.category,
-        is_favorite: entry.is_favorite,
-        updated_at: new Date().toISOString(),
+        isFavorite: entry.is_favorite,
       };
 
       if (entry.id) {
         // Aktualisiere einen bestehenden Eintrag
-        const { error } = await supabase
-          .from("user_journal_entries")
-          .update(entryData)
-          .eq("id", entry.id)
-          .eq("user_id", user.id); // Sicherstellen, dass nur eigene Einträge aktualisiert werden
-
-        if (error) throw error;
+        await JournalService.updateEntry(entryData);
       } else {
         // Erstelle einen neuen Eintrag
-        const { data, error } = await supabase
-          .from("user_journal_entries")
-          .insert({
-            ...entryData,
-            user_id: user.id,
-            entry_date: entry.entry_date,
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-        
-        // Setze die ID für den neuen Eintrag
-        setEntry({...entry, id: data.id});
+        const savedEntry = await JournalService.createEntry(entryData);
+        setEntry({...entry, id: savedEntry.id});
       }
 
       setEntryChanged(false);
       navigation.goBack();
     } catch (error) {
       console.error("Error saving journal entry:", error);
-      // Zeige dem Nutzer eine Fehlermeldung
       Alert.alert(
         "Fehler beim Speichern",
         "Der Eintrag konnte nicht gespeichert werden. Bitte versuche es erneut."
