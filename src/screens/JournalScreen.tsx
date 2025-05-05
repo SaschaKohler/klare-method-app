@@ -4,7 +4,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { format, isToday, isYesterday, parseISO, subDays } from "date-fns";
 import { de } from "date-fns/locale";
 import { MotiView } from "moti";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   FlatList,
   RefreshControl,
@@ -197,7 +197,7 @@ export default function JournalScreen() {
   }, [selectedDate, user?.id]);
 
   // Ref für die FlatList
-  const flatListRef = useRef<FlatList>(null);
+  const flatListRef = useRef<FlatList<JournalEntry>>(null);
 
   // Formatiere das Datum für die Anzeige
   const formatEntryDate = (dateString: string) => {
