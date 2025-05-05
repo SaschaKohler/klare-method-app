@@ -104,7 +104,7 @@ const VisionBoardItem: React.FC<VisionBoardItemProps> = ({
                   {
                     color: theme.colors.onSurface,
                     backgroundColor: "rgba(255,255,255,0.7)",
-                    padding: 4,
+                    padding: 2,
                     borderRadius: 4,
                   },
                 ]}

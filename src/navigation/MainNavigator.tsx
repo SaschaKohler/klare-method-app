@@ -234,7 +234,7 @@ const MainNavigator = () => {
           <Stack.Screen
             name="VisionBoard"
             component={VisionBoardScreen}
-            options={{ headerShown: true }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="ResourceLibrary"

@@ -343,36 +343,98 @@ class VisionBoardService {
   }
 
   /**
-   * Simplified image upload to Supabase Storage
+   * Optimized image upload to Supabase Storage
    */
   async uploadImage(fileUri: string, userId: string): Promise<string> {
     if (!userId) throw new Error("User ID is required");
+    if (!fileUri) throw new Error("File URI is required");
 
     try {
-      const fileExt = fileUri.split('.').pop()?.toLowerCase();
-      if (!fileExt || !['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
-        throw new Error('Unsupported image format');
+      // Verbesserte Dateierweiterungsbehandlung
+      let fileExt = fileUri.split('.').pop()?.toLowerCase();
+      
+      // Wenn die URI ein Datenschema enthält, extrahiere den Dateinamen richtig
+      if (fileUri.includes('/')) {
+        const fileName = fileUri.split('/').pop() || '';
+        if (fileName.includes('.')) {
+          fileExt = fileName.split('.').pop()?.toLowerCase();
+        }
+      }
+      
+      // Auf Standard-Erweiterung zurückfallen, falls keine erkannt wurde
+      if (!fileExt || !['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
+        console.warn(`Unsupported or undetected image format: ${fileExt}, defaulting to jpg`);
+        fileExt = 'jpg';
       }
 
-      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+      // Eindeutigen Dateinamen erstellen
+      const timestamp = Date.now();
+      const randomId = Math.floor(Math.random() * 10000);
+      const fileName = `${userId}/${timestamp}_${randomId}.${fileExt}`;
       
+      console.log(`Uploading image to ${fileName} from ${fileUri.substring(0, 50)}...`);
+      
+      // Behandlung verschiedener Plattformen
+      let fileData;
+      if (Platform.OS === 'web') {
+        // Für Web: Fetch-Request verwenden
+        const response = await fetch(fileUri);
+        fileData = await response.blob();
+      } else {
+        // Für native: URI als Objekt übergeben
+        fileData = { uri: fileUri };
+      }
+      
+      // Optimierte Inhaltstypbestimmung
+      let contentType;
+      switch(fileExt) {
+        case 'jpg':
+        case 'jpeg':
+          contentType = 'image/jpeg';
+          break;
+        case 'png':
+          contentType = 'image/png';
+          break;
+        case 'gif':
+          contentType = 'image/gif';
+          break;
+        case 'webp':
+          contentType = 'image/webp';
+          break;
+        default:
+          contentType = 'image/jpeg';
+      }
+      
+      // Upload mit verbesserten Fehlerprüfungen
       const { data, error } = await supabase.storage
         .from('vision-board-images')
-        .upload(fileName, { uri: fileUri }, {
-          contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`,
-          upsert: true
+        .upload(fileName, fileData, {
+          contentType,
+          upsert: true,
+          cacheControl: 'no-cache', // Verhindert Caching-Probleme
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase upload error:', error);
+        throw error;
+      }
 
-      const { data: { publicUrl } } = supabase.storage
+      console.log(`Image uploaded successfully to ${fileName}`);
+
+      // URL mit Cache-Busting
+      const { data: urlData } = supabase.storage
         .from('vision-board-images')
         .getPublicUrl(fileName);
 
-      return `${publicUrl}?t=${Date.now()}`;
+      if (!urlData || !urlData.publicUrl) {
+        throw new Error('Failed to get public URL');
+      }
+
+      // Cache-Busting für zuverlässigere Bildanzeige
+      return `${urlData.publicUrl}?t=${timestamp}`;
     } catch (error) {
       console.error('Upload error:', error);
-      throw new Error('Failed to upload image');
+      throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

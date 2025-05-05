@@ -6,10 +6,14 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   ScrollView,
   StyleSheet,
+  // Text,
+  TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Button,
   Dialog,
@@ -32,6 +36,8 @@ type VisionBoardRouteProp = RouteProp<RootStackParamList, "VisionBoard">;
 const VisionBoardScreen = () => {
   const route = useRoute<VisionBoardRouteProp>();
   const theme = useTheme();
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   //TODO: stores direkt statt  klareStores-hook
 
@@ -68,11 +74,9 @@ const VisionBoardScreen = () => {
     if (error) {
       return (
         <View style={styles.centered}>
-          <Text style={{ color: theme.colors.error }}>
-            Error: {error}
-          </Text>
-          <Button 
-            mode="contained" 
+          <Text style={{ color: theme.colors.error }}>Error: {error}</Text>
+          <Button
+            mode="contained"
             onPress={() => setError(null)}
             style={{ marginTop: 16 }}
           >
@@ -105,11 +109,9 @@ const VisionBoardScreen = () => {
               }
             } catch (e) {
               setError(
-                e instanceof Error 
-                  ? e.message 
-                  : 'Failed to save vision board'
+                e instanceof Error ? e.message : "Failed to save vision board",
               );
-              console.error('Save error:', e);
+              console.error("Save error:", e);
             }
           }}
         />
@@ -248,21 +250,29 @@ const VisionBoardScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style={theme.dark ? "light" : "dark"} />
 
-      {/* <CustomHeader */}
-      {/*   title={activeBoard ? activeBoard.title : "Vision Boards"} */}
-      {/*   showBackButton={true} */}
-      {/*   onBackPress={() => { */}
-      {/*     // Wenn ein aktives Board angezeigt wird, zurück zur Board-Übersicht */}
-      {/*     if (activeBoard) { */}
-      {/*       setActiveBoard(null); */}
-      {/*     } else { */}
-      {/*       // Sonst zurück zum vorherigen Screen */}
-      {/*       navigation.goBack(); */}
-      {/*     } */}
-      {/*   }} */}
-      {/*   rightIcon={activeBoard ? "close" : undefined} */}
-      {/*   onRightIconPress={activeBoard ? () => setActiveBoard(null) : undefined} */}
-      {/* /> */}
+      <View
+        style={[
+          styles.header,
+          { paddingTop: Platform.OS === "android" ? insets.top || 20 : 0 },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={() => {
+            if (activeBoard) {
+              setActiveBoard(null);
+            } else {
+              navigation.goBack();
+            }
+          }}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back" size={24} color={theme.colors.primary} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>
+          {activeBoard ? activeBoard.title : "Vision Boards"}
+        </Text>
+        <View style={styles.headerRightPlaceholder} />
+      </View>
 
       {renderContent()}
 
@@ -303,25 +313,53 @@ const VisionBoardScreen = () => {
               Abbrechen
             </Button>
             <Button
-              onPress={() => {
+              onPress={async () => {
                 if (!newBoardTitle.trim()) {
                   Alert.alert("Fehler", "Bitte geben Sie einen Titel ein.");
                   return;
                 }
+
+                // Deaktiviere den Button während der Erstellung
+                setNewBoardTitle((prev) => prev.trim());
+
                 if (user?.id) {
-                  // Erstellen Sie ein neues Vision Board
-                  visionBoardStore.createVisionBoard(
-                    user?.id,
-                    newBoardTitle,
-                    newBoardDescription,
-                  );
-                  setIsCreateDialogOpen(false);
-                  setNewBoardTitle("");
-                  setNewBoardDescription("");
+                  try {
+                    // Zeige Feedback, dass der Prozess läuft
+                    console.log("Creating vision board...");
+
+                    // Erstellen Sie ein neues Vision Board
+                    await visionBoardStore.createVisionBoard(
+                      user?.id,
+                      newBoardTitle,
+                      newBoardDescription,
+                    );
+
+                    console.log("Vision board created successfully");
+
+                    // Dialog explizit schließen und Felder zurücksetzen
+                    setIsCreateDialogOpen(false);
+
+                    // Werte in setTimeout zurücksetzen, um Race Conditions zu vermeiden
+                    setTimeout(() => {
+                      setNewBoardTitle("");
+                      setNewBoardDescription("");
+                    }, 300);
+                  } catch (error) {
+                    console.error("Error creating vision board:", error);
+                    Alert.alert(
+                      "Fehler",
+                      "Beim Erstellen des Vision Boards ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+                    );
+                  }
                 }
               }}
+              disabled={
+                !newBoardTitle.trim() || visionBoardStore.metadata.isLoading
+              }
             >
-              Erstellen
+              {visionBoardStore.metadata.isLoading
+                ? "Wird erstellt..."
+                : "Erstellen"}
             </Button>
           </Dialog.Actions>
         </Dialog>
@@ -333,13 +371,50 @@ const VisionBoardScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+    ...Platform.select({
+      android: {
+        elevation: 4,
+        height: 56 + (StatusBar.currentHeight || 0),
+      },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+    }),
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1F2937",
+    flex: 1,
+    textAlign: "center",
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 8,
+  },
+  headerRightPlaceholder: {
+    width: 40,
   },
   container: {
     flex: 1,
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 90, // Platz für FAB
+    paddingBottom: Platform.OS === "android" ? 120 : 90, // More space for Android
   },
   centered: {
     flex: 1,

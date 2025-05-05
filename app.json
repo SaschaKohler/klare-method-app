@@ -35,6 +35,11 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "dev": {
+      "networking": {
+        "host": "192.168.178.30"
+      }
+    },
     "extra": {
       "supabaseUrl": "https://wxnjfyrkcqwnjjtlufhg.supabase.co",
       "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4bmpmeXJrY3F3bmpqdGx1ZmhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3OTM1NDksImV4cCI6MjA1NzM2OTU0OX0.iRvcBMLv-pcQwPApekQdKnpmSJWCLLkQN4v3x_xH-qs",
