@@ -189,55 +189,59 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
           );
         })}
 
-        {/* Verbesserte Beschriftungen mit dynamischer Positionierung */}
+        {/* Interaktive Beschriftungen mit Hover-Effekt */}
         {lifeWheelAreas.map((area, index) => {
           const angle = calculateAngle(index, lifeWheelAreas.length);
           const labelRadius = radius + LABEL_RADIUS_EXTRA;
           const labelPoint = polarToCartesian(labelRadius, angle);
 
-          // Dynamische Textgröße basierend auf Länge des Namens
-          const nameLength = area.name.length;
-          const fontSize = Math.max(8, 12 - Math.floor(nameLength / 5));
+          // State für erweiterten Text
+          const [expanded, setExpanded] = React.useState(false);
 
-          // Verbesserte Textpositionierung
-          const quarter = Math.floor((angle + 45) / 90) % 4;
-          const textAnchor = 
-            angle > 45 && angle < 135 ? "start" : 
-            angle > 225 && angle < 315 ? "end" : "middle";
-          
-          const alignmentBaseline = "middle"; // Vereinfachte Baseline für bessere Konsistenz
+          // Standardmäßig nur Initialen zeigen, bei Tap/Hover den vollen Namen
+          const displayText = expanded 
+            ? area.name 
+            : area.name.split(' ').map(w => w[0]).join('');
 
-          // Dynamische Verschiebung für bessere Lesbarkeit
-          const dx = angle > 45 && angle < 135 ? 5 : 
-                    angle > 225 && angle < 315 ? -5 : 0;
-          const dy = angle > 180 ? 10 : -10;
+          // Textgröße anpassen
+          const fontSize = expanded ? 10 : 12;
 
-          // Bei langen Texten in zwei Zeilen aufteilen
-          const splitName = nameLength > 12 ? 
-            [area.name.substring(0, Math.ceil(nameLength/2)), 
-             area.name.substring(Math.ceil(nameLength/2))] : 
-            [area.name];
+          // Textpositionierung
+          const textAnchor = "middle";
+          const alignmentBaseline = "middle";
 
           return (
             <G key={`label-${index}`}>
-              {splitName.map((text, i) => (
-                <SvgText
-                  key={`text-${i}`}
-                  x={labelPoint.x}
-                  y={labelPoint.y + (i * 12) - (splitName.length > 1 ? 6 : 0)}
-                  textAnchor={textAnchor}
-                  alignmentBaseline={alignmentBaseline}
-                  fontSize={fontSize}
-                  fontWeight="600"
-                  fill={themeColors.text}
-                  dx={dx}
-                  dy={dy + (i * 12)}
-                  stroke={isDarkMode ? "#00000055" : "#ffffff55"}
-                  strokeWidth="0.5"
-                >
-                  {text}
-                </SvgText>
-              ))}
+              {/* Touchable Area für Interaktion */}
+              <TouchableOpacity
+                style={[
+                  styles.labelTouchArea,
+                  {
+                    left: labelPoint.x - 30,
+                    top: labelPoint.y - 15,
+                    width: 60,
+                    height: 30,
+                  },
+                ]}
+                onPressIn={() => setExpanded(true)}
+                onPressOut={() => setExpanded(false)}
+                activeOpacity={1}
+              />
+
+              {/* Beschriftung */}
+              <SvgText
+                x={labelPoint.x}
+                y={labelPoint.y}
+                textAnchor={textAnchor}
+                alignmentBaseline={alignmentBaseline}
+                fontSize={fontSize}
+                fontWeight="600"
+                fill={themeColors.text}
+                stroke={isDarkMode ? "#00000055" : "#ffffff55"}
+                strokeWidth="0.5"
+              >
+                {displayText}
+              </SvgText>
             </G>
           );
         })}
@@ -370,6 +374,12 @@ const styles = StyleSheet.create({
     // Für Debugging: Uncomment die nächste Zeile
     // backgroundColor: 'rgba(255, 0, 0, 0.3)',
     zIndex: 1000,
+  },
+  labelTouchArea: {
+    position: "absolute",
+    zIndex: 1001,
+    // Für Debugging: Uncomment die nächste Zeile
+    // backgroundColor: 'rgba(0, 255, 0, 0.2)',
   },
 });
 
