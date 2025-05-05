@@ -152,7 +152,6 @@ class JournalService {
       entries.push(newEntry);
 
       // Update local storage
-      const localKey = `${JOURNAL_ENTRIES_STORAGE_KEY}_${userId}`;
       unifiedStorage.set(StorageKeys.JOURNAL, JSON.stringify(entries));
 
       // Update cache
@@ -302,8 +301,7 @@ class JournalService {
       const updatedEntries = entries.filter((e) => e.id !== entryId);
 
       // Update local storage
-      const localKey = `${JOURNAL_ENTRIES_STORAGE_KEY}_${userId}`;
-      await AsyncStorage.setItem(localKey, JSON.stringify(updatedEntries));
+      unifiedStorage.set(StorageKeys.JOURNAL, JSON.stringify(updatedEntries));
 
       // Update cache
       this.entriesCache[userId] = updatedEntries;
