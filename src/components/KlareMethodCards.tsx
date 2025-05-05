@@ -58,8 +58,8 @@ const KlareMethodCards: React.FC<KlareMethodCardsProps> = ({
           style={[
             styles.klareStepCard,
             {
-              backgroundColor: `${step.color}10`,
-              borderColor: `${step.color}30`,
+              backgroundColor: `${step.color}50`,
+              borderColor: `${step.color}90`,
             },
           ]}
           testID={`klare-step-${step.id.toLowerCase()}`}
@@ -116,7 +116,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 16,
     marginRight: 12,
-    elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

@@ -120,7 +120,7 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
 
   // State für das Vision Board
   const [board, setBoard] = useState<
-    VisionBoard & { items: VisionBoardItem[] }
+    Partial<VisionBoard & { items: VisionBoardItem[] }>
   >({
     title: "Mein Vision Board",
     description: "Meine persönliche Lebensvision",
@@ -260,7 +260,7 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
 
   // Funktion zum Hinzufügen eines neuen Items
   const addItem = async (newItem: Partial<VisionBoardItem>) => {
-    const defaultItem: VisionBoardItem = {
+    const defaultItem: Partial<VisionBoardItem> = {
       life_area: lifeAreas[0],
       title: "Neues Element",
       description: "",
@@ -270,7 +270,7 @@ const VisionBoardEditor: React.FC<VisionBoardEditorProps> = ({
       height: 320, // Better for horizontal scrolling
       scale: 1,
       rotation: 0,
-      color: "#FFFFFF", // Default to white background
+      color: theme.colors.background, // Default to white background
     };
 
     const item = { ...defaultItem, ...newItem };
@@ -1569,10 +1569,8 @@ const createStyles = (theme: Theme, klareColors: any, isDarkMode = false) =>
       zIndex: 2,
       backgroundColor: "rgba(0,0,0,0.1)",
       borderBottomWidth: 1,
-      borderBottomColor: isDarkMode
-        ? "rgba(255,255,255,0.1)"
-        : "rgba(0,0,0,0.1)",
-      shadowColor: "#000",
+      borderBottomColor: theme.colors.outline,
+      shadowColor: theme.colors.outline,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.1,
       shadowRadius: 2,
@@ -1585,8 +1583,8 @@ const createStyles = (theme: Theme, klareColors: any, isDarkMode = false) =>
     title: {
       fontSize: 22,
       fontWeight: "700",
-      color: isDarkMode ? "#FFFFFF" : "#000000",
-      textShadowColor: isDarkMode ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.5)",
+      color: theme.colors.onSurface,
+      textShadowColor: theme.colors.outline,
       textShadowOffset: { width: 0, height: 1 },
       textShadowRadius: 2,
     },
@@ -1594,7 +1592,7 @@ const createStyles = (theme: Theme, klareColors: any, isDarkMode = false) =>
       fontSize: 22,
       fontWeight: "700",
       color: theme.colors.onSurface,
-      backgroundColor: isDarkMode ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.8)",
+      backgroundColor: theme.colors.background,
       borderRadius: 8,
       padding: 8,
       paddingHorizontal: 12,
@@ -1622,14 +1620,14 @@ const createStyles = (theme: Theme, klareColors: any, isDarkMode = false) =>
       height: "100%",
       borderRadius: 12,
       overflow: "hidden",
-      shadowColor: "#000",
+      shadowColor: theme.colors.outline,
       shadowOffset: { width: 0, height: 3 },
       shadowOpacity: 0.2,
       shadowRadius: 5,
       elevation: 4,
       borderWidth: 1,
-      borderColor: isDarkMode ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)",
-      backgroundColor: "#FFFFFF", // Default white background
+      borderColor: theme.colors.outline,
+      backgroundColor: theme.colors.surface,
     },
     selectedItem: {
       borderWidth: 2,
@@ -1661,17 +1659,17 @@ const createStyles = (theme: Theme, klareColors: any, isDarkMode = false) =>
       padding: 12,
       flex: 1,
       justifyContent: "space-between",
-      backgroundColor: "#FFFFFF", // White background for content area
+      backgroundColor: theme.colors.surface,
     },
     itemTitle: {
       fontWeight: "bold",
       fontSize: 16,
       marginBottom: 6,
-      color: theme.dark ? "#333333" : "#333333", // Darker text for better contrast
+      color: theme.colors.primary,
     },
     itemDescription: {
       fontSize: 13,
-      color: theme.dark ? "#666666" : "#666666", // Medium dark text for descriptions
+      color: theme.colors.primary,
       marginBottom: 8,
       flex: 1,
       lineHeight: 18,
@@ -1691,18 +1689,19 @@ const createStyles = (theme: Theme, klareColors: any, isDarkMode = false) =>
       alignItems: "center",
       paddingVertical: 16,
       paddingHorizontal: 16,
-      backgroundColor: isDarkMode ? "rgba(0,0,0,0.8)" : theme.colors.surface,
+      backgroundColor: theme.colors.background,
       borderTopWidth: 1,
       borderTopColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
       shadowColor: "#000",
       shadowOffset: { width: 0, height: -2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
-      elevation: 4,
+      elevation: Platform.OS === "android" ? 8 : 4,
       position: Platform.OS === "android" ? "absolute" : "relative",
       bottom: 0,
       left: 0,
       right: 0,
+      zIndex: 1000,
     },
     itemActions: {
       flexDirection: "row",
@@ -1711,15 +1710,13 @@ const createStyles = (theme: Theme, klareColors: any, isDarkMode = false) =>
 
     // Dialog Inputs Styling
     input: {
-      backgroundColor: isDarkMode
-        ? "rgba(255,255,255,0.1)"
-        : "rgba(0,0,0,0.05)",
+      backgroundColor: theme.colors.surface,
       borderRadius: 8,
       padding: 12,
       marginBottom: 16,
-      color: theme.colors.onSurface,
+      color: theme.colors.text,
       borderWidth: 1,
-      borderColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+      borderColor: theme.colors.outline,
     },
     textArea: {
       minHeight: 80,
@@ -1765,7 +1762,7 @@ const createStyles = (theme: Theme, klareColors: any, isDarkMode = false) =>
       height: 70,
       borderRadius: 12,
       borderWidth: 1,
-      borderColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+      borderColor: theme.colors.outline,
       overflow: "hidden",
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },

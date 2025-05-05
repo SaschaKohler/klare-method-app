@@ -1,33 +1,31 @@
 // src/components/resources/ResourceFinder.tsx
-import React, { useState, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import Slider from "@react-native-community/slider";
+import * as Haptics from "expo-haptics";
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import {
   Button,
   Card,
-  Title,
-  Paragraph,
-  useTheme,
-  Surface,
-  ProgressBar,
   Chip,
-  RadioButton,
+  Paragraph,
+  ProgressBar,
+  Surface,
+  Title,
+  useTheme,
 } from "react-native-paper";
-import { Ionicons } from "@expo/vector-icons";
-import Slider from "@react-native-community/slider";
-import * as Haptics from "expo-haptics";
-import { useResourceStore } from "../../store/useResourceStore";
-import { ResourceCategory } from "../../services/ResourceLibraryService";
-import { useUserStore } from "../../store/useUserStore";
 import { useKlareStores } from "../../hooks";
+import { ResourceCategory } from "../../services/ResourceLibraryService";
+import { darkKlareColors, lightKlareColors } from "../../constants/theme";
 
 // Props interface
 interface ResourceFinderProps {
@@ -89,7 +87,12 @@ const ResourceFinder = ({
   const paperTheme = useTheme();
 
   const { user, auth, theme, resources } = useKlareStores();
-
+  const isDarkMode = theme.isDarkMode;
+  const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
+  const styles = useMemo(
+    () => createResourceFinderStyles(paperTheme, klareColors),
+    [theme, klareColors],
+  );
   // Core states
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -380,7 +383,7 @@ const ResourceFinder = ({
     return (
       <Card style={styles.card}>
         <Card.Content>
-          <Title style={[styles.title, { color: themeColor }]}>
+          <Title style={[styles.title, { color: klareColors.text }]}>
             {currentStepData.title}
           </Title>
           <Paragraph style={styles.paragraph}>
@@ -388,8 +391,12 @@ const ResourceFinder = ({
           </Paragraph>
 
           <View style={styles.iconContainer}>
-            <Ionicons name="battery-charging" size={48} color={themeColor} />
-            <Text style={[styles.iconText, { color: themeColor }]}>
+            <Ionicons
+              name="battery-charging"
+              size={48}
+              color={paperTheme.colors.primary}
+            />
+            <Text style={[styles.iconText, { color: klareColors.text }]}>
               Ressourcen-Bibliothek
             </Text>
           </View>
@@ -405,7 +412,10 @@ const ResourceFinder = ({
           <Button
             mode="contained"
             onPress={handleNextStep}
-            style={[styles.button, { backgroundColor: themeColor }]}
+            style={[
+              styles.button,
+              { backgroundColor: paperTheme.colors.primary },
+            ]}
           >
             Starten
           </Button>
@@ -419,7 +429,7 @@ const ResourceFinder = ({
     return (
       <Card style={styles.card}>
         <Card.Content>
-          <Title style={[styles.title, { color: themeColor }]}>
+          <Title style={[styles.title, { color: klareColors.text }]}>
             {currentStepData.title}
           </Title>
 
@@ -436,12 +446,14 @@ const ResourceFinder = ({
                 style={[
                   styles.questionChip,
                   selectedQuestionIndex === index && {
-                    backgroundColor: `${themeColor}20`,
+                    backgroundColor: `${paperTheme.colors.primary}20`,
                   },
                   answers[question.id] ? styles.answeredChip : {},
                 ]}
                 textStyle={
-                  selectedQuestionIndex === index ? { color: themeColor } : {}
+                  selectedQuestionIndex === index
+                    ? { color: paperTheme.colors.primary }
+                    : {}
                 }
               >
                 {getCategoryLabel(question.category)}
@@ -468,6 +480,7 @@ const ResourceFinder = ({
               multiline
               numberOfLines={4}
               placeholder="Tippe hier, um deine Antwort einzugeben..."
+              placeholderTextColor={klareColors.textSecondary}
               value={getCurrentAnswer()}
               onChangeText={handleAnswerChange}
             />
@@ -492,7 +505,10 @@ const ResourceFinder = ({
           <Button
             mode="contained"
             onPress={handleNextStep}
-            style={[styles.button, { backgroundColor: themeColor }]}
+            style={[
+              styles.button,
+              { backgroundColor: paperTheme.colors.primary },
+            ]}
           >
             Weiter
           </Button>
@@ -506,7 +522,7 @@ const ResourceFinder = ({
     return (
       <Card style={styles.card}>
         <Card.Content>
-          <Title style={[styles.title, { color: themeColor }]}>
+          <Title style={[styles.title, { color: klareColors.k }]}>
             {currentStepData.title}
           </Title>
           <Paragraph style={styles.paragraph}>
@@ -519,6 +535,7 @@ const ResourceFinder = ({
               style={styles.input}
               placeholder="z.B. Morgendliche Meditation, Gespräche mit Freunden..."
               value={resourceName}
+              placeholderTextColor={klareColors.textSecondary}
               onChangeText={setResourceName}
             />
           </View>
@@ -538,18 +555,22 @@ const ResourceFinder = ({
                   style={[
                     styles.categoryChip,
                     resourceCategory === category && {
-                      backgroundColor: `${themeColor}20`,
+                      backgroundColor: `${paperTheme.colors.primary}20`,
                     },
                   ]}
                   textStyle={
-                    resourceCategory === category ? { color: themeColor } : {}
+                    resourceCategory === category
+                      ? { color: paperTheme.colors.primary }
+                      : {}
                   }
                   icon={() => (
                     <Ionicons
                       name={getCategoryIcon(category)}
                       size={16}
                       color={
-                        resourceCategory === category ? themeColor : "#666"
+                        resourceCategory === category
+                          ? paperTheme.colors.primary
+                          : "#666"
                       }
                     />
                   )}
@@ -567,6 +588,7 @@ const ResourceFinder = ({
               multiline
               numberOfLines={4}
               placeholder="Beschreibe, wie diese Ressource dir Lebendigkeit gibt..."
+              placeholderTextColor={klareColors.textSecondary}
               value={resourceDescription}
               onChangeText={setResourceDescription}
             />
@@ -584,7 +606,10 @@ const ResourceFinder = ({
           <Button
             mode="contained"
             onPress={handleNextStep}
-            style={[styles.button, { backgroundColor: themeColor }]}
+            style={[
+              styles.button,
+              { backgroundColor: paperTheme.colors.primary },
+            ]}
             disabled={!resourceName.trim()}
           >
             Weiter
@@ -599,7 +624,7 @@ const ResourceFinder = ({
     return (
       <Card style={styles.card}>
         <Card.Content>
-          <Title style={[styles.title, { color: themeColor }]}>
+          <Title style={[styles.title, { color: paperTheme.colors.primary }]}>
             {currentStepData.title}
           </Title>
           <Paragraph style={styles.paragraph}>
@@ -611,7 +636,7 @@ const ResourceFinder = ({
               <Ionicons
                 name={getCategoryIcon(resourceCategory)}
                 size={20}
-                color="#666"
+                color={paperTheme.colors.primary}
               />
               <Text style={styles.resourceName}>{resourceName}</Text>
             </View>
@@ -633,8 +658,8 @@ const ResourceFinder = ({
               step={1}
               value={resourceRating}
               onValueChange={setResourceRating}
-              minimumTrackTintColor={themeColor}
-              maximumTrackTintColor="#EEEEEE"
+              minimumTrackTintColor={`${klareColors.text}10`}
+              maximumTrackTintColor={klareColors.text}
             />
             <View style={styles.sliderMarkers}>
               <Text style={styles.sliderMarkerText}>Schwach</Text>
@@ -662,7 +687,10 @@ const ResourceFinder = ({
           <Button
             mode="contained"
             onPress={handleNextStep}
-            style={[styles.button, { backgroundColor: themeColor }]}
+            style={[
+              styles.button,
+              { backgroundColor: paperTheme.colors.primary },
+            ]}
           >
             Weiter
           </Button>
@@ -676,7 +704,7 @@ const ResourceFinder = ({
     return (
       <Card style={styles.card}>
         <Card.Content>
-          <Title style={[styles.title, { color: themeColor }]}>
+          <Title style={[styles.title, { color: paperTheme.colors.primary }]}>
             {currentStepData.title}
           </Title>
           <Paragraph style={styles.paragraph}>
@@ -699,6 +727,7 @@ const ResourceFinder = ({
               multiline
               numberOfLines={4}
               placeholder="z.B. Tägliche 10-minütige Meditation am Morgen, Wöchentlicher Waldspaziergang am Samstag..."
+              placeholderTextColor={klareColors.textSecondary}
               value={resourceTips}
               onChangeText={setResourceTips}
             />
@@ -734,7 +763,10 @@ const ResourceFinder = ({
           <Button
             mode="contained"
             onPress={handleNextStep}
-            style={[styles.button, { backgroundColor: themeColor }]}
+            style={[
+              styles.button,
+              { backgroundColor: paperTheme.colors.primary },
+            ]}
           >
             Weiter
           </Button>
@@ -748,7 +780,7 @@ const ResourceFinder = ({
     return (
       <Card style={styles.card}>
         <Card.Content>
-          <Title style={[styles.title, { color: themeColor }]}>
+          <Title style={[styles.title, { color: paperTheme.colors.primary }]}>
             {currentStepData.title}
           </Title>
           <Paragraph style={styles.paragraph}>
@@ -761,7 +793,7 @@ const ResourceFinder = ({
                 <Ionicons
                   name={getCategoryIcon(resourceCategory)}
                   size={24}
-                  color={themeColor}
+                  color={paperTheme.colors.primary}
                 />
                 <Text style={styles.resourceSummaryName}>{resourceName}</Text>
               </View>
@@ -806,7 +838,10 @@ const ResourceFinder = ({
             mode="contained"
             onPress={saveResource}
             icon="check"
-            style={[styles.button, { backgroundColor: themeColor }]}
+            style={[
+              styles.button,
+              { backgroundColor: paperTheme.colors.primary },
+            ]}
           >
             Speichern
           </Button>
@@ -830,7 +865,7 @@ const ResourceFinder = ({
           </Text>
           <ProgressBar
             progress={progress}
-            color={themeColor}
+            color={paperTheme.colors.primary}
             style={styles.progressBar}
           />
         </View>
@@ -841,289 +876,302 @@ const ResourceFinder = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContainer: {
-    flex: 1,
-    padding: 16,
-  },
-  progressContainer: {
-    marginBottom: 16,
-  },
-  stepText: {
-    fontSize: 14,
-    marginBottom: 4,
-    color: "#666",
-  },
-  progressBar: {
-    height: 6,
-    borderRadius: 3,
-  },
-  card: {
-    marginBottom: 16,
-    borderRadius: 12,
-  },
-  title: {
-    fontSize: 20,
-    marginBottom: 8,
-    fontWeight: "700",
-  },
-  paragraph: {
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 16,
-    color: "#444",
-  },
-  iconContainer: {
-    alignItems: "center",
-    marginVertical: 16,
-  },
-  iconText: {
-    marginTop: 8,
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  statsContainer: {
-    marginTop: 10,
-    marginBottom: 16,
-    flexDirection: "row",
-    justifyContent: "center",
-  },
-  statItem: {
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  statNumber: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#666",
-  },
-  cardActions: {
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  button: {
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  outlinedButton: {
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  textareaContainer: {
-    marginTop: 12,
-    marginBottom: 16,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 8,
-    color: "#444",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: "#f9f9f9",
-    fontSize: 16,
-  },
-  textarea: {
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 8,
-    padding: 12,
-    minHeight: 120,
-    backgroundColor: "#f9f9f9",
-    textAlignVertical: "top",
-    fontSize: 16,
-  },
-  questionsScroll: {
-    flexDirection: "row",
-    marginBottom: 16,
-    marginTop: 4,
-  },
-  questionChip: {
-    marginRight: 8,
-    paddingVertical: 2,
-  },
-  answeredChip: {
-    borderColor: "#4CAF50",
-    borderWidth: 1,
-  },
-  currentQuestion: {
-    marginBottom: 16,
-  },
-  questionText: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 8,
-    color: "#333",
-  },
-  helpText: {
-    fontSize: 14,
-    color: "#666",
-    fontStyle: "italic",
-  },
-  navigationHints: {
-    marginTop: 12,
-    backgroundColor: "#f7f7f7",
-    padding: 12,
-    borderRadius: 8,
-  },
-  hintText: {
-    fontSize: 12,
-    color: "#666",
-    fontStyle: "italic",
-  },
-  categoryContainer: {
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  categoriesScroll: {
-    flexDirection: "row",
-    marginBottom: 8,
-  },
-  categoryChip: {
-    marginRight: 8,
-    paddingVertical: 2,
-  },
-  resourcePreview: {
-    backgroundColor: "#f5f5f5",
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  resourcePreviewHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  resourceName: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-  resourceDescription: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#444",
-  },
-  sliderContainer: {
-    marginVertical: 16,
-  },
-  sliderLabel: {
-    textAlign: "center",
-    fontSize: 14,
-    fontWeight: "500",
-    marginBottom: 12,
-  },
-  sliderMarkers: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 8,
-  },
-  sliderMarkerText: {
-    fontSize: 12,
-    color: "#666",
-  },
-  activationTips: {
-    backgroundColor: "#f7f7f7",
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  tipsTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  tipItem: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 4,
-  },
-  resourceSummary: {
-    elevation: 2,
-    borderRadius: 8,
-    padding: 16,
-    backgroundColor: "#ffffff",
-  },
-  resourceHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  resourceHeaderLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  categoryLabel: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 8,
-  },
-  resourceSummaryName: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-  ratingBadge: {
-    backgroundColor: "#f0f0f0",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  ratingText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  resourceSummaryDescription: {
-    marginVertical: 12,
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#333",
-  },
-  tipsContainer: {
-    backgroundColor: "#f8f8f8",
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  tipsLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  tipsContent: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  saveInfo: {
-    marginTop: 16,
-    backgroundColor: "#e6f7ff",
-    padding: 12,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: "#1890ff",
-  },
-  saveInfoText: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: "#444",
-  },
-});
+const createResourceFinderStyles = (paperTheme, klareColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: paperTheme.colors.background,
+    },
+    scrollContainer: {
+      flex: 1,
+      padding: 16,
+    },
+    progressContainer: {
+      marginBottom: 16,
+    },
+    stepText: {
+      fontSize: 14,
+      marginBottom: 4,
+      color: klareColors.text,
+    },
+    progressBar: {
+      height: 6,
+      borderRadius: 3,
+    },
+    card: {
+      marginBottom: 16,
+      borderRadius: 12,
+      backgroundColor: paperTheme.colors.surface,
+    },
+    title: {
+      fontSize: 20,
+      marginBottom: 8,
+      fontWeight: "700",
+    },
+    paragraph: {
+      fontSize: 15,
+      lineHeight: 22,
+      marginBottom: 16,
+      color: klareColors.text,
+    },
+    iconContainer: {
+      alignItems: "center",
+      marginVertical: 16,
+    },
+    iconText: {
+      marginTop: 8,
+      fontSize: 16,
+      fontWeight: "500",
+    },
+    statsContainer: {
+      marginTop: 10,
+      marginBottom: 16,
+      flexDirection: "row",
+      justifyContent: "center",
+    },
+    statItem: {
+      alignItems: "center",
+      backgroundColor: paperTheme.colors.background,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderRadius: 8,
+    },
+    statNumber: {
+      fontSize: 22,
+      fontWeight: "bold",
+      marginBottom: 4,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: "#666",
+    },
+    cardActions: {
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+    },
+    button: {
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      backgroundColor: paperTheme.colors.background,
+    },
+    outlinedButton: {
+      paddingHorizontal: 16,
+      borderRadius: 8,
+    },
+    textareaContainer: {
+      marginTop: 12,
+      marginBottom: 16,
+    },
+    inputLabel: {
+      fontSize: 14,
+      fontWeight: "600",
+      marginBottom: 8,
+      color: klareColors.text,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: `${klareColors.text}20`,
+      borderRadius: 8,
+      padding: 12,
+      color: klareColors.text,
+      backgroundColor: `${klareColors.text}10`,
+      fontSize: 16,
+    },
+    textarea: {
+      borderWidth: 1,
+      borderColor: `${klareColors.text}20`,
+      color: klareColors.text,
+      borderRadius: 8,
+      padding: 12,
+      minHeight: 120,
+      backgroundColor: `${klareColors.text}10`,
+      textAlignVertical: "top",
+      fontSize: 16,
+    },
+    questionsScroll: {
+      flexDirection: "row",
+      marginBottom: 16,
+      marginTop: 4,
+    },
+    questionChip: {
+      marginRight: 8,
+      paddingVertical: 2,
+    },
+    answeredChip: {
+      borderColor: "#4CAF50",
+      borderWidth: 1,
+    },
+    currentQuestion: {
+      marginBottom: 16,
+    },
+    questionText: {
+      fontSize: 16,
+      fontWeight: "600",
+      marginBottom: 8,
+      color: klareColors.text,
+    },
+    helpText: {
+      fontSize: 14,
+      color: klareColors.text,
+      fontStyle: "italic",
+    },
+    navigationHints: {
+      marginTop: 12,
+      backgroundColor: `${klareColors.text}10`,
+      padding: 12,
+      borderRadius: 8,
+    },
+    hintText: {
+      fontSize: 12,
+      color: klareColors.text,
+      fontStyle: "italic",
+    },
+    categoryContainer: {
+      marginTop: 8,
+      marginBottom: 16,
+    },
+    categoriesScroll: {
+      flexDirection: "row",
+      marginBottom: 8,
+    },
+    categoryChip: {
+      marginRight: 8,
+      paddingVertical: 2,
+    },
+    resourcePreview: {
+      backgroundColor: `${klareColors.surface}80`,
+      padding: 16,
+      borderRadius: 8,
+      marginBottom: 16,
+    },
+    resourcePreviewHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    resourceName: {
+      color: klareColors.text,
+      fontSize: 16,
+      fontWeight: "600",
+      marginLeft: 8,
+    },
+    resourceDescription: {
+      fontSize: 14,
+      lineHeight: 20,
+      color: klareColors.text,
+    },
+    sliderContainer: {
+      marginVertical: 16,
+    },
+    sliderLabel: {
+      textAlign: "center",
+      fontSize: 14,
+      fontWeight: "500",
+      marginBottom: 12,
+      color: klareColors.text,
+    },
+    sliderMarkers: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 8,
+    },
+    sliderMarkerText: {
+      fontSize: 12,
+      color: klareColors.text,
+    },
+    activationTips: {
+      backgroundColor: `${paperTheme.colors.primary}30`,
+      padding: 12,
+      borderRadius: 8,
+      marginTop: 8,
+    },
+    tipsTitle: {
+      fontSize: 14,
+      color: klareColors.text,
+      fontWeight: "600",
+      marginBottom: 8,
+    },
+    tipItem: {
+      fontSize: 13,
+      lineHeight: 18,
+      color: klareColors.text,
+      marginBottom: 4,
+    },
+    resourceSummary: {
+      elevation: 2,
+      borderRadius: 8,
+      padding: 16,
+      backgroundColor: paperTheme.colors.backgroundColor,
+    },
+    resourceHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 4,
+    },
+    resourceHeaderLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    categoryLabel: {
+      fontSize: 12,
+      color: klareColors.text,
+      marginBottom: 8,
+    },
+    resourceSummaryName: {
+      fontSize: 18,
+      color: klareColors.text,
+      fontWeight: "600",
+      marginLeft: 8,
+    },
+    ratingBadge: {
+      backgroundColor: paperTheme.colors.primary,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 12,
+    },
+    ratingText: {
+      fontSize: 12,
+      fontWeight: "600",
+    },
+    resourceSummaryDescription: {
+      marginVertical: 12,
+      fontSize: 14,
+      lineHeight: 20,
+      color: klareColors.text,
+    },
+    tipsContainer: {
+      backgroundColor: `${paperTheme.colors.primary}30`,
+      padding: 12,
+      borderRadius: 8,
+      marginTop: 8,
+    },
+    tipsLabel: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: klareColors.text,
+      marginBottom: 4,
+    },
+    tipsContent: {
+      fontSize: 13,
+      color: klareColors.text,
+      lineHeight: 18,
+    },
+    saveInfo: {
+      marginTop: 16,
+      backgroundColor: paperTheme.colors.background,
+      padding: 12,
+      borderRadius: 8,
+      borderLeftWidth: 4,
+      borderLeftColor: paperTheme.colors.borderColor,
+    },
+    saveInfoText: {
+      fontSize: 13,
+      lineHeight: 18,
+      color: klareColors.text,
+    },
+  });
 
 export default ResourceFinder;

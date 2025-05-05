@@ -2,7 +2,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Button,
   Dialog,
@@ -23,24 +22,31 @@ import {
   TextInput,
   useTheme,
 } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import VisionBoardEditor from "../components/vision-board/VisionBoardEditor";
 import { supabase } from "../lib/supabase";
-import { visionBoardService } from "../services/VisionBoardService";
 import { useUserStore, useVisionBoardStore } from "../store";
 import { RootStackParamList } from "../types/navigation";
+import {
+  darkKlareColors,
+  klareColors,
+  lightKlareColors,
+} from "../constants/theme";
 import { useKlareStores } from "../hooks";
 
 type VisionBoardRouteProp = RouteProp<RootStackParamList, "VisionBoard">;
 
 const VisionBoardScreen = () => {
   const route = useRoute<VisionBoardRouteProp>();
-  const theme = useTheme();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
   //TODO: stores direkt statt  klareStores-hook
 
+  const { theme: themeStore } = useKlareStores();
   const { user } = useUserStore();
   const visionBoardStore = useVisionBoardStore();
 
@@ -49,6 +55,14 @@ const VisionBoardScreen = () => {
   const [newBoardTitle, setNewBoardTitle] = useState("");
   const [newBoardDescription, setNewBoardDescription] = useState("");
 
+  const theme = useTheme();
+  const isDarkMode = themeStore.isDarkMode;
+  const themeKlareColors = isDarkMode ? darkKlareColors : lightKlareColors;
+
+  const styles = useMemo(
+    () => createVisionBoardScreenStyles(theme, themeKlareColors),
+    [theme, themeKlareColors],
+  );
   // Lebensbereiche basierend auf dem Route-Parameter oder Standardwerte
   const lifeAreas = route.params?.lifeAreas || [
     "Karriere/Berufung",
@@ -253,7 +267,7 @@ const VisionBoardScreen = () => {
       <View
         style={[
           styles.header,
-          { paddingTop: Platform.OS === "android" ? insets.top || 20 : 0 },
+          // { paddingTop: Platform.OS === "android" ? insets.top || 0 : 0 },
         ]}
       >
         <TouchableOpacity
@@ -267,11 +281,21 @@ const VisionBoardScreen = () => {
           style={styles.backButton}
         >
           <Ionicons name="arrow-back" size={24} color={theme.colors.primary} />
+          <Text style={styles.backButtonText}>Zurück</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
-          {activeBoard ? activeBoard.title : "Vision Boards"}
+          {activeBoard ? activeBoard.title : "Vision Board"}
         </Text>
-        <View style={styles.headerRightPlaceholder} />
+        <TouchableOpacity
+          style={styles.settingsButton}
+          onPress={() => setIsCreateDialogOpen(true)}
+        >
+          <Ionicons
+            name="add-circle-outline"
+            size={24}
+            color={theme.colors.primary}
+          />
+        </TouchableOpacity>
       </View>
 
       {renderContent()}
@@ -368,128 +392,141 @@ const VisionBoardScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-    ...Platform.select({
-      android: {
-        elevation: 4,
-        height: 56 + (StatusBar.currentHeight || 0),
-      },
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-    }),
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1F2937",
-    flex: 1,
-    textAlign: "center",
-  },
-  backButton: {
-    padding: 8,
-    marginRight: 8,
-  },
-  headerRightPlaceholder: {
-    width: 40,
-  },
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: 16,
-    paddingBottom: Platform.OS === "android" ? 120 : 90, // More space for Android
-  },
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-    marginTop: 40,
-  },
-  emptyStateTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 16,
-  },
-  emptyStateText: {
-    textAlign: "center",
-    marginTop: 8,
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
-  boardCard: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  boardCardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  boardCardTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  boardCardDate: {
-    fontSize: 12,
-    opacity: 0.6,
-  },
-  boardCardDescription: {
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-  boardCardItemCount: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 12,
-  },
-  boardCardActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-  },
-  fab: {
-    position: "absolute",
-    margin: 16,
-    right: 0,
-    bottom: 0,
-  },
-  input: {
-    marginBottom: 16,
-  },
-});
+const createVisionBoardScreenStyles = (theme, klareColors) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingBottom: 10,
+      backgroundColor: theme.colors.background,
+      borderBottomWidth: 1,
+      borderBottomColor: "#E5E7EB",
+      ...Platform.select({
+        android: {
+          elevation: 4,
+          height: 56 + (StatusBar.currentHeight || 0),
+        },
+        ios: {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 3,
+        },
+      }),
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: theme.colors.text,
+      flex: 1,
+      textAlign: "center",
+    },
+    backButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      color: theme.colors.primary,
+      padding: 8,
+      marginRight: 8,
+    },
+    backButtonText: {
+      color: theme.colors.primary,
+      marginLeft: 4,
+      fontSize: 16,
+    },
+    settingsButton: {
+      padding: 8,
+      width: 40,
+    },
+    container: {
+      flex: 1,
+    },
+    contentContainer: {
+      padding: 16,
+      // paddingBottom: Platform.OS === "android" ? 120 : 90, // More space for Android
+    },
+    centered: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    emptyState: {
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 20,
+      marginTop: 40,
+    },
+    emptyStateTitle: {
+      fontSize: 20,
+      fontWeight: "bold",
+      marginTop: 16,
+    },
+    emptyStateText: {
+      textAlign: "center",
+      marginTop: 8,
+      marginBottom: 16,
+      lineHeight: 20,
+    },
+    sectionTitle: {
+      fontSize: 22,
+      color: theme.colors.text,
+      fontWeight: "bold",
+      marginBottom: 16,
+    },
+    boardCard: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 16,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    boardCardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    boardCardTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: theme.colors.text,
+    },
+    boardCardDate: {
+      fontSize: 12,
+      opacity: 0.6,
+    },
+    boardCardDescription: {
+      marginBottom: 12,
+      lineHeight: 20,
+    },
+    boardCardItemCount: {
+      fontSize: 14,
+      fontWeight: "bold",
+      marginBottom: 12,
+    },
+    boardCardActions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+    },
+    fab: {
+      backgroundColor: theme.colors.backgroundColor,
+      position: "absolute",
+      margin: 16,
+      right: 0,
+      bottom: 0,
+    },
+    input: {
+      marginBottom: 16,
+    },
+  });
 
 export default VisionBoardScreen;
