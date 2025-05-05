@@ -529,8 +529,16 @@ export default function JournalScreen() {
             showsVerticalScrollIndicator={false}
             initialScrollIndex={isToday(selectedDate) ? 0 : undefined}
             getItemLayout={(data, index) => (
-              {length: 120, offset: 120 * index, index} // Feste Höhe für besseres Scrollverhalten
+              {length: 120, offset: 120 * index, index}
             )}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={[klareColors.k]}
+                tintColor={klareColors.k}
+              />
+            }
           />
         )}
       </>
@@ -600,21 +608,9 @@ export default function JournalScreen() {
       </Animated.View>
 
       {/* Main Content */}
-      <AnimatedScrollView
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[klareColors.k]}
-            tintColor={klareColors.k}
-          />
-        }
-      >
+      <View style={styles.scrollContent}>
         {renderContent()}
-      </AnimatedScrollView>
+      </View>
 
       {/* FAB für neuen Eintrag */}
       <FAB
