@@ -172,14 +172,32 @@ export default function JournalScreen() {
     const fetchEntriesForDate = async () => {
       if (user?.id) {
         setLoading(true);
+        // Füge leere Einträge für die letzten 7 Tage hinzu, um Scrollen zu ermöglichen
         const dateEntries = await getEntriesByDate(user.id, selectedDate);
-        setEntriesForSelectedDate(dateEntries);
+        
+        // Wenn heute ausgewählt ist und keine Einträge existieren, zeige Platzhalter
+        const isToday = isToday(selectedDate);
+        const showEmptyToday = isToday && dateEntries.length === 0;
+        
+        setEntriesForSelectedDate(showEmptyToday 
+          ? [{ id: 'today-placeholder', isEmpty: true } as any] 
+          : dateEntries);
         setLoading(false);
+        
+        // Scroll zu heute wenn es der initiale Load ist
+        if (isToday) {
+          setTimeout(() => {
+            flatListRef.current?.scrollToIndex({ index: 0, animated: true });
+          }, 100);
+        }
       }
     };
 
     fetchEntriesForDate();
   }, [selectedDate, user?.id]);
+
+  // Ref für die FlatList
+  const flatListRef = useRef<FlatList>(null);
 
   // Formatiere das Datum für die Anzeige
   const formatEntryDate = (dateString: string) => {
@@ -416,12 +434,15 @@ export default function JournalScreen() {
       <CalendarStrip
         selectedDate={selectedDate}
         onDateSelected={setSelectedDate}
-        startingDate={subDays(new Date(), 14)}
+        startingDate={subDays(new Date(), 7)} // Nur 7 Tage zurück statt 14
+        scrollToOnSetSelectedDate={true} // Scrollt automatisch zum ausgewählten Datum
+        scrollerPaging={true} // Ermöglicht paging
         highlightColor={klareColors.k}
         dayTextStyle={{ color: theme.colors.text }}
         dateTextStyle={{ color: theme.colors.text }}
         highlightDateTextStyle={{ color: "white" }}
         highlightDateContainerStyle={{ backgroundColor: klareColors.k }}
+        style={{height: 100}} // Etwas höher für bessere Sichtbarkeit
       />
     </View>
   );
@@ -499,12 +520,17 @@ export default function JournalScreen() {
           </View>
         ) : (
           <FlatList
+            ref={flatListRef}
             data={entriesForSelectedDate}
             renderItem={renderEntry}
-            scrollEnabled={false}
+            scrollEnabled={true}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.entriesList}
             showsVerticalScrollIndicator={false}
+            initialScrollIndex={isToday(selectedDate) ? 0 : undefined}
+            getItemLayout={(data, index) => (
+              {length: 120, offset: 120 * index, index} // Feste Höhe für besseres Scrollverhalten
+            )}
           />
         )}
       </>
