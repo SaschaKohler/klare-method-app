@@ -787,7 +787,7 @@ const ResourceFinder = ({
             {currentStepData.description}
           </Paragraph>
 
-          <Surface style={styles.resourceSummary}>
+          <Surface elevation={0} style={styles.resourceSummary}>
             <View style={styles.resourceHeader}>
               <View style={styles.resourceHeaderLeft}>
                 <Ionicons
@@ -798,7 +798,9 @@ const ResourceFinder = ({
                 <Text style={styles.resourceSummaryName}>{resourceName}</Text>
               </View>
               <View style={styles.ratingBadge}>
-                <Text style={styles.ratingText}>{resourceRating}/10</Text>
+                <Text style={[styles.ratingText, { color: "#fff" }]}>
+                  {resourceRating}/10
+                </Text>
               </View>
             </View>
 
@@ -999,7 +1001,7 @@ const createResourceFinderStyles = (paperTheme, klareColors) =>
       paddingVertical: 2,
     },
     answeredChip: {
-      borderColor: "#4CAF50",
+      borderColor: klareColors.borderColor,
       borderWidth: 1,
     },
     currentQuestion: {
@@ -1099,7 +1101,6 @@ const createResourceFinderStyles = (paperTheme, klareColors) =>
       marginBottom: 4,
     },
     resourceSummary: {
-      elevation: 2,
       borderRadius: 8,
       padding: 16,
       backgroundColor: paperTheme.colors.backgroundColor,
@@ -1131,8 +1132,10 @@ const createResourceFinderStyles = (paperTheme, klareColors) =>
       paddingHorizontal: 8,
       paddingVertical: 2,
       borderRadius: 12,
+      color: klareColors.text,
     },
     ratingText: {
+      color: klareColors.text,
       fontSize: 12,
       fontWeight: "600",
     },
@@ -1165,7 +1168,7 @@ const createResourceFinderStyles = (paperTheme, klareColors) =>
       padding: 12,
       borderRadius: 8,
       borderLeftWidth: 4,
-      borderLeftColor: paperTheme.colors.borderColor,
+      borderLeftColor: paperTheme.colors.pr,
     },
     saveInfoText: {
       fontSize: 13,

@@ -60,7 +60,7 @@ export default function ResourceLibraryScreen() {
       {!isResourceFinderVisible && (
         <View style={styles.libraryContainer}>
           <ResourceLibrary
-            paperThemeColor={klareColors.l}
+            themeColor={klareColors.l} // Resource Library gibt es erst ab L wie Lebendigkeit
             onAddResource={handleAddResource}
           />
         </View>

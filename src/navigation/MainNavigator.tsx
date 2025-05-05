@@ -25,6 +25,7 @@ import EditResource from "../screens/resources/EditResource";
 import ResourceLibraryScreen from "../screens/resources/ResourceLibraryScreen";
 import ResourceLibrary from "../components/resources/ResourceLibrary";
 import ResourceFinder from "../components/resources/ResourceFinder";
+import { black } from "react-native-paper/lib/typescript/styles/themes/v2/colors";
 
 // Definiere die Stack-Parameter
 export const KlareMethodSteps = ["K", "L", "A", "R", "E"] as const;
@@ -86,7 +87,7 @@ const TabNavigator = () => {
         tabBarStyle: {
           backgroundColor: themeColors.cardBackground,
           borderTopColor: themeColors.border,
-          height: Platform.OS === "ios" ? 88 : 60,
+          height: Platform.OS === "ios" ? 88 : 90,
           paddingBottom: Platform.OS === "ios" ? 28 : 10,
           paddingTop: 10,
           elevation: isDarkMode ? 8 : 4,
@@ -234,7 +235,7 @@ const MainNavigator = () => {
           <Stack.Screen
             name="VisionBoard"
             component={VisionBoardScreen}
-            options={{ headerShown: true }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="ResourceLibrary"

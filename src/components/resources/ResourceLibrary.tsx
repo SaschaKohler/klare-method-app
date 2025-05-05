@@ -1,5 +1,5 @@
 // src/components/resources/ResourceLibrary.tsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   StyleSheet,
@@ -35,6 +35,7 @@ import {
 // import { useUserStore } from "../../store/useUserStore";
 import EditResource from "../../screens/resources/EditResource";
 import { useKlareStores } from "../../hooks";
+import { darkKlareColors, lightKlareColors } from "../../constants/theme";
 
 interface ResourceLibraryProps {
   themeColor?: string;
@@ -45,11 +46,17 @@ const ResourceLibrary = ({
   themeColor = "#8B5CF6",
   onAddResource,
 }: ResourceLibraryProps) => {
-  const theme = useTheme();
+  const paperTheme = useTheme();
+  const { user, resources, theme } = useKlareStores();
+  const isDarkMode = theme.isDarkMode;
+  const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const navigation = useNavigation();
-  const { user, resources } = useKlareStores();
   const userId = user?.id || "guest";
 
+  const styles = useMemo(
+    () => createResourceLibraryStyles(paperTheme, klareColors),
+    [theme, klareColors],
+  );
   // Local state
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -219,7 +226,11 @@ const ResourceLibrary = ({
   const renderEmptyState = () => {
     return (
       <Surface style={styles.emptyState}>
-        <Ionicons name="battery-charging-outline" size={64} color="#ccc" />
+        <Ionicons
+          name="battery-charging-outline"
+          size={64}
+          color={themeColor}
+        />
         <Text style={styles.emptyStateTitle}>Keine Ressourcen gefunden</Text>
         <Text style={styles.emptyStateText}>
           Du hast noch keine Ressourcen in deiner Bibliothek gespeichert oder
@@ -260,97 +271,97 @@ const ResourceLibrary = ({
     const isMenu = resourceMenuVisible === resource.id;
 
     return (
-      <Card key={resource.id} style={styles.resourceCard}>
-        <Card.Content>
-          <View style={styles.resourceHeader}>
-            <View style={styles.resourceTitleContainer}>
-              <Ionicons
-                name={getCategoryIcon(resource.category)}
+      <View key={resource.id} style={styles.resourceCard}>
+        {/* <Card.Content> */}
+        <View style={styles.resourceHeader}>
+          <View style={styles.resourceTitleContainer}>
+            <Ionicons
+              name={getCategoryIcon(resource.category)}
+              size={20}
+              color="#666"
+            />
+            <Title style={styles.resourceTitle}>{resource.name}</Title>
+          </View>
+          <Menu
+            visible={isMenu}
+            onDismiss={() => setResourceMenuVisible(null)}
+            anchor={
+              <IconButton
+                icon="dots-vertical"
                 size={20}
-                color="#666"
+                onPress={() => setResourceMenuVisible(resource.id)}
               />
-              <Title style={styles.resourceTitle}>{resource.name}</Title>
+            }
+          >
+            <Menu.Item
+              icon="pencil-outline"
+              onPress={() => {
+                setResourceMenuVisible(null);
+                navigation.navigate("EditResource", { resource });
+              }}
+              title="Bearbeiten"
+            />
+            <Menu.Item
+              icon="trash-outline"
+              onPress={() => {
+                setResourceMenuVisible(null);
+                setSelectedResource(resource);
+                setDeleteDialogVisible(true);
+              }}
+              title="Löschen"
+            />
+          </Menu>
+        </View>
+
+        <Chip style={styles.categoryChip}>
+          {getCategoryLabel(resource.category)}
+        </Chip>
+
+        {resource.description ? (
+          <Paragraph style={styles.resourceDescription}>
+            {resource.description}
+          </Paragraph>
+        ) : null}
+
+        <View style={styles.resourceDetails}>
+          <View style={styles.resourceRating}>
+            <Text style={styles.resourceRatingLabel}>Stärke:</Text>
+            <View style={styles.ratingContainer}>
+              {Array(10)
+                .fill(0)
+                .map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.ratingBubble,
+                      index < resource.rating && {
+                        backgroundColor: themeColor,
+                      },
+                    ]}
+                  />
+                ))}
             </View>
-            <Menu
-              visible={isMenu}
-              onDismiss={() => setResourceMenuVisible(null)}
-              anchor={
-                <IconButton
-                  icon="dots-vertical"
-                  size={20}
-                  onPress={() => setResourceMenuVisible(resource.id)}
-                />
-              }
-            >
-              <Menu.Item
-                icon="pencil-outline"
-                onPress={() => {
-                  setResourceMenuVisible(null);
-                  navigation.navigate("EditResource", { resource });
-                }}
-                title="Bearbeiten"
-              />
-              <Menu.Item
-                icon="trash-outline"
-                onPress={() => {
-                  setResourceMenuVisible(null);
-                  setSelectedResource(resource);
-                  setDeleteDialogVisible(true);
-                }}
-                title="Löschen"
-              />
-            </Menu>
           </View>
 
-          <Chip style={styles.categoryChip}>
-            {getCategoryLabel(resource.category)}
-          </Chip>
+          {resource.lastActivated && (
+            <Text style={styles.lastActivatedText}>
+              Zuletzt aktiviert:{" "}
+              {getTimeSinceActivation(resource.lastActivated)}
+            </Text>
+          )}
 
-          {resource.description ? (
-            <Paragraph style={styles.resourceDescription}>
-              {resource.description}
-            </Paragraph>
-          ) : null}
-
-          <View style={styles.resourceDetails}>
-            <View style={styles.resourceRating}>
-              <Text style={styles.resourceRatingLabel}>Stärke:</Text>
-              <View style={styles.ratingContainer}>
-                {Array(10)
-                  .fill(0)
-                  .map((_, index) => (
-                    <View
-                      key={index}
-                      style={[
-                        styles.ratingBubble,
-                        index < resource.rating && {
-                          backgroundColor: themeColor,
-                        },
-                      ]}
-                    />
-                  ))}
-              </View>
-            </View>
-
-            {resource.lastActivated && (
-              <Text style={styles.lastActivatedText}>
-                Zuletzt aktiviert:{" "}
-                {getTimeSinceActivation(resource.lastActivated)}
+          {resource.activationTips && (
+            <View style={styles.activationTipsContainer}>
+              <Text style={styles.activationTipsLabel}>
+                Aktivierungsstrategie:
               </Text>
-            )}
-
-            {resource.activationTips && (
-              <View style={styles.activationTipsContainer}>
-                <Text style={styles.activationTipsLabel}>
-                  Aktivierungsstrategie:
-                </Text>
-                <Text style={styles.activationTipsText}>
-                  {resource.activationTips}
-                </Text>
-              </View>
-            )}
-          </View>
-        </Card.Content>
+              <Text style={styles.activationTipsText}>
+                {resource.activationTips}
+              </Text>
+            </View>
+          )}
+        </View>
+        {/* </Card.Content> */}
 
         <Card.Actions style={styles.cardActions}>
           <Button
@@ -362,7 +373,7 @@ const ResourceLibrary = ({
             Aktivieren
           </Button>
         </Card.Actions>
-      </Card>
+      </View>
     );
   };
 
@@ -598,194 +609,201 @@ const ResourceLibrary = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f9f9f9",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    paddingBottom: 8,
-  },
-  searchContainer: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f0f0f0",
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    marginRight: 8,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    fontSize: 14,
-  },
-  clearButton: {
-    margin: 0,
-    padding: 0,
-  },
-  headerButtons: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  addButton: {
-    marginLeft: 8,
-    borderRadius: 4,
-  },
-  viewModeTabs: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    backgroundColor: "#fff",
-  },
-  viewModeTab: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-  },
-  viewModeText: {
-    fontSize: 14,
-    color: "#666",
-  },
-  activeTabText: {
-    fontWeight: "600",
-  },
-  filterChipsContainer: {
-    flexDirection: "row",
-    padding: 8,
-    backgroundColor: "#fff",
-  },
-  filterChip: {
-    marginRight: 8,
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  resourcesList: {
-    padding: 16,
-  },
-  resourceCard: {
-    marginBottom: 16,
-    borderRadius: 8,
-  },
-  resourceHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  resourceTitleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  resourceTitle: {
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  categoryChip: {
-    alignSelf: "flex-start",
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  resourceDescription: {
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  resourceDetails: {
-    marginTop: 8,
-  },
-  resourceRating: {
-    marginBottom: 12,
-  },
-  resourceRatingLabel: {
-    fontSize: 14,
-    marginBottom: 4,
-    color: "#666",
-  },
-  ratingContainer: {
-    flexDirection: "row",
-  },
-  ratingBubble: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: "#eee",
-    marginRight: 4,
-  },
-  lastActivatedText: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 8,
-  },
-  activationTipsContainer: {
-    backgroundColor: "#f5f5f5",
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  activationTipsLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  activationTipsText: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  cardActions: {
-    justifyContent: "flex-end",
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  activateButton: {
-    borderRadius: 4,
-  },
-  emptyState: {
-    padding: 32,
-    margin: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  emptyStateButton: {
-    marginTop: 8,
-  },
-  loadingContainer: {
-    padding: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 14,
-    color: "#666",
-  },
-  filterMenu: {
-    marginTop: 60,
-    maxWidth: "80%",
-  },
-});
+const createResourceLibraryStyles = (theme: any, klareColors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.surface,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 16,
+      paddingBottom: 8,
+    },
+    searchContainer: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: klareColors.backgroundColor,
+      borderRadius: 8,
+      paddingHorizontal: 8,
+      marginRight: 8,
+    },
+    searchIcon: {
+      marginRight: 8,
+    },
+    searchInput: {
+      flex: 1,
+      height: 40,
+      fontSize: 14,
+      backgroundColor: theme.colors.surface,
+    },
+    clearButton: {
+      margin: 0,
+      padding: 0,
+    },
+    headerButtons: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    addButton: {
+      marginLeft: 8,
+      borderRadius: 4,
+    },
+    viewModeTabs: {
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.borderBottomColor,
+      backgroundColor: theme.colors.surface,
+    },
+    viewModeTab: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: 12,
+    },
+    activeTab: {
+      borderBottomWidth: 2,
+    },
+    viewModeText: {
+      fontSize: 14,
+      color: klareColors.text,
+    },
+    activeTabText: {
+      fontWeight: "600",
+    },
+    filterChipsContainer: {
+      flexDirection: "row",
+      padding: 8,
+      backgroundColor: "#fff",
+    },
+    filterChip: {
+      marginRight: 8,
+    },
+    scrollContainer: {
+      flex: 1,
+    },
+    resourcesList: {
+      padding: 16,
+    },
+    resourceCard: {
+      marginBottom: 16,
+      backgroundColor: `${klareColors.l}10`,
+      padding: 10,
+      elevation: 0,
+      borderRadius: 8,
+    },
+    resourceHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+    },
+    resourceTitleContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    resourceTitle: {
+      fontSize: 16,
+      marginLeft: 8,
+    },
+    categoryChip: {
+      alignSelf: "flex-start",
+      marginTop: 8,
+      marginBottom: 12,
+    },
+    resourceDescription: {
+      marginTop: 8,
+      marginBottom: 12,
+    },
+    resourceDetails: {
+      marginTop: 8,
+    },
+    resourceRating: {
+      marginBottom: 12,
+    },
+    resourceRatingLabel: {
+      fontSize: 14,
+      marginBottom: 4,
+      color: klareColors.text,
+    },
+    ratingContainer: {
+      flexDirection: "row",
+    },
+    ratingBubble: {
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: "#eee",
+      marginRight: 4,
+    },
+    lastActivatedText: {
+      fontSize: 12,
+      color: klareColors.text,
+      marginBottom: 8,
+    },
+    activationTipsContainer: {
+      backgroundColor: theme.colors.surface,
+      padding: 12,
+      borderRadius: 8,
+      marginTop: 8,
+    },
+    activationTipsLabel: {
+      fontSize: 13,
+      color: klareColors.text,
+      fontWeight: "600",
+      marginBottom: 4,
+    },
+    activationTipsText: {
+      fontSize: 13,
+      color: klareColors.text,
+      lineHeight: 18,
+    },
+    cardActions: {
+      justifyContent: "flex-end",
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+    },
+    activateButton: {
+      borderRadius: 4,
+    },
+    emptyState: {
+      padding: 32,
+      margin: 16,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    emptyStateTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    emptyStateText: {
+      fontSize: 14,
+      color: "#666",
+      textAlign: "center",
+      marginBottom: 16,
+    },
+    emptyStateButton: {
+      marginTop: 8,
+    },
+    loadingContainer: {
+      padding: 32,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    loadingText: {
+      marginTop: 16,
+      fontSize: 14,
+      color: "#666",
+    },
+    filterMenu: {
+      marginTop: 60,
+      maxWidth: "80%",
+    },
+  });
 
 export default ResourceLibrary;

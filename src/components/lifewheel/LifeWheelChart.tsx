@@ -201,8 +201,11 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
           const quarter = Math.floor((angle + 45) / 90) % 4;
           const textAnchor =
             quarter === 1 ? "start" : quarter === 3 ? "end" : "middle";
-          const alignmentBaseline =
-            quarter === 0 ? "end" : quarter === 2 ? "start" : "middle";
+          // Plattformspezifische Anpassung für alignmentBaseline
+          // Android unterstützt nur 'middle', 'hanging', 'baseline' sicher
+          const alignmentBaseline = Platform.OS === "android" 
+            ? "middle" 
+            : quarter === 0 ? "text-after-edge" : quarter === 2 ? "text-before-edge" : "middle";
 
           return (
             <G key={`label-${index}`}>
@@ -211,9 +214,17 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
                 y={labelPoint.y}
                 textAnchor={textAnchor}
                 alignmentBaseline={alignmentBaseline}
-                fontSize="10"
-                fontWeight="500"
+                fontSize={Platform.OS === "android" ? "9" : "10"}
+                fontWeight="700"
                 fill={themeColors.text}
+                // Zusätzliche Anpassungen für bessere Positionierung auf Android
+                dx={Platform.OS === "android" ? 
+                  (quarter === 1 ? 5 : quarter === 3 ? -5 : 0) : 0}
+                dy={Platform.OS === "android" ? 
+                  (quarter === 0 ? -8 : quarter === 2 ? 8 : 0) : 0}
+                // Leichter Textschatten für bessere Lesbarkeit auf Android
+                stroke={Platform.OS === "android" ? (isDarkMode ? "#00000055" : "#ffffff55") : "none"}
+                strokeWidth="0.5"
               >
                 {area.name}
               </SvgText>
@@ -265,9 +276,13 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
                 x={currentPoint.x}
                 y={currentPoint.y - 15}
                 textAnchor="middle"
+                alignmentBaseline={Platform.OS === "android" ? "middle" : "central"}
                 fontSize="9"
                 fontWeight="bold"
                 fill={themeColors.text}
+                // Leichter Textschatten für bessere Lesbarkeit
+                stroke={Platform.OS === "android" ? (isDarkMode ? "#00000055" : "#ffffff55") : "none"}
+                strokeWidth="0.5"
               >
                 {area.currentValue}
               </SvgText>
@@ -297,9 +312,13 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
                         x={targetPoint.x}
                         y={targetPoint.y - 15}
                         textAnchor="middle"
+                        alignmentBaseline={Platform.OS === "android" ? "middle" : "central"}
                         fontSize="9"
                         fontWeight="bold"
                         fill={themeColors.a}
+                        // Leichter Textschatten für bessere Lesbarkeit
+                        stroke={Platform.OS === "android" ? (isDarkMode ? "#00000055" : "#ffffff55") : "none"}
+                        strokeWidth="0.5"
                       >
                         {area.targetValue}
                       </SvgText>

@@ -96,8 +96,10 @@ const createLifeWheelScreenStyles = (theme: Theme, themeColors: any) =>
     chartContainer: {
       alignItems: "center",
       marginVertical: 12,
-      // Ein leichter Hintergrund für die Chart im Dark Mode für besseren Kontrast
-      padding: 8,
+      // Mehr Platz für Labels auf Android
+      marginHorizontal: Platform.OS === "android" ? 8 : 0,
+      // Mehr Platz zum Chart auf Android
+      padding: Platform.OS === "android" ? 16 : 8,
       borderRadius: 8,
       backgroundColor: theme.dark
         ? `${themeColors.background}10`
