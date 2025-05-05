@@ -192,19 +192,21 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
         {/* Interaktive Beschriftungen mit Hover-Effekt */}
         {lifeWheelAreas.map((area, index) => {
           const angle = calculateAngle(index, lifeWheelAreas.length);
-          const labelRadius = radius + LABEL_RADIUS_EXTRA;
+          const labelRadius = radius + 15; // Näher am Rad
           const labelPoint = polarToCartesian(labelRadius, angle);
 
           // State für erweiterten Text
           const [expanded, setExpanded] = React.useState(false);
 
-          // Standardmäßig nur Initialen zeigen, bei Tap/Hover den vollen Namen
+          // Standardmäßig nur Anfangsbuchstaben groß zeigen
           const displayText = expanded 
             ? area.name 
-            : area.name.split(' ').map(w => w[0]).join('');
+            : area.name.split(' ')
+                .map(w => w.charAt(0).toUpperCase())
+                .join('');
 
           // Textgröße anpassen
-          const fontSize = expanded ? 10 : 12;
+          const fontSize = expanded ? 10 : 14;
 
           // Textpositionierung
           const textAnchor = "middle";
@@ -217,9 +219,9 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
                 style={[
                   styles.labelTouchArea,
                   {
-                    left: labelPoint.x - 30,
+                    left: labelPoint.x - 20,
                     top: labelPoint.y - 15,
-                    width: 60,
+                    width: 40,
                     height: 30,
                   },
                 ]}
