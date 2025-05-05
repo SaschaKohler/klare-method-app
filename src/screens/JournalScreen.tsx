@@ -160,8 +160,8 @@ export default function JournalScreen() {
     setRefreshing(true);
     if (user?.id) {
       // Use the synchronize function to get the latest data
-      await klareStore.journal.synchronize(user.id);
-      const dateEntries = await getEntriesByDate(user.id, selectedDate);
+      await journalService.getUserEntries(user.id); // Lädt und synchronisiert die Daten
+      const dateEntries = await journalService.getEntriesByDate(user.id, selectedDate);
       setEntriesForSelectedDate(dateEntries);
     }
     setRefreshing(false);

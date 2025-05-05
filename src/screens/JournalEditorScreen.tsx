@@ -31,7 +31,7 @@ import {
 import { createJournalEditorStyles } from "../constants/journalEditorStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { useKlareStores } from "../hooks";
-import { JournalService } from "../services/JournalService";
+import { journalService } from "../services/JournalService";
 import { useUserStore } from "../store/useUserStore";
 
 // Typen für Tagebucheinträge
@@ -106,7 +106,8 @@ export default function JournalEditorScreen() {
       if (entryId) {
         // Lade einen bestehenden Eintrag
         try {
-          const existingEntry = await JournalService.getEntryById(entryId);
+          const existingEntry = await journalService.getUserEntries(user.id)
+            .then(entries => entries.find(e => e.id === entryId));
           if (existingEntry) {
             setEntry({
               id: existingEntry.id,
@@ -209,10 +210,10 @@ export default function JournalEditorScreen() {
 
       if (entry.id) {
         // Aktualisiere einen bestehenden Eintrag
-        await JournalService.updateEntry(entryData);
+        await journalService.updateEntry(user.id, entry.id, entryData);
       } else {
         // Erstelle einen neuen Eintrag
-        const savedEntry = await JournalService.createEntry(entryData);
+        const savedEntry = await journalService.addEntry(user.id, entryData);
         setEntry({...entry, id: savedEntry.id});
       }
 
