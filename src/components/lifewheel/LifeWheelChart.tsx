@@ -189,45 +189,55 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
           );
         })}
 
-        {/* Beschriftungen mit verbesserter Sichtbarkeit */}
+        {/* Verbesserte Beschriftungen mit dynamischer Positionierung */}
         {lifeWheelAreas.map((area, index) => {
           const angle = calculateAngle(index, lifeWheelAreas.length);
-          const labelPoint = polarToCartesian(
-            radius + LABEL_RADIUS_EXTRA,
-            angle,
-          );
+          const labelRadius = radius + LABEL_RADIUS_EXTRA;
+          const labelPoint = polarToCartesian(labelRadius, angle);
 
-          // Berechnung einer optimalen Textausrichtung basierend auf der Position
+          // Dynamische Textgröße basierend auf Länge des Namens
+          const nameLength = area.name.length;
+          const fontSize = Math.max(8, 12 - Math.floor(nameLength / 5));
+
+          // Verbesserte Textpositionierung
           const quarter = Math.floor((angle + 45) / 90) % 4;
-          const textAnchor =
-            quarter === 1 ? "start" : quarter === 3 ? "end" : "middle";
-          // Plattformspezifische Anpassung für alignmentBaseline
-          // Android unterstützt nur 'middle', 'hanging', 'baseline' sicher
-          const alignmentBaseline = Platform.OS === "android" 
-            ? "middle" 
-            : quarter === 0 ? "text-after-edge" : quarter === 2 ? "text-before-edge" : "middle";
+          const textAnchor = 
+            angle > 45 && angle < 135 ? "start" : 
+            angle > 225 && angle < 315 ? "end" : "middle";
+          
+          const alignmentBaseline = "middle"; // Vereinfachte Baseline für bessere Konsistenz
+
+          // Dynamische Verschiebung für bessere Lesbarkeit
+          const dx = angle > 45 && angle < 135 ? 5 : 
+                    angle > 225 && angle < 315 ? -5 : 0;
+          const dy = angle > 180 ? 10 : -10;
+
+          // Bei langen Texten in zwei Zeilen aufteilen
+          const splitName = nameLength > 12 ? 
+            [area.name.substring(0, Math.ceil(nameLength/2)), 
+             area.name.substring(Math.ceil(nameLength/2))] : 
+            [area.name];
 
           return (
             <G key={`label-${index}`}>
-              <SvgText
-                x={labelPoint.x}
-                y={labelPoint.y}
-                textAnchor={textAnchor}
-                alignmentBaseline={alignmentBaseline}
-                fontSize={Platform.OS === "android" ? "9" : "10"}
-                fontWeight="700"
-                fill={themeColors.text}
-                // Zusätzliche Anpassungen für bessere Positionierung auf Android
-                dx={Platform.OS === "android" ? 
-                  (quarter === 1 ? 5 : quarter === 3 ? -5 : 0) : 0}
-                dy={Platform.OS === "android" ? 
-                  (quarter === 0 ? -8 : quarter === 2 ? 8 : 0) : 0}
-                // Leichter Textschatten für bessere Lesbarkeit auf Android
-                stroke={Platform.OS === "android" ? (isDarkMode ? "#00000055" : "#ffffff55") : "none"}
-                strokeWidth="0.5"
-              >
-                {area.name}
-              </SvgText>
+              {splitName.map((text, i) => (
+                <SvgText
+                  key={`text-${i}`}
+                  x={labelPoint.x}
+                  y={labelPoint.y + (i * 12) - (splitName.length > 1 ? 6 : 0)}
+                  textAnchor={textAnchor}
+                  alignmentBaseline={alignmentBaseline}
+                  fontSize={fontSize}
+                  fontWeight="600"
+                  fill={themeColors.text}
+                  dx={dx}
+                  dy={dy + (i * 12)}
+                  stroke={isDarkMode ? "#00000055" : "#ffffff55"}
+                  strokeWidth="0.5"
+                >
+                  {text}
+                </SvgText>
+              ))}
             </G>
           );
         })}
