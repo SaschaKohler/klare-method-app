@@ -162,20 +162,48 @@ class JournalService {
       const { data: session } = await supabase.auth.getSession();
       if (session?.session) {
         try {
-          await supabase.from("user_journal_entries").insert({
-            id: newEntry.id,
-            user_id: userId,
-            entry_content: newEntry.entryContent,
-            entry_date: newEntry.entryDate,
-            tags: newEntry.tags,
-            mood_rating: newEntry.moodRating,
-            clarity_rating: newEntry.clarityRating,
-            category: newEntry.category,
-            is_favorite: newEntry.isFavorite,
-            is_archived: newEntry.isArchived,
-            created_at: newEntry.createdAt,
-            updated_at: newEntry.updatedAt,
-          });
+          const { data, error } = await supabase
+            .from("user_journal_entries")
+            .insert({
+              id: newEntry.id,
+              user_id: userId,
+              entry_content: newEntry.entryContent,
+              entry_date: newEntry.entryDate,
+              tags: newEntry.tags,
+              mood_rating: newEntry.moodRating,
+              clarity_rating: newEntry.clarityRating,
+              category: newEntry.category,
+              is_favorite: newEntry.isFavorite,
+              is_archived: newEntry.isArchived,
+              created_at: newEntry.createdAt,
+              updated_at: newEntry.updatedAt,
+            })
+            .select()
+            .single();
+
+          if (error) {
+            console.error("Supabase insert error:", error);
+            throw error;
+          }
+          
+          if (!data) {
+            throw new Error("Insert operation returned no data");
+          }
+          
+          return {
+            id: data.id,
+            userId: data.user_id,
+            entryContent: data.entry_content,
+            entryDate: data.entry_date,
+            tags: data.tags,
+            moodRating: data.mood_rating,
+            clarityRating: data.clarity_rating,
+            category: data.category,
+            isFavorite: data.is_favorite,
+            isArchived: data.is_archived,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at
+          };
         } catch (error) {
           console.error("Error adding journal entry to server:", error);
           // Continue with local data

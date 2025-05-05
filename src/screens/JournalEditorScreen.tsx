@@ -190,40 +190,70 @@ export default function JournalEditorScreen() {
 
   // Speichern eines Eintrags
   const saveEntry = async () => {
-    if (entry.entry_content.trim() === "" || !user?.id) {
-      return; // Verhindere das Speichern leerer Einträge oder ohne User
-    }
-
-    setIsSaving(true);
-
     try {
-      const entryData = {
-        id: entry.id,
-        entryContent: entry.entry_content,
-        entryDate: entry.entry_date,
-        tags: entry.tags,
-        moodRating: entry.mood_rating,
-        clarityRating: entry.clarity_rating,
-        category: entry.category,
-        isFavorite: entry.is_favorite,
-      };
-
-      if (entry.id) {
-        // Aktualisiere einen bestehenden Eintrag
-        await journalService.updateEntry(user.id, entry.id, entryData);
-      } else {
-        // Erstelle einen neuen Eintrag
-        const savedEntry = await journalService.addEntry(user.id, entryData);
-        setEntry({...entry, id: savedEntry.id});
+      // Validate input
+      if (!entry.entry_content?.trim()) {
+        Alert.alert("Inhalt fehlt", "Bitte geben Sie einen Tagebucheintrag ein");
+        return;
       }
 
+      if (!user?.id) {
+        Alert.alert("Benutzerfehler", "Keine Benutzer-ID gefunden");
+        return;
+      }
+
+      setIsSaving(true);
+
+      // Prepare data with fallbacks
+      const entryData = {
+        id: entry.id || undefined, // undefined for new entries
+        entryContent: entry.entry_content.trim(),
+        entryDate: entry.entry_date || new Date().toISOString(),
+        tags: entry.tags || [],
+        moodRating: entry.mood_rating ?? 5,
+        clarityRating: entry.clarity_rating ?? 5,
+        category: entry.category || "general",
+        isFavorite: entry.is_favorite || false,
+      };
+
+      // Save operation
+      let result;
+      if (entry.id) {
+        result = await journalService.updateEntry(user.id, entry.id, entryData);
+      } else {
+        result = await journalService.addEntry(user.id, entryData);
+        if (result?.id) {
+          setEntry(prev => ({...prev, id: result.id}));
+        }
+      }
+
+      if (!result) {
+        throw new Error("Speichervorgang gab keine Rückmeldung");
+      }
+
+      // Only navigate if save was successful
       setEntryChanged(false);
       navigation.goBack();
     } catch (error) {
-      console.error("Error saving journal entry:", error);
+      console.error("Journal save error details:", {
+        error: error instanceof Error ? error.message : String(error),
+        entryData,
+        userId: user?.id,
+        supabaseStatus: error?.status,
+        supabaseCode: error?.code
+      });
+
+      let errorDetails = "";
+      if (error?.message) {
+        errorDetails = `\n\nTechnischer Fehler: ${error.message}`;
+      } else if (error?.code) {
+        errorDetails = `\n\nFehlercode: ${error.code}`;
+      }
+
       Alert.alert(
-        "Fehler beim Speichern",
-        "Der Eintrag konnte nicht gespeichert werden. Bitte versuche es erneut."
+        "Speichern fehlgeschlagen",
+        `Der Eintrag konnte nicht gespeichert werden.${errorDetails}` +
+        "\n\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
       );
     } finally {
       setIsSaving(false);
