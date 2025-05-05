@@ -7,6 +7,7 @@ import { de } from "date-fns/locale";
 import { MotiView } from "moti";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -195,49 +196,59 @@ export default function JournalEditorScreen() {
 
   // Speichern eines Eintrags
   const saveEntry = async () => {
-    if (entry.entry_content.trim() === "") {
-      return; // Verhindere das Speichern leerer Einträge
+    if (entry.entry_content.trim() === "" || !user?.id) {
+      return; // Verhindere das Speichern leerer Einträge oder ohne User
     }
 
     setIsSaving(true);
 
     try {
+      const entryData = {
+        entry_content: entry.entry_content,
+        tags: entry.tags,
+        mood_rating: entry.mood_rating,
+        clarity_rating: entry.clarity_rating,
+        category: entry.category,
+        is_favorite: entry.is_favorite,
+        updated_at: new Date().toISOString(),
+      };
+
       if (entry.id) {
         // Aktualisiere einen bestehenden Eintrag
         const { error } = await supabase
           .from("user_journal_entries")
-          .update({
-            entry_content: entry.entry_content,
-            tags: entry.tags,
-            mood_rating: entry.mood_rating,
-            clarity_rating: entry.clarity_rating,
-            category: entry.category,
-            is_favorite: entry.is_favorite,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", entry.id);
+          .update(entryData)
+          .eq("id", entry.id)
+          .eq("user_id", user.id); // Sicherstellen, dass nur eigene Einträge aktualisiert werden
 
         if (error) throw error;
       } else {
         // Erstelle einen neuen Eintrag
-        const { error } = await supabase.from("user_journal_entries").insert({
-          user_id: user?.id,
-          entry_date: entry.entry_date,
-          entry_content: entry.entry_content,
-          tags: entry.tags,
-          mood_rating: entry.mood_rating,
-          clarity_rating: entry.clarity_rating,
-          category: entry.category,
-          is_favorite: entry.is_favorite,
-        });
+        const { data, error } = await supabase
+          .from("user_journal_entries")
+          .insert({
+            ...entryData,
+            user_id: user.id,
+            entry_date: entry.entry_date,
+          })
+          .select()
+          .single();
 
         if (error) throw error;
+        
+        // Setze die ID für den neuen Eintrag
+        setEntry({...entry, id: data.id});
       }
 
       setEntryChanged(false);
       navigation.goBack();
     } catch (error) {
       console.error("Error saving journal entry:", error);
+      // Zeige dem Nutzer eine Fehlermeldung
+      Alert.alert(
+        "Fehler beim Speichern",
+        "Der Eintrag konnte nicht gespeichert werden. Bitte versuche es erneut."
+      );
     } finally {
       setIsSaving(false);
     }
