@@ -31,6 +31,7 @@ import {
 import { createJournalEditorStyles } from "../constants/journalEditorStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { useKlareStores } from "../hooks";
+import { supabase } from "../lib/supabase";
 import { journalService } from "../services/JournalService";
 import { useUserStore } from "../store/useUserStore";
 
@@ -126,27 +127,29 @@ export default function JournalEditorScreen() {
       } else if (templateId) {
         // Lade eine Vorlage
         try {
-          const { data, error } = await supabase
-            .from("journal_templates")
-            .select("*")
-            .eq("id", templateId)
-            .single();
-
-          if (error) throw error;
-
-          if (data) {
-            setTemplate(data);
+          const templates = await journalService.getTemplates();
+          const template = templates.find(t => t.id === templateId);
+          
+          if (template) {
+            setTemplate({
+              id: template.id,
+              title: template.title,
+              description: template.description || '',
+              prompt_questions: template.promptQuestions,
+              category: template.category || 'general',
+              order_index: template.orderIndex
+            });
             setUsingTemplate(true);
 
             // Bereite den Inhalt vor, indem die Fragen als Überschriften eingefügt werden
-            const content = data.prompt_questions
+            const content = template.promptQuestions
               .map((q) => `### ${q}\n\n`)
               .join("\n");
 
             setEntry({
               ...entry,
               entry_content: content,
-              category: data.category,
+              category: template.category,
             });
           }
         } catch (error) {
