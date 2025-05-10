@@ -4,9 +4,20 @@
     "appVersionSource": "remote"
   },
   "build": {
-    "development": {
+    "base": {
+      "env": {}
+    },
+    "devclient": {
+      "extends": "base",
+      "releaseChannel": "default",
+      "distribution": "internal",
       "developmentClient": true,
-      "distribution": "internal"
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true
+      }
     },
     "preview": {
       "distribution": "internal"
