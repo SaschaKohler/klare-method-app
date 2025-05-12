@@ -1,10 +1,10 @@
-import { connectToDevTools } from "react-devtools-core";
-if (__DEV__) {
-  connectToDevTools({
-    host: "localhost",
-    port: 8097,
-  });
-}
+// import { connectToDevTools } from "react-devtools-core";
+// if (__DEV__) {
+//   connectToDevTools({
+//     host: "localhost",
+//     port: 8097,
+//   });
+// }
 import { NavigationContainer } from "@react-navigation/native";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";

@@ -1,5 +1,5 @@
 // src/store/useLifeWheelStore.ts
-import { mmkvStorage, StorageKeys } from "./mmkvStorage";
+import { StorageKeys, unifiedStorage } from "../storage/unifiedStorage";
 import { supabase } from "../lib/supabase";
 import { LifeWheelArea } from "../types/store";
 import { createBaseStore, BaseState } from "./createBaseStore";
@@ -82,7 +82,8 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
         get().setError(null);
 
         // Lokale Daten laden
-        const lifeWheelData = mmkvStorage.getString(StorageKeys.LIFE_WHEEL);
+        // const lifeWheelData = mmkvStorage.getString(StorageKeys.LIFE_WHEEL);
+        const lifeWheelData = unifiedStorage.getString(StorageKeys.LIFE_WHEEL);
         if (lifeWheelData) {
           set((state) => ({
             ...state,
@@ -125,7 +126,7 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
               }));
 
               // Lokal speichern
-              mmkvStorage.set(
+              unifiedStorage.set(
                 StorageKeys.LIFE_WHEEL,
                 JSON.stringify(formattedWheelData),
               );
@@ -156,7 +157,7 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
         }));
 
         // Lokal speichern
-        mmkvStorage.set(
+        unifiedStorage.set(
           StorageKeys.LIFE_WHEEL,
           JSON.stringify(get().lifeWheelAreas),
         );
@@ -176,7 +177,7 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
         const { lifeWheelAreas } = get();
 
         // Lokal speichern
-        mmkvStorage.set(
+        unifiedStorage.set(
           StorageKeys.LIFE_WHEEL,
           JSON.stringify(get().lifeWheelAreas),
         );

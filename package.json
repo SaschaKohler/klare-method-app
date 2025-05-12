@@ -71,7 +71,6 @@
     "@types/react": "~18.3.12",
     "babel-plugin-module-resolver": "^5.0.2",
     "cz-conventional-changelog": "^3.3.0",
-    "flipper-plugin-react-native-mmkv": "^1.0.0",
     "jest": "^29.6.0",
     "jest-expo": "^52.0.0",
     "patch-package": "^8.0.0",
