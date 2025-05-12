@@ -8,6 +8,10 @@ LogBox.ignoreLogs([
   "React Native is not running on-device",
 ]);
 
+// Flipper Integration (nur für Debug-Modus)
+// Diese Datei verwendet Try-Catch, um Fehler bei fehlenden Dependencies zu vermeiden
+import './src/utils/baseFlipper';
+
 // Import our storage utility to initialize it early
 // import './src/utils/storage';
 import App from "./App";

@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "plugins": ["expo-community-flipper"],
+    "plugins": [],
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",

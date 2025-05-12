@@ -268,9 +268,9 @@ PODS:
   - hermes-engine (0.76.9):
     - hermes-engine/Pre-built (= 0.76.9)
   - hermes-engine/Pre-built (0.76.9)
-  - MMKV (2.2.1):
-    - MMKVCore (~> 2.2.1)
-  - MMKVCore (2.2.1)
+  - MMKV (2.2.2):
+    - MMKVCore (~> 2.2.2)
+  - MMKVCore (2.2.2)
   - RCT-Folly (2024.10.14.00):
     - boost
     - DoubleConversion
@@ -2537,8 +2537,8 @@ SPEC CHECKSUMS:
   fmt: 01b82d4ca6470831d1cc0852a1af644be019e8f6
   glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
   hermes-engine: 9e868dc7be781364296d6ee2f56d0c1a9ef0bb11
-  MMKV: 383ccfa10ae23ff2a9c0f6130b7136b37b55ac10
-  MMKVCore: b0e4c420da85636d7adaa535a53dfade59a22f5c
+  MMKV: b4802ebd5a7c68fc0c4a5ccb4926fbdfb62d68e0
+  MMKVCore: a255341a3746955f50da2ad9121b18cb2b346e61
   RCT-Folly: 7b4f73a92ad9571b9dbdb05bb30fad927fa971e1
   RCTDeprecation: ebe712bb05077934b16c6bf25228bdec34b64f83
   RCTRequired: ca91e5dd26b64f577b528044c962baf171c6b716
@@ -2608,6 +2608,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 40f19fff64dce86773bf8b602c7070796c007970
 
-PODFILE CHECKSUM: f5d85a9937be6283ac6b2d965b0aa2551e87ce2a
+PODFILE CHECKSUM: 11d7329d35d0027e84876ffaebc23c6fa0fe3c8f
 
 COCOAPODS: 1.16.2
