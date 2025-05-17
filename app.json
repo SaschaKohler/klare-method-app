@@ -6,31 +6,61 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "plugins": [],
+    "plugins": [
+      "expo-linking"
+    ],
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": ["**/*"],
+    "scheme": "klare-app",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.blisha1.klaremethode",
+      "icon": "./assets/ios-icon.png",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos for vision board creation",
-        "NSPhotoLibraryAddUsageDescription": "Allow $(PRODUCT_NAME) to save photos to your library"
+        "NSPhotoLibraryAddUsageDescription": "Allow $(PRODUCT_NAME) to save photos to your library",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "klare-app"
+            ],
+            "CFBundleTypeRole": "Editor",
+            "CFBundleURLName": "auth-callback"
+          }
+        ],
+        "CFBundleLocalizations": ["de"],
+        "LSApplicationQueriesSchemes": [
+          "klare-app"
+        ]
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/adaptive-foreground.png",
+        "backgroundImage": "./assets/adaptive-background.png"
       },
       "package": "com.blisha1.klaremethode",
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.CAMERA"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "klare-app",
+              "pathPrefix": "/auth/callback"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
       ]
     },
     "web": {

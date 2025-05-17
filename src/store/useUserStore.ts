@@ -8,6 +8,7 @@ import { useProgressionStore } from "./useProgressionStore";
 import { AuthError, User } from "@supabase/supabase-js";
 import { SessionData, Stage, SupabaseResponse } from "../types/store";
 import { createBaseStore } from "./createBaseStore";
+import * as WebBrowser from "expo-web-browser";
 
 interface UserState {
   user: User | null;
@@ -29,6 +30,7 @@ interface UserState {
     email: string,
     password: string,
   ) => Promise<{ error: AuthError | null }>;
+  signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   signUp: (
     email: string,
     password: string,
@@ -413,6 +415,33 @@ export const useUserStore = createBaseStore<UserState>(
         return { error: new Error("Unbekannter Anmeldefehler") };
       } catch (error) {
         console.error("Anmeldefehler:", error);
+        return { error };
+      }
+    },
+
+    signInWithGoogle: async () => {
+      try {
+        console.log("Starting Google auth flow...");
+
+        // Import required helper function
+        const { openOAuthSession } = await import("../lib/supabase");
+
+        // Starte den OAuth-Prozess
+        const { result, error } = await openOAuthSession("google");
+
+        if (error) {
+          console.error("OAuth process error:", error);
+          throw error;
+        }
+
+        // In diesem Punkt warten wir NICHT auf ein Ergebnis, da die App erst nach Redirect
+        // wieder aufgerufen wird. Der aktuelle Flow kehrt nicht sofort zur App zurück.
+        console.log("Auth process started, app will be reopened after authentication.");
+        
+        // Wir geben ein erfolgreiches Ergebnis zurück, obwohl der Prozess asynchron weiterläuft
+        return { error: null };
+      } catch (error) {
+        console.error("Google login error:", error);
         return { error };
       }
     },

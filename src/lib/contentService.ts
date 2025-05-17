@@ -161,19 +161,54 @@ export const loadModulesByStep = async (
 
 // Speichern von Übungsergebnissen
 export const saveExerciseResult = async (
-  userId: string,
-  exerciseStepId: string,
+  exerciseId: string,
+  moduleId: string,
   answer: any,
 ): Promise<boolean> => {
   try {
-    const { error } = await supabase.from("user_exercise_results").insert({
-      user_id: userId,
-      exercise_step_id: exerciseStepId,
-      answer,
-      completed_at: new Date().toISOString(),
-    });
+    // Check if answer is a JSON string with currentValue and targetValue
+    if (typeof answer === "string") {
+      try {
+        // Try to parse the answer if it's a JSON string
+        const parsedAnswer = JSON.parse(answer);
 
-    if (error) throw error;
+        // If it has currentValue and targetValue properties, handle appropriately
+        if (
+          parsedAnswer &&
+          (parsedAnswer.currentValue !== undefined ||
+            parsedAnswer.targetValue !== undefined)
+        ) {
+          // Store as stringified JSON to avoid type issues
+          answer = JSON.stringify(parsedAnswer);
+        }
+      } catch (e) {
+        // Not a valid JSON string, keep as is
+      }
+    } else if (typeof answer === "object" && answer !== null) {
+      // If it's already an object with the properties, stringify it
+      if (
+        answer.currentValue !== undefined ||
+        answer.targetValue !== undefined
+      ) {
+        answer = JSON.stringify(answer);
+      }
+    }
+
+    const { data, error } = await supabase.from("user_exercise_results").upsert(
+      {
+        exercise_id: exerciseId,
+        module_id: moduleId,
+        answer: answer,
+        created_at: new Date().toISOString(),
+      },
+      { onConflict: "exercise_id, module_id" },
+    );
+
+    if (error) {
+      console.error("Fehler beim Speichern des Übungsergebnisses:", error);
+      return false;
+    }
+
     return true;
   } catch (error) {
     console.error("Fehler beim Speichern des Übungsergebnisses:", error);
@@ -445,7 +480,23 @@ export const loadUserModuleProgress = async (
 
       if (resultsData) {
         resultsData.forEach((result) => {
-          exerciseResults[result.exercise_step_id] = result.answer;
+          // Process the answer if needed, especially for LifeWheel exercises
+          let processedAnswer = result.answer;
+
+          // Make sure LifeWheel answers have properly formatted numeric values
+          if (
+            processedAnswer &&
+            typeof processedAnswer === "object" &&
+            "currentValue" in processedAnswer &&
+            "targetValue" in processedAnswer
+          ) {
+            processedAnswer = {
+              currentValue: Number(processedAnswer.currentValue),
+              targetValue: Number(processedAnswer.targetValue),
+            };
+          }
+
+          exerciseResults[result.exercise_step_id] = processedAnswer;
         });
       }
     }

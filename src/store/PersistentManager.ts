@@ -1,5 +1,5 @@
 // src/store/persistManager.ts
-import { mmkvStorage } from './mmkvStorage';
+import { mmkvStorage } from "./mmkvStorage.ts.old";
 import { storePersistConfigs } from "./persistConfig";
 
 export class PersistManager {

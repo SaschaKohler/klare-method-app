@@ -7,20 +7,21 @@ const createAuthScreenStyles = (theme: Theme, klareColors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      alignSelf: "center",
       backgroundColor: theme.colors.background,
       width: "100%",
     },
     keyboardAvoid: {
       flex: 1,
+      width: "100%",
+    },
+    scrollContainer: {
+      flexGrow: 1,
+      width: "100%",
     },
     content: {
-      flex: 1,
+      width: "100%",
       padding: 20,
-      justifyContent: "center",
-      alignItems: "center",
+      flex: 1,
     },
     logoContainer: {
       alignItems: "center",
@@ -43,15 +44,24 @@ const createAuthScreenStyles = (theme: Theme, klareColors: any) =>
     input: {
       marginBottom: 16,
       backgroundColor: theme.dark ? klareColors.cardBackground : "#f5f5f5",
+      color: theme.colors.text,
       width: "100%",
+      maxWidth: 360,
+      alignSelf: "center",
     },
     button: {
       marginTop: 24,
       backgroundColor: theme.colors.primary,
+      color: theme.colors.text,
       width: "100%",
+      maxWidth: 360,
+      alignSelf: "center",
       height: 50,
       justifyContent: "center",
       borderRadius: 8,
+    },
+    buttonLabel: {
+      color: theme.colors.text,
     },
     toggleButton: {
       marginTop: 16,
@@ -60,9 +70,10 @@ const createAuthScreenStyles = (theme: Theme, klareColors: any) =>
     // New styles for enhanced auth screens
     backButton: {
       position: "absolute",
-      top: SCREEN_HEIGTH / 4 - 30,
+      top: 10,
       left: 0,
       zIndex: 10,
+      padding: 10,
     },
     logoText: {
       fontSize: 32,
@@ -77,6 +88,8 @@ const createAuthScreenStyles = (theme: Theme, klareColors: any) =>
       gap: 10,
       width: "100%",
       marginBottom: 16,
+      maxWidth: 360,
+      alignSelf: "center",
     },
     halfInput: {
       flex: 1,
@@ -86,6 +99,8 @@ const createAuthScreenStyles = (theme: Theme, klareColors: any) =>
       marginBottom: 8,
       backgroundColor: theme.dark ? klareColors.cardBackground : "#f5f5f5",
       width: "100%",
+      maxWidth: 360,
+      alignSelf: "center",
     },
     forgotPassword: {
       alignSelf: "flex-end",
@@ -97,8 +112,10 @@ const createAuthScreenStyles = (theme: Theme, klareColors: any) =>
     },
     socialContainer: {
       width: "100%",
+      maxWidth: 360,
       marginTop: 20,
       alignItems: "center",
+      alignSelf: "center",
     },
     socialDivider: {
       flexDirection: "row",
@@ -146,25 +163,21 @@ const createAuthScreenStyles = (theme: Theme, klareColors: any) =>
       fontWeight: "bold",
     },
     welcomeContent: {
-      flex: 1,
+      width: "100%",
       alignItems: "center",
-      justifyContent: "center",
-      height: SCREEN_HEIGTH,
-      width: SCREEN_WIDTH - 30,
+      padding: 20,
     },
     signInCard: {
-      flex: 1,
+      width: "100%",
       alignItems: "center",
-      justifyContent: "center",
-      height: SCREEN_HEIGTH,
-      width: SCREEN_WIDTH - 30,
+      paddingTop: 20,
+      paddingBottom: 50,
     },
     signUpCard: {
-      flex: 1,
+      width: "100%",
       alignItems: "center",
-      justifyContent: "center",
-      height: SCREEN_HEIGTH,
-      width: SCREEN_WIDTH - 30,
+      paddingTop: 20,
+      paddingBottom: 100,
     },
     welcomeImage: {
       width: 200,
@@ -183,10 +196,12 @@ const createAuthScreenStyles = (theme: Theme, klareColors: any) =>
       marginTop: 40,
     },
     forgotContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
       width: "100%",
+      maxWidth: 360,
+      alignSelf: "center",
+      alignItems: "center",
+      paddingTop: 20,
+      paddingBottom: 50,
     },
     instructionText: {
       textAlign: "center",

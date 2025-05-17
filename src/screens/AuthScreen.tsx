@@ -1,10 +1,12 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   View,
+  Alert,
+  Modal,
 } from "react-native";
 import {
   Button,
@@ -16,18 +18,22 @@ import {
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import KlareLogo from "../components/KlareLogo";
+import DeepLinkInfo from "../components/DeepLinkInfo";
 import createAuthScreenStyles from "../constants/authScreenStyle";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { useUserStore } from "../store/useUserStore";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiText, MotiView } from "moti";
 import { MotiPressable } from "moti/interactions";
+import { supabase } from "../lib/supabase";
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 
 // Auth states
 type AuthViewState = "welcome" | "signin" | "signup" | "forgot";
 
 // Social auth providers
-type SocialProvider = "facebook" | "instagram" | "apple" | "twitter";
+type SocialProvider = "google" | "facebook" | "apple" | "twitter";
 
 export default function AuthScreen() {
   // Auth state
@@ -39,6 +45,7 @@ export default function AuthScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDeepLinkInfo, setShowDeepLinkInfo] = useState(false);
 
   // Theme setup
   const theme = useTheme();
@@ -52,6 +59,79 @@ export default function AuthScreen() {
   // Auth methods from store
   const signIn = useUserStore((state) => state.signIn);
   const signUp = useUserStore((state) => state.signUp);
+  const signInWithGoogle = useUserStore((state) => state.signInWithGoogle);
+
+  // Check for auth state changes
+  useEffect(() => {
+    console.log("Setting up auth state listener");
+    
+    // Check if user is already authenticated
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        console.log("Found existing session, loading user data");
+        setLoading(true);
+        try {
+          useUserStore.getState().loadUserData();
+          console.log("User data loaded successfully from existing session");
+          // Clear any errors that might be displayed
+          setError(null);
+        } catch (loadError) {
+          console.error("Error loading user data from existing session:", loadError);
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
+    
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log(`Supabase auth event: ${event}`, session ? "Session available" : "No session");
+        
+        if (event === 'SIGNED_IN' && session) {
+          console.log("User signed in successfully, loading user data");
+          // User signed in, load user data
+          setLoading(true);
+          try {
+            await useUserStore.getState().loadUserData();
+            console.log("User data loaded successfully");
+            // Clear any errors that might be displayed
+            setError(null);
+          } catch (loadError) {
+            console.error("Error loading user data:", loadError);
+          } finally {
+            setLoading(false);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          console.log("User signed out");
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log("Token refreshed");
+        } else if (event === 'USER_UPDATED') {
+          console.log("User updated");
+        } else if (event === 'INITIAL_SESSION') {
+          console.log("Initial session loaded");
+          if (session) {
+            console.log("User already has a session, loading user data");
+            setLoading(true);
+            try {
+              await useUserStore.getState().loadUserData();
+              console.log("User data loaded successfully from initial session");
+              // Clear any errors that might be displayed
+              setError(null);
+            } catch (loadError) {
+              console.error("Error loading user data from initial session:", loadError);
+            } finally {
+              setLoading(false);
+            }
+          }
+        }
+      }
+    );
+
+    return () => {
+      console.log("Cleaning up auth listener");
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   // Handle auth actions
   const handleSignIn = async () => {
@@ -85,25 +165,129 @@ export default function AuthScreen() {
     const { error } = await signUp(email, password, `${firstName} ${lastName}`);
     if (error) {
       setError(
-        "Registrierung fehlgeschlagen. Bitte versuche es mit einer anderen E-Mail-Adresse.",
+        "Registrierung fehlgeschlagen. Bitte versuche es mit einer anderen E-Mail-Adresse."
+      );
+    } else {
+      // Wenn keine Fehler auftreten, zeige eine Erfolgsmeldung
+      Alert.alert(
+        "Registrierung erfolgreich",
+        "Wir haben dir eine Bestätigungs-E-Mail gesendet. Bitte überprüfe dein E-Mail-Postfach und bestätige deine E-Mail-Adresse, um dich anzumelden.",
+        [{ text: "OK", onPress: () => setCurrentView("signin") }]
       );
     }
 
     setLoading(false);
   };
 
-  const handleSocialAuth = (provider: SocialProvider) => {
-    console.log(`Social auth with ${provider}`);
-    // TODO: Implement social auth logic here
+  const handleSocialAuth = async (provider: SocialProvider) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      if (provider === "google") {
+        // Logging für Debugging
+        console.log("Starting Google auth in AuthScreen...");
+        
+        try {
+          // Verwende die Methode aus dem UserStore
+          const { error } = await signInWithGoogle();
+          
+          if (error) {
+            console.error("Google OAuth error:", error);
+            
+            // Zeige spezifischere Fehlermeldung
+            if (error.message && error.message.includes("invalid")) {
+              setError("Die Google-Anmeldung ist fehlgeschlagen: Die Authentifizierungs-URL ist ungültig. Bitte kontaktiere den Support.");
+            } else if (error.message && (error.message.includes("dismiss") || error.message.includes("Browser"))) {
+              setError("Die Google-Anmeldung ist fehlgeschlagen: Problem mit dem Browser. Bitte versuche es erneut oder kontaktiere den Support.");
+            } else {
+              setError(`Die Anmeldung mit Google ist fehlgeschlagen. Bitte versuche es später erneut.`);
+            }
+            
+            // Zeige Entwickler-Info in Konsole
+            console.error("Detaillierter Fehler:", JSON.stringify(error));
+          }
+        } catch (oauthError) {
+          console.error("OAuth process error:", oauthError);
+          setError(`Die Anmeldung mit Google ist fehlgeschlagen. Bitte versuche es später erneut.`);
+        }
+      } else {
+        // Für zukünftige Implementierungen anderer Provider
+        Alert.alert(
+          "Bald verfügbar",
+          `Die Anmeldung mit ${provider} wird in Kürze aktiviert.`
+        );
+      }
+    } catch (error) {
+      console.error(`Fehler bei der Anmeldung mit ${provider}:`, error);
+      
+      // Fehlerbehandlung verbessern
+      let errorMessage = `Die Anmeldung mit ${provider} ist fehlgeschlagen. `;
+      
+      if (error instanceof Error) {
+        // Spezifischere Fehlermeldung basierend auf Fehlertyp
+        if (error.message.includes("network")) {
+          errorMessage += "Bitte überprüfe deine Internetverbindung.";
+        } else if (error.message.includes("timeout")) {
+          errorMessage += "Die Anfrage hat zu lange gedauert. Bitte versuche es später erneut.";
+        } else if (error.message.includes("URL")) {
+          errorMessage += "Es gab ein Problem mit der Authentifizierungs-URL. Bitte kontaktiere den Support.";
+        } else if (error.message.includes("Browser") || error.message.includes("dismiss")) {
+          errorMessage += "Problem mit dem Browser. Bitte starte die App neu und versuche es erneut.";
+        } else {
+          errorMessage += "Bitte versuche es später erneut.";
+        }
+        
+        // Detaillierte Fehlerinformationen für Entwicklung
+        console.error("Detaillierter Fehler:", error.message, error.stack);
+      } else {
+        errorMessage += "Bitte versuche es später erneut.";
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleForgotPassword = () => {
-    console.log("Password reset for:", email);
-    // TODO: Implement password reset logic here
-    setCurrentView("signin");
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError("Bitte gib deine E-Mail-Adresse ein.");
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Benutze Supabase direkt ohne benutzerdefinierte Domain
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: Linking.createURL('/reset-password'),
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      Alert.alert(
+        "Passwort zurücksetzen",
+        "Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir dir eine E-Mail mit einem Link zum Zurücksetzen deines Passworts gesendet.",
+        [{ text: "OK", onPress: () => setCurrentView("signin") }]
+      );
+    } catch (error) {
+      console.error("Fehler beim Zurücksetzen des Passworts:", error);
+      setError("Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Funktion zum Anzeigen der Deep Link Konfigurationsinfos
+  const handleShowDeepLinkInfo = () => {
+    setShowDeepLinkInfo(true);
   };
 
-  // Render social buttons
+  // Render social buttons with direct OAuth flow
   const renderSocialButtons = () => (
     <View style={styles.socialContainer}>
       <View style={styles.socialDivider}>
@@ -113,17 +297,26 @@ export default function AuthScreen() {
       </View>
       <View style={styles.socialButtonsRow}>
         <MotiPressable
-          onPress={() => handleSocialAuth("facebook")}
-          style={styles.socialButton}
+          onPress={() => handleSocialAuth("google")}
+          style={[styles.socialButton, { backgroundColor: isDarkMode ? '#2A2A2A' : '#ffffff', borderWidth: 1, borderColor: '#ccc' }]}
           animate={({ pressed }) => {
             "worklet";
             return {
               scale: pressed ? 0.95 : 1,
-              backgroundColor: pressed
-                ? isDarkMode
-                  ? "#333"
-                  : "#f0f0f0"
-                : styles.socialButton.backgroundColor,
+            };
+          }}
+          transition={{ type: "timing", duration: 100 }}
+        >
+          <Ionicons name="logo-google" size={24} color="#DB4437" />
+        </MotiPressable>
+
+        <MotiPressable
+          onPress={() => handleSocialAuth("facebook")}
+          style={[styles.socialButton, { backgroundColor: isDarkMode ? '#2A2A2A' : '#ffffff', borderWidth: 1, borderColor: '#ccc' }]}
+          animate={({ pressed }) => {
+            "worklet";
+            return {
+              scale: pressed ? 0.95 : 1,
             };
           }}
           transition={{ type: "timing", duration: 100 }}
@@ -132,36 +325,12 @@ export default function AuthScreen() {
         </MotiPressable>
 
         <MotiPressable
-          onPress={() => handleSocialAuth("instagram")}
-          style={styles.socialButton}
-          animate={({ pressed }) => {
-            "worklet";
-            return {
-              scale: pressed ? 0.95 : 1,
-              backgroundColor: pressed
-                ? isDarkMode
-                  ? "#333"
-                  : "#f0f0f0"
-                : styles.socialButton.backgroundColor,
-            };
-          }}
-          transition={{ type: "timing", duration: 100 }}
-        >
-          <Ionicons name="logo-instagram" size={24} color="#c13584" />
-        </MotiPressable>
-
-        <MotiPressable
           onPress={() => handleSocialAuth("apple")}
-          style={styles.socialButton}
+          style={[styles.socialButton, { backgroundColor: isDarkMode ? '#2A2A2A' : '#ffffff', borderWidth: 1, borderColor: '#ccc' }]}
           animate={({ pressed }) => {
             "worklet";
             return {
               scale: pressed ? 0.95 : 1,
-              backgroundColor: pressed
-                ? isDarkMode
-                  ? "#333"
-                  : "#f0f0f0"
-                : styles.socialButton.backgroundColor,
             };
           }}
           transition={{ type: "timing", duration: 100 }}
@@ -175,16 +344,11 @@ export default function AuthScreen() {
 
         <MotiPressable
           onPress={() => handleSocialAuth("twitter")}
-          style={styles.socialButton}
+          style={[styles.socialButton, { backgroundColor: isDarkMode ? '#2A2A2A' : '#ffffff', borderWidth: 1, borderColor: '#ccc' }]}
           animate={({ pressed }) => {
             "worklet";
             return {
               scale: pressed ? 0.95 : 1,
-              backgroundColor: pressed
-                ? isDarkMode
-                  ? "#333"
-                  : "#f0f0f0"
-                : styles.socialButton.backgroundColor,
             };
           }}
           transition={{ type: "timing", duration: 100 }}
@@ -323,6 +487,8 @@ export default function AuthScreen() {
           },
         }}
         secureTextEntry
+        textContentType="none" // Verhindert iOS Autofill
+        autoComplete="off" // Verhindert Autofill
         left={
           <TextInput.Icon icon="lock" color={activeKlareColors.textSecondary} />
         }
@@ -336,9 +502,20 @@ export default function AuthScreen() {
       </TouchableRipple>
 
       {error && (
-        <HelperText type="error" visible={!!error}>
-          {error}
-        </HelperText>
+        <View>
+          <HelperText type="error" visible={!!error}>
+            {error}
+          </HelperText>
+          {error.includes("URL") && (
+            <Button 
+              mode="text" 
+              onPress={handleShowDeepLinkInfo}
+              style={{ marginTop: 8 }}
+            >
+              Konfiguration anzeigen
+            </Button>
+          )}
+        </View>
       )}
 
       <Button
@@ -465,6 +642,8 @@ export default function AuthScreen() {
           },
         }}
         secureTextEntry
+        textContentType="none" // Verhindert iOS Autofill
+        autoComplete="off" // Verhindert Autofill
         left={
           <TextInput.Icon icon="lock" color={activeKlareColors.textSecondary} />
         }
@@ -483,6 +662,8 @@ export default function AuthScreen() {
           },
         }}
         secureTextEntry
+        textContentType="none" // Verhindert iOS Autofill
+        autoComplete="off" // Verhindert Autofill
         left={
           <TextInput.Icon
             icon="lock-check"
@@ -492,9 +673,20 @@ export default function AuthScreen() {
       />
 
       {error && (
-        <HelperText type="error" visible={!!error}>
-          {error}
-        </HelperText>
+        <View>
+          <HelperText type="error" visible={!!error}>
+            {error}
+          </HelperText>
+          {error.includes("URL") && (
+            <Button 
+              mode="text" 
+              onPress={handleShowDeepLinkInfo}
+              style={{ marginTop: 8 }}
+            >
+              Konfiguration anzeigen
+            </Button>
+          )}
+        </View>
       )}
 
       <Button
@@ -590,9 +782,20 @@ export default function AuthScreen() {
       />
 
       {error && (
-        <HelperText type="error" visible={!!error}>
-          {error}
-        </HelperText>
+        <View>
+          <HelperText type="error" visible={!!error}>
+            {error}
+          </HelperText>
+          {error.includes("URL") && (
+            <Button 
+              mode="text" 
+              onPress={handleShowDeepLinkInfo}
+              style={{ marginTop: 8 }}
+            >
+              Konfiguration anzeigen
+            </Button>
+          )}
+        </View>
       )}
 
       <Button
@@ -630,15 +833,37 @@ export default function AuthScreen() {
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={true}
         >
           <View style={styles.content}>
-            {currentView === "welcome" && renderWelcomeView()}
+            {currentView === "welcome" && (
+              <View style={{flex: 1, justifyContent: 'center'}}>
+                {renderWelcomeView()}
+              </View>
+            )}
             {currentView === "signin" && renderSignInView()}
             {currentView === "signup" && renderSignUpView()}
             {currentView === "forgot" && renderForgotPasswordView()}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      
+      {/* Deep Link Info Modal */}
+      <Modal
+        visible={showDeepLinkInfo}
+        animationType="slide"
+        onRequestClose={() => setShowDeepLinkInfo(false)}
+      >
+        <SafeAreaView style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', padding: 16, justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#eee' }}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Deep Link Konfiguration</Text>
+            <Pressable onPress={() => setShowDeepLinkInfo(false)}>
+              <Ionicons name="close" size={24} color={theme.colors.text} />
+            </Pressable>
+          </View>
+          <DeepLinkInfo />
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }

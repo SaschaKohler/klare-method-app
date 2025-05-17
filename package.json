@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "start": "expo start --dev-client",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-    "web": "expo start --web",
+    "start": "node scripts/patch-expo-modules-core.js && expo start --dev-client",
+    "android": "node scripts/patch-expo-modules-core.js && expo run:android",
+    "ios": "node scripts/patch-expo-modules-core.js && expo run:ios",
+    "web": "node scripts/patch-expo-modules-core.js && expo start --web",
     "e2e": "maestro test e2e/flows",
     "test": "jest",
-    "clean": "watchman watch-del-all && rm -rf node_modules && rm -rf /var/folders/7f/cz70pt696q38cqpzdx7_0tdc0000gn/T//metro-* && yarn install"
+    "clean": "watchman watch-del-all && rm -rf node_modules && rm -rf /var/folders/7f/cz70pt696q38cqpzdx7_0tdc0000gn/T//metro-* && yarn install",
+    "patch-expo-modules": "node scripts/patch-expo-modules-core.js"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "1.23.1",
@@ -30,6 +31,7 @@
     "expo-haptics": "~14.0.1",
     "expo-image-picker": "~16.0.6",
     "expo-linear-gradient": "~14.0.2",
+    "expo-linking": "^7.1.5",
     "expo-splash-screen": "~0.29.22",
     "expo-status-bar": "~2.0.1",
     "moti": "^0.30.0",

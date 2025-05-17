@@ -13,6 +13,7 @@ import Markdown from "react-native-markdown-display";
 import { ExerciseStep } from "../../lib/contentService";
 import Slider from "@react-native-community/slider";
 import { useUserStore } from "../../store/useUserStore";
+import { useLifeWheelStore } from "../../store/useLifeWheelStore";
 import { saveExerciseResult } from "../../lib/contentService";
 
 interface ModuleExerciseProps {
@@ -32,11 +33,15 @@ const ModuleExercise: React.FC<ModuleExerciseProps> = ({
 }) => {
   const theme = useTheme();
   const user = useUserStore((state) => state.user);
+  const updateLifeWheelArea = useLifeWheelStore(
+    (state) => state.updateLifeWheelArea,
+  );
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<string, any>>({});
   const [journalText, setJournalText] = useState("");
   const [sliderValue, setSliderValue] = useState(5);
+  const [targetValue, setTargetValue] = useState(8);
   const [isCompleting, setIsCompleting] = useState(false);
 
   const currentStep = exerciseSteps[currentStepIndex];
@@ -63,16 +68,40 @@ const ModuleExercise: React.FC<ModuleExerciseProps> = ({
       currentStep.step_type === "input" &&
       currentStep.options?.input_type === "slider"
     ) {
-      answer = sliderValue;
+      // Wenn die Frage ein lifewheel_area-Attribut hat, aktualisiere das LifeWheel
+      const lifeWheelArea = currentStep.options?.lifewheel_area as string;
+
+      // Antwort als Objekt speichern, um sowohl den aktuellen als auch den Zielwert zu speichern
+      answer = {
+        currentValue: Number(sliderValue),
+        targetValue: Number(targetValue),
+      };
 
       // Speichern für den Benutzer
       if (user) {
+        // First save to exercise results
         await saveExerciseResult(user.id, currentStep.id, answer);
+
+        // Wenn es sich um eine LifeWheel-Frage handelt, aktualisiere auch das LifeWheel
+        if (lifeWheelArea) {
+          try {
+            // Make sure we're passing numeric values to updateLifeWheelArea
+            updateLifeWheelArea(
+              lifeWheelArea, 
+              Number(sliderValue), 
+              Number(targetValue)
+            );
+            console.log(`LifeWheel area '${lifeWheelArea}' updated with values: ${sliderValue}, ${targetValue}`);
+          } catch (error) {
+            console.error(`Failed to update LifeWheel area '${lifeWheelArea}':`, error);
+          }
+        }
       }
 
       // Für die nächste Frage vorbereiten
       const nextDefaultValue = currentStep.options?.default_value || 5;
       setSliderValue(nextDefaultValue);
+      setTargetValue(8); // Standard-Zielwert zurücksetzen
     }
 
     // Antwort in lokalen State speichern
@@ -171,8 +200,14 @@ const ModuleExercise: React.FC<ModuleExerciseProps> = ({
 
       case "input":
         if (currentStep.options?.input_type === "slider") {
+          // Prüfen, ob es sich um eine LifeWheel-Frage handelt
+          const isLifeWheelQuestion = Boolean(
+            currentStep.options?.lifewheel_area,
+          );
+
           return (
             <View style={styles.sliderContainer}>
+              <Text style={styles.sliderLabel}>Aktuelle Bewertung:</Text>
               <View style={styles.sliderValueContainer}>
                 <Text style={styles.sliderValueText}>{sliderValue}</Text>
               </View>
@@ -191,6 +226,32 @@ const ModuleExercise: React.FC<ModuleExerciseProps> = ({
                 <Text>Min</Text>
                 <Text>Max</Text>
               </View>
+
+              {isLifeWheelQuestion && currentStep.options?.target_question && (
+                <>
+                  <Text style={[styles.sliderLabel, { marginTop: 24 }]}>
+                    {currentStep.options.target_question}
+                  </Text>
+                  <View style={styles.sliderValueContainer}>
+                    <Text style={styles.sliderValueText}>{targetValue}</Text>
+                  </View>
+                  <Slider
+                    style={styles.slider}
+                    minimumValue={currentStep.options.min_value || 1}
+                    maximumValue={currentStep.options.max_value || 10}
+                    step={currentStep.options.step || 1}
+                    value={targetValue}
+                    onValueChange={setTargetValue}
+                    minimumTrackTintColor={theme.colors.secondary}
+                    maximumTrackTintColor={theme.colors.surfaceVariant}
+                    thumbTintColor={theme.colors.secondary}
+                  />
+                  <View style={styles.sliderLabels}>
+                    <Text>Min</Text>
+                    <Text>Max</Text>
+                  </View>
+                </>
+              )}
             </View>
           );
         }

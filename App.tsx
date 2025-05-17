@@ -34,6 +34,7 @@ import {
   useUserStore,
   useVisionBoardStore,
 } from "./src/store";
+// import { prepare } from "@react-three/fiber/dist/declarations/src/core/renderer";
 import { unifiedStorage } from "./src/storage/unifiedStorage";
 
 // Splash Screen während des Ladens anzeigen
