@@ -1,0 +1,15 @@
+{
+  "name": "klaremethode",
+  "displayName": "KLARE Methode",
+  "expo": {
+    "name": "klaremethode",
+    "slug": "klaremethode",
+    "scheme": "klare-app",
+    "android": {
+      "package": "com.blisha1.klaremethode"
+    },
+    "ios": {
+      "bundleIdentifier": "com.blisha1.klaremethode"
+    }
+  }
+}

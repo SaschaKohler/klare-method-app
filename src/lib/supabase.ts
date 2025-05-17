@@ -35,26 +35,26 @@ export const openOAuthSession = async (
     // Debug-Informationen
     console.log("Current platform:", Platform.OS);
     console.log("URL scheme:", SCHEME);
-    
+
     // Spezifische Provider-Optionen
     const providerOptions: Record<string, any> = {
       google: {
         queryParams: {
           access_type: "offline",
           prompt: "consent",
-        }
+        },
       },
       facebook: {},
-      apple: {}
+      apple: {},
     };
-    
+
     // Supabase OAuth starten mit Provider-spezifischen Optionen
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: redirectUrl,
         skipBrowserRedirect: false,
-        ...providerOptions[provider]
+        ...providerOptions[provider],
       },
     });
 
@@ -72,7 +72,7 @@ export const openOAuthSession = async (
 
     // Füge zusätzliche Debugging-Informationen hinzu
     console.log("Opening OAuth URL...");
-    
+
     // Einfacher Ansatz mit Linking - funktioniert in praktisch jedem Fall
     await Linking.openURL(data.url);
     console.log("Opened OAuth URL with Linking");
@@ -92,16 +92,18 @@ export const getOAuthRedirectUrl = () => {
       // Einfachere und robustere Version ohne URL-Encoding-Probleme
       const redirectUrl = `${SCHEME}://auth/callback`;
       console.log("Generated redirect URL:", redirectUrl);
-      
+
       // Zusätzlicher Debug-Check
       const expoLinkingUrl = Linking.createURL("auth/callback");
       console.log("Expo Linking URL for comparison:", expoLinkingUrl);
-      
+
       // Prüfe das Format der URL
-      if (redirectUrl.indexOf(' ') !== -1) {
-        console.warn("Warning: Redirect URL contains spaces, this may cause issues");
+      if (redirectUrl.indexOf(" ") !== -1) {
+        console.warn(
+          "Warning: Redirect URL contains spaces, this may cause issues",
+        );
       }
-      
+
       return redirectUrl;
     } catch (error) {
       console.error("Error generating redirect URL:", error);
@@ -122,28 +124,36 @@ if (Platform.OS !== "web") {
 
     if (url && url.includes("auth/callback")) {
       console.log("Processing auth callback:", url);
-      
+
       try {
         // Parse URL-Parameter mit unserer speziellen Funktion
-        const { code, state, error: authError, errorDescription } = extractOAuthParams(url);
-        
+        const {
+          code,
+          state,
+          error: authError,
+          errorDescription,
+        } = extractOAuthParams(url);
+
         // Fehlerbehandlung, falls in der URL ein Fehler zurückgegeben wurde
         if (authError) {
-          console.error(`Auth error in URL: ${authError} - ${errorDescription}`);
+          console.error(
+            `Auth error in URL: ${authError} - ${errorDescription}`,
+          );
           return;
         }
-        
+
         if (code && state) {
           console.log("Found auth code and state, exchanging for session");
-          
+
           // OAuth Flow manuell abschließen
-          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-          
+          const { data, error } =
+            await supabase.auth.exchangeCodeForSession(code);
+
           if (error) {
             console.error("Error exchanging code for session:", error);
           } else if (data?.session) {
             console.log("Successfully got session:", data.session.user.id);
-            
+
             // Trigger user data loading
             try {
               const { useUserStore } = require("../store/useUserStore");
@@ -156,14 +166,17 @@ if (Platform.OS !== "web") {
           // In neueren Supabase-Versionen gibt es keine getSessionFromUrl-Methode mehr
           // Wir verwenden stattdessen direkt die Linking-URL und prüfen die aktuelle Session
           console.log("No code/state in URL, checking current session");
-          
+
           try {
             // Versuche die aktuelle Session zu holen
             const { data: sessionData } = await supabase.auth.getSession();
-            
+
             if (sessionData?.session) {
-              console.log("Found existing session:", sessionData.session.user.id);
-              
+              console.log(
+                "Found existing session:",
+                sessionData.session.user.id,
+              );
+
               // Trigger user data loading
               try {
                 const { useUserStore } = require("../store/useUserStore");
@@ -172,7 +185,9 @@ if (Platform.OS !== "web") {
                 console.error("Error loading user data:", storeError);
               }
             } else {
-              console.warn("No session found and no auth code in URL. Authentication may have failed.");
+              console.warn(
+                "No session found and no auth code in URL. Authentication may have failed.",
+              );
             }
           } catch (sessionError) {
             console.error("Error checking session:", sessionError);
@@ -202,12 +217,11 @@ if (Platform.OS !== "web") {
   try {
     // Entferne zuerst vorhandene Listener, um Duplikate zu vermeiden
     Linking.removeAllListeners("url");
-    
+
     // Dann den neuen Listener registrieren
     const subscription = Linking.addEventListener("url", urlHandler);
     console.log("URL listener registered successfully");
   } catch (error) {
     console.error("Error setting up URL listener:", error);
   }
-}
 }
