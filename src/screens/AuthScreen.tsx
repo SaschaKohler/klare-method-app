@@ -188,6 +188,117 @@ export default function AuthScreen() {
     setLoading(false);
   };
 
+  useEffect(() => {
+    console.log("Setting up auth state listener");
+
+    // Check if user is already authenticated
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        console.log("Found existing session, loading user data");
+        setLoading(true);
+        try {
+          // Hier ist wichtig: Wir müssen warten, bis die Daten geladen sind
+          useUserStore
+            .getState()
+            .loadUserData()
+            .then(() => {
+              console.log(
+                "User data loaded successfully from existing session",
+              );
+              // Clear any errors that might be displayed
+              setError(null);
+            })
+            .catch((loadError) => {
+              console.error(
+                "Error loading user data from existing session:",
+                loadError,
+              );
+            })
+            .finally(() => {
+              setLoading(false);
+            });
+        } catch (loadError) {
+          console.error(
+            "Error loading user data from existing session:",
+            loadError,
+          );
+          setLoading(false);
+        }
+      }
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log(
+          `Supabase auth event: ${event}`,
+          session ? "Session available" : "No session",
+        );
+
+        if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
+          console.log("User signed in or token refreshed, loading user data");
+          // User signed in, load user data
+          setLoading(true);
+          try {
+            await useUserStore.getState().loadUserData();
+            console.log("User data loaded successfully");
+            // Clear any errors that might be displayed
+            setError(null);
+          } catch (loadError) {
+            console.error("Error loading user data:", loadError);
+          } finally {
+            setLoading(false);
+          }
+        } else if (event === "SIGNED_OUT") {
+          console.log("User signed out");
+        } else if (event === "USER_UPDATED") {
+          console.log("User updated");
+        } else if (event === "INITIAL_SESSION") {
+          console.log("Initial session loaded");
+          if (session) {
+            console.log("User already has a session, loading user data");
+            setLoading(true);
+            try {
+              await useUserStore.getState().loadUserData();
+              console.log("User data loaded successfully from initial session");
+              // Clear any errors that might be displayed
+              setError(null);
+            } catch (loadError) {
+              console.error(
+                "Error loading user data from initial session:",
+                loadError,
+              );
+            } finally {
+              setLoading(false);
+            }
+          }
+        }
+      },
+    );
+
+    return () => {
+      console.log("Cleaning up auth listener");
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Fügen Sie auch diese Funktion hinzu, um den Benutzer nach erfolgreicher Anmeldung zu aktualisieren:
+
+  const forceUpdateUserState = async () => {
+    console.log("Force updating user state...");
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session) {
+        // Aktualisieren Sie den Benutzer im Store
+        await useUserStore.getState().loadUserData();
+        console.log("User state updated forcibly");
+      }
+    } catch (error) {
+      console.error("Error during force user state update:", error);
+    }
+  };
+
+  // Dann aktualisieren Sie den handleSocialAuth wie folgt:
+
   const handleSocialAuth = async (provider: SocialProvider) => {
     setLoading(true);
     setError(null);
@@ -225,6 +336,11 @@ export default function AuthScreen() {
 
             // Zeige Entwickler-Info in Konsole
             console.error("Detaillierter Fehler:", JSON.stringify(error));
+          } else {
+            // Erfolgreich - fügen Sie einen Erzwingungsschritt hinzu
+            setTimeout(() => {
+              forceUpdateUserState();
+            }, 1000);
           }
         } catch (oauthError) {
           console.error("OAuth process error:", oauthError);

@@ -1,10 +1,17 @@
 // src/navigation/MainNavigator.tsx
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useUserStore } from "../store/useUserStore";
-import { ActivityIndicator, View, StyleSheet, Platform } from "react-native";
+import {
+  ActivityIndicator,
+  View,
+  StyleSheet,
+  Platform,
+  Button,
+  Linking,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import CustomHeader from "../components/CustomHeader";
 import { useTheme } from "react-native-paper";
@@ -26,6 +33,7 @@ import ResourceLibraryScreen from "../screens/resources/ResourceLibraryScreen";
 import ResourceLibrary from "../components/resources/ResourceLibrary";
 import ResourceFinder from "../components/resources/ResourceFinder";
 import { black } from "react-native-paper/lib/typescript/styles/themes/v2/colors";
+import { supabase } from "../lib/supabase";
 
 // Definiere die Stack-Parameter
 export const KlareMethodSteps = ["K", "L", "A", "R", "E"] as const;
@@ -156,6 +164,8 @@ const TabNavigator = () => {
 };
 
 const MainNavigator = () => {
+  // State für Force-Update nach OAuth
+  const [forceRefresh, setForceRefresh] = useState(0);
   const user = useUserStore((state) => state.user);
   const isLoading = useUserStore((state) => state.isLoading);
   const loadUserData = useUserStore((state) => state.loadUserData);
@@ -163,8 +173,108 @@ const MainNavigator = () => {
   const isDarkMode = theme.dark;
   const themeColors = isDarkMode ? darkKlareColors : lightKlareColors;
 
+  // Direkte Session-Überprüfung beim Mounting und nach jedem OAuth-Callback
   useEffect(() => {
-    loadUserData();
+    async function checkSession() {
+      console.log("Checking session in MainNavigator...");
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (sessionData?.session) {
+        console.log("Session found in MainNavigator:", sessionData.session.user.id);
+        
+        // Stellen Sie sicher, dass der Benutzer in der benutzerdefinierten Tabelle existiert
+        try {
+          // Erstelle das Benutzerprofil, falls es noch nicht existiert
+          console.log("MainNavigator: Creating user profile if needed...");
+          await useUserStore.getState().createUserProfileIfNeeded();
+          
+          // Benutzerdaten laden
+          await loadUserData();
+          
+          // Direktes setzen des Benutzers im Store für sofortige Wirkung
+          useUserStore.setState({
+            user: {
+              id: sessionData.session.user.id,
+              name: sessionData.session.user.user_metadata?.name || 'Benutzer',
+              email: sessionData.session.user.email || '',
+              progress: 0,
+              streak: 0,
+              lastActive: new Date().toISOString(),
+              joinDate: new Date().toISOString(),
+              completedModules: []
+            },
+            isLoading: false
+          });
+          console.log("User state updated directly in MainNavigator");
+        } catch (error) {
+          console.error("Error loading user after session check:", error);
+        }
+      } else {
+        console.log("No active session found in MainNavigator");
+      }
+    }
+    
+    checkSession();
+  }, [loadUserData, forceRefresh]);
+
+  // Deep Link-Handler für Authentifizierungs-Callbacks
+  useEffect(() => {
+    // Funktion zum Verarbeiten von OAuth-Callbacks
+    const handleOAuthCallback = ({ url }: { url: string }) => {
+      if (url && url.includes("auth/callback")) {
+        console.log("Auth callback detected in MainNavigator:", url);
+        // Erzwinge Neuprüfung der Session
+        setTimeout(() => {
+          setForceRefresh((prev) => prev + 1);
+        }, 1000); // Kleiner Delay für stabile Verarbeitung
+      }
+    };
+
+    // Listener für Deep Links
+    const subscription = Linking.addEventListener("url", handleOAuthCallback);
+
+    // Auch beim Start prüfen
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        handleOAuthCallback({ url });
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  // Supabase Auth-State Event-Listener
+  useEffect(() => {
+    console.log("Setting up auth state listener in Navigator");
+
+    // Auth-State-Events abonnieren
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log(`Auth state change in Navigator: ${event}`);
+
+        if (session) {
+          console.log("Session available after auth change:", session.user.id);
+          // Erzwinge State-Update
+          try {
+            await loadUserData();
+            // Direktes setzen des Benutzers für sofortige Wirkung
+            useUserStore.setState({
+              user: session.user,
+              isLoading: false,
+            });
+          } catch (error) {
+            console.error("Error loading user after auth state change:", error);
+          }
+        }
+      },
+    );
+
+    return () => {
+      console.log("Cleaning up auth listener in Navigator");
+      authListener.subscription.unsubscribe();
+    };
   }, [loadUserData]);
 
   if (isLoading) {
@@ -179,6 +289,28 @@ const MainNavigator = () => {
       </View>
     );
   }
+
+  // SESSION DEBUG BUTTON - nur für Entwicklung (können Sie nach dem Fix entfernen)
+  const debugSession = async () => {
+    console.log("DEBUG: Manually checking for session...");
+    const { data: sessionData } = await supabase.auth.getSession();
+    console.log(
+      "DEBUG Session result:",
+      sessionData?.session
+        ? `Active session: ${sessionData.session.user.id}`
+        : "No active session",
+    );
+
+    if (sessionData?.session) {
+      // Erzwinge State-Update
+      await loadUserData();
+      useUserStore.setState({
+        user: sessionData.session.user,
+        isLoading: false,
+      });
+      console.log("DEBUG: User state forced update");
+    }
+  };
 
   return (
     <Stack.Navigator
@@ -254,11 +386,29 @@ const MainNavigator = () => {
           />
         </>
       ) : (
-        <Stack.Screen
-          name="Auth"
-          component={AuthScreen}
-          options={{ headerShown: false }}
-        />
+        <>
+          <Stack.Screen
+            name="Auth"
+            component={AuthScreen}
+            options={{ headerShown: false }}
+          />
+          {/* Session-Debug-Button - nur für Entwicklung (können Sie nach dem Fix entfernen) */}
+          {__DEV__ && (
+            <Stack.Screen
+              name="Debug"
+              options={{
+                headerShown: true,
+                headerTitle: "Session Debug",
+                // Header mit Debug-Button
+                headerRight: () => (
+                  <Button onPress={debugSession} title="Check Session" />
+                ),
+              }}
+            >
+              {(props) => <AuthScreen {...props} />}
+            </Stack.Screen>
+          )}
+        </>
       )}
     </Stack.Navigator>
   );

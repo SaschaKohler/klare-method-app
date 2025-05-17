@@ -445,6 +445,65 @@ export const useUserStore = createBaseStore<UserState>(
         return { error };
       }
     },
+    
+    createUserProfileIfNeeded: async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (!sessionData?.session) {
+        console.log("No active session, skipping profile creation");
+        return false;
+      }
+      
+      const userId = sessionData.session.user.id;
+      console.log("Checking if user profile exists for:", userId);
+      
+      // Prüfen, ob der Benutzer bereits in der benutzerdefinierten Tabelle existiert
+      const { data: existingUser, error: queryError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', userId)
+        .single();
+        
+      if (queryError && queryError.code !== 'PGRST116') { // PGRST116 = not found
+        console.error("Error checking for existing user:", queryError);
+        return false;
+      }
+      
+      if (existingUser) {
+        console.log("User profile already exists, skipping creation");
+        return true;
+      }
+      
+      console.log("Creating new user profile for:", userId);
+      
+      // Notwendige Benutzerdaten aus der Auth-Session extrahieren
+      const userEmail = sessionData.session.user.email || '';
+      const userName = sessionData.session.user.user_metadata?.name || 
+                      sessionData.session.user.user_metadata?.full_name || 
+                      'Benutzer';
+      
+      const now = new Date().toISOString();
+      
+      // Neuen Benutzer in der benutzerdefinierten Tabelle erstellen
+      const { error: insertError } = await supabase.from('users').insert({
+        id: userId,
+        email: userEmail,
+        name: userName,
+        progress: 0,
+        streak: 0,
+        last_active: now,
+        join_date: now,
+        created_at: now
+      });
+      
+      if (insertError) {
+        console.error("Error creating user profile:", insertError);
+        return false;
+      }
+      
+      console.log("Successfully created user profile");
+      return true;
+    },
 
     signUp: async (email, password, name) => {
       try {
