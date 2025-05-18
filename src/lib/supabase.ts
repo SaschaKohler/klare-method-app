@@ -50,6 +50,7 @@ export const extractOAuthParams = (url: string) => {
       state: params.state || null,
       error: params.error || null,
       errorDescription: params.error_description || null,
+      type: params.type || null, // Typ der Auth-Aktion (signup, recovery, etc.)
     };
   } catch (error) {
     console.error("Error parsing URL:", error, url);
@@ -80,6 +81,7 @@ export const extractOAuthParams = (url: string) => {
       state: params.state || null,
       error: params.error || null,
       errorDescription: params.error_description || null,
+      type: params.type || null, // Typ der Auth-Aktion hinzugefügt
     };
   }
 };
@@ -182,9 +184,33 @@ if (Platform.OS !== "web") {
   // Verbesserte Funktion für den URL-Handler
   const urlHandler = async ({ url }: { url: string }) => {
     console.log("Deep link received:", url);
+    console.log("URL components:", {
+      includes_auth_callback: url.includes("auth/callback"),
+      includes_type_signup: url.includes("type=signup"),
+      includes_type_recovery: url.includes("type=recovery"),
+      includes_type_email_change: url.includes("type=email_change"),
+    });
 
     if (url && url.includes("auth/callback")) {
       console.log("Processing auth callback:", url);
+      
+      // Speziell für Email-Verifizierungs-Flow: Hinweis anzeigen
+      if (url.includes("type=email_change") || url.includes("type=signup") || url.includes("type=recovery") || url.includes("type=signup_success")) {
+        console.log("Email verification or recovery callback detected in URL:", url);
+        
+        // Wenn es ein signup_success Callback von unserer Erfolgsseite ist
+        if (url.includes("type=signup_success")) {
+          // Benutzer über erfolgreiche Verifizierung informieren
+          setTimeout(() => {
+            alert("Deine E-Mail-Adresse wurde erfolgreich bestätigt. Du wirst jetzt angemeldet.");
+          }, 500);
+        } else {
+          // Standard-Callback (direkt über URL)
+          setTimeout(() => {
+            alert("Authentifizierung erfolgreich! Du wirst jetzt angemeldet.");
+          }, 1000);
+        }
+      }
 
       try {
         // Parse URL-Parameter mit unserer speziellen Funktion
@@ -193,9 +219,15 @@ if (Platform.OS !== "web") {
           state,
           error: authError,
           errorDescription,
+          type, // Typ der Auth-Aktion (signup, recovery etc.)
         } = extractOAuthParams(url);
 
-        console.log("Parsed callback parameters - Code:", code, "State:", state || "none");
+        console.log("Parsed callback parameters:", {
+          code: code ? "present" : "absent",
+          state: state || "none",
+          type: type || "none",
+          error: authError || "none"
+        });
 
         // Fehlerbehandlung, falls in der URL ein Fehler zurückgegeben wurde
         if (authError) {
@@ -234,32 +266,59 @@ if (Platform.OS !== "web") {
               // Stellen Sie sicher, dass der Auth-State aktualisiert wurde
               // Zweiter Aufruf um sicherzugehen, dass der Zustand aktualisiert wird
               setTimeout(async () => {
-                await useUserStore.getState().loadUserData();
-                console.log("User state refreshed after delay");
+                // Prüfen, ob die E-Mail verifiziert ist
+                const isEmailVerified = data.session.user.email_confirmed_at !== null;
+                console.log("Email verified status in delayed update:", isEmailVerified ? "Verified" : "Not verified");
+                
+                if (isEmailVerified) {
+                  // Nur Benutzerdaten laden, wenn die E-Mail verifiziert ist
+                  await useUserStore.getState().loadUserData();
+                  console.log("User state refreshed after delay");
+                } else {
+                  // Wenn E-Mail nicht verifiziert ist, keinen Benutzer setzen
+                  console.log("Email not verified, setting user to null in delayed update");
+                  useUserStore.setState({
+                    isLoading: false,
+                    user: null
+                  });
+                }
               }, 500);
               
               // Zusätzlich: Forciere unmittelbare Anwendung der Session
               setTimeout(() => {
                 console.log("Forcing navigation state update...");
                 
-                // Force-Update über Store
-                try {
+                // Vor dem Force-Update prüfen, ob die E-Mail verifiziert ist
+                const isEmailVerified = data.session.user.email_confirmed_at !== null;
+                console.log("Email verified status for force update:", isEmailVerified ? "Verified" : "Not verified");
+                
+                if (isEmailVerified) {
+                  // Force-Update über Store, NUR wenn die E-Mail verifiziert ist
+                  try {
+                    useUserStore.setState({
+                      isLoading: false,
+                      user: {
+                        id: data.session.user.id,
+                        name: data.session.user.user_metadata?.name || 'Benutzer',
+                        email: data.session.user.email || '',
+                        progress: 0,
+                        streak: 0,
+                        lastActive: new Date().toISOString(),
+                        joinDate: new Date().toISOString(),
+                        completedModules: []
+                      }
+                    });
+                    console.log("User state force-updated");
+                  } catch (storeError) {
+                    console.error("Error updating store state:", storeError);
+                  }
+                } else {
+                  // Wenn E-Mail nicht verifiziert ist, keinen Benutzer setzen (=null)
+                  console.log("Email not verified, setting user to null in force update");
                   useUserStore.setState({
                     isLoading: false,
-                    user: {
-                      id: data.session.user.id,
-                      name: data.session.user.user_metadata?.name || 'Benutzer',
-                      email: data.session.user.email || '',
-                      progress: 0,
-                      streak: 0,
-                      lastActive: new Date().toISOString(),
-                      joinDate: new Date().toISOString(),
-                      completedModules: []
-                    }
+                    user: null
                   });
-                  console.log("User state force-updated");
-                } catch (storeError) {
-                  console.error("Error updating store state:", storeError);
                 }
               }, 1000);
             } catch (storeError) {

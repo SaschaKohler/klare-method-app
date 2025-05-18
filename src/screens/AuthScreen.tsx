@@ -28,6 +28,8 @@ import { MotiPressable } from "moti/interactions";
 import { supabase } from "../lib/supabase";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
+// Importiere die neuen Auth-Funktionen
+import { redirectTo, createSessionFromUrl, performOAuth, sendMagicLink, resendConfirmationEmail } from "../lib/auth";
 
 // Auth states
 type AuthViewState = "welcome" | "signin" | "signup" | "forgot";
@@ -62,83 +64,28 @@ export default function AuthScreen() {
   const signInWithGoogle = useUserStore((state) => state.signInWithGoogle);
 
   // Check for auth state changes
+  // Verarbeite Deep-Links, die zur App kommen
   useEffect(() => {
-    console.log("Setting up auth state listener");
-
-    // Check if user is already authenticated
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        console.log("Found existing session, loading user data");
-        setLoading(true);
-        try {
-          useUserStore.getState().loadUserData();
-          console.log("User data loaded successfully from existing session");
-          // Clear any errors that might be displayed
-          setError(null);
-        } catch (loadError) {
-          console.error(
-            "Error loading user data from existing session:",
-            loadError,
-          );
-        } finally {
-          setLoading(false);
-        }
+    // Hole die initiale URL beim App-Start
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        console.log("Processing initial URL:", url);
+        createSessionFromUrl(url).catch(err => 
+          console.error("Error processing initial URL:", err)
+        );
       }
     });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log(
-          `Supabase auth event: ${event}`,
-          session ? "Session available" : "No session",
-        );
-
-        if (event === "SIGNED_IN" && session) {
-          console.log("User signed in successfully, loading user data");
-          // User signed in, load user data
-          setLoading(true);
-          try {
-            await useUserStore.getState().loadUserData();
-            console.log("User data loaded successfully");
-            // Clear any errors that might be displayed
-            setError(null);
-          } catch (loadError) {
-            console.error("Error loading user data:", loadError);
-          } finally {
-            setLoading(false);
-          }
-        } else if (event === "SIGNED_OUT") {
-          console.log("User signed out");
-        } else if (event === "TOKEN_REFRESHED") {
-          console.log("Token refreshed");
-        } else if (event === "USER_UPDATED") {
-          console.log("User updated");
-        } else if (event === "INITIAL_SESSION") {
-          console.log("Initial session loaded");
-          if (session) {
-            console.log("User already has a session, loading user data");
-            setLoading(true);
-            try {
-              await useUserStore.getState().loadUserData();
-              console.log("User data loaded successfully from initial session");
-              // Clear any errors that might be displayed
-              setError(null);
-            } catch (loadError) {
-              console.error(
-                "Error loading user data from initial session:",
-                loadError,
-              );
-            } finally {
-              setLoading(false);
-            }
-          }
-        }
-      },
-    );
+    // Event-Listener für Links, die eingehen, während die App aktiv ist
+    const subscription = Linking.addEventListener("url", ({ url }) => {
+      console.log("URL received while app was running:", url);
+      createSessionFromUrl(url).catch(err => 
+        console.error("Error processing URL event:", err)
+      );
+    });
 
     return () => {
-      console.log("Cleaning up auth listener");
-      authListener.subscription.unsubscribe();
+      subscription.remove();
     };
   }, []);
 
@@ -149,7 +96,55 @@ export default function AuthScreen() {
 
     const { error } = await signIn(email, password);
     if (error) {
-      setError("Anmeldung fehlgeschlagen. Bitte überprüfe deine Zugangsdaten.");
+      // Console-Ausgabe des Fehlers für Debugging
+      console.error("Sign-in error:", error);
+      
+      // Überprüfen, ob es sich um den "Email not confirmed" Fehler handelt
+      // Entweder durch die benutzerdefinierte Fehlermeldung oder den Supabase AuthApiError
+      if (error.message === "email_not_confirmed" || 
+          (error.message && error.message.includes("Email not confirmed"))) {
+        // Spezielle Behandlung für nicht bestätigte E-Mail-Adressen
+        Alert.alert(
+          "E-Mail nicht bestätigt",
+          "Bitte bestätige deine E-Mail-Adresse, bevor du dich anmeldest. Wenn du keine Bestätigungs-E-Mail erhalten hast, kannst du eine neue anfordern.",
+          [
+            {
+              text: "Neue E-Mail senden",
+              onPress: async () => {
+                try {
+                  const redirectUrl = `klare-app://auth/callback`;
+                  const { error: resendError } = await supabase.auth.resend({
+                    type: 'signup',
+                    email,
+                    options: {
+                      emailRedirectTo: redirectUrl,
+                    },
+                  });
+                  
+                  if (resendError) throw resendError;
+                  
+                  Alert.alert(
+                    "E-Mail gesendet",
+                    "Wir haben dir eine neue Bestätigungs-E-Mail gesendet. Bitte überprüfe dein E-Mail-Postfach und klicke auf den Bestätigungslink."
+                  );
+                } catch (resendError) {
+                  console.error("Fehler beim erneuten Senden:", resendError);
+                  Alert.alert(
+                    "Fehler",
+                    "Beim erneuten Senden der Bestätigungs-E-Mail ist ein Fehler aufgetreten. Bitte versuche es später noch einmal."
+                  );
+                }
+              }
+            },
+            {
+              text: "OK",
+              style: "cancel"
+            }
+          ]
+        );
+      } else {
+        setError("Anmeldung fehlgeschlagen. Bitte überprüfe deine Zugangsdaten.");
+      }
     }
 
     setLoading(false);
@@ -171,21 +166,55 @@ export default function AuthScreen() {
       return;
     }
 
-    const { error } = await signUp(email, password, `${firstName} ${lastName}`);
-    if (error) {
-      setError(
-        "Registrierung fehlgeschlagen. Bitte versuche es mit einer anderen E-Mail-Adresse.",
-      );
-    } else {
-      // Wenn keine Fehler auftreten, zeige eine Erfolgsmeldung
-      Alert.alert(
-        "Registrierung erfolgreich",
-        "Wir haben dir eine Bestätigungs-E-Mail gesendet. Bitte überprüfe dein E-Mail-Postfach und bestätige deine E-Mail-Adresse, um dich anzumelden.",
-        [{ text: "OK", onPress: () => setCurrentView("signin") }],
-      );
-    }
+    try {
+      // Verwende die neue Redirect-URL für die Registrierung
+      console.log("Signing up with redirectTo:", redirectTo);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectTo,
+          data: { name: `${firstName} ${lastName}` },
+        },
+      });
 
-    setLoading(false);
+      if (error) throw error;
+
+      if (data) {
+        // Benutzer in Custom-Tabelle erstellen
+        try {
+          const now = new Date().toISOString();
+          
+          // Erstelle Benutzerprofil in 'users'-Tabelle
+          await supabase.from("users").insert({
+            id: data.user?.id,
+            email,
+            name: `${firstName} ${lastName}`,
+            progress: 0,
+            streak: 0,
+            last_active: now,
+            join_date: now,
+            created_at: now,
+          });
+
+          // Wenn keine Fehler auftreten, zeige eine Erfolgsmeldung
+          Alert.alert(
+            "Registrierung erfolgreich",
+            "Wir haben dir eine Bestätigungs-E-Mail gesendet. Bitte überprüfe dein E-Mail-Postfach und bestätige deine E-Mail-Adresse, um dich anzumelden.",
+            [{ text: "OK", onPress: () => setCurrentView("signin") }],
+          );
+        } catch (createError) {
+          console.error("Fehler beim Erstellen des Benutzerprofils:", createError);
+          setError("Registrierung fehlgeschlagen. Bitte versuche es später erneut.");
+        }
+      }
+    } catch (error) {
+      console.error("Registrierungsfehler:", error);
+      setError("Registrierung fehlgeschlagen. Bitte versuche es mit einer anderen E-Mail-Adresse.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -305,89 +334,45 @@ export default function AuthScreen() {
 
     try {
       if (provider === "google") {
-        // Logging für Debugging
-        console.log("Starting Google auth in AuthScreen...");
-
+        console.log("Starting Google auth with new flow...");
+        
         try {
-          // Verwende die Methode aus dem UserStore
-          const { error } = await signInWithGoogle();
-
-          if (error) {
-            console.error("Google OAuth error:", error);
-
-            // Zeige spezifischere Fehlermeldung
-            if (error.message && error.message.includes("invalid")) {
-              setError(
-                "Die Google-Anmeldung ist fehlgeschlagen: Die Authentifizierungs-URL ist ungültig. Bitte kontaktiere den Support.",
-              );
-            } else if (
-              error.message &&
-              (error.message.includes("dismiss") ||
-                error.message.includes("Browser"))
-            ) {
-              setError(
-                "Die Google-Anmeldung ist fehlgeschlagen: Problem mit dem Browser. Bitte versuche es erneut oder kontaktiere den Support.",
-              );
-            } else {
-              setError(
-                `Die Anmeldung mit Google ist fehlgeschlagen. Bitte versuche es später erneut.`,
-              );
-            }
-
-            // Zeige Entwickler-Info in Konsole
-            console.error("Detaillierter Fehler:", JSON.stringify(error));
+          // Verwende die neue performOAuth-Funktion
+          const session = await performOAuth("google");
+          
+          if (session) {
+            console.log("OAuth successful, session established");
+            // Daten laden
+            await useUserStore.getState().loadUserData();
           } else {
-            // Erfolgreich - fügen Sie einen Erzwingungsschritt hinzu
-            setTimeout(() => {
-              forceUpdateUserState();
-            }, 1000);
+            // Benutzer hat den Browser geschlossen oder es gab einen Fehler
+            console.log("OAuth flow cancelled or no session returned");
           }
         } catch (oauthError) {
           console.error("OAuth process error:", oauthError);
-          setError(
-            `Die Anmeldung mit Google ist fehlgeschlagen. Bitte versuche es später erneut.`,
-          );
+          
+          // Fehlermeldung anzeigen
+          if (oauthError instanceof Error) {
+            if (oauthError.message.includes("dismissed") || 
+                oauthError.message.includes("cancel")) {
+              setError("Die Anmeldung wurde abgebrochen.");
+            } else {
+              setError(`Die Anmeldung mit Google ist fehlgeschlagen: ${oauthError.message}`);
+            }
+          } else {
+            setError("Die Anmeldung mit Google ist fehlgeschlagen. Bitte versuche es später erneut.");
+          }
         }
       } else {
         // Für zukünftige Implementierungen anderer Provider
         Alert.alert(
           "Bald verfügbar",
-          `Die Anmeldung mit ${provider} wird in Kürze aktiviert.`,
+          `Die Anmeldung mit ${provider} wird in Kürze aktiviert.`
         );
       }
     } catch (error) {
       console.error(`Fehler bei der Anmeldung mit ${provider}:`, error);
-
-      // Fehlerbehandlung verbessern
-      let errorMessage = `Die Anmeldung mit ${provider} ist fehlgeschlagen. `;
-
-      if (error instanceof Error) {
-        // Spezifischere Fehlermeldung basierend auf Fehlertyp
-        if (error.message.includes("network")) {
-          errorMessage += "Bitte überprüfe deine Internetverbindung.";
-        } else if (error.message.includes("timeout")) {
-          errorMessage +=
-            "Die Anfrage hat zu lange gedauert. Bitte versuche es später erneut.";
-        } else if (error.message.includes("URL")) {
-          errorMessage +=
-            "Es gab ein Problem mit der Authentifizierungs-URL. Bitte kontaktiere den Support.";
-        } else if (
-          error.message.includes("Browser") ||
-          error.message.includes("dismiss")
-        ) {
-          errorMessage +=
-            "Problem mit dem Browser. Bitte starte die App neu und versuche es erneut.";
-        } else {
-          errorMessage += "Bitte versuche es später erneut.";
-        }
-
-        // Detaillierte Fehlerinformationen für Entwicklung
-        console.error("Detaillierter Fehler:", error.message, error.stack);
-      } else {
-        errorMessage += "Bitte versuche es später erneut.";
-      }
-
-      setError(errorMessage);
+      setError(`Die Anmeldung mit ${provider} ist fehlgeschlagen. Bitte versuche es später erneut.`);
     } finally {
       setLoading(false);
     }
@@ -403,9 +388,9 @@ export default function AuthScreen() {
     setError(null);
 
     try {
-      // Benutze Supabase direkt ohne benutzerdefinierte Domain
+      // Benutze Supabase direkt mit der korrekten redirectTo URL
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: Linking.createURL("/reset-password"),
+        redirectTo: redirectTo,
       });
 
       if (error) {

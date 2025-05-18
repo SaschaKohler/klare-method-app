@@ -42,6 +42,8 @@ export type KlareMethodStep = (typeof KlareMethodSteps)[number];
 export type RootStackParamList = {
   Main: undefined;
   Auth: undefined;
+  EmailConfirmation: undefined;
+  Debug: undefined;
   KlareMethod: { step: KlareMethodStep };
   LifeWheel: undefined;
   Journal: undefined;
@@ -163,54 +165,80 @@ const TabNavigator = () => {
   );
 };
 
+// EmailVerificationScreen importieren
+import EmailConfirmationScreen from "../components/auth/EmailConfirmationScreen";
+
 const MainNavigator = () => {
   // State für Force-Update nach OAuth
   const [forceRefresh, setForceRefresh] = useState(0);
   const user = useUserStore((state) => state.user);
   const isLoading = useUserStore((state) => state.isLoading);
   const loadUserData = useUserStore((state) => state.loadUserData);
+  const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(null);
+  const [userEmail, setUserEmail] = useState("");
   const theme = useTheme();
   const isDarkMode = theme.dark;
   const themeColors = isDarkMode ? darkKlareColors : lightKlareColors;
 
-  // Direkte Session-Überprüfung beim Mounting und nach jedem OAuth-Callback
+  // Aktualisierte Session-Überprüfung mit E-Mail-Verifizierungsstatus
   useEffect(() => {
     async function checkSession() {
       console.log("Checking session in MainNavigator...");
+      setIsEmailVerified(null); // Zurücksetzen während des Ladens
+      
       const { data: sessionData } = await supabase.auth.getSession();
       
       if (sessionData?.session) {
         console.log("Session found in MainNavigator:", sessionData.session.user.id);
         
-        // Stellen Sie sicher, dass der Benutzer in der benutzerdefinierten Tabelle existiert
-        try {
-          // Erstelle das Benutzerprofil, falls es noch nicht existiert
-          console.log("MainNavigator: Creating user profile if needed...");
-          await useUserStore.getState().createUserProfileIfNeeded();
-          
-          // Benutzerdaten laden
-          await loadUserData();
-          
-          // Direktes setzen des Benutzers im Store für sofortige Wirkung
+        // E-Mail-Verifizierungsstatus prüfen
+        const isVerified = sessionData.session.user.email_confirmed_at !== null;
+        const email = sessionData.session.user.email || "";
+        
+        setIsEmailVerified(isVerified);
+        setUserEmail(email);
+        
+        console.log("Email verification status:", isVerified ? "Verified" : "Not verified");
+        
+        // Benutzerprofil nur erstellen, wenn die E-Mail bestätigt ist
+        if (isVerified) {
+          try {
+            // Erstelle das Benutzerprofil, falls es noch nicht existiert
+            console.log("MainNavigator: Creating user profile if needed...");
+            await useUserStore.getState().createUserProfileIfNeeded();
+            
+            // Benutzerdaten laden
+            await loadUserData();
+            
+            // Direktes setzen des Benutzers im Store für sofortige Wirkung
+            useUserStore.setState({
+              user: {
+                id: sessionData.session.user.id,
+                name: sessionData.session.user.user_metadata?.name || 'Benutzer',
+                email: email,
+                progress: 0,
+                streak: 0,
+                lastActive: new Date().toISOString(),
+                joinDate: new Date().toISOString(),
+                completedModules: []
+              },
+              isLoading: false
+            });
+            console.log("User state updated directly in MainNavigator");
+          } catch (error) {
+            console.error("Error loading user after session check:", error);
+          }
+        } else {
+          // Wenn die E-Mail nicht bestätigt ist, null setzen
+          console.log("Email not verified, setting user to null");
           useUserStore.setState({
-            user: {
-              id: sessionData.session.user.id,
-              name: sessionData.session.user.user_metadata?.name || 'Benutzer',
-              email: sessionData.session.user.email || '',
-              progress: 0,
-              streak: 0,
-              lastActive: new Date().toISOString(),
-              joinDate: new Date().toISOString(),
-              completedModules: []
-            },
+            user: null,
             isLoading: false
           });
-          console.log("User state updated directly in MainNavigator");
-        } catch (error) {
-          console.error("Error loading user after session check:", error);
         }
       } else {
         console.log("No active session found in MainNavigator");
+        setIsEmailVerified(null); // Kein Benutzer, daher keine Verifizierung
       }
     }
     
@@ -256,17 +284,38 @@ const MainNavigator = () => {
 
         if (session) {
           console.log("Session available after auth change:", session.user.id);
-          // Erzwinge State-Update
-          try {
-            await loadUserData();
-            // Direktes setzen des Benutzers für sofortige Wirkung
+          
+          // E-Mail-Verifizierungsstatus prüfen
+          const isVerified = session.user.email_confirmed_at !== null;
+          const email = session.user.email || "";
+          
+          setIsEmailVerified(isVerified);
+          setUserEmail(email);
+          
+          console.log("Email verification status:", isVerified ? "Verified" : "Not verified");
+          
+          // Nur beim Bestätigen oder Anmelden mit bestätigter E-Mail Benutzerdaten laden
+          if (isVerified) {
+            try {
+              await loadUserData();
+              // Direktes setzen des Benutzers für sofortige Wirkung
+              useUserStore.setState({
+                user: session.user,
+                isLoading: false,
+              });
+            } catch (error) {
+              console.error("Error loading user after auth state change:", error);
+            }
+          } else {
+            // Wenn die E-Mail nicht bestätigt ist, null setzen
             useUserStore.setState({
-              user: session.user,
-              isLoading: false,
+              user: null,
+              isLoading: false
             });
-          } catch (error) {
-            console.error("Error loading user after auth state change:", error);
           }
+        } else {
+          // Kein Benutzer, daher keine Verifizierung
+          setIsEmailVerified(null);
         }
       },
     );
@@ -276,6 +325,35 @@ const MainNavigator = () => {
       authListener.subscription.unsubscribe();
     };
   }, [loadUserData]);
+
+  // Hilfsfunktionen für E-Mail-Bestätigung
+  const resendConfirmationEmail = async () => {
+    try {
+      // Importiere die resendConfirmationEmail-Funktion aus auth.ts
+      const { resendConfirmationEmail } = await import("../lib/auth");
+      
+      // Verwende die neue Funktion mit der korrekten redirectTo-URL
+      await resendConfirmationEmail(userEmail);
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error('Error resending confirmation email:', error);
+      return Promise.reject(error);
+    }
+  };
+  
+  const handleSignOut = async () => {
+    try {
+      await useUserStore.getState().signOut();
+      setIsEmailVerified(null);
+      setUserEmail("");
+      setForceRefresh(prev => prev + 1);
+      return Promise.resolve();
+    } catch (error) {
+      console.error('Error signing out:', error);
+      return Promise.reject(error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -300,15 +378,22 @@ const MainNavigator = () => {
         ? `Active session: ${sessionData.session.user.id}`
         : "No active session",
     );
-
+    
     if (sessionData?.session) {
+      // E-Mail-Verifizierungsstatus ausgeben
+      const isVerified = sessionData.session.user.email_confirmed_at !== null;
+      console.log("DEBUG Email verification status:", isVerified ? "Verified" : "Not verified", 
+                  "Timestamp:", sessionData.session.user.email_confirmed_at);
+      
       // Erzwinge State-Update
-      await loadUserData();
-      useUserStore.setState({
-        user: sessionData.session.user,
-        isLoading: false,
-      });
-      console.log("DEBUG: User state forced update");
+      if (isVerified) {
+        await loadUserData();
+        useUserStore.setState({
+          user: sessionData.session.user,
+          isLoading: false,
+        });
+        console.log("DEBUG: User state forced update");
+      }
     }
   };
 
@@ -387,11 +472,29 @@ const MainNavigator = () => {
         </>
       ) : (
         <>
-          <Stack.Screen
-            name="Auth"
-            component={AuthScreen}
-            options={{ headerShown: false }}
-          />
+          {isEmailVerified === false ? (
+            // Zeige den Bestätigungsbildschirm, wenn der Benutzer angemeldet ist, aber die E-Mail nicht bestätigt hat
+            <Stack.Screen
+              name="EmailConfirmation"
+              options={{ headerShown: false }}
+            >
+              {(props) => (
+                <EmailConfirmationScreen
+                  email={userEmail}
+                  onResendConfirmation={resendConfirmationEmail}
+                  onSignOut={handleSignOut}
+                  {...props}
+                />
+              )}
+            </Stack.Screen>
+          ) : (
+            // Normaler Anmeldebildschirm
+            <Stack.Screen
+              name="Auth"
+              component={AuthScreen}
+              options={{ headerShown: false }}
+            />
+          )}
           {/* Session-Debug-Button - nur für Entwicklung (können Sie nach dem Fix entfernen) */}
           {__DEV__ && (
             <Stack.Screen
