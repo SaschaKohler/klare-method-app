@@ -46,6 +46,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView
+      edges={["left", "right"]} // Only apply safe area to left and right edges
       style={[
         styles.container,
         { backgroundColor: paperTheme.colors.background },

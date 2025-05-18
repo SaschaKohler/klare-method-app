@@ -4,12 +4,14 @@ import { Text, Card, Button, Divider, List, useTheme } from "react-native-paper"
 import { Ionicons } from "@expo/vector-icons";
 import * as Application from "expo-application";
 import Constants from "expo-constants";
+import { SUPABASE_URL } from "@env";
 
 const DeepLinkInfo = () => {
   const theme = useTheme();
   const [appScheme, setAppScheme] = useState<string>("klare-app");
   const [copied, setCopied] = useState(false);
   const [userAgent, setUserAgent] = useState<string>("");
+  const [supabaseProjectUrl, setSupabaseProjectUrl] = useState<string>(SUPABASE_URL || "");
 
   useEffect(() => {
     try {
@@ -40,24 +42,28 @@ const DeepLinkInfo = () => {
     Alert.alert("Kopiert", "Die URL wurde in die Zwischenablage kopiert.");
   };
 
+  // Verbesserte Redirect URLs mit klaren Beschreibungen
   const redirectURLs = [
     {
-      title: "Auth Callback URL",
+      title: "Auth Callback URL (für Supabase)",
       url: `${appScheme}://auth/callback`,
-      description: "URL für die Rückleitung nach OAuth Authentifizierung",
+      description: "Diese URL muss in Supabase unter 'Auth > URL Configuration > Redirect URLs' eingetragen werden.",
+      important: true,
     },
     {
-      title: "Reset Password URL",
-      url: `${appScheme}://reset-password`,
-      description: "URL für Passwort-Reset Prozess",
+      title: "Web OAuth Callback (für Supabase)",
+      url: `${supabaseProjectUrl}/auth/v1/callback`,
+      description: "Automatisch von Supabase beim OAuth-Prozess verwendet. Muss bei OAuth-Providern wie Google, Facebook, etc. eingetragen werden.",
+      important: true,
     },
   ];
 
   const configSteps = [
-    "Stelle sicher, dass das korrekte URL-Schema in app.json definiert ist",
-    "Konfiguriere die Redirect URLs in deinem Supabase-Projekt",
-    "Füge die URL-Typen in Info.plist (iOS) und Intent-Filter in AndroidManifest.xml hinzu",
-    "Vergewissere dich, dass der OAuth-Provider die Redirect-URLs akzeptiert",
+    "Scheme in app.json ist auf 'klare-app' gesetzt", 
+    "Android-Intent-Filter in app.json zeigen auf 'klare-app://auth/callback'",
+    "iOS-URL-Types in app.json zeigen auf 'klare-app'",
+    "Redirect URL in Supabase ist auf 'klare-app://auth/callback' gesetzt",
+    "Google OAuth Provider in Supabase ist aktiviert und korrekt konfiguriert"
   ];
 
   const appInfo = {
@@ -65,10 +71,29 @@ const DeepLinkInfo = () => {
     version: Application.nativeApplicationVersion || Constants.expoConfig?.version || "1.0.0",
     scheme: appScheme,
     bundleId: Application.applicationId || Constants.expoConfig?.ios?.bundleIdentifier || "com.blisha1.klaremethode",
+    supabaseUrl: supabaseProjectUrl,
   };
 
   const openSupabaseSettings = () => {
-    Linking.openURL("https://app.supabase.com/project/_/auth/url-configuration");
+    // Direkt zur URL-Konfiguration in Supabase navigieren
+    const supabaseAuthUrl = supabaseProjectUrl 
+      ? `${supabaseProjectUrl.replace('.co', '.co/project/_/auth/url-configuration')}` 
+      : "https://app.supabase.com/project/_/auth/url-configuration";
+    
+    Linking.openURL(supabaseAuthUrl);
+  };
+
+  const testDeepLink = () => {
+    const testUrl = `${appScheme}://auth/callback?test=true`;
+    Linking.openURL(testUrl)
+      .then(() => console.log("Deep link test successful"))
+      .catch((error) => {
+        console.error("Deep link test failed:", error);
+        Alert.alert(
+          "Test fehlgeschlagen", 
+          "Der Deep Link konnte nicht geöffnet werden. Überprüfe die URL-Schema-Konfiguration in deiner App."
+        );
+      });
   };
 
   return (
@@ -97,17 +122,24 @@ const DeepLinkInfo = () => {
               <Text style={styles.infoLabel}>URL Schema:</Text>
               <Text style={styles.infoValue}>{appInfo.scheme}</Text>
             </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Supabase URL:</Text>
+              <Text style={styles.infoValue}>{appInfo.supabaseUrl || "Nicht konfiguriert"}</Text>
+            </View>
           </View>
 
           <Divider style={styles.divider} />
           
-          <Text style={styles.sectionTitle}>Redirect URLs für OAuth</Text>
+          <Text style={styles.sectionTitle}>Redirect URLs</Text>
           <Text style={styles.description}>
-            Diese URLs müssen im OAuth-Provider (Google, Facebook, etc.) und in der Supabase-Konsole konfiguriert werden.
+            Diese URLs müssen bei den verschiedenen Diensten konfiguriert werden:
           </Text>
           
           {redirectURLs.map((item, index) => (
-            <View key={index} style={styles.urlItem}>
+            <View key={index} style={[
+              styles.urlItem, 
+              item.important ? styles.importantUrlItem : null
+            ]}>
               <Text style={styles.urlTitle}>{item.title}</Text>
               <Text style={styles.url}>{item.url}</Text>
               <Text style={styles.urlDescription}>{item.description}</Text>
@@ -121,9 +153,17 @@ const DeepLinkInfo = () => {
             </View>
           ))}
 
+          <Button 
+            mode="contained" 
+            onPress={testDeepLink}
+            style={[styles.button, { marginTop: 16 }]}
+          >
+            Deep Link testen
+          </Button>
+
           <Divider style={styles.divider} />
           
-          <Text style={styles.sectionTitle}>Konfigurationsschritte</Text>
+          <Text style={styles.sectionTitle}>Konfiguration checken</Text>
           <List.Section>
             {configSteps.map((step, index) => (
               <List.Item
@@ -135,6 +175,26 @@ const DeepLinkInfo = () => {
             ))}
           </List.Section>
 
+          <Divider style={styles.divider} />
+          
+          <Text style={styles.sectionTitle}>Tipps bei Problemen</Text>
+          <View style={styles.tipsBox}>
+            <Text style={styles.tipsTitle}>1. App neu installieren</Text>
+            <Text style={styles.tipsText}>
+              Nach Änderungen an der Deep-Link-Konfiguration sollte die App komplett neu installiert werden.
+            </Text>
+            
+            <Text style={styles.tipsTitle}>2. Supabase Dashboard prüfen</Text>
+            <Text style={styles.tipsText}>
+              Stelle sicher, dass die Redirect-URL exakt "klare-app://auth/callback" lautet.
+            </Text>
+            
+            <Text style={styles.tipsTitle}>3. Google OAuth prüfen</Text>
+            <Text style={styles.tipsText}>
+              Der Supabase-Callback muss bei Google Cloud in den OAuth-Einstellungen als autorisierte Redirect-URL eingetragen sein.
+            </Text>
+          </View>
+          
           <Divider style={styles.divider} />
           
           <Text style={styles.sectionTitle}>Debug Informationen</Text>
@@ -197,6 +257,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
   },
+  importantUrlItem: {
+    backgroundColor: "#fff8e1", // Light yellow background for important items
+    borderLeftWidth: 4,
+    borderLeftColor: "#ffc107", // Amber color
+  },
   urlTitle: {
     fontWeight: "bold",
     fontSize: 16,
@@ -219,6 +284,21 @@ const styles = StyleSheet.create({
   stepText: {
     fontSize: 14,
   },
+  tipsBox: {
+    backgroundColor: "#f8f9fa",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  tipsTitle: {
+    fontWeight: "bold",
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  tipsText: {
+    fontSize: 14,
+    marginBottom: 12,
+  },
   button: {
     marginTop: 8,
   },
@@ -236,5 +316,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 });
+
+export default DeepLinkInfo;
 
 export default DeepLinkInfo;

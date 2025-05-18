@@ -317,7 +317,10 @@ export default function LifeWheelScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      edges={["left", "right"]} // Only apply safe area to left and right edges
+      style={styles.container}
+    >
       <StatusBar style={isDarkMode ? "light" : "dark"} />
 
       <KeyboardAvoidingView

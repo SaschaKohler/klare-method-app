@@ -10,13 +10,15 @@ const createStyles = (theme: Theme, klareColors: any) =>
     },
     scrollContent: {
       padding: 16,
+      paddingTop: 5, // Remove padding at top
       paddingBottom: 32,
     },
     headerContainer: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 24,
+      marginTop: 4, // Minimal top margin
+      marginBottom: 16, // Reduced margin
     },
     greeting: {
       fontSize: 16,

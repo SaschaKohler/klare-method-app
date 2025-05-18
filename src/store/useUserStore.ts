@@ -409,25 +409,28 @@ export const useUserStore = createBaseStore<UserState>(
           // Wenn es ein "Email not confirmed" Fehler ist, durchreichen
           // Supabase gibt hier einen AuthApiError mit dem Nachrichtentext "Email not confirmed" zurück
           console.error("Auth error during login:", error);
-          
+
           if (error.message && error.message.includes("Email not confirmed")) {
             console.log("User's email is not confirmed, forwarding error");
             return { error };
           }
-          
+
           throw error;
         }
 
         if (data?.user) {
           // Prüfen, ob E-Mail verifiziert ist
           const isEmailVerified = data.user.email_confirmed_at !== null;
-          console.log("Email verified status after login:", isEmailVerified ? "Verified" : "Not verified");
-          
+          console.log(
+            "Email verified status after login:",
+            isEmailVerified ? "Verified" : "Not verified",
+          );
+
           if (!isEmailVerified) {
             // Nicht verifizierte Benutzer: Gesonderten Fehler zurückgeben
             return { error: new Error("email_not_confirmed") };
           }
-          
+
           // Nach erfolgreicher Anmeldung Daten laden
           await get().loadUserData();
           return { error: null };
@@ -457,8 +460,10 @@ export const useUserStore = createBaseStore<UserState>(
 
         // In diesem Punkt warten wir NICHT auf ein Ergebnis, da die App erst nach Redirect
         // wieder aufgerufen wird. Der aktuelle Flow kehrt nicht sofort zur App zurück.
-        console.log("Auth process started, app will be reopened after authentication.");
-        
+        console.log(
+          "Auth process started, app will be reopened after authentication.",
+        );
+
         // Wir geben ein erfolgreiches Ergebnis zurück, obwohl der Prozess asynchron weiterläuft
         return { error: null };
       } catch (error) {
@@ -466,48 +471,49 @@ export const useUserStore = createBaseStore<UserState>(
         return { error };
       }
     },
-    
+
     createUserProfileIfNeeded: async () => {
       const { data: sessionData } = await supabase.auth.getSession();
-      
+
       if (!sessionData?.session) {
         console.log("No active session, skipping profile creation");
         return false;
       }
-      
+
       const userId = sessionData.session.user.id;
       console.log("Checking if user profile exists for:", userId);
-      
+
       try {
         // Prüfen, ob der Benutzer bereits in der benutzerdefinierten Tabelle existiert
         const { data: existingUser, error: queryError } = await supabase
-          .from('users')
-          .select('id')
-          .eq('id', userId);
-          
+          .from("users")
+          .select("id")
+          .eq("id", userId);
+
         if (queryError) {
           console.error("Error checking for existing user:", queryError);
           return false;
         }
-        
+
         // Wenn Benutzer gefunden wurde (Array mit Länge > 0), dann überspringen
         if (existingUser && existingUser.length > 0) {
           console.log("User profile already exists, skipping creation");
           return true;
         }
-        
+
         console.log("Creating new user profile for:", userId);
-        
+
         // Notwendige Benutzerdaten aus der Auth-Session extrahieren
-        const userEmail = sessionData.session.user.email || '';
-        const userName = sessionData.session.user.user_metadata?.name || 
-                        sessionData.session.user.user_metadata?.full_name || 
-                        'Benutzer';
-        
+        const userEmail = sessionData.session.user.email || "";
+        const userName =
+          sessionData.session.user.user_metadata?.name ||
+          sessionData.session.user.user_metadata?.full_name ||
+          "Benutzer";
+
         const now = new Date().toISOString();
-        
+
         // Neuen Benutzer in der benutzerdefinierten Tabelle erstellen
-        const { error: insertError } = await supabase.from('users').insert({
+        const { error: insertError } = await supabase.from("users").insert({
           id: userId,
           email: userEmail,
           name: userName,
@@ -515,19 +521,21 @@ export const useUserStore = createBaseStore<UserState>(
           streak: 0,
           last_active: now,
           join_date: now,
-          created_at: now
+          created_at: now,
         });
-        
+
         if (insertError) {
           console.error("Error creating user profile:", insertError);
           // Wenn es ein Fehler wegen Duplikat ist, gilt dies als Erfolg
-          if (insertError.code === '23505') {
-            console.log("User already exists (detected from error). This is okay.");
+          if (insertError.code === "23505") {
+            console.log(
+              "User already exists (detected from error). This is okay.",
+            );
             return true;
           }
           return false;
         }
-        
+
         console.log("Successfully created user profile");
         return true;
       } catch (error) {
@@ -542,25 +550,30 @@ export const useUserStore = createBaseStore<UserState>(
         // Anstatt direkt zur App zu redirecten, verwenden wir eine Erfolgsseite
         // WICHTIG: Ersetzen Sie YOUR_HOSTED_PAGE_URL durch die URL, unter der Sie die HTML-Seite gehostet haben
         const redirectUrl = `https://YOUR_HOSTED_PAGE_URL/verification-success.html`;
-        
+
         // Debug-Ausgabe für die Redirect-URL
         console.log("Using signup redirect URL:", redirectUrl);
-        
+
         // In der Entwicklungsumgebung den vollständigen Link anzeigen, der in der E-Mail stehen sollte
         if (__DEV__) {
           const exampleToken = "example-token-placeholder";
           const exampleLink = `${SUPABASE_URL}/auth/v1/verify?token=${exampleToken}&type=signup&redirect_to=${encodeURIComponent(redirectUrl)}`;
-          console.log("DEBUG - Example verification link structure:", exampleLink);
-          console.log("DEBUG - Make sure your Supabase email templates use this URL format with the correct redirect_to parameter");
+          console.log(
+            "DEBUG - Example verification link structure:",
+            exampleLink,
+          );
+          console.log(
+            "DEBUG - Make sure your Supabase email templates use this URL format with the correct redirect_to parameter",
+          );
         }
-        
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: redirectUrl,
-            data: { name: name } // Speichere den Namen als Metadaten
-          }
+            data: { name: name }, // Speichere den Namen als Metadaten
+          },
         });
 
         if (error) throw error;

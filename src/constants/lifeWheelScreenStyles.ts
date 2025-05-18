@@ -9,7 +9,7 @@ const createLifeWheelScreenStyles = (theme: Theme, themeColors: any) =>
       backgroundColor: theme.colors.background,
     },
     scrollContent: {
-      padding: 16,
+      padding: 15,
       paddingBottom: 32,
     },
     header: {

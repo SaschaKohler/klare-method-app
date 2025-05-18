@@ -23,7 +23,7 @@ export const supabase = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
   },
 });
 
-// Hilfsfunktion zum Extrahieren von OAuth-Parametern aus einer URL
+// Verbesserte Hilfsfunktion zum Extrahieren von OAuth-Parametern aus einer URL
 export const extractOAuthParams = (url: string) => {
   // URL-Parameter extrahieren
   const params: Record<string, string> = {};
@@ -42,8 +42,13 @@ export const extractOAuthParams = (url: string) => {
       params[key] = value;
     }
 
-    // Console-Ausgabe für Debugging
-    console.log("Extracted OAuth params:", params);
+    // Console-Ausgabe für Debugging (sensible Daten nicht vollständig loggen)
+    console.log("Extracted OAuth params:", {
+      hasCode: params.code ? "yes" : "no",
+      hasState: params.state ? "yes" : "no",
+      hasError: params.error ? "yes" : "no",
+      type: params.type || "none"
+    });
 
     return {
       code: params.code || null,
@@ -53,7 +58,8 @@ export const extractOAuthParams = (url: string) => {
       type: params.type || null, // Typ der Auth-Aktion (signup, recovery, etc.)
     };
   } catch (error) {
-    console.error("Error parsing URL:", error, url);
+    console.error("Error parsing URL:", error);
+    console.log("Attempting manual URL parameter extraction");
 
     // Fallback: Manuelle Parameter-Extraktion
     const queryStart = url.indexOf("?");
@@ -76,18 +82,25 @@ export const extractOAuthParams = (url: string) => {
       });
     }
 
+    console.log("Manual extraction results:", {
+      hasCode: params.code ? "yes" : "no",
+      hasState: params.state ? "yes" : "no",
+      hasError: params.error ? "yes" : "no",
+      type: params.type || "none"
+    });
+
     return {
       code: params.code || null,
       state: params.state || null,
       error: params.error || null,
       errorDescription: params.error_description || null,
-      type: params.type || null, // Typ der Auth-Aktion hinzugefügt
+      type: params.type || null,
     };
   }
 };
 
-// Verbesserte Hilfsfunktion für den OAuth-Prozess
-export const openOAuthSession = async (
+// Vereinfachte, robuste Hilfsfunktion für den OAuth-Prozess
+export const performOAuth = async (
   provider: "google" | "facebook" | "apple",
 ) => {
   try {
@@ -95,9 +108,8 @@ export const openOAuthSession = async (
     const redirectUrl = getOAuthRedirectUrl();
     console.log(`Using redirect URL for ${provider}:`, redirectUrl);
 
-    // Debug-Informationen
-    console.log("Current platform:", Platform.OS);
-    console.log("URL scheme:", SCHEME);
+    // Debug-Informationen für Fehlerbehebung
+    console.log("Platform:", Platform.OS, "Scheme:", SCHEME);
 
     // Spezifische Provider-Optionen
     const providerOptions: Record<string, any> = {
@@ -116,63 +128,56 @@ export const openOAuthSession = async (
       provider,
       options: {
         redirectTo: redirectUrl,
+        // skipBrowserRedirect auf false setzen für direktes Öffnen
         skipBrowserRedirect: false,
         ...providerOptions[provider],
       },
     });
 
     if (error) {
-      console.error(`${provider} OAuth initialization error:`, error);
+      console.error(`${provider} OAuth error:`, {
+        message: error.message,
+        status: error.status,
+        stack: error.stack
+      });
       throw error;
     }
 
     if (!data?.url) {
-      console.error(`No ${provider} OAuth URL received from Supabase`);
-      throw new Error(`Keine OAuth-URL von Supabase erhalten für ${provider}`);
+      console.error(`No ${provider} OAuth URL received`);
+      throw new Error(`Keine OAuth-URL erhalten für ${provider}`);
     }
 
-    console.log(`Got ${provider} OAuth URL:`, data.url);
+    console.log(`Opening ${provider} auth URL:`, data.url);
 
-    // Füge zusätzliche Debugging-Informationen hinzu
-    console.log("Opening OAuth URL...");
-
-    // Einfacher Ansatz mit Linking - funktioniert in praktisch jedem Fall
+    // Direkt mit Linking öffnen - einfach und zuverlässig
     await Linking.openURL(data.url);
-    console.log("Opened OAuth URL with Linking");
+    console.log("Opened OAuth URL successfully");
 
-    return { result: { type: "opened" }, error: null };
+    return { success: true };
   } catch (error) {
-    console.error("OAuth session error:", error);
-    return { result: null, error };
+    console.error("OAuth process error:", error);
+    return { success: false, error };
   }
 };
 
-// Verbesserte Funktion zum Erstellen der OAuth-Redirect-URL
+// Vereinfachte Funktion zum Erstellen der OAuth-Redirect-URL
 export const getOAuthRedirectUrl = () => {
   // Für Mobile Apps, das App-Schema verwenden
   if (Platform.OS !== "web") {
+    // Direkte und konsistente URL-Erstellung ohne Umwege
+    const redirectUrl = `${SCHEME}://auth/callback`;
+    console.log("Generated redirect URL:", redirectUrl);
+    
+    // Nur für Debug-Zwecke: Vergleich mit Expo Linking URL
     try {
-      // Einfachere und robustere Version ohne URL-Encoding-Probleme
-      const redirectUrl = `${SCHEME}://auth/callback`;
-      console.log("Generated redirect URL:", redirectUrl);
-
-      // Zusätzlicher Debug-Check
       const expoLinkingUrl = Linking.createURL("auth/callback");
       console.log("Expo Linking URL for comparison:", expoLinkingUrl);
-
-      // Prüfe das Format der URL
-      if (redirectUrl.indexOf(" ") !== -1) {
-        console.warn(
-          "Warning: Redirect URL contains spaces, this may cause issues",
-        );
-      }
-
-      return redirectUrl;
     } catch (error) {
-      console.error("Error generating redirect URL:", error);
-      // Fallback auf direkte Konstruktion
-      return `${SCHEME}://auth/callback`;
+      console.log("Info: Could not generate Expo Linking URL for comparison");
     }
+    
+    return redirectUrl;
   }
 
   // Für Web-Umgebung die direkte Supabase-URL verwenden
@@ -181,39 +186,15 @@ export const getOAuthRedirectUrl = () => {
 
 // URL-Handler für Authentifizierungs-Callbacks
 if (Platform.OS !== "web") {
-  // Verbesserte Funktion für den URL-Handler
+  // Vereinfachter URL-Handler
   const urlHandler = async ({ url }: { url: string }) => {
     console.log("Deep link received:", url);
-    console.log("URL components:", {
-      includes_auth_callback: url.includes("auth/callback"),
-      includes_type_signup: url.includes("type=signup"),
-      includes_type_recovery: url.includes("type=recovery"),
-      includes_type_email_change: url.includes("type=email_change"),
-    });
-
+    
     if (url && url.includes("auth/callback")) {
       console.log("Processing auth callback:", url);
       
-      // Speziell für Email-Verifizierungs-Flow: Hinweis anzeigen
-      if (url.includes("type=email_change") || url.includes("type=signup") || url.includes("type=recovery") || url.includes("type=signup_success")) {
-        console.log("Email verification or recovery callback detected in URL:", url);
-        
-        // Wenn es ein signup_success Callback von unserer Erfolgsseite ist
-        if (url.includes("type=signup_success")) {
-          // Benutzer über erfolgreiche Verifizierung informieren
-          setTimeout(() => {
-            alert("Deine E-Mail-Adresse wurde erfolgreich bestätigt. Du wirst jetzt angemeldet.");
-          }, 500);
-        } else {
-          // Standard-Callback (direkt über URL)
-          setTimeout(() => {
-            alert("Authentifizierung erfolgreich! Du wirst jetzt angemeldet.");
-          }, 1000);
-        }
-      }
-
       try {
-        // Parse URL-Parameter mit unserer speziellen Funktion
+        // Parse URL-Parameter mit unserer spezialisierten Funktion
         const {
           code,
           state,
@@ -222,149 +203,57 @@ if (Platform.OS !== "web") {
           type, // Typ der Auth-Aktion (signup, recovery etc.)
         } = extractOAuthParams(url);
 
-        console.log("Parsed callback parameters:", {
-          code: code ? "present" : "absent",
-          state: state || "none",
-          type: type || "none",
-          error: authError || "none"
-        });
-
         // Fehlerbehandlung, falls in der URL ein Fehler zurückgegeben wurde
         if (authError) {
-          console.error(
-            `Auth error in URL: ${authError} - ${errorDescription}`,
-          );
+          console.error(`Auth error in callback: ${authError} - ${errorDescription}`);
           return;
         }
 
-        // Wichtige Änderung: Akzeptiere URLs mit Code auch ohne State-Parameter
+        // Code-basierten Flow verarbeiten
         if (code) {
-          console.log("Found auth code, exchanging for session");
+          console.log("Auth code found, exchanging for session");
 
-          // OAuth Flow manuell abschließen
-          const { data, error } =
-            await supabase.auth.exchangeCodeForSession(code);
+          // OAuth Flow abschließen
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
           if (error) {
             console.error("Error exchanging code for session:", error);
-          } else if (data?.session) {
-            console.log("Successfully got session:", data.session.user.id);
+            return;
+          }
 
+          if (data?.session) {
+            console.log("Successfully got session:", data.session.user.id);
+            
             // Trigger user data loading
             try {
-              // KRITISCH: Erstellen des Benutzerprofils für unsere benutzerdefinierte Tabelle
               const { useUserStore } = require("../store/useUserStore");
               
-              // Erstelle das Benutzerprofil, falls es noch nicht existiert
-              console.log("Creating user profile if needed...");
+              // Benutzerprofil erstellen/aktualisieren
               await useUserStore.getState().createUserProfileIfNeeded();
-              
-              // Dann Benutzerdaten laden
               await useUserStore.getState().loadUserData();
-              console.log("User data loaded successfully after auth callback");
               
-              // Stellen Sie sicher, dass der Auth-State aktualisiert wurde
-              // Zweiter Aufruf um sicherzugehen, dass der Zustand aktualisiert wird
-              setTimeout(async () => {
-                // Prüfen, ob die E-Mail verifiziert ist
-                const isEmailVerified = data.session.user.email_confirmed_at !== null;
-                console.log("Email verified status in delayed update:", isEmailVerified ? "Verified" : "Not verified");
-                
-                if (isEmailVerified) {
-                  // Nur Benutzerdaten laden, wenn die E-Mail verifiziert ist
-                  await useUserStore.getState().loadUserData();
-                  console.log("User state refreshed after delay");
-                } else {
-                  // Wenn E-Mail nicht verifiziert ist, keinen Benutzer setzen
-                  console.log("Email not verified, setting user to null in delayed update");
-                  useUserStore.setState({
-                    isLoading: false,
-                    user: null
-                  });
-                }
-              }, 500);
-              
-              // Zusätzlich: Forciere unmittelbare Anwendung der Session
-              setTimeout(() => {
-                console.log("Forcing navigation state update...");
-                
-                // Vor dem Force-Update prüfen, ob die E-Mail verifiziert ist
-                const isEmailVerified = data.session.user.email_confirmed_at !== null;
-                console.log("Email verified status for force update:", isEmailVerified ? "Verified" : "Not verified");
-                
-                if (isEmailVerified) {
-                  // Force-Update über Store, NUR wenn die E-Mail verifiziert ist
-                  try {
-                    useUserStore.setState({
-                      isLoading: false,
-                      user: {
-                        id: data.session.user.id,
-                        name: data.session.user.user_metadata?.name || 'Benutzer',
-                        email: data.session.user.email || '',
-                        progress: 0,
-                        streak: 0,
-                        lastActive: new Date().toISOString(),
-                        joinDate: new Date().toISOString(),
-                        completedModules: []
-                      }
-                    });
-                    console.log("User state force-updated");
-                  } catch (storeError) {
-                    console.error("Error updating store state:", storeError);
-                  }
-                } else {
-                  // Wenn E-Mail nicht verifiziert ist, keinen Benutzer setzen (=null)
-                  console.log("Email not verified, setting user to null in force update");
-                  useUserStore.setState({
-                    isLoading: false,
-                    user: null
-                  });
-                }
-              }, 1000);
+              console.log("User data loaded successfully after auth");
             } catch (storeError) {
-              console.error("Error loading user data:", storeError);
+              console.error("Error updating user data:", storeError);
             }
           }
         } else {
-          // In neueren Supabase-Versionen gibt es keine getSessionFromUrl-Methode mehr
-          // Wir verwenden stattdessen direkt die aktuelle Session
-          console.log("No code in URL, checking current session");
-
-          try {
-            // Versuche die aktuelle Session zu holen
-            const { data: sessionData } = await supabase.auth.getSession();
-
-            if (sessionData?.session) {
-              console.log(
-                "Found existing session:",
-                sessionData.session.user.id,
-              );
-
-              // Trigger user data loading
-              try {
-                const { useUserStore } = require("../store/useUserStore");
-                
-                // Erstelle das Benutzerprofil, falls es noch nicht existiert
-                console.log("Creating user profile if needed...");
-                await useUserStore.getState().createUserProfileIfNeeded();
-                
-                await useUserStore.getState().loadUserData();
-                console.log("User data loaded successfully from existing session");
-                
-                // Stellen Sie sicher, dass der Auth-State aktualisiert wurde
-                setTimeout(async () => {
-                  await useUserStore.getState().loadUserData();
-                }, 500);
-              } catch (storeError) {
-                console.error("Error loading user data:", storeError);
-              }
-            } else {
-              console.warn(
-                "No session found and no auth code in URL. Authentication may have failed.",
-              );
+          console.log("No auth code in URL, checking current session");
+          
+          // Session-Check
+          const { data: sessionData } = await supabase.auth.getSession();
+          
+          if (sessionData?.session) {
+            console.log("Found existing session");
+            
+            try {
+              const { useUserStore } = require("../store/useUserStore");
+              await useUserStore.getState().loadUserData();
+            } catch (storeError) {
+              console.error("Error loading user data:", storeError);
             }
-          } catch (sessionError) {
-            console.error("Error checking session:", sessionError);
+          } else {
+            console.warn("No session found and no auth code. Auth may have failed.");
           }
         }
       } catch (error) {
@@ -373,36 +262,21 @@ if (Platform.OS !== "web") {
     }
   };
 
-  // Initiales URL mit verbesserter Fehlerbehandlung abrufen und verarbeiten
+  // Initiales URL abrufen und verarbeiten
   Linking.getInitialURL()
     .then((url) => {
       if (url) {
         console.log("Processing initial URL:", url);
         urlHandler({ url });
-      } else {
-        console.log("No initial URL");
       }
     })
     .catch((error) => {
       console.error("Error getting initial URL:", error);
     });
 
-  // Verbesserte Listener-Registrierung
+  // Event-Listener für neue URLs
   try {
-    // Entferne vorhandene Listener auf sichere Weise
-    // Verwende kein removeAllListeners, da dies in neueren Versionen nicht mehr unterstützt wird
-    let subscription;
-    try {
-      // Bei neueren Expo-Versionen können wir den vorhandenen Listener abrufen und entfernen
-      if (subscription) {
-        subscription.remove();
-      }
-    } catch (error) {
-      console.log("No previous listener to remove, continuing...");
-    }
-
-    // Dann den neuen Listener registrieren
-    subscription = Linking.addEventListener("url", urlHandler);
+    const subscription = Linking.addEventListener("url", urlHandler);
     console.log("URL listener registered successfully");
   } catch (error) {
     console.error("Error setting up URL listener:", error);

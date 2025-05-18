@@ -187,12 +187,17 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView
+      edges={['left', 'right']} // Only apply safe area to left and right edges
       style={[
         styles.container,
-        { backgroundColor: paperTheme.colors.background },
+        { backgroundColor: paperTheme.colors.background }
       ]}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        // Make ScrollView fill the entire screen height
+        style={{ flex: 1 }}
+      >
         {/* Header mit Begrüßung und KLARE Logo */}
         <View style={styles.headerContainer}>
           <View>

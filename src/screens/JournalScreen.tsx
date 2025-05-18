@@ -161,7 +161,10 @@ export default function JournalScreen() {
     if (user?.id) {
       // Use the synchronize function to get the latest data
       await journalService.getUserEntries(user.id); // Lädt und synchronisiert die Daten
-      const dateEntries = await journalService.getEntriesByDate(user.id, selectedDate);
+      const dateEntries = await journalService.getEntriesByDate(
+        user.id,
+        selectedDate,
+      );
       setEntriesForSelectedDate(dateEntries);
     }
     setRefreshing(false);
@@ -174,16 +177,18 @@ export default function JournalScreen() {
         setLoading(true);
         // Füge leere Einträge für die letzten 7 Tage hinzu, um Scrollen zu ermöglichen
         const dateEntries = await getEntriesByDate(user.id, selectedDate);
-        
+
         // Wenn heute ausgewählt ist und keine Einträge existieren, zeige Platzhalter
         const isToday = isToday(selectedDate);
         const showEmptyToday = isToday && dateEntries.length === 0;
-        
-        setEntriesForSelectedDate(showEmptyToday 
-          ? [{ id: 'today-placeholder', isEmpty: true } as any] 
-          : dateEntries);
+
+        setEntriesForSelectedDate(
+          showEmptyToday
+            ? [{ id: "today-placeholder", isEmpty: true } as any]
+            : dateEntries,
+        );
         setLoading(false);
-        
+
         // Scroll zu heute wenn es der initiale Load ist
         if (isToday) {
           setTimeout(() => {
@@ -442,7 +447,7 @@ export default function JournalScreen() {
         dateTextStyle={{ color: theme.colors.text }}
         highlightDateTextStyle={{ color: "white" }}
         highlightDateContainerStyle={{ backgroundColor: klareColors.k }}
-        style={{height: 100}} // Etwas höher für bessere Sichtbarkeit
+        style={{ height: 100 }} // Etwas höher für bessere Sichtbarkeit
       />
     </View>
   );
@@ -528,9 +533,11 @@ export default function JournalScreen() {
             contentContainerStyle={styles.entriesList}
             showsVerticalScrollIndicator={false}
             initialScrollIndex={isToday(selectedDate) ? 0 : undefined}
-            getItemLayout={(data, index) => (
-              {length: 120, offset: 120 * index, index}
-            )}
+            getItemLayout={(data, index) => ({
+              length: 120,
+              offset: 120 * index,
+              index,
+            })}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -547,6 +554,7 @@ export default function JournalScreen() {
 
   return (
     <SafeAreaView
+      edges={["left", "right"]} // Only apply safe area to left and right edges
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       {/* Animated Header */}
@@ -608,9 +616,7 @@ export default function JournalScreen() {
       </Animated.View>
 
       {/* Main Content */}
-      <View style={styles.scrollContent}>
-        {renderContent()}
-      </View>
+      <View style={styles.scrollContent}>{renderContent()}</View>
 
       {/* FAB für neuen Eintrag */}
       <FAB

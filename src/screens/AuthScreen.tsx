@@ -27,9 +27,8 @@ import { MotiText, MotiView } from "moti";
 import { MotiPressable } from "moti/interactions";
 import { supabase } from "../lib/supabase";
 import * as Linking from "expo-linking";
-import * as WebBrowser from "expo-web-browser";
-// Importiere die neuen Auth-Funktionen
-import { redirectTo, createSessionFromUrl, performOAuth, sendMagicLink, resendConfirmationEmail } from "../lib/auth";
+// Importiere die vereinheitlichten Auth-Funktionen
+import { redirectTo, performOAuth, sendMagicLink, resendConfirmationEmail } from "../lib/auth";
 
 // Auth states
 type AuthViewState = "welcome" | "signin" | "signup" | "forgot";
@@ -64,29 +63,12 @@ export default function AuthScreen() {
   const signInWithGoogle = useUserStore((state) => state.signInWithGoogle);
 
   // Check for auth state changes
-  // Verarbeite Deep-Links, die zur App kommen
+  // Dieser Teil wird durch den globalen URL-Handler in supabase.ts abgehandelt
+  // Wir benötigen keine zusätzliche URL-Verarbeitung hier
   useEffect(() => {
-    // Hole die initiale URL beim App-Start
-    Linking.getInitialURL().then((url) => {
-      if (url) {
-        console.log("Processing initial URL:", url);
-        createSessionFromUrl(url).catch(err => 
-          console.error("Error processing initial URL:", err)
-        );
-      }
-    });
-
-    // Event-Listener für Links, die eingehen, während die App aktiv ist
-    const subscription = Linking.addEventListener("url", ({ url }) => {
-      console.log("URL received while app was running:", url);
-      createSessionFromUrl(url).catch(err => 
-        console.error("Error processing URL event:", err)
-      );
-    });
-
-    return () => {
-      subscription.remove();
-    };
+    // Der URL-Handler ist bereits in supabase.ts implementiert und kümmert sich
+    // automatisch um alle eingehenden Deep Links
+    console.log("Auth screen mounted - URL handling is managed by supabase.ts");
   }, []);
 
   // Handle auth actions
@@ -334,19 +316,21 @@ export default function AuthScreen() {
 
     try {
       if (provider === "google") {
-        console.log("Starting Google auth with new flow...");
+        console.log("Starting Google auth...");
         
         try {
-          // Verwende die neue performOAuth-Funktion
-          const session = await performOAuth("google");
+          // Einheitliche performOAuth-Funktion aus lib/auth.ts verwenden
+          const result = await performOAuth("google");
           
-          if (session) {
-            console.log("OAuth successful, session established");
-            // Daten laden
-            await useUserStore.getState().loadUserData();
+          if (result.success) {
+            console.log("OAuth successful, session should be established");
+            // Die Session wird automatisch vom URL-Handler in supabase.ts verarbeitet
+            // Wir müssen hier nichts weiter tun
           } else {
-            // Benutzer hat den Browser geschlossen oder es gab einen Fehler
-            console.log("OAuth flow cancelled or no session returned");
+            console.log("OAuth flow unsuccessful:", result.error);
+            if (result.error) {
+              setError(`Die Anmeldung mit Google ist fehlgeschlagen: ${result.error.message || "Unbekannter Fehler"}`);
+            }
           }
         } catch (oauthError) {
           console.error("OAuth process error:", oauthError);

@@ -36,12 +36,7 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
           ]}
         >
           <View style={styles.content}>
-            {showBack && (
-              <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
-                <Text style={styles.backText}>Zurück</Text>
-              </TouchableOpacity>
-            )}
-
+            {/* Center logo or title */}
             {title ? (
               <Text style={styles.title}>{title}</Text>
             ) : showLogo ? (
@@ -49,7 +44,15 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
                 <KlareLogo size={30} spacing={4} animated={true} />
               </View>
             ) : null}
-
+            
+            {/* Absolutely positioned back button */}
+            {showBack && (
+              <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
+                <Text style={styles.backText}>Zurück</Text>
+              </TouchableOpacity>
+            )}
+            
+            {/* Keep right container for balance */}
             <View style={styles.rightContainer} />
           </View>
         </View>
@@ -74,6 +77,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: klareColors.border,
     backgroundColor: "#fff",
+    marginBottom: 0, // Ensure no bottom margin
+    paddingBottom: 0, // Ensure no bottom padding
   },
   shadowWrapper: {
     shadowColor: "#000",
@@ -86,30 +91,40 @@ const styles = StyleSheet.create({
   content: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center", // Changed from space-between to center
     height: 48,
     paddingHorizontal: 16,
+    position: "relative", // Added to position back button absolutely
   },
   logoContainer: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    position: "absolute", // Make logo absolutely positioned
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    zIndex: 0, // Lower z-index so back button appears above
   },
   title: {
     fontSize: 18,
     fontWeight: "bold",
     color: klareColors.text,
-    flex: 1,
     textAlign: "center",
   },
   backButton: {
-    marginRight: 8,
+    position: "absolute", // Position back button absolutely
+    left: 16,
+    zIndex: 1, // Higher z-index to appear above logo
   },
   backText: {
     color: klareColors.k,
   },
   rightContainer: {
     width: 44,
+    position: "absolute", // Position right container absolutely
+    right: 16,
+    zIndex: 1, // Higher z-index to appear above logo
   },
 });
 

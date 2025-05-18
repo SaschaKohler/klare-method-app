@@ -113,12 +113,20 @@ const TabNavigator = () => {
         },
         headerStyle: {
           backgroundColor: themeColors.cardBackground,
+          shadowColor: "transparent", // Remove shadow
+          elevation: 0, // Remove elevation on Android
         },
         headerTintColor: themeColors.text,
         headerShadowVisible: false,
         headerTitleStyle: {
           fontWeight: "600",
         },
+        // Fill more screen space
+        contentStyle: {
+          backgroundColor: themeColors.background,
+        },
+        // Adjust the safe area to use maximum space
+        safeAreaInsets: { top: 0 },
       })}
     >
       <Tab.Screen
@@ -137,7 +145,7 @@ const TabNavigator = () => {
         options={{
           title: "Lebensrad",
           tabBarAccessibilityLabel: "Life Wheel Tab",
-          header: (props) => <CustomHeader title="Lebensrad" />,
+          header: (props) => <CustomHeader />,
           tabBarTestID: "lifewheel-tab",
         }}
       />
@@ -147,7 +155,7 @@ const TabNavigator = () => {
         options={{
           title: "Journal",
           tabBarAccessibilityLabel: "Journal Tab",
-          headerShown: false,
+          header: (props) => <CustomHeader />,
           tabBarTestID: "journal-tab",
         }}
       />
@@ -157,7 +165,7 @@ const TabNavigator = () => {
         options={{
           title: "Profil",
           tabBarAccessibilityLabel: "Profile Tab",
-          header: (props) => <CustomHeader title="Mein Profil" />,
+          header: (props) => <CustomHeader />,
           tabBarTestID: "profile-tab",
         }}
       />
@@ -185,44 +193,51 @@ const MainNavigator = () => {
     async function checkSession() {
       console.log("Checking session in MainNavigator...");
       setIsEmailVerified(null); // Zurücksetzen während des Ladens
-      
+
       const { data: sessionData } = await supabase.auth.getSession();
-      
+
       if (sessionData?.session) {
-        console.log("Session found in MainNavigator:", sessionData.session.user.id);
-        
+        console.log(
+          "Session found in MainNavigator:",
+          sessionData.session.user.id,
+        );
+
         // E-Mail-Verifizierungsstatus prüfen
         const isVerified = sessionData.session.user.email_confirmed_at !== null;
         const email = sessionData.session.user.email || "";
-        
+
         setIsEmailVerified(isVerified);
         setUserEmail(email);
-        
-        console.log("Email verification status:", isVerified ? "Verified" : "Not verified");
-        
+
+        console.log(
+          "Email verification status:",
+          isVerified ? "Verified" : "Not verified",
+        );
+
         // Benutzerprofil nur erstellen, wenn die E-Mail bestätigt ist
         if (isVerified) {
           try {
             // Erstelle das Benutzerprofil, falls es noch nicht existiert
             console.log("MainNavigator: Creating user profile if needed...");
             await useUserStore.getState().createUserProfileIfNeeded();
-            
+
             // Benutzerdaten laden
             await loadUserData();
-            
+
             // Direktes setzen des Benutzers im Store für sofortige Wirkung
             useUserStore.setState({
               user: {
                 id: sessionData.session.user.id,
-                name: sessionData.session.user.user_metadata?.name || 'Benutzer',
+                name:
+                  sessionData.session.user.user_metadata?.name || "Benutzer",
                 email: email,
                 progress: 0,
                 streak: 0,
                 lastActive: new Date().toISOString(),
                 joinDate: new Date().toISOString(),
-                completedModules: []
+                completedModules: [],
               },
-              isLoading: false
+              isLoading: false,
             });
             console.log("User state updated directly in MainNavigator");
           } catch (error) {
@@ -233,7 +248,7 @@ const MainNavigator = () => {
           console.log("Email not verified, setting user to null");
           useUserStore.setState({
             user: null,
-            isLoading: false
+            isLoading: false,
           });
         }
       } else {
@@ -241,7 +256,7 @@ const MainNavigator = () => {
         setIsEmailVerified(null); // Kein Benutzer, daher keine Verifizierung
       }
     }
-    
+
     checkSession();
   }, [loadUserData, forceRefresh]);
 
@@ -284,16 +299,19 @@ const MainNavigator = () => {
 
         if (session) {
           console.log("Session available after auth change:", session.user.id);
-          
+
           // E-Mail-Verifizierungsstatus prüfen
           const isVerified = session.user.email_confirmed_at !== null;
           const email = session.user.email || "";
-          
+
           setIsEmailVerified(isVerified);
           setUserEmail(email);
-          
-          console.log("Email verification status:", isVerified ? "Verified" : "Not verified");
-          
+
+          console.log(
+            "Email verification status:",
+            isVerified ? "Verified" : "Not verified",
+          );
+
           // Nur beim Bestätigen oder Anmelden mit bestätigter E-Mail Benutzerdaten laden
           if (isVerified) {
             try {
@@ -304,13 +322,16 @@ const MainNavigator = () => {
                 isLoading: false,
               });
             } catch (error) {
-              console.error("Error loading user after auth state change:", error);
+              console.error(
+                "Error loading user after auth state change:",
+                error,
+              );
             }
           } else {
             // Wenn die E-Mail nicht bestätigt ist, null setzen
             useUserStore.setState({
               user: null,
-              isLoading: false
+              isLoading: false,
             });
           }
         } else {
@@ -331,26 +352,26 @@ const MainNavigator = () => {
     try {
       // Importiere die resendConfirmationEmail-Funktion aus auth.ts
       const { resendConfirmationEmail } = await import("../lib/auth");
-      
+
       // Verwende die neue Funktion mit der korrekten redirectTo-URL
       await resendConfirmationEmail(userEmail);
-      
+
       return Promise.resolve();
     } catch (error) {
-      console.error('Error resending confirmation email:', error);
+      console.error("Error resending confirmation email:", error);
       return Promise.reject(error);
     }
   };
-  
+
   const handleSignOut = async () => {
     try {
       await useUserStore.getState().signOut();
       setIsEmailVerified(null);
       setUserEmail("");
-      setForceRefresh(prev => prev + 1);
+      setForceRefresh((prev) => prev + 1);
       return Promise.resolve();
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error("Error signing out:", error);
       return Promise.reject(error);
     }
   };
@@ -378,13 +399,17 @@ const MainNavigator = () => {
         ? `Active session: ${sessionData.session.user.id}`
         : "No active session",
     );
-    
+
     if (sessionData?.session) {
       // E-Mail-Verifizierungsstatus ausgeben
       const isVerified = sessionData.session.user.email_confirmed_at !== null;
-      console.log("DEBUG Email verification status:", isVerified ? "Verified" : "Not verified", 
-                  "Timestamp:", sessionData.session.user.email_confirmed_at);
-      
+      console.log(
+        "DEBUG Email verification status:",
+        isVerified ? "Verified" : "Not verified",
+        "Timestamp:",
+        sessionData.session.user.email_confirmed_at,
+      );
+
       // Erzwinge State-Update
       if (isVerified) {
         await loadUserData();
@@ -401,7 +426,15 @@ const MainNavigator = () => {
     <Stack.Navigator
       id="MainStackNavigator"
       screenOptions={{
-        contentStyle: { backgroundColor: themeColors.background },
+        contentStyle: {
+          backgroundColor: themeColors.background,
+        },
+        headerShown: false,
+        animation: "slide_from_right",
+        // Use maximum space
+        fullScreenGestureEnabled: true,
+        // Remove any extra space
+        contentInsetAdjustmentBehavior: "automatic",
       }}
     >
       {user ? (
@@ -457,7 +490,10 @@ const MainNavigator = () => {
           <Stack.Screen
             name="ResourceLibrary"
             component={ResourceLibraryScreen}
-            options={{ title: "Ressourcen-Bibliothek", headerShown: false }}
+            options={{
+              title: "Ressourcen-Bibliothek",
+              header: (props) => <CustomHeader />,
+            }}
           />
           <Stack.Screen
             name="ResourceFinder"
