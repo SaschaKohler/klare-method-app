@@ -175,9 +175,20 @@ class UnifiedStorage {
   createZustandStorage() {
     return createJSONStorage<unknown>(() => ({
       setItem: (name: string, value: string) => {
+        // Prüfen, ob name definiert ist, bevor wir versuchen zu speichern
+        if (name === undefined || name === 'undefined') {
+          console.warn(`Attempting to save to undefined storage key. Value: ${value.substring(0, 50)}...`);
+          return;
+        }
         this.set(name, value);
       },
       getItem: (name: string) => {
+        // Prüfen, ob name definiert ist, bevor wir versuchen zu laden
+        if (name === undefined || name === 'undefined') {
+          console.warn(`Attempting to get from undefined storage key`);
+          return Promise.resolve(null);
+        }
+        
         const value = this.getString(name);
 
         // Return a Promise that will always resolve (even if with null)
@@ -194,6 +205,11 @@ class UnifiedStorage {
         }
       },
       removeItem: (name: string) => {
+        // Prüfen, ob name definiert ist, bevor wir versuchen zu löschen
+        if (name === undefined || name === 'undefined') {
+          console.warn(`Attempting to remove undefined storage key`);
+          return;
+        }
         this.delete(name);
       },
     }));
@@ -223,6 +239,47 @@ export const unifiedStorage = new UnifiedStorage("klare-app-storage");
 
 // Export a function to create store-specific storage instances
 export function createStoreStorage(storeKey: string) {
-  const storage = new UnifiedStorage(storeKey);
+  console.log(`Creating store storage with key: ${storeKey}`);
+  
+  // Ensure the storeKey is valid and corresponds to a StorageKey
+  let storageId: string;
+  
+  // Map string keys to enum values, handle both full enum and simple string mapping
+  switch (storeKey) {
+    case 'progression':
+      storageId = StorageKeys.PROGRESSION;
+      break;
+    case 'user':
+      storageId = StorageKeys.USER;
+      break;
+    case 'lifeWheel':
+      storageId = StorageKeys.LIFE_WHEEL;
+      break;
+    case 'theme':
+      storageId = StorageKeys.THEME;
+      break;
+    case 'resources':
+      storageId = StorageKeys.RESOURCES;
+      break;
+    case 'journal':
+      storageId = StorageKeys.JOURNAL;
+      break;
+    case 'visionBoard':
+      storageId = StorageKeys.VISION_BOARD;
+      break;
+    default:
+      // Überprüfen, ob der storeKey selbst bereits ein StorageKey ist
+      const isStorageKey = Object.values(StorageKeys).includes(storeKey as StorageKeys);
+      if (isStorageKey) {
+        storageId = storeKey;
+      } else {
+        console.warn(`Unknown storage key: ${storeKey}, falling back to default`);
+        storageId = `klare-${storeKey}-storage`;
+      }
+      break;
+  }
+  
+  console.log(`Mapped key '${storeKey}' to storage ID: ${storageId}`);
+  const storage = new UnifiedStorage(storageId);
   return storage.createZustandStorage();
 }

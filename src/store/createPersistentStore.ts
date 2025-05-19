@@ -13,6 +13,12 @@ export function createPersistentStore<T extends object>(
   storeInitializer: StateCreator<T, [["zustand/persist", unknown]]>,
   persistOptions: PersistOptions<T>,
 ): UseBoundStore<StoreApi<T>> {
+  // Ensure a name is always present in persistOptions to avoid 'undefined' as storage key
+  if (!persistOptions.name || persistOptions.name === 'undefined') {
+    console.warn('Store created without a valid name. Setting default name to prevent storage issues.');
+    persistOptions.name = `klare-store-${Date.now()}`;
+  }
+  
   // Enhanced onRehydrateStorage to properly handle storage failures
   const enhancedOptions: PersistOptions<T> = {
     ...persistOptions,
@@ -67,11 +73,17 @@ export function createResilientStore<T extends object>(
   storeInitializer: StateCreator<T, [], []>,
   persistOptions: PersistOptions<T>,
 ): UseBoundStore<StoreApi<T>> {
+  // Ensure a name is always present
+  if (!persistOptions.name || persistOptions.name === 'undefined') {
+    console.warn('Store created without a valid name. Setting default name to prevent storage issues.');
+    persistOptions.name = `klare-store-${Date.now()}`;
+  }
+  
   try {
     return createPersistentStore(storeInitializer, persistOptions);
   } catch (error) {
     console.error(
-      `Failed to create persistent store: ${persistOptions.name || "unnamed"}`,
+      `Failed to create persistent store: ${persistOptions.name}`,
       error,
     );
 

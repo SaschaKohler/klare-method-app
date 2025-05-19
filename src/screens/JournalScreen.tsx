@@ -39,7 +39,7 @@ import { darkKlareColors, lightKlareColors } from "../constants/theme";
 
 // Import useKlareStores instead of individual stores
 import { useKlareStores } from "../hooks";
-import { JournalEntry, JournalTemplate } from "../services/JournalService";
+import { JournalEntry, JournalTemplate, journalService } from "../services/JournalService";
 
 export default function JournalScreen() {
   const navigation = useNavigation();
@@ -159,15 +159,39 @@ export default function JournalScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     if (user?.id) {
-      // Use the synchronize function to get the latest data
-      await journalService.getUserEntries(user.id); // Lädt und synchronisiert die Daten
-      const dateEntries = await journalService.getEntriesByDate(
-        user.id,
-        selectedDate,
-      );
-      setEntriesForSelectedDate(dateEntries);
+      try {
+        // Diagnosecheck durchführen
+        const diagnosticReport = await journalService.diagnoseJournalStorage(user.id);
+        console.log("Journal storage diagnosis:", diagnosticReport);
+        
+        // Wenn Probleme festgestellt wurden, Reparatur durchführen
+        if (diagnosticReport.localDataParseCheck !== 'valid array' || 
+            diagnosticReport.localStorageStatus === 'empty') {
+          console.log("Journal storage issues detected, attempting repair...");
+          const repaired = await journalService.repairJournalStorage(user.id);
+          
+          if (repaired) {
+            console.log("Journal storage successfully repaired");
+          } else {
+            console.warn("Journal storage repair failed");
+          }
+        }
+        
+        // Daten aktualisieren
+        await journalService.getUserEntries(user.id); // Lädt und synchronisiert die Daten
+        const dateEntries = await journalService.getEntriesByDate(
+          user.id,
+          selectedDate,
+        );
+        setEntriesForSelectedDate(dateEntries);
+      } catch (error) {
+        console.error("Error during journal refresh:", error);
+      } finally {
+        setRefreshing(false);
+      }
+    } else {
+      setRefreshing(false);
     }
-    setRefreshing(false);
   };
 
   // Update entries when selected date changes
@@ -590,6 +614,89 @@ export default function JournalScreen() {
               }}
               title="Einträge exportieren"
               leadingIcon="export"
+            />
+            <Menu.Item
+              onPress={() => {
+                setMenuVisible(false);
+                
+                if (user?.id) {
+                  // Diagnose-Tool für Entwickler starten
+                  Alert.alert(
+                    "Storage Diagnose starten",
+                    "Diese Funktion prüft den Journal-Storage auf Probleme und versucht, diese zu beheben.",
+                    [
+                      {
+                        text: "Abbrechen",
+                        style: "cancel"
+                      },
+                      {
+                        text: "Diagnose starten",
+                        onPress: async () => {
+                          try {
+                            // Diagnose durchführen
+                            const result = await journalService.diagnoseJournalStorage(user.id);
+                            console.log("Diagnose-Ergebnis:", result);
+                            
+                            if (result.localDataParseCheck !== 'valid array' || 
+                                result.localStorageStatus === 'empty' ||
+                                result.keysMatch !== 'match') {
+                              
+                              // Probleme gefunden, Reparatur anbieten
+                              Alert.alert(
+                                "Probleme gefunden",
+                                `Speicherzustand: ${result.localStorageStatus}\nFormat: ${result.localDataParseCheck}\nKeyMapping: ${result.keysMatch}\n\nMöchten Sie eine Reparatur versuchen?`,
+                                [
+                                  {
+                                    text: "Abbrechen",
+                                    style: "cancel"
+                                  },
+                                  {
+                                    text: "Reparieren",
+                                    onPress: async () => {
+                                      const repaired = await journalService.repairJournalStorage(user.id);
+                                      
+                                      if (repaired) {
+                                        Alert.alert(
+                                          "Reparatur erfolgreich",
+                                          "Der Journal-Storage wurde erfolgreich repariert. Die App wird jetzt die Daten neu laden.",
+                                          [
+                                            {
+                                              text: "OK",
+                                              onPress: () => onRefresh()
+                                            }
+                                          ]
+                                        );
+                                      } else {
+                                        Alert.alert(
+                                          "Reparatur fehlgeschlagen",
+                                          "Die Reparatur konnte nicht durchgeführt werden. Bitte versuchen Sie, die App neu zu starten."
+                                        );
+                                      }
+                                    }
+                                  }
+                                ]
+                              );
+                            } else {
+                              // Kein Problem gefunden
+                              Alert.alert(
+                                "Diagnose abgeschlossen",
+                                "Keine Probleme im Journal-Storage gefunden.\n\nStorage: " +
+                                `${result.storageType}\nEntries lokal: ${result.localEntryCount}\nServer: ${result.serverStatus}\nEntries Server: ${result.serverEntryCount}`,
+                                [{ text: "OK" }]
+                              );
+                            }
+                          } catch (error) {
+                            console.error("Diagnose-Fehler:", error);
+                            Alert.alert("Fehler", "Bei der Diagnose ist ein Fehler aufgetreten: " + error.message);
+                          }
+                        }
+                      }
+                    ]
+                  );
+                }
+              }}
+              title="Storage-Diagnose"
+              leadingIcon="doctor"
             />
             <Menu.Item
               onPress={() => {

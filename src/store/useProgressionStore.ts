@@ -1,7 +1,7 @@
 // src/store/useProgressionStore.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { storePersistConfigs } from "./persistConfig";
+import { StorageKeys, createStoreStorage } from "../storage/unifiedStorage";
 import { supabase } from "../lib/supabase";
 import { progressionStages, ProgressionStage } from "../data/progression";
 
@@ -86,6 +86,29 @@ const MODULE_IDS_BY_STEP = {
   ],
 };
 
+// Initialer Zustand
+const initialState: ProgressionState = {
+  completedModules: [],
+  moduleProgressCache: {},
+  joinDate: null,
+  isLoading: false,
+  
+  // Implementierte Methoden - für die Übersichtlichkeit hier ausgelassen
+  completeModule: async () => {},
+  getModuleProgress: () => 0,
+  getDaysInProgram: () => 0,
+  getCurrentStage: () => null,
+  getNextStage: () => null,
+  getAvailableModules: () => [],
+  isModuleAvailable: () => false,
+  getModuleUnlockDate: () => null,
+  getDaysUntilUnlock: () => 0,
+  loadProgressionData: async () => {},
+  saveProgressionData: async () => false,
+  resetJoinDate: async () => {},
+};
+
+// Robust Store mit verbesserter Fehlerbehandlung
 export const useProgressionStore = create<ProgressionState>()(
   persist(
     (set, get) => ({
@@ -425,12 +448,20 @@ export const useProgressionStore = create<ProgressionState>()(
       },
     }),
     {
-      name: "klare-progression-storage",
-      ...storePersistConfigs,
+      name: StorageKeys.PROGRESSION, // Direktes Verwenden der Enum, nicht des String-Literals
+      storage: createStoreStorage("progression"),
       partialize: (state) => ({
         completedModules: state.completedModules,
         joinDate: state.joinDate,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          console.log('ProgressionStore rehydrated successfully with data:', 
+            state.completedModules?.length || 0, 'completed modules');
+        } else {
+          console.warn('ProgressionStore rehydration failed, no state available');
+        }
+      }
     },
   ),
 );

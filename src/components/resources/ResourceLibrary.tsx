@@ -271,7 +271,7 @@ const ResourceLibrary = ({
     const isMenu = resourceMenuVisible === resource.id;
 
     return (
-      <View key={resource.id} style={styles.resourceCard}>
+      <View key={`resource-${resource.id}`} style={styles.resourceCard}>
         {/* <Card.Content> */}
         <View style={styles.resourceHeader}>
           <View style={styles.resourceTitleContainer}>
@@ -294,6 +294,7 @@ const ResourceLibrary = ({
             }
           >
             <Menu.Item
+              key={`edit-${resource.id}`}
               icon="pencil-outline"
               onPress={() => {
                 setResourceMenuVisible(null);
@@ -302,6 +303,7 @@ const ResourceLibrary = ({
               title="Bearbeiten"
             />
             <Menu.Item
+              key={`delete-${resource.id}`}
               icon="trash-outline"
               onPress={() => {
                 setResourceMenuVisible(null);
@@ -331,7 +333,7 @@ const ResourceLibrary = ({
                 .fill(0)
                 .map((_, index) => (
                   <View
-                    key={index}
+                    key={`rating-bubble-${resource.id}-${index}`}
                     style={[
                       styles.ratingBubble,
                       index < resource.rating && {
@@ -518,7 +520,7 @@ const ResourceLibrary = ({
               <Ionicons
                 name={getCategoryIcon(filterCategory)}
                 size={16}
-                color="#666"
+                color={theme.isDarkMode ? "#fff" : themeColor}
               />
             )}
           >
@@ -613,7 +615,7 @@ const createResourceLibraryStyles = (theme: any, klareColors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.colors.surface,
+      backgroundColor: theme.colors.background,
     },
     header: {
       flexDirection: "row",
@@ -639,6 +641,7 @@ const createResourceLibraryStyles = (theme: any, klareColors: any) =>
       height: 40,
       fontSize: 14,
       backgroundColor: theme.colors.surface,
+      color: klareColors.text,
     },
     clearButton: {
       margin: 0,
@@ -656,7 +659,7 @@ const createResourceLibraryStyles = (theme: any, klareColors: any) =>
       flexDirection: "row",
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.borderBottomColor,
-      backgroundColor: theme.colors.surface,
+      backgroundColor: theme.colors.backgroundColor,
     },
     viewModeTab: {
       flex: 1,
@@ -676,7 +679,7 @@ const createResourceLibraryStyles = (theme: any, klareColors: any) =>
     filterChipsContainer: {
       flexDirection: "row",
       padding: 8,
-      backgroundColor: "#fff",
+      backgroundColor: theme.colors.backgroundColor,
     },
     filterChip: {
       marginRight: 8,
@@ -772,6 +775,7 @@ const createResourceLibraryStyles = (theme: any, klareColors: any) =>
       padding: 32,
       margin: 16,
       borderRadius: 8,
+      backgroundColor: theme.colors.surface,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -779,11 +783,13 @@ const createResourceLibraryStyles = (theme: any, klareColors: any) =>
       fontSize: 18,
       fontWeight: "600",
       marginTop: 16,
+      color: klareColors.text,
       marginBottom: 8,
     },
     emptyStateText: {
       fontSize: 14,
-      color: "#666",
+      color: klareColors.text,
+
       textAlign: "center",
       marginBottom: 16,
     },

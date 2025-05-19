@@ -85,6 +85,7 @@ export const useUserStore = createBaseStore<UserState>(
       isLoading: false,
       lastSync: null,
       error: null,
+      storageStatus: "initializing",
     },
   },
   (set, get) => ({
@@ -95,24 +96,30 @@ export const useUserStore = createBaseStore<UserState>(
     completedModules: [], // Legacy property
     moduleProgressCache: {}, // Legacy property
 
-    setUser: (user) => set({ user }),
+    setUser: (user) => set({ user }, false, StorageKeys.USER),
 
-    clearUser: () => set({ user: null }),
+    clearUser: () => set({ user: null }, false, StorageKeys.USER),
 
     updateProgress: async (progress) => {
       const { user, isOnline } = get();
       if (!user) return;
 
+      // Speichere User mit neuem Progress im Store
       set(
         (state) => ({
           user: { ...state.user!, progress },
         }),
-        StorageKeys.USER_RESOURCES,
+        false, // replace = false
+        StorageKeys.USER, // Verwende den korrekten Key für set
       );
 
       // Speichere immer lokal
       try {
-        unifiedStorage.set(StorageKeys.USER, JSON.stringify(...get().user));
+        // Stelle sicher, dass wir nicht JSON.stringify auf etwas anwenden, das kein Objekt ist
+        if (user) {
+          const userData = { ...user, progress };
+          unifiedStorage.set(StorageKeys.USER, JSON.stringify(userData));
+        }
 
         // Wenn online, synchronisiere mit Supabase
         if (isOnline) {
@@ -134,13 +141,22 @@ export const useUserStore = createBaseStore<UserState>(
 
       const now = new Date().toISOString();
 
-      set((state) => ({
-        user: { ...state.user!, lastActive: now },
-      }));
+      // Verwendung von korrektem Key in set()
+      set(
+        (state) => ({
+          user: { ...state.user!, lastActive: now },
+        }),
+        false, // replace = false
+        StorageKeys.USER, // Verwende den korrekten Key für set
+      );
 
       // Speichere immer lokal
       try {
-        unifiedStorage.set(StorageKeys.USER, JSON.stringify(...get().user));
+        // Stelle sicher, dass wir nicht JSON.stringify auf etwas anwenden, das kein Objekt ist
+        if (user) {
+          const userData = { ...user, lastActive: now };
+          unifiedStorage.set(StorageKeys.USER, JSON.stringify(userData));
+        }
 
         // Wenn online, synchronisiere mit Supabase
         if (isOnline) {
@@ -168,13 +184,22 @@ export const useUserStore = createBaseStore<UserState>(
       const { user, isOnline } = get();
       if (!user) return;
 
-      set((state) => ({
-        user: { ...state.user!, streak },
-      }));
+      // Verwendung von korrektem Key in set()
+      set(
+        (state) => ({
+          user: { ...state.user!, streak },
+        }),
+        false, // replace = false
+        StorageKeys.USER, // Verwende den korrekten Key für set
+      );
 
       // Speichere immer lokal
       try {
-        unifiedStorage.set(StorageKeys.USER, JSON.stringify(...get().user));
+        // Stelle sicher, dass wir nicht JSON.stringify auf etwas anwenden, das kein Objekt ist
+        if (user) {
+          const userData = { ...user, streak };
+          unifiedStorage.set(StorageKeys.USER, JSON.stringify(userData));
+        }
 
         // Wenn online, synchronisiere mit Supabase
         if (isOnline) {
@@ -194,6 +219,8 @@ export const useUserStore = createBaseStore<UserState>(
 
       try {
         // OFFLINE-FIRST ANSATZ: Zuerst lokale Daten laden
+        set({ metadata: { ...get().metadata, storageStatus: "initializing" } });
+        
         const userData = unifiedStorage.getString(StorageKeys.USER);
         const completedModulesData = unifiedStorage.getString(
           StorageKeys.PROGRESSION,
@@ -201,9 +228,19 @@ export const useUserStore = createBaseStore<UserState>(
 
         const lifeWheelData = unifiedStorage.getString(StorageKeys.LIFE_WHEEL);
         console.log("Lade Benutzerdaten...", userData);
+        
         // Lokale Daten setzen, falls vorhanden
         if (userData) {
-          set({ user: JSON.parse(userData) });
+          try {
+            set({ 
+              user: JSON.parse(userData),
+              metadata: { ...get().metadata, storageStatus: "ready" }
+            }, 
+            false, 
+            StorageKeys.USER); // Explizit den korrekten Storage-Key angeben
+          } catch (parseError) {
+            console.error("Fehler beim Parsen der Benutzerdaten:", parseError);
+          }
         }
 
         // Für Abwärtskompatibilität
@@ -293,7 +330,7 @@ export const useUserStore = createBaseStore<UserState>(
               } else {
                 // Benutzer existiert nicht, neuen erstellen
                 const now = new Date().toISOString();
-                const user = {
+                const userObj = {
                   id: sessionData.session.user.id,
                   name:
                     sessionData.session.user.user_metadata?.name || "Benutzer",
@@ -305,7 +342,7 @@ export const useUserStore = createBaseStore<UserState>(
                   completedModules: [],
                 };
 
-                set({ user });
+                set({ user: userObj }, false, StorageKeys.USER); // Verwende den korrekten Key
 
                 // In der Datenbank erstellen
                 await supabase.from("users").insert({
@@ -320,7 +357,8 @@ export const useUserStore = createBaseStore<UserState>(
                 });
 
                 // Lokal speichern
-                unifiedStorage.set(StorageKeys.USER, JSON.stringify(user));
+                const userData = JSON.stringify(user);
+                unifiedStorage.set(StorageKeys.USER, userData);
 
                 // Datum im Progression-Store setzen
                 await progressionStore.resetJoinDate();
@@ -349,7 +387,8 @@ export const useUserStore = createBaseStore<UserState>(
       try {
         // Lokales Speichern
         if (user) {
-          unifiedStorage.set(StorageKeys.USER, JSON.stringify(user));
+          const userData = JSON.stringify(user);
+          unifiedStorage.set(StorageKeys.USER, userData);
         }
 
         // Wenn online und eingeloggt, mit Supabase synchronisieren
@@ -655,14 +694,14 @@ export const useUserStore = createBaseStore<UserState>(
         unifiedStorage.delete(StorageKeys.PROGRESSION);
         // joinDate is now handled by progressionStore
 
-        // Store zurücksetzen
+        // Store zurücksetzen - immer den korrekten Storage-Key verwenden!
         set({
           user: null,
           isOnline: false,
           lifeWheelAreas: [],
           completedModules: [],
           moduleProgressCache: {},
-        });
+        }, false, StorageKeys.USER);
 
         // Auch die anderen Stores zurücksetzen
         const lifeWheelStore = useLifeWheelStore.getState();

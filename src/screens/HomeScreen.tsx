@@ -187,13 +187,13 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView
-      edges={['left', 'right']} // Only apply safe area to left and right edges
+      edges={["left", "right"]} // Only apply safe area to left and right edges
       style={[
         styles.container,
-        { backgroundColor: paperTheme.colors.background }
+        { backgroundColor: paperTheme.colors.background },
       ]}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         // Make ScrollView fill the entire screen height
         style={{ flex: 1 }}
@@ -253,14 +253,16 @@ export default function HomeScreen() {
                   ]}
                 >
                   Phase{" "}
-                  {userSummary.currentStage ? userSummary.currentStage.id : "1"}
+                  {userSummary?.currentStage
+                    ? userSummary?.currentStage.id
+                    : "1"}
                 </Chip>
               </View>
 
-              {userSummary.currentStage && (
+              {userSummary?.currentStage && (
                 <>
                   <Text style={[styles.stageName, { color: klareColors.k }]}>
-                    {userSummary.currentStage.name}
+                    {userSummary?.currentStage.name}
                   </Text>
                   <Text
                     style={[
@@ -268,10 +270,10 @@ export default function HomeScreen() {
                       { color: paperTheme.colors.text },
                     ]}
                   >
-                    {userSummary.currentStage.description}
+                    {userSummary?.currentStage.description}
                   </Text>
 
-                  {userSummary.nextStage && (
+                  {userSummary?.nextStage && (
                     <View
                       style={[
                         styles.nextStagePreview,

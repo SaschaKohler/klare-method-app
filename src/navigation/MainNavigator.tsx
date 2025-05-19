@@ -175,6 +175,8 @@ const TabNavigator = () => {
 
 // EmailVerificationScreen importieren
 import EmailConfirmationScreen from "../components/auth/EmailConfirmationScreen";
+// Debug-Screen importieren
+import DebugScreen from "../screens/DebugScreen";
 
 const MainNavigator = () => {
   // State für Force-Update nach OAuth
@@ -221,25 +223,28 @@ const MainNavigator = () => {
             console.log("MainNavigator: Creating user profile if needed...");
             await useUserStore.getState().createUserProfileIfNeeded();
 
-            // Benutzerdaten laden
-            await loadUserData();
+            // HINWEIS: Wir rufen loadUserData nicht hier auf, um doppelte Ladungen zu vermeiden
+            // Es wird bereits in App.tsx und bei anderen Events aufgerufen
 
-            // Direktes setzen des Benutzers im Store für sofortige Wirkung
-            useUserStore.setState({
-              user: {
-                id: sessionData.session.user.id,
-                name:
-                  sessionData.session.user.user_metadata?.name || "Benutzer",
-                email: email,
-                progress: 0,
-                streak: 0,
-                lastActive: new Date().toISOString(),
-                joinDate: new Date().toISOString(),
-                completedModules: [],
-              },
-              isLoading: false,
-            });
-            console.log("User state updated directly in MainNavigator");
+            // Direktes setzen des Benutzers im Store nur, wenn keine Daten vorhanden sind
+            const currentUser = useUserStore.getState().user;
+            if (!currentUser) {
+              useUserStore.setState({
+                user: {
+                  id: sessionData.session.user.id,
+                  name:
+                    sessionData.session.user.user_metadata?.name || "Benutzer",
+                  email: email,
+                  progress: 0,
+                  streak: 0,
+                  lastActive: new Date().toISOString(),
+                  joinDate: new Date().toISOString(),
+                  completedModules: [],
+                },
+                isLoading: false,
+              }, false, "klare-user-storage"); // Explizit den korrekten Storage-Key angeben
+              console.log("User state updated directly in MainNavigator");
+            }
           } catch (error) {
             console.error("Error loading user after session check:", error);
           }
@@ -249,7 +254,7 @@ const MainNavigator = () => {
           useUserStore.setState({
             user: null,
             isLoading: false,
-          });
+          }, false, "klare-user-storage"); // Explizit den korrekten Storage-Key angeben
         }
       } else {
         console.log("No active session found in MainNavigator");
@@ -315,15 +320,21 @@ const MainNavigator = () => {
           // Nur beim Bestätigen oder Anmelden mit bestätigter E-Mail Benutzerdaten laden
           if (isVerified) {
             try {
-              await loadUserData();
-              // Direktes setzen des Benutzers für sofortige Wirkung
-              useUserStore.setState({
-                user: session.user,
-                isLoading: false,
-              });
+              // HINWEIS: Da loadUserData bereits woanders aufgerufen wird,
+              // vermeiden wir hier einen redundanten Aufruf
+              
+              // Direktes setzen des Benutzers für sofortige Wirkung, aber nur wenn nötig
+              const currentUser = useUserStore.getState().user;
+              if (!currentUser || currentUser.id !== session.user.id) {
+                useUserStore.setState({
+                  user: session.user,
+                  isLoading: false,
+                }, false, "klare-user-storage"); // Explizit den korrekten Storage-Key angeben
+                console.log("User state updated in auth state change handler");
+              }
             } catch (error) {
               console.error(
-                "Error loading user after auth state change:",
+                "Error updating user after auth state change:",
                 error,
               );
             }
@@ -332,7 +343,7 @@ const MainNavigator = () => {
             useUserStore.setState({
               user: null,
               isLoading: false,
-            });
+            }, false, "klare-user-storage"); // Explizit den korrekten Storage-Key angeben
           }
         } else {
           // Kein Benutzer, daher keine Verifizierung
@@ -437,6 +448,7 @@ const MainNavigator = () => {
         contentInsetAdjustmentBehavior: "automatic",
       }}
     >
+      {/* App-Navigation für angemeldete Benutzer */}
       {user ? (
         <>
           <Stack.Screen
@@ -444,6 +456,23 @@ const MainNavigator = () => {
             component={TabNavigator}
             options={{ headerShown: false }}
           />
+          
+          {/* Debug-Screen (nur im Entwicklungsmodus) */}
+          {__DEV__ && (
+            <Stack.Screen
+              name="Debug"
+              component={DebugScreen}
+              options={{
+                headerShown: true,
+                headerTitle: "Entwickler-Tools",
+                // Header mit Debug-Button
+                headerRight: () => (
+                  <Button onPress={debugSession} title="Session" />
+                ),
+              }}
+            />
+          )}
+          
           <Stack.Screen
             name="KlareMethod"
             component={KlareMethodScreen}
@@ -530,22 +559,6 @@ const MainNavigator = () => {
               component={AuthScreen}
               options={{ headerShown: false }}
             />
-          )}
-          {/* Session-Debug-Button - nur für Entwicklung (können Sie nach dem Fix entfernen) */}
-          {__DEV__ && (
-            <Stack.Screen
-              name="Debug"
-              options={{
-                headerShown: true,
-                headerTitle: "Session Debug",
-                // Header mit Debug-Button
-                headerRight: () => (
-                  <Button onPress={debugSession} title="Check Session" />
-                ),
-              }}
-            >
-              {(props) => <AuthScreen {...props} />}
-            </Stack.Screen>
           )}
         </>
       )}

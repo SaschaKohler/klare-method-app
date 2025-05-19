@@ -75,10 +75,10 @@ export const useResourceStore = createBaseStore<ResourceStoreState>(
           resource,
         );
         set((state) => ({
-          resources: [...state.resources, newResource],
+          resources: [...state.resources, { ...newResource }],
           currentUserResources:
             userId === state.currentUserResources[0]?.userId
-              ? [...state.currentUserResources, newResource]
+              ? [...state.currentUserResources, { ...newResource }]
               : state.currentUserResources,
         }));
         return newResource;
@@ -97,10 +97,10 @@ export const useResourceStore = createBaseStore<ResourceStoreState>(
         );
         set((state) => ({
           resources: state.resources.map((r) =>
-            r.id === resourceId ? updatedResource : r,
+            r.id === resourceId ? { ...updatedResource } : r,
           ),
           currentUserResources: state.currentUserResources.map((r) =>
-            r.id === resourceId ? updatedResource : r,
+            r.id === resourceId ? { ...updatedResource } : r,
           ),
         }));
         return updatedResource;
@@ -135,10 +135,10 @@ export const useResourceStore = createBaseStore<ResourceStoreState>(
         );
         set((state) => ({
           resources: state.resources.map((r) =>
-            r.id === resourceId ? updatedResource : r,
+            r.id === resourceId ? { ...updatedResource } : r,
           ),
           currentUserResources: state.currentUserResources.map((r) =>
-            r.id === resourceId ? updatedResource : r,
+            r.id === resourceId ? { ...updatedResource } : r,
           ),
         }));
         return updatedResource;

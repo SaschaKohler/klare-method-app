@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, StyleSheet, Alert, ScrollView } from "react-native";
 import {
   Text,
@@ -13,14 +13,17 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserStore } from "../store/useUserStore";
 import { useThemeStore } from "../store/useThemeStore";
-import { lightKlareColors, darkKlareColors } from "../constants/theme";
+import { lightKlareColors, darkKlareColors, theme } from "../constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import ThemeToggle from "../components/ThemeToggle";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { useKlareStores } from "../hooks";
+import { RootStackParamList } from "../navigation/MainNavigator";
+import { navigateWithFallback, canNavigateTo } from "../utils/navigationUtils";
+import { Theme } from "react-native-paper/lib/typescript/types";
 
 export default function ProfileScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const { summary, auth, theme: klareTheme } = useKlareStores();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -29,7 +32,7 @@ export default function ProfileScreen() {
 
   const isDarkMode = klareTheme.isDarkMode;
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
-
+  const styles = useMemo(() => createProfileStyles(paperTheme), [paperTheme]);
   const handleLogout = () => {
     Alert.alert("Abmelden", "Möchtest du dich wirklich abmelden?", [
       {
@@ -248,62 +251,91 @@ export default function ProfileScreen() {
         >
           Abmelden
         </Button>
+
+        {/* Debug-Button nur im Entwicklungsmodus anzeigen */}
+        {__DEV__ && (
+          <Button
+            mode="text"
+            icon="tools"
+            onPress={() => {
+              // Verbesserte Navigation mit Fallback
+              if (canNavigateTo("Debug")) {
+                navigateWithFallback("Debug");
+              } else {
+                Alert.alert(
+                  "Debug-Modus",
+                  "Debug-Screen ist nicht verfügbar. Bitte stellen Sie sicher, dass Sie im Entwicklungsmodus sind und der Screen registriert ist.",
+                  [{ text: "OK" }],
+                );
+              }
+            }}
+            style={styles.debugButton}
+          >
+            Entwickler-Tools
+          </Button>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  username: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 12,
-    marginBottom: 4,
-  },
-  email: {
-    fontSize: 14,
-  },
-  card: {
-    marginBottom: 16,
-    borderRadius: 12,
-  },
-  progressContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginVertical: 16,
-  },
-  progressItem: {
-    alignItems: "center",
-  },
-  progressCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  progressCircleText: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  progressText: {
-    fontSize: 12,
-  },
-  logoutButton: {
-    marginVertical: 24,
-    borderColor: "#f44336",
-    alignSelf: "center",
-  },
-});
+const createProfileStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: 16,
+      paddingBottom: 32,
+    },
+    header: {
+      alignItems: "center",
+      marginBottom: 24,
+    },
+    username: {
+      fontSize: 20,
+      fontWeight: "bold",
+      marginTop: 12,
+      marginBottom: 4,
+    },
+    email: {
+      fontSize: 14,
+    },
+    card: {
+      marginBottom: 16,
+      borderRadius: 12,
+      backgroundColor: theme.colors.surface,
+    },
+    progressContainer: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      marginVertical: 16,
+    },
+    progressItem: {
+      alignItems: "center",
+    },
+    progressCircle: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    progressCircleText: {
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    progressText: {
+      fontSize: 12,
+    },
+    logoutButton: {
+      marginVertical: 24,
+      borderColor: "#f44336",
+      alignSelf: "center",
+    },
+    debugButton: {
+      marginTop: 8,
+      alignSelf: "center",
+    },
+  });

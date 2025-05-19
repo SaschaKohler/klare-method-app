@@ -48,7 +48,35 @@ class ResourceLibraryService {
       let resources: Resource[] = [];
 
       if (localData) {
-        resources = JSON.parse(localData);
+        try {
+          resources = JSON.parse(localData);
+          
+          // Check for duplicate IDs and fix them
+          const idMap = new Map<string, boolean>();
+          const cleanedResources = resources.filter((resource) => {
+            if (!resource.id) {
+              // Skip resources without IDs
+              return false;
+            }
+            if (idMap.has(resource.id)) {
+              // Duplicate found, skip it
+              console.warn(`Duplicate resource ID found: ${resource.id}`);
+              return false;
+            }
+            idMap.set(resource.id, true);
+            return true;
+          });
+          
+          // If we found and removed duplicates, update storage
+          if (cleanedResources.length !== resources.length) {
+            console.log(`Fixed ${resources.length - cleanedResources.length} duplicate resources`);
+            resources = cleanedResources;
+            unifiedStorage.set(StorageKeys.RESOURCES, JSON.stringify(cleanedResources));
+          }
+        } catch (error) {
+          console.error("Error parsing resources from storage:", error);
+          resources = [];
+        }
       }
 
       // If online, try to sync with server
@@ -107,17 +135,27 @@ class ResourceLibraryService {
     try {
       const now = new Date().toISOString();
 
+      // Generate a unique ID ensuring it doesn't already exist
+      let resourceId = uuid.v4().toString();
+      
+      // Get existing resources
+      const resources = await this.getUserResources(userId);
+      console.log("Resources before adding:", resources);
+      
+      // Check if ID already exists (very unlikely with UUID, but just to be safe)
+      const existingIds = new Set(resources.map(r => r.id));
+      while (existingIds.has(resourceId)) {
+        resourceId = uuid.v4().toString();
+      }
+
       const newResource: Resource = {
         ...resource,
-        id: uuid.v4().toString(),
+        id: resourceId,
         userId,
         createdAt: now,
         updatedAt: now,
       };
 
-      // Get existing resources
-      const resources = await this.getUserResources(userId);
-      console.log("Resources before adding:", resources);
       // Add new resource
       resources.push(newResource);
 

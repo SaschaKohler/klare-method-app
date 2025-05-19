@@ -1,11 +1,7 @@
-// import { connectToDevTools } from "react-devtools-core";
-// if (__DEV__) {
-//   connectToDevTools({
-//     host: "localhost",
-//     port: 8097,
-//   });
-// }
-import { NavigationContainer } from "@react-navigation/native";
+import {
+  NavigationContainer,
+  NavigationContainerRef,
+} from "@react-navigation/native";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
@@ -16,6 +12,7 @@ import {
   Text,
   View,
   useColorScheme,
+  Alert,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Provider as PaperProvider } from "react-native-paper";
@@ -33,15 +30,32 @@ import {
   useThemeStore,
   useUserStore,
   useVisionBoardStore,
+  useProgressionStore,
+  useLifeWheelStore,
+  useJournalStore,
 } from "./src/store";
-// import { prepare } from "@react-three/fiber/dist/declarations/src/core/renderer";
 import { unifiedStorage } from "./src/storage/unifiedStorage";
+import {
+  diagnoseStorageIssues,
+  fixCommonStorageIssues,
+  printAllStoredData,
+} from "./src/storage/storageDebug";
+import { debugStoreMetadata, syncStorageKeys } from "./src/store/storeUtils";
+import {
+  diagnoseMMKVProblems,
+  resetAppStorage,
+  testStorageKeys,
+} from "./src/utils/debugUtils";
+import { setTopLevelNavigator } from "./src/utils/navigationUtils";
+// import { prepare } from "@react-three/fiber/dist/declarations/src/core/renderer";
+import React from "react";
 
 // Splash Screen während des Ladens anzeigen
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [appReady, setAppReady] = useState(false);
+  const navigationRef = React.useRef<NavigationContainerRef<any>>(null);
 
   // User store
   const loadUserData = useUserStore((state) => state.loadUserData);
@@ -55,35 +69,54 @@ export default function App() {
         { name: "theme", store: useThemeStore },
         { name: "resources", store: useResourceStore },
         { name: "visionBoard", store: useVisionBoardStore },
+        { name: "progression", store: useProgressionStore },
+        { name: "lifeWheel", store: useLifeWheelStore },
+        { name: "journal", store: useJournalStore },
       ];
 
-      // Special debug for VisionBoardStore
-      const visionBoardUnsub = useVisionBoardStore.persist.onFinishHydration(
-        () => {
-          console.log("VisionBoardStore hydration state:", {
-            hasHydrated: useVisionBoardStore.persist.hasHydrated(),
-            storage: useVisionBoardStore.persist.getOptions().storage,
-          });
-        },
-      );
+      // Unsubscription array to clean up later
+      const unsubFunctions = [];
 
       for (const { name, store } of stores) {
         try {
-          const hydrated = await store.persist.hasHydrated();
-          console.log(`${name} store hydrated:`, hydrated);
+          // Prüfe, ob der Store einen persist-Zustand hat
+          if (store.persist) {
+            const hydrated = await store.persist.hasHydrated();
+            console.log(`${name} store hydrated:`, hydrated);
 
-          const unsub = store.persist.onFinishHydration(() => {
-            console.log(`${name} store finished hydrating`);
-          });
+            const unsub = store.persist.onFinishHydration(() => {
+              console.log(`${name} store finished hydrating`);
 
-          return () => {
-            unsub();
-            visionBoardUnsub();
-          };
+              // Zusätzliche Debug-Infos, wenn sie verfügbar sind
+              try {
+                if (store.persist.getOptions) {
+                  const options = store.persist.getOptions();
+                  console.log(`${name} store options:`, {
+                    name: options.name,
+                    version: options.version,
+                    partialize: !!options.partialize,
+                    hasStorage: !!options.storage,
+                  });
+                }
+              } catch (error) {
+                console.log(
+                  `${name} store options not accessible: ${error.message}`,
+                );
+              }
+            });
+
+            unsubFunctions.push(unsub);
+          } else {
+            console.log(`${name} store does not have persist middleware`);
+          }
         } catch (error) {
           console.error(`${name} store hydration check failed:`, error);
         }
       }
+
+      return () => {
+        unsubFunctions.forEach((unsub) => unsub && unsub());
+      };
     };
 
     debugHydration();
@@ -149,6 +182,40 @@ export default function App() {
   useEffect(() => {
     const testStorage = async () => {
       try {
+        // Führe erweiterte Diagnose aus
+        if (__DEV__) {
+          console.log("Running storage diagnostics...");
+
+          // Prüfe und behebe MMKV-Probleme
+          diagnoseMMKVProblems();
+
+          // Test Storage-Schlüssel auf Funktionalität
+          testStorageKeys();
+
+          // Synchronisiere Storage-Keys, um Konsistenz zu gewährleisten
+          syncStorageKeys();
+
+          // Versuche, häufige Probleme zu beheben
+          fixCommonStorageIssues();
+
+          // Führe Standard-Diagnose aus
+          diagnoseStorageIssues();
+
+          // Zeige gespeicherte Daten (für Debug-Zwecke)
+          printAllStoredData();
+
+          // Debug Store-Metadaten
+          debugStoreMetadata([
+            { name: "user", store: useUserStore },
+            { name: "theme", store: useThemeStore },
+            { name: "resources", store: useResourceStore },
+            { name: "visionBoard", store: useVisionBoardStore },
+            { name: "progression", store: useProgressionStore },
+            { name: "lifeWheel", store: useLifeWheelStore },
+            { name: "journal", store: useJournalStore },
+          ]);
+        }
+
         // Try unified storage first (which handles fallbacks internally)
         unifiedStorage.set("__test__", "test");
         unifiedStorage.delete("__test__");
@@ -157,6 +224,34 @@ export default function App() {
         );
       } catch (e) {
         console.error("All storage options failed:", e);
+
+        // Im Entwicklungsmodus: Angebot zum Zurücksetzen des Storage
+        if (__DEV__) {
+          Alert.alert(
+            "Storage-Fehler",
+            "Es ist ein Fehler bei der Initialisierung des Speichers aufgetreten. Möchten Sie alle lokalen Daten zurücksetzen, um das Problem zu beheben?",
+            [
+              {
+                text: "Abbrechen",
+                style: "cancel",
+              },
+              {
+                text: "Zurücksetzen",
+                onPress: () => {
+                  // Speicher zurücksetzen und App neu starten
+                  resetAppStorage();
+                  setTimeout(() => {
+                    Alert.alert(
+                      "Speicher zurückgesetzt",
+                      "Bitte starten Sie die App neu, um die Änderungen zu übernehmen.",
+                    );
+                  }, 500);
+                },
+              },
+            ],
+          );
+        }
+
         setStorageFailed(true);
       }
     };
@@ -199,7 +294,15 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <PaperProvider theme={theme}>
-          <NavigationContainer>
+          <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+              // Setze die Navigation-Referenz für globale Navigation
+              if (navigationRef.current) {
+                setTopLevelNavigator(navigationRef.current);
+              }
+            }}
+          >
             <MainNavigator />
             <StatusBar style={isDarkMode ? "light" : "dark"} />
           </NavigationContainer>

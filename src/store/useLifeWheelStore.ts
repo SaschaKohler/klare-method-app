@@ -126,10 +126,10 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
               }));
 
               // Lokal speichern
-              unifiedStorage.set(
-                StorageKeys.LIFE_WHEEL,
-                JSON.stringify(formattedWheelData),
-              );
+              if (formattedWheelData) {
+                const wheelData = JSON.stringify(formattedWheelData);
+                unifiedStorage.set(StorageKeys.LIFE_WHEEL, wheelData);
+              }
 
               get().updateLastSync();
             }
@@ -157,10 +157,10 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
         }));
 
         // Lokal speichern
-        unifiedStorage.set(
-          StorageKeys.LIFE_WHEEL,
-          JSON.stringify(get().lifeWheelAreas),
-        );
+        if (get().lifeWheelAreas) {
+          const wheelData = JSON.stringify(get().lifeWheelAreas);
+          unifiedStorage.set(StorageKeys.LIFE_WHEEL, wheelData);
+        }
       } catch (error) {
         console.error("Fehler beim Speichern des Lebensrads:", error);
         get().setError(
@@ -177,10 +177,10 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
         const { lifeWheelAreas } = get();
 
         // Lokal speichern
-        unifiedStorage.set(
-          StorageKeys.LIFE_WHEEL,
-          JSON.stringify(get().lifeWheelAreas),
-        );
+        if (get().lifeWheelAreas) {
+          const wheelData = JSON.stringify(get().lifeWheelAreas);
+          unifiedStorage.set(StorageKeys.LIFE_WHEEL, wheelData);
+        }
 
         // Mit Server synchronisieren wenn UserId vorhanden
         if (userId) {
