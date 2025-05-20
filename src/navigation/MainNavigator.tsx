@@ -16,6 +16,8 @@ import { Ionicons } from "@expo/vector-icons";
 import CustomHeader from "../components/CustomHeader";
 import { useTheme } from "react-native-paper";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
+// i18n
+import { useTranslation } from 'react-i18next';
 
 // Screens
 import HomeScreen from "../screens/HomeScreen";
@@ -68,6 +70,7 @@ const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
   const theme = useTheme();
+  const { t } = useTranslation('navigation');
   const isDarkMode = theme.dark;
   const themeColors = isDarkMode ? darkKlareColors : lightKlareColors;
 
@@ -133,8 +136,8 @@ const TabNavigator = () => {
         name="Home"
         component={HomeScreen}
         options={{
-          title: "Home",
-          tabBarAccessibilityLabel: "Home Tab",
+          title: t('tabs.home'),
+          tabBarAccessibilityLabel: t('accessibility.homeTab'),
           header: (props) => <CustomHeader />,
           tabBarTestID: "home-tab",
         }}
@@ -143,8 +146,8 @@ const TabNavigator = () => {
         name="LifeWheel"
         component={LifeWheelScreen}
         options={{
-          title: "Lebensrad",
-          tabBarAccessibilityLabel: "Life Wheel Tab",
+          title: t('tabs.lifewheel'),
+          tabBarAccessibilityLabel: t('accessibility.lifewheelTab'),
           header: (props) => <CustomHeader />,
           tabBarTestID: "lifewheel-tab",
         }}
@@ -153,8 +156,8 @@ const TabNavigator = () => {
         name="Journal"
         component={JournalScreen}
         options={{
-          title: "Journal",
-          tabBarAccessibilityLabel: "Journal Tab",
+          title: t('tabs.journal'),
+          tabBarAccessibilityLabel: t('accessibility.journalTab'),
           header: (props) => <CustomHeader />,
           tabBarTestID: "journal-tab",
         }}
@@ -163,8 +166,8 @@ const TabNavigator = () => {
         name="Profile"
         component={ProfileScreen}
         options={{
-          title: "Profil",
-          tabBarAccessibilityLabel: "Profile Tab",
+          title: t('tabs.profile'),
+          tabBarAccessibilityLabel: t('accessibility.profileTab'),
           header: (props) => <CustomHeader />,
           tabBarTestID: "profile-tab",
         }}

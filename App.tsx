@@ -18,6 +18,9 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Provider as PaperProvider } from "react-native-paper";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+// i18n
+import { I18nextProvider } from 'react-i18next';
+import i18n from './src/utils/i18n';
 
 // Import from barrel exports
 import { KlareLogo } from "./src/components";
@@ -292,22 +295,24 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <PaperProvider theme={theme}>
-          <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-              // Setze die Navigation-Referenz für globale Navigation
-              if (navigationRef.current) {
-                setTopLevelNavigator(navigationRef.current);
-              }
-            }}
-          >
-            <MainNavigator />
-            <StatusBar style={isDarkMode ? "light" : "dark"} />
-          </NavigationContainer>
-        </PaperProvider>
-      </SafeAreaProvider>
+      <I18nextProvider i18n={i18n}>
+        <SafeAreaProvider>
+          <PaperProvider theme={theme}>
+            <NavigationContainer
+              ref={navigationRef}
+              onReady={() => {
+                // Setze die Navigation-Referenz für globale Navigation
+                if (navigationRef.current) {
+                  setTopLevelNavigator(navigationRef.current);
+                }
+              }}
+            >
+              <MainNavigator />
+              <StatusBar style={isDarkMode ? "light" : "dark"} />
+            </NavigationContainer>
+          </PaperProvider>
+        </SafeAreaProvider>
+      </I18nextProvider>
     </GestureHandlerRootView>
   );
 }

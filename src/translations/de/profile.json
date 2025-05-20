@@ -1,0 +1,33 @@
+{
+  "profile": {
+    "settings": "Einstellungen",
+    "notifications": "Benachrichtigungen",
+    "appearance": "Erscheinungsbild",
+    "resourceLibrary": "Ressourcen-Bibliothek",
+    "syncData": "Daten synchronisieren",
+    "lastSync": "Letzte Synchronisierung: Heute, 14:30",
+    "syncing": "Daten werden synchronisiert...",
+    "progressTitle": "KLARE Methode Fortschritt",
+    "totalProgress": "Gesamtfortschritt",
+    "streak": "Streak",
+    "modules": "Module",
+    "showProgress": "Fortschritt anzeigen",
+    "supportInfo": "Support & Informationen",
+    "aboutMethod": "Über die KLARE Methode",
+    "helpSupport": "Hilfe & Support",
+    "privacyTerms": "Datenschutz & Nutzungsbedingungen",
+    "logoutConfirmation": "Möchtest du dich wirklich abmelden?",
+    "debugMode": "Debug-Modus",
+    "debugScreenUnavailable": "Debug-Screen ist nicht verfügbar. Bitte stellen Sie sicher, dass Sie im Entwicklungsmodus sind und der Screen registriert ist.",
+    "developerTools": "Entwickler-Tools",
+    "defaultUsername": "Benutzer",
+    "userData": {
+      "name": "Name",
+      "email": "E-Mail"
+    }
+  },
+  "common": {
+    "info": "Info",
+    "ok": "OK"
+  }
+}

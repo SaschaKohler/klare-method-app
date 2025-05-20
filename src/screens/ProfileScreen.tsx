@@ -21,9 +21,13 @@ import { useKlareStores } from "../hooks";
 import { RootStackParamList } from "../navigation/MainNavigator";
 import { navigateWithFallback, canNavigateTo } from "../utils/navigationUtils";
 import { Theme } from "react-native-paper/lib/typescript/types";
+// i18n
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from "../components/LanguageSelector";
 
 export default function ProfileScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { t } = useTranslation(['profile', 'common', 'auth']);
 
   const { summary, auth, theme: klareTheme } = useKlareStores();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -34,13 +38,13 @@ export default function ProfileScreen() {
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const styles = useMemo(() => createProfileStyles(paperTheme), [paperTheme]);
   const handleLogout = () => {
-    Alert.alert("Abmelden", "Möchtest du dich wirklich abmelden?", [
+    Alert.alert(t('auth.signOut'), t('profile.logoutConfirmation'), [
       {
-        text: "Abbrechen",
+        text: t('actions.cancel'),
         style: "cancel",
       },
       {
-        text: "Abmelden",
+        text: t('auth.signOut'),
         onPress: auth.signOut,
         style: "destructive",
       },
@@ -63,7 +67,7 @@ export default function ProfileScreen() {
             style={{ backgroundColor: klareColors.k }}
           />
           <Text style={[styles.username, { color: paperTheme.colors.text }]}>
-            {summary.user?.name || "Benutzer"}
+            {summary.user?.name || t('profile:profile.defaultUsername')}
           </Text>
           <Text style={[styles.email, { color: paperTheme.colors.text }]}>
             {summary.user?.email}
@@ -73,10 +77,10 @@ export default function ProfileScreen() {
         <Card style={styles.card}>
           <Card.Content>
             <List.Section>
-              <List.Subheader>Einstellungen</List.Subheader>
+              <List.Subheader>{t('profile.settings')}</List.Subheader>
 
               <List.Item
-                title="Benachrichtigungen"
+                title={t('profile.notifications')}
                 left={() => <List.Icon icon="bell-outline" />}
                 right={() => (
                   <Switch
@@ -90,24 +94,32 @@ export default function ProfileScreen() {
               <Divider />
 
               <List.Item
-                title="Erscheinungsbild"
+                title={t('profile.appearance')}
                 left={() => <List.Icon icon={isDarkMode ? "moon" : "sunny"} />}
               />
               <ThemeToggle showLabel={false} />
 
               <Divider />
+              
               <List.Item
-                title="Ressourcen-Bibliothek"
+                title={t('app.language')}
+                left={() => <List.Icon icon="translate" />}
+              />
+              <LanguageSelector />
+              
+              <Divider />
+              <List.Item
+                title={t('profile.resourceLibrary')}
                 left={() => <List.Icon icon="battery-charging-outline" />}
                 onPress={() => navigation.navigate("ResourceLibrary")}
               />
               <Divider />
               <List.Item
-                title="Daten synchronisieren"
-                description="Letzte Synchronisierung: Heute, 14:30"
+                title={t('profile.syncData')}
+                description={t('profile.lastSync')}
                 left={() => <List.Icon icon="sync" />}
                 onPress={() =>
-                  Alert.alert("Info", "Daten werden synchronisiert...")
+                  Alert.alert(t('common.info'), t('profile.syncing'))
                 }
               />
             </List.Section>
@@ -117,7 +129,7 @@ export default function ProfileScreen() {
         <Card style={styles.card}>
           <Card.Content>
             <List.Section>
-              <List.Subheader>KLARE Methode Fortschritt</List.Subheader>
+              <List.Subheader>{t('profile.progressTitle')}</List.Subheader>
 
               <View style={styles.progressContainer}>
                 <View style={styles.progressItem}>
@@ -142,7 +154,7 @@ export default function ProfileScreen() {
                       { color: paperTheme.colors.text },
                     ]}
                   >
-                    Gesamtfortschritt
+                    {t('profile.totalProgress')}
                   </Text>
                 </View>
 
@@ -168,7 +180,7 @@ export default function ProfileScreen() {
                       { color: paperTheme.colors.text },
                     ]}
                   >
-                    Streak
+                    {t('profile.streak')}
                   </Text>
                 </View>
 
@@ -194,7 +206,7 @@ export default function ProfileScreen() {
                       { color: paperTheme.colors.text },
                     ]}
                   >
-                    Module
+                    {t('profile.modules')}
                   </Text>
                 </View>
               </View>
@@ -206,7 +218,7 @@ export default function ProfileScreen() {
                 labelStyle={{ color: klareColors.k }}
                 onPress={() => {}}
               >
-                Fortschritt anzeigen
+                {t('profile.showProgress')}
               </Button>
             </List.Section>
           </Card.Content>
@@ -215,10 +227,10 @@ export default function ProfileScreen() {
         <Card style={styles.card}>
           <Card.Content>
             <List.Section>
-              <List.Subheader>Support & Informationen</List.Subheader>
+              <List.Subheader>{t('profile.supportInfo')}</List.Subheader>
 
               <List.Item
-                title="Über die KLARE Methode"
+                title={t('profile.aboutMethod')}
                 left={() => <List.Icon icon="information-outline" />}
                 onPress={() => {}}
               />
@@ -226,7 +238,7 @@ export default function ProfileScreen() {
               <Divider />
 
               <List.Item
-                title="Hilfe & Support"
+                title={t('profile.helpSupport')}
                 left={() => <List.Icon icon="help-circle-outline" />}
                 onPress={() => {}}
               />
@@ -234,7 +246,7 @@ export default function ProfileScreen() {
               <Divider />
 
               <List.Item
-                title="Datenschutz & Nutzungsbedingungen"
+                title={t('profile.privacyTerms')}
                 left={() => <List.Icon icon="shield-outline" />}
                 onPress={() => {}}
               />
@@ -249,7 +261,7 @@ export default function ProfileScreen() {
           style={styles.logoutButton}
           labelStyle={{ color: "#f44336" }}
         >
-          Abmelden
+          {t('auth.signOut')}
         </Button>
 
         {/* Debug-Button nur im Entwicklungsmodus anzeigen */}
@@ -263,15 +275,15 @@ export default function ProfileScreen() {
                 navigateWithFallback("Debug");
               } else {
                 Alert.alert(
-                  "Debug-Modus",
-                  "Debug-Screen ist nicht verfügbar. Bitte stellen Sie sicher, dass Sie im Entwicklungsmodus sind und der Screen registriert ist.",
-                  [{ text: "OK" }],
+                  t('profile.debugMode'),
+                  t('profile.debugScreenUnavailable'),
+                  [{ text: t('actions.ok') }],
                 );
               }
             }}
             style={styles.debugButton}
           >
-            Entwickler-Tools
+            {t('profile.developerTools')}
           </Button>
         )}
       </ScrollView>

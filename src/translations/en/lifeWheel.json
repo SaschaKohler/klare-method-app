@@ -1,0 +1,34 @@
+{
+  "lifeWheel": {
+    "title": "Life Wheel",
+    "subtitle": "Rate different areas of your life to gain clarity.",
+    "currentState": "Current State",
+    "withTargetValues": "With Target Values",
+    "saveChanges": "Save Changes",
+    "save": "Save",
+    "showInsights": "Show Insights",
+    "hideInsights": "Hide Insights",
+    "insights": {
+      "title": "Insights",
+      "developmentAreas": "Areas with Development Potential",
+      "needsAttention": "This area might need special attention (Value: {{value}}/10).",
+      "biggestDiscrepancies": "Biggest Discrepancies",
+      "gapBetween": "There's a significant gap between current ({{current}}) and target ({{target}}).",
+      "strengths": "Strength Areas",
+      "strengthArea": "This is a strength area (Value: {{value}}/10).",
+      "noInsights": "No special insights from the current values.",
+      "nextSteps": "Next Steps",
+      "nextStepsDescription": "Use the CLEAR Method to work on the areas with the biggest discrepancies. Start with the step \"C - Clarity\" to identify your actual needs.",
+      "toKlareMethod": "To CLEAR Method"
+    },
+    "alerts": {
+      "saved": "Saved",
+      "savedSuccess": "Your Life Wheel values have been successfully saved.",
+      "error": "Error",
+      "saveError": "An error occurred while saving. Please try again.",
+      "unsavedChanges": "Unsaved Changes",
+      "saveBeforeContinue": "You have unsaved changes to your Life Wheel. Would you like to save before continuing?",
+      "continueWithoutSaving": "Continue without saving"
+    }
+  }
+}

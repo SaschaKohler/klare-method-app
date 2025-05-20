@@ -1,0 +1,19 @@
+{
+  "tabs": {
+    "home": "Home",
+    "lifewheel": "Life Wheel",
+    "journal": "Journal",
+    "profile": "Profile"
+  },
+  "accessibility": {
+    "homeTab": "Home Tab",
+    "lifewheelTab": "Life Wheel Tab",
+    "journalTab": "Journal Tab",
+    "profileTab": "Profile Tab"
+  },
+  "screens": {
+    "resourceLibrary": "Resource Library",
+    "resourceFinder": "Resource Finder",
+    "editResource": "Edit Resource"
+  }
+}

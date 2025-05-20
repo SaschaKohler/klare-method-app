@@ -1,0 +1,34 @@
+{
+  "lifeWheel": {
+    "title": "Lebensrad",
+    "subtitle": "Bewerten Sie verschiedene Bereiche Ihres Lebens, um Klarheit zu gewinnen.",
+    "currentState": "Aktueller Zustand",
+    "withTargetValues": "Mit Zielwerten",
+    "saveChanges": "Änderungen speichern",
+    "save": "Speichern",
+    "showInsights": "Erkenntnisse anzeigen",
+    "hideInsights": "Erkenntnisse ausblenden",
+    "insights": {
+      "title": "Erkenntnisse",
+      "developmentAreas": "Bereiche mit Entwicklungspotenzial",
+      "needsAttention": "Dieser Bereich könnte besondere Aufmerksamkeit erfordern (Wert: {{value}}/10).",
+      "biggestDiscrepancies": "Größte Diskrepanzen",
+      "gapBetween": "Hier besteht eine große Lücke zwischen Ist ({{current}}) und Soll ({{target}}).",
+      "strengths": "Stärkebereiche",
+      "strengthArea": "Dies ist ein Stärkebereich (Wert: {{value}}/10).",
+      "noInsights": "Keine besonderen Erkenntnisse aus den aktuellen Werten.",
+      "nextSteps": "Nächste Schritte",
+      "nextStepsDescription": "Verwenden Sie die KLARE Methode, um an den Bereichen mit der größten Diskrepanz zu arbeiten. Beginnen Sie mit dem Schritt \"K - Klarheit\", um Ihre tatsächlichen Bedürfnisse zu identifizieren.",
+      "toKlareMethod": "Zur KLARE Methode"
+    },
+    "alerts": {
+      "saved": "Gespeichert",
+      "savedSuccess": "Ihre Lebensrad-Werte wurden erfolgreich gespeichert.",
+      "error": "Fehler",
+      "saveError": "Beim Speichern ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+      "unsavedChanges": "Ungespeicherte Änderungen",
+      "saveBeforeContinue": "Sie haben ungespeicherte Änderungen am Lebensrad. Möchten Sie speichern, bevor Sie fortfahren?",
+      "continueWithoutSaving": "Ohne Speichern fortfahren"
+    }
+  }
+}

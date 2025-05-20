@@ -4,6 +4,7 @@ import { Text, useTheme } from "react-native-paper";
 import KlareLogo from "./KlareLogo";
 import { klareColors } from "../constants/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from 'react-i18next';
 
 interface CustomHeaderProps {
   title?: string;
@@ -22,6 +23,7 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
 }) => {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   return (
     <View style={styles.shadowWrapper}>
@@ -48,7 +50,7 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
             {/* Absolutely positioned back button */}
             {showBack && (
               <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
-                <Text style={styles.backText}>Zurück</Text>
+                <Text style={styles.backText}>{t('actions.back')}</Text>
               </TouchableOpacity>
             )}
             

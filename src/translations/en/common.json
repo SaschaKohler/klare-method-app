@@ -1,0 +1,52 @@
+{
+  "app": {
+    "name": "CLEAR Method",
+    "settings": "Settings",
+    "language": "Language",
+    "german": "German",
+    "english": "English"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "continue": "Continue",
+    "back": "Back",
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "ok": "OK"
+  },
+  "validation": {
+    "required": "This field is required",
+    "email": "Please enter a valid email address",
+    "min": "Please enter at least {{count}} characters",
+    "max": "Please enter at most {{count}} characters"
+  },
+  "navigation": {
+    "home": "Home",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "forgotPassword": "Forgot password?",
+    "resetPassword": "Reset Password",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "googleSignIn": "Sign in with Google",
+    "or": "or"
+  },
+  "errors": {
+    "generic": "An error occurred",
+    "network": "Network error",
+    "unauthorized": "Unauthorized",
+    "notFound": "Not found"
+  }
+}

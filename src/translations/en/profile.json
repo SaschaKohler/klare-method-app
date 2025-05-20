@@ -1,0 +1,33 @@
+{
+  "profile": {
+    "settings": "Settings",
+    "notifications": "Notifications",
+    "appearance": "Appearance",
+    "resourceLibrary": "Resource Library",
+    "syncData": "Sync Data",
+    "lastSync": "Last sync: Today, 14:30",
+    "syncing": "Syncing data...",
+    "progressTitle": "CLEAR Method Progress",
+    "totalProgress": "Total Progress",
+    "streak": "Streak",
+    "modules": "Modules",
+    "showProgress": "Show Progress",
+    "supportInfo": "Support & Information",
+    "aboutMethod": "About the CLEAR Method",
+    "helpSupport": "Help & Support",
+    "privacyTerms": "Privacy & Terms of Use",
+    "logoutConfirmation": "Are you sure you want to log out?",
+    "debugMode": "Debug Mode",
+    "debugScreenUnavailable": "Debug screen is not available. Please ensure you are in development mode and the screen is registered.",
+    "developerTools": "Developer Tools",
+    "defaultUsername": "User",
+    "userData": {
+      "name": "Name",
+      "email": "Email"
+    }
+  },
+  "common": {
+    "info": "Info",
+    "ok": "OK"
+  }
+}

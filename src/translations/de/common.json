@@ -1,0 +1,52 @@
+{
+  "app": {
+    "name": "KLARE Methode",
+    "settings": "Einstellungen",
+    "language": "Sprache",
+    "german": "Deutsch",
+    "english": "Englisch"
+  },
+  "actions": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "add": "Hinzufügen",
+    "continue": "Weiter",
+    "back": "Zurück",
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "register": "Registrieren",
+    "ok": "OK"
+  },
+  "validation": {
+    "required": "Dieses Feld ist erforderlich",
+    "email": "Bitte gib eine gültige E-Mail-Adresse ein",
+    "min": "Bitte gib mindestens {{count}} Zeichen ein",
+    "max": "Bitte gib höchstens {{count}} Zeichen ein"
+  },
+  "navigation": {
+    "home": "Start",
+    "profile": "Profil",
+    "settings": "Einstellungen"
+  },
+  "auth": {
+    "signIn": "Anmelden",
+    "signUp": "Registrieren",
+    "signOut": "Abmelden",
+    "forgotPassword": "Passwort vergessen?",
+    "resetPassword": "Passwort zurücksetzen",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "googleSignIn": "Mit Google anmelden",
+    "or": "oder"
+  },
+  "errors": {
+    "generic": "Ein Fehler ist aufgetreten",
+    "network": "Netzwerkfehler",
+    "unauthorized": "Nicht autorisiert",
+    "notFound": "Nicht gefunden"
+  }
+}
