@@ -168,5 +168,39 @@
         "description": "Test your understanding of the realization concept"
       }
     }
+  },
+  "progressionStages": {
+    "1": {
+      "name": "Week 1: Foundations of Clarity",
+      "description": "Introduction to the CLEAR Method and analysis of your current life situation."
+    },
+    "2": {
+      "name": "Week 2: Deepened Clarity",
+      "description": "Identification of incongruences and reflection on your true situation."
+    },
+    "3": {
+      "name": "Week 3: Start Liveliness",
+      "description": "Discover your natural energy sources and hidden resources."
+    },
+    "4": {
+      "name": "Week 4: Liveliness & Evolvement",
+      "description": "Complete the Liveliness phase and begin with the Evolvement of your life areas."
+    },
+    "5": {
+      "name": "Week 5: Deepening Evolvement",
+      "description": "Develop a value hierarchy and a congruent life vision for all areas."
+    },
+    "6": {
+      "name": "Week 6: Action in Everyday Life",
+      "description": "Transform your vision into concrete steps and daily routines."
+    },
+    "7": {
+      "name": "Week 7: Action & Realization",
+      "description": "Complete your action strategies and enter the phase of Realization."
+    },
+    "8": {
+      "name": "Week 8: Complete Realization",
+      "description": "Experience effortless manifestation and complete the CLEAR process for holistic realization."
+    }
   }
 }

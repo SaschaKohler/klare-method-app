@@ -21,8 +21,9 @@ export interface Module {
   order: number;
 }
 
-// Hilfsfunktion zum Abrufen der übersetzten KLARE-Schritte
-const getTranslatedStep = (
+// Hilfsfunktion zum Abrufen eines übersetzten KLARE-Schritts
+// Wird nur zur Typsicherheit verwendet, die tatsächliche Übersetzung erfolgt dynamisch in getKlareSteps()
+const createStepTemplate = (
   id: "K" | "L" | "A" | "R" | "E",
   defaultTitle: string,
   defaultDescription: string,
@@ -31,39 +32,38 @@ const getTranslatedStep = (
 ): KlareStep => {
   return {
     id,
-    title: i18n.t(`modules:${id}.title`, { defaultValue: defaultTitle }),
-    description: i18n.t(`modules:${id}.description`, {
-      defaultValue: defaultDescription,
-    }),
+    title: defaultTitle,
+    description: defaultDescription,
     color,
     iconName,
   };
 };
 
-export const klareSteps: KlareStep[] = [
-  getTranslatedStep(
+// Statische Definitionen der KLARE-Schritte (ohne Übersetzung)
+const stepTemplates: KlareStep[] = [
+  createStepTemplate(
     "K",
     "Klarheit",
     "über die aktuelle Situation",
     klareColors.k,
     "search",
   ),
-  getTranslatedStep(
+  createStepTemplate(
     "L",
     "Lebendigkeit",
     "und Ressourcen wiederentdecken",
     klareColors.l,
     "flash",
   ),
-  getTranslatedStep(
+  createStepTemplate(
     "A",
     "Ausrichtung",
     "der Lebensbereiche",
     klareColors.a,
     "compass",
   ),
-  getTranslatedStep("R", "Realisierung", "im Alltag", klareColors.r, "hammer"),
-  getTranslatedStep(
+  createStepTemplate("R", "Realisierung", "im Alltag", klareColors.r, "hammer"),
+  createStepTemplate(
     "E",
     "Entfaltung",
     "durch vollständige Kongruenz",
@@ -71,3 +71,20 @@ export const klareSteps: KlareStep[] = [
     "sparkles",
   ),
 ];
+
+// Funktion zum dynamischen Abrufen übersetzter KLARE-Schritte
+// Wird zur Laufzeit aufgerufen, wenn die Sprache bereits initialisiert ist
+export function getKlareSteps(): KlareStep[] {
+  return stepTemplates.map((step) => ({
+    ...step,
+    title: i18n.t(`modules:${step.id}.title`, { defaultValue: step.title }),
+    description: i18n.t(`modules:${step.id}.description`, {
+      defaultValue: step.description,
+    }),
+  }));
+}
+
+// Exportiere als Variable für Abwärtskompatibilität
+// Wichtig: Diese erste Definition verwendet die Standardwerte
+// und wird später durch die Funktion getKlareSteps() ersetzt
+export const klareSteps: KlareStep[] = stepTemplates;

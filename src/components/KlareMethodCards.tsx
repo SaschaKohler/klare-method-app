@@ -48,7 +48,7 @@ const KlareMethodCards: React.FC<KlareMethodCardsProps> = ({
   const navigation = useNavigation<KlareMethodNavigationProp>();
   const theme = useTheme();
   const { t } = useTranslation(["modules", "common"]); // i18n Hook für Übersetzungen
-
+  console.log("KlareSteps:", klareSteps);
   return (
     <ScrollView
       horizontal

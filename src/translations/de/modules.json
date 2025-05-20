@@ -168,5 +168,39 @@
         "description": "Testen Sie Ihr Verständnis des Entfaltungs-Konzepts"
       }
     }
+  },
+  "progressionStages": {
+    "1": {
+      "name": "Woche 1: Grundlagen der Klarheit",
+      "description": "Einführung in die KLARE-Methode und Analyse deiner aktuellen Lebenssituation."
+    },
+    "2": {
+      "name": "Woche 2: Vertiefte Klarheit",
+      "description": "Identifikation von Inkongruenzen und Reflexion deiner wahren Situation."
+    },
+    "3": {
+      "name": "Woche 3: Start Lebendigkeit",
+      "description": "Entdecke deine natürlichen Energiequellen und verborgenen Ressourcen."
+    },
+    "4": {
+      "name": "Woche 4: Lebendigkeit & Ausrichtung",
+      "description": "Komplettiere die Lebendigkeit-Phase und beginne mit der Ausrichtung deiner Lebensbereiche."
+    },
+    "5": {
+      "name": "Woche 5: Ausrichtung vertiefen",
+      "description": "Entwickle eine Wertehierarchie und eine kongruente Lebensvision für alle Bereiche."
+    },
+    "6": {
+      "name": "Woche 6: Realisierung im Alltag",
+      "description": "Überführe deine Vision in konkrete Schritte und Alltagsroutinen."
+    },
+    "7": {
+      "name": "Woche 7: Realisierung & Entfaltung",
+      "description": "Vollende deine Realisierungsstrategien und starte in die Phase der Entfaltung."
+    },
+    "8": {
+      "name": "Woche 8: Gesamte Entfaltung",
+      "description": "Erlebe mühelose Manifestation und vollende den KLARE-Prozess zur ganzheitlichen Entfaltung."
+    }
   }
 }

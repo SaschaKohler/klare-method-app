@@ -24,7 +24,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { KlareMethodCards } from "../components";
 import createStyles from "../constants/createStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
-import { klareSteps } from "../data/klareMethodData";
+import { getKlareSteps } from "../data/klareMethodData";
 import { useKlareStores } from "../hooks";
 // i18n
 import { useTranslation } from "react-i18next";
@@ -79,6 +79,7 @@ export default function HomeScreen() {
     console.log("Session started");
   }, [actions]);
 
+  const translatedKlareSteps = useMemo(() => getKlareSteps(), [i18n.language]);
   // Animation für Stage-Fortschritt
   useEffect(() => {
     Animated.parallel([
@@ -157,7 +158,7 @@ export default function HomeScreen() {
     }
 
     // Nächstes verfügbares Modul finden
-    for (const step of klareSteps) {
+    for (const step of translatedKlareSteps) {
       const moduleIds = availableModules.filter((id) =>
         id.startsWith(step.id.toLowerCase()),
       );
@@ -273,7 +274,13 @@ export default function HomeScreen() {
               {userSummary?.currentStage && (
                 <>
                   <Text style={[styles.stageName, { color: klareColors.k }]}>
-                    {userSummary?.currentStage.name}
+                    {/* Hier verwenden wir einen vollständigen Übersetzungsschlüssel statt nur die stage.name */}
+                    {i18n.t(
+                      `modules:progressionStages.${userSummary.currentStage.id}.name`,
+                      {
+                        defaultValue: userSummary.currentStage.name,
+                      },
+                    )}
                   </Text>
                   <Text
                     style={[
@@ -281,7 +288,13 @@ export default function HomeScreen() {
                       { color: paperTheme.colors.text },
                     ]}
                   >
-                    {userSummary?.currentStage.description}
+                    {/* Hier verwenden wir einen vollständigen Übersetzungsschlüssel für die Beschreibung */}
+                    {i18n.t(
+                      `modules:progressionStages.${userSummary.currentStage.id}.description`,
+                      {
+                        defaultValue: userSummary.currentStage.description,
+                      },
+                    )}
                   </Text>
 
                   {userSummary?.nextStage && (
@@ -309,7 +322,13 @@ export default function HomeScreen() {
                           { color: paperTheme.colors.text },
                         ]}
                       >
-                        {userSummary.nextStage.name}
+                        {/* Auch für die nächste Phase die volle Übersetzung verwenden */}
+                        {i18n.t(
+                          `modules:progressionStages.${userSummary.nextStage.id}.name`,
+                          {
+                            defaultValue: userSummary.nextStage.name,
+                          },
+                        )}
                       </Text>
                       {userSummary.nextStage.requiredDays >
                         userSummary.daysInProgram && (
@@ -497,7 +516,10 @@ export default function HomeScreen() {
         <Text style={[styles.sectionTitle, { color: paperTheme.colors.text }]}>
           {t("sections.klareMethod")}
         </Text>
-        <KlareMethodCards klareSteps={klareSteps} stepProgress={stepProgress} />
+        <KlareMethodCards
+          klareSteps={translatedKlareSteps}
+          stepProgress={stepProgress}
+        />
         {/* Vision Board Section */}
         <Text style={[styles.sectionTitle, { color: paperTheme.colors.text }]}>
           {t("sections.visionBoard.title")}
@@ -568,7 +590,9 @@ export default function HomeScreen() {
         </Text>
 
         {getNextActivities.map((activity) => {
-          const stepInfo = klareSteps.find((step) => step.id === activity.step);
+          const stepInfo = translatedKlareSteps.find(
+            (step) => step.id === activity.step,
+          );
           return (
             <Card
               key={activity.id}

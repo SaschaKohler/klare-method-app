@@ -1,6 +1,7 @@
 // src/data/progression.ts
 import { Module } from "./klareMethodData";
 import { allModules } from "./klareMethodModules";
+import i18n from "../utils/i18n";
 
 /**
  * Interface für eine Progressionsstufe im zeitlichen Verlauf der KLARE-Methode
@@ -17,58 +18,79 @@ export interface ProgressionStage {
 }
 
 /**
+ * Hilfsfunktion zum Abrufen einer übersetzten Progressionsstufe
+ */
+const getTranslatedStage = (
+  id: string,
+  defaultName: string,
+  defaultDescription: string,
+  requiredDays: number,
+  requiredModules: string[],
+  unlocksModules: string[],
+  stepId?: "K" | "L" | "A" | "R" | "E",
+): ProgressionStage => {
+  return {
+    id,
+    // Für name und description verwenden wir die Übersetzungen aus modules.json
+    name: i18n.t(`modules:progressionStages.${id}.name`, {
+      defaultValue: defaultName,
+    }),
+    description: i18n.t(`modules:progressionStages.${id}.description`, {
+      defaultValue: defaultDescription,
+    }),
+    requiredDays,
+    requiredModules,
+    unlocksModules,
+    stepId,
+  };
+};
+
+/**
  * OPTIMIERTE Progression der KLARE-Methode über 8 Wochen (statt 17)
  * Jede Stufe schaltet bestimmte Module frei, die dann vom Benutzer absolviert werden können
  */
 export const progressionStages: ProgressionStage[] = [
   // ===== WOCHE 1: Einführung und Klarheit (K) =====
-  {
-    id: "1",
-    name: "Woche 1: Grundlagen der Klarheit",
-    requiredDays: 0, // Sofort verfügbar
-    requiredModules: [],
-    unlocksModules: ["k-intro", "k-theory", "k-lifewheel"],
-    description:
-      "Einführung in die KLARE-Methode und Analyse deiner aktuellen Lebenssituation.",
-    stepId: "K",
-  },
+  getTranslatedStage(
+    "1",
+    "Woche 1: Grundlagen der Klarheit",
+    "Einführung in die KLARE-Methode und Analyse deiner aktuellen Lebenssituation.",
+    0, // Sofort verfügbar
+    [],
+    ["k-intro", "k-theory", "k-lifewheel"],
+    "K",
+  ),
 
   // ===== WOCHE 2: Vertiefte Klarheit =====
-  {
-    id: "2",
-    name: "Woche 2: Vertiefte Klarheit",
-    requiredDays: 5, // Nach 5 Tagen
-    requiredModules: ["k-intro", "k-lifewheel"],
-    unlocksModules: [
-      "k-reality-check",
-      "k-incongruence-finder",
-      "k-reflection",
-      "k-quiz",
-    ],
-    description:
-      "Identifikation von Inkongruenzen und Reflexion deiner wahren Situation.",
-    stepId: "K",
-  },
+  getTranslatedStage(
+    "2",
+    "Woche 2: Vertiefte Klarheit",
+    "Identifikation von Inkongruenzen und Reflexion deiner wahren Situation.",
+    5, // Nach 5 Tagen
+    ["k-intro", "k-lifewheel"],
+    ["k-reality-check", "k-incongruence-finder", "k-reflection", "k-quiz"],
+    "K",
+  ),
 
   // ===== WOCHE 3: Start Lebendigkeit (L) =====
-  {
-    id: "3",
-    name: "Woche 3: Start Lebendigkeit",
-    requiredDays: 12, // Nach knapp 2 Wochen
-    requiredModules: ["k-reflection"],
-    unlocksModules: ["l-intro", "l-theory", "l-resource-finder"],
-    description:
-      "Entdecke deine natürlichen Energiequellen und verborgenen Ressourcen.",
-    stepId: "L",
-  },
+  getTranslatedStage(
+    "3",
+    "Woche 3: Start Lebendigkeit",
+    "Entdecke deine natürlichen Energiequellen und verborgenen Ressourcen.",
+    12, // Nach knapp 2 Wochen
+    ["k-reflection"],
+    ["l-intro", "l-theory", "l-resource-finder"],
+    "L",
+  ),
 
   // ===== WOCHE 4: Lebendigkeit vertiefen & Start Ausrichtung =====
-  {
-    id: "4",
-    name: "Woche 4: Lebendigkeit & Ausrichtung",
-    requiredDays: 19, // Nach knapp 3 Wochen
-    requiredModules: ["l-resource-finder"],
-    unlocksModules: [
+  getTranslatedStage(
+    "4",
+    "Woche 4: Lebendigkeit & Ausrichtung",
+    "Komplettiere die Lebendigkeit-Phase und beginne mit der Ausrichtung deiner Lebensbereiche.",
+    19, // Nach knapp 3 Wochen
+    ["l-resource-finder"],
+    [
       "l-vitality-moments",
       "l-energy-blockers",
       "l-embodiment",
@@ -76,76 +98,70 @@ export const progressionStages: ProgressionStage[] = [
       "a-intro",
       "a-theory",
     ],
-    description:
-      "Komplettiere die Lebendigkeit-Phase und beginne mit der Ausrichtung deiner Lebensbereiche.",
-    stepId: "A",
-  },
+    "A",
+  ),
 
   // ===== WOCHE 5: Ausrichtung vertiefen =====
-  {
-    id: "5",
-    name: "Woche 5: Ausrichtung vertiefen",
-    requiredDays: 26, // Nach 3,5 Wochen
-    requiredModules: ["a-intro"],
-    unlocksModules: [
+  getTranslatedStage(
+    "5",
+    "Woche 5: Ausrichtung vertiefen",
+    "Entwickle eine Wertehierarchie und eine kongruente Lebensvision für alle Bereiche.",
+    26, // Nach 3,5 Wochen
+    ["a-intro"],
+    [
       "a-values-hierarchy",
       "a-life-vision",
       "a-decision-alignment",
       "a-integration-check",
       "a-quiz",
     ],
-    description:
-      "Entwickle eine Wertehierarchie und eine kongruente Lebensvision für alle Bereiche.",
-    stepId: "A",
-  },
+    "A",
+  ),
 
   // ===== WOCHE 6: Realisierung =====
-  {
-    id: "6",
-    name: "Woche 6: Realisierung im Alltag",
-    requiredDays: 33, // Nach knapp 5 Wochen
-    requiredModules: ["a-values-hierarchy", "a-life-vision"],
-    unlocksModules: ["r-intro", "r-theory", "r-habit-builder", "r-micro-steps"],
-    description:
-      "Überführe deine Vision in konkrete Schritte und Alltagsroutinen.",
-    stepId: "R",
-  },
+  getTranslatedStage(
+    "6",
+    "Woche 6: Realisierung im Alltag",
+    "Überführe deine Vision in konkrete Schritte und Alltagsroutinen.",
+    33, // Nach knapp 5 Wochen
+    ["a-values-hierarchy", "a-life-vision"],
+    ["r-intro", "r-theory", "r-habit-builder", "r-micro-steps"],
+    "R",
+  ),
 
   // ===== WOCHE 7: Realisierung & Start Entfaltung =====
-  {
-    id: "7",
-    name: "Woche 7: Realisierung & Entfaltung",
-    requiredDays: 40, // Nach knapp 6 Wochen
-    requiredModules: ["r-habit-builder"],
-    unlocksModules: [
+  getTranslatedStage(
+    "7",
+    "Woche 7: Realisierung & Entfaltung",
+    "Vollende deine Realisierungsstrategien und starte in die Phase der Entfaltung.",
+    40, // Nach knapp 6 Wochen
+    ["r-habit-builder"],
+    [
       "r-environment-design",
       "r-accountability",
       "r-quiz",
       "e-intro",
       "e-theory",
     ],
-    description:
-      "Vollende deine Realisierungsstrategien und starte in die Phase der Entfaltung.",
-    stepId: "E",
-  },
+    "E",
+  ),
 
   // ===== WOCHE 8: Programm-Abschluss =====
-  {
-    id: "8",
-    name: "Woche 8: Gesamte Entfaltung",
-    requiredDays: 47, // Nach knapp 7 Wochen
-    requiredModules: ["e-intro"],
-    unlocksModules: [
+  getTranslatedStage(
+    "8",
+    "Woche 8: Gesamte Entfaltung",
+    "Erlebe mühelose Manifestation und vollende den KLARE-Prozess zur ganzheitlichen Entfaltung.",
+    47, // Nach knapp 7 Wochen
+    ["e-intro"],
+    [
       "e-integration-practice",
       "e-effortless-manifestation",
       "e-congruence-check",
       "e-sharing-wisdom",
       "e-quiz",
     ],
-    description:
-      "Erlebe mühelose Manifestation und vollende den KLARE-Prozess zur ganzheitlichen Entfaltung.",
-    stepId: "E",
-  },
+    "E",
+  ),
 ];
 
 /**

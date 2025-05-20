@@ -27,7 +27,7 @@
     }
   },
   "auth": {
-    "signOut": "logout"
+    "signOut": "Abmelden"
   },
   "common": {
     "info": "Info",
