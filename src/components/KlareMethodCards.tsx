@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
+import { useTranslation } from "react-i18next"; // Import für i18n
 
 const { width } = Dimensions.get("window");
 
@@ -19,6 +20,7 @@ const { width } = Dimensions.get("window");
 type KlareStep = {
   id: string;
   title: string;
+  description: string; // Neu: Beschreibung hinzugefügt
   iconName: string;
   color: string;
 };
@@ -45,6 +47,7 @@ const KlareMethodCards: React.FC<KlareMethodCardsProps> = ({
 }) => {
   const navigation = useNavigation<KlareMethodNavigationProp>();
   const theme = useTheme();
+  const { t } = useTranslation(["modules", "common"]); // i18n Hook für Übersetzungen
 
   return (
     <ScrollView
@@ -84,11 +87,17 @@ const KlareMethodCards: React.FC<KlareMethodCardsProps> = ({
               />
             </View>
             <Text style={[styles.klareStepLetter, { color: step.color }]}>
-              {step.id}
+              {t(`common:logo.${step.id}`)}
             </Text>
           </View>
           <Text style={[styles.klareStepName, { color: theme.colors.text }]}>
             {step.title}
+          </Text>
+          {/* Beschreibung hinzugefügt */}
+          <Text
+            style={[styles.klareStepDescription, { color: theme.colors.text }]}
+          >
+            {step.description}
           </Text>
           <View style={styles.klareStepProgress}>
             <ProgressBar
@@ -96,6 +105,9 @@ const KlareMethodCards: React.FC<KlareMethodCardsProps> = ({
               color={step.color}
               style={styles.klareStepProgressBar}
             />
+            <Text style={[styles.progressText, { color: step.color }]}>
+              {Math.round(stepProgress[step.id] * 100)}%
+            </Text>
           </View>
         </TouchableOpacity>
       ))}
@@ -110,8 +122,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   klareStepCard: {
-    width: width * 0.45, // Slightly wider than half
-    aspectRatio: 1, // Square-like card
+    width: width * 0.65, // Etwas breiter für mehr Platz
+    aspectRatio: 0.85, // Etwas höher für die Beschreibung
     borderRadius: 16,
     borderWidth: 1,
     padding: 16,
@@ -141,14 +153,27 @@ const styles = StyleSheet.create({
   klareStepName: {
     fontSize: 16,
     fontWeight: "600",
+    marginBottom: 8,
+  },
+  klareStepDescription: {
+    fontSize: 12,
     marginBottom: 12,
+    opacity: 0.8,
   },
   klareStepProgress: {
     marginTop: "auto",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   klareStepProgressBar: {
     height: 4,
     borderRadius: 2,
+    flex: 1,
+  },
+  progressText: {
+    fontSize: 10,
+    fontWeight: "bold",
   },
 });
 

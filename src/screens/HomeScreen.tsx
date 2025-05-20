@@ -26,9 +26,12 @@ import createStyles from "../constants/createStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { klareSteps } from "../data/klareMethodData";
 import { useKlareStores } from "../hooks";
+// i18n
+import { useTranslation } from "react-i18next";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const { t, i18n } = useTranslation(["home", "common", "modules"]);
 
   // Use our custom hook instead of multiple useStore calls
   const { summary, theme, progression, actions, analytics } = useKlareStores();
@@ -56,15 +59,11 @@ export default function HomeScreen() {
   // const availableModules = getAvailableModules();
 
   // Tipps des Tages
-  const dailyTips = [
-    "Reflektieren Sie über Momente, in denen Sie bereits vollständige Kongruenz erlebt haben.",
-    "Nehmen Sie sich heute Zeit, um einen Bereich Ihres Lebensrads genauer zu betrachten.",
-    "Probieren Sie eine kleine Übung aus dem Bereich 'Lebendigkeit' aus.",
-    "Identifizieren Sie eine Situation, in der Denken, Fühlen und Handeln nicht im Einklang sind.",
-    "Setzen Sie heute einen Mini-Schritt in Richtung Ihrer gewünschten Ziele um.",
-    "Fragen Sie sich: 'Wann fühle ich mich heute am lebendigsten?'",
-    "Üben Sie bewusst, innere und äußere Kongruenz in einer herausfordernden Situation.",
-  ];
+  const dailyTips = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) =>
+      t(`sections.dailyTip.tips.${i}`),
+    );
+  }, [t]);
 
   // Aktualisiert die Uhrzeit jede Minute
   useEffect(() => {
@@ -115,11 +114,11 @@ export default function HomeScreen() {
     const hour = currentTime.getHours();
 
     if (hour < 12) {
-      return "Guten Morgen";
+      return t("greeting.morning");
     } else if (hour < 18) {
-      return "Guten Tag";
+      return t("greeting.day");
     } else {
-      return "Guten Abend";
+      return t("greeting.evening");
     }
   };
   const {
@@ -136,8 +135,10 @@ export default function HomeScreen() {
     // Tägliche Aktivität hinzufügen
     activities.push({
       id: "activity-daily",
-      title: "Tägliche Kongruenz-Praxis",
-      description: "5-Minuten Übung für mehr Kongruenz",
+      title: t("sections.nextActivities.activities.dailyPractice.title"),
+      description: t(
+        "sections.nextActivities.activities.dailyPractice.description",
+      ),
       type: "daily",
       step: "R",
     });
@@ -146,8 +147,10 @@ export default function HomeScreen() {
     if (daysInProgram % 7 === 0 || daysInProgram % 7 === 6) {
       activities.push({
         id: "activity-weekly",
-        title: "Lebensrad aktualisieren",
-        description: "Wöchentliche Überprüfung Ihrer Fortschritte",
+        title: t("sections.nextActivities.activities.updateLifeWheel.title"),
+        description: t(
+          "sections.nextActivities.activities.updateLifeWheel.description",
+        ),
         type: "weekly",
         step: "K",
       });
@@ -161,8 +164,13 @@ export default function HomeScreen() {
       if (moduleIds.length > 0) {
         activities.push({
           id: `activity-module-${step.id}`,
-          title: `${step.id} - ${step.title} fortsetzen`,
-          description: `Nächstes verfügbares Modul in dieser Phase`,
+          title: t("sections.nextActivities.activities.continueModule.title", {
+            step: step.id,
+            title: step.title,
+          }),
+          description: t(
+            "sections.nextActivities.activities.continueModule.description",
+          ),
           type: "module",
           step: step.id,
         });
@@ -171,7 +179,7 @@ export default function HomeScreen() {
     }
 
     return activities.slice(0, 3); // Maximal 3 Aktivitäten anzeigen
-  }, [progression]);
+  }, [progression, t]);
 
   // Berechne den Fortschritt für jeden KLARE-Schritt
   const stepProgress = useMemo(
@@ -242,7 +250,9 @@ export default function HomeScreen() {
                       { color: paperTheme.colors.text },
                     ]}
                   >
-                    KLARE Programm - Tag {userSummary?.daysInProgram}
+                    {t("progression.program", {
+                      days: userSummary?.daysInProgram,
+                    })}
                   </Text>
                 </View>
                 <Chip
@@ -252,10 +262,11 @@ export default function HomeScreen() {
                     { backgroundColor: `${klareColors.k}15` },
                   ]}
                 >
-                  Phase{" "}
-                  {userSummary?.currentStage
-                    ? userSummary?.currentStage.id
-                    : "1"}
+                  {t("progression.phase", {
+                    id: userSummary?.currentStage
+                      ? userSummary?.currentStage.id
+                      : "1",
+                  })}
                 </Chip>
               </View>
 
@@ -290,7 +301,7 @@ export default function HomeScreen() {
                           { color: paperTheme.colors.text },
                         ]}
                       >
-                        Nächste Phase:
+                        {t("progression.nextPhase")}
                       </Text>
                       <Text
                         style={[
@@ -308,10 +319,11 @@ export default function HomeScreen() {
                             { color: klareColors.textSecondary },
                           ]}
                         >
-                          in{" "}
-                          {userSummary.nextStage.requiredDays -
-                            userSummary.daysInProgram}{" "}
-                          Tagen
+                          {t("progression.inDays", {
+                            days:
+                              userSummary.nextStage.requiredDays -
+                              userSummary.daysInProgram,
+                          })}
                         </Text>
                       )}
                     </View>
@@ -325,7 +337,7 @@ export default function HomeScreen() {
         {/* Fortschrittsübersicht */}
         <Card style={styles.progressCard}>
           <Card.Content>
-            <Title>Ihr Kongruenz-Fortschritt</Title>
+            <Title>{t("progress.title")}</Title>
 
             <View style={styles.progressContainer}>
               <View style={styles.progressItem}>
@@ -335,7 +347,7 @@ export default function HomeScreen() {
                     { color: klareColors.textSecondary },
                   ]}
                 >
-                  Gesamtfortschritt
+                  {t("progress.totalProgress")}
                 </Text>
                 <View style={styles.progressBarContainer}>
                   <ProgressBar
@@ -361,7 +373,7 @@ export default function HomeScreen() {
                     { color: klareColors.textSecondary },
                   ]}
                 >
-                  Lebensrad ⌀
+                  {t("progress.lifeWheelAverage")}
                 </Text>
                 <View style={styles.progressBarContainer}>
                   <ProgressBar
@@ -403,7 +415,7 @@ export default function HomeScreen() {
                     { color: klareColors.textSecondary },
                   ]}
                 >
-                  Tage
+                  {t("progress.stats.days")}
                 </Text>
               </View>
 
@@ -430,7 +442,7 @@ export default function HomeScreen() {
                     { color: klareColors.textSecondary },
                   ]}
                 >
-                  Module
+                  {t("progress.stats.modules")}
                 </Text>
               </View>
 
@@ -462,7 +474,7 @@ export default function HomeScreen() {
                     { color: klareColors.textSecondary },
                   ]}
                 >
-                  Streak
+                  {t("progress.stats.streak")}
                 </Text>
               </View>
             </View>
@@ -476,19 +488,19 @@ export default function HomeScreen() {
               style={{ borderColor: klareColors.k }}
               labelStyle={{ color: klareColors.k }}
             >
-              Lebensrad ansehen
+              {t("progress.viewLifeWheel")}
             </Button>
           </Card.Actions>
         </Card>
 
         {/* KLARE Methode Schritte */}
         <Text style={[styles.sectionTitle, { color: paperTheme.colors.text }]}>
-          KLARE Methode
+          {t("sections.klareMethod")}
         </Text>
         <KlareMethodCards klareSteps={klareSteps} stepProgress={stepProgress} />
         {/* Vision Board Section */}
         <Text style={[styles.sectionTitle, { color: paperTheme.colors.text }]}>
-          Vision Board
+          {t("sections.visionBoard.title")}
         </Text>
         <Card style={styles.card}>
           <Card.Content>
@@ -500,7 +512,7 @@ export default function HomeScreen() {
                 style={{ marginRight: 10 }}
               />
               <Text style={{ flex: 1, color: paperTheme.colors.text }}>
-                Visualisieren Sie Ihre Lebensziele und Visionen
+                {t("sections.visionBoard.description")}
               </Text>
             </View>
           </Card.Content>
@@ -510,13 +522,13 @@ export default function HomeScreen() {
               onPress={() => navigation.navigate("VisionBoard")}
               style={{ backgroundColor: klareColors.a }}
             >
-              Vision Board erstellen
+              {t("sections.visionBoard.createButton")}
             </Button>
           </Card.Actions>
         </Card>
         {/* Fokus-Bereiche */}
         <Text style={[styles.sectionTitle, { color: paperTheme.colors.text }]}>
-          Ihre Fokus-Bereiche
+          {t("sections.focusAreas.title")}
         </Text>
 
         <Card style={styles.card}>
@@ -526,7 +538,9 @@ export default function HomeScreen() {
                 <List.Item
                   key={area.id}
                   title={area.name}
-                  description={`Aktueller Wert: ${area.currentValue}/10`}
+                  description={t("sections.focusAreas.currentValue", {
+                    value: area.currentValue,
+                  })}
                   left={(props) => (
                     <List.Icon
                       {...props}
@@ -543,14 +557,14 @@ export default function HomeScreen() {
               mode="text"
               onPress={() => navigation.navigate("LifeWheel" as never)}
             >
-              Alle Lebensbereiche ansehen
+              {t("sections.focusAreas.viewAllAreas")}
             </Button>
           </Card.Content>
         </Card>
 
         {/* Nächste Aktivitäten */}
         <Text style={[styles.sectionTitle, { color: paperTheme.colors.text }]}>
-          Nächste Aktivitäten
+          {t("sections.nextActivities.title")}
         </Text>
 
         {getNextActivities.map((activity) => {
@@ -595,10 +609,10 @@ export default function HomeScreen() {
                       ]}
                     >
                       {activity.type === "daily"
-                        ? "Täglich"
+                        ? t("sections.nextActivities.types.daily")
                         : activity.type === "weekly"
-                          ? "Wöchentlich"
-                          : "Modul"}
+                          ? t("sections.nextActivities.types.weekly")
+                          : t("sections.nextActivities.types.module")}
                     </Text>
                   </View>
 
@@ -645,7 +659,7 @@ export default function HomeScreen() {
                     }
                   }}
                 >
-                  Starten
+                  {t("sections.nextActivities.startButton")}
                 </Button>
               </Card.Actions>
             </Card>
@@ -665,7 +679,9 @@ export default function HomeScreen() {
               <View style={styles.tipIconContainer}>
                 <Ionicons name="bulb-outline" size={24} color="white" />
               </View>
-              <Title style={styles.tipTitle}>Tipp des Tages</Title>
+              <Title style={styles.tipTitle}>
+                {t("sections.dailyTip.title")}
+              </Title>
               <Text style={styles.tipText}>{todayTip}</Text>
             </Card.Content>
           </ImageBackground>

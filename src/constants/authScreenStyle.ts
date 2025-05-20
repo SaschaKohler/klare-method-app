@@ -170,13 +170,13 @@ const createAuthScreenStyles = (theme: Theme, klareColors: any) =>
     signInCard: {
       width: "100%",
       alignItems: "center",
-      paddingTop: 20,
+      paddingTop: SCREEN_HEIGTH / 4 - 50,
       paddingBottom: 50,
     },
     signUpCard: {
       width: "100%",
       alignItems: "center",
-      paddingTop: 20,
+      paddingTop: SCREEN_HEIGTH / 4 - 100,
       paddingBottom: 100,
     },
     welcomeImage: {
@@ -200,7 +200,7 @@ const createAuthScreenStyles = (theme: Theme, klareColors: any) =>
       maxWidth: 360,
       alignSelf: "center",
       alignItems: "center",
-      paddingTop: 20,
+      paddingTop: SCREEN_HEIGTH / 4 - 100,
       paddingBottom: 50,
     },
     instructionText: {

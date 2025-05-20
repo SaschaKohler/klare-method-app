@@ -1,0 +1,72 @@
+{
+  "greeting": {
+    "morning": "Guten Morgen",
+    "day": "Guten Tag",
+    "evening": "Guten Abend"
+  },
+  "progression": {
+    "program": "KLARE Programm - Tag {{days}}",
+    "phase": "Phase {{id}}",
+    "nextPhase": "Nächste Phase:",
+    "inDays": "in {{days}} Tagen"
+  },
+  "progress": {
+    "title": "Ihr Kongruenz-Fortschritt",
+    "totalProgress": "Gesamtfortschritt",
+    "lifeWheelAverage": "Lebensrad ⌀",
+    "stats": {
+      "days": "Tage",
+      "modules": "Module",
+      "streak": "Streak"
+    },
+    "viewLifeWheel": "Lebensrad ansehen"
+  },
+  "sections": {
+    "klareMethod": "KLARE Methode",
+    "visionBoard": {
+      "title": "Vision Board",
+      "description": "Visualisieren Sie Ihre Lebensziele und Visionen",
+      "createButton": "Vision Board erstellen"
+    },
+    "focusAreas": {
+      "title": "Ihre Fokus-Bereiche",
+      "currentValue": "Aktueller Wert: {{value}}/10",
+      "viewAllAreas": "Alle Lebensbereiche ansehen"
+    },
+    "nextActivities": {
+      "title": "Nächste Aktivitäten",
+      "types": {
+        "daily": "Täglich",
+        "weekly": "Wöchentlich",
+        "module": "Modul"
+      },
+      "activities": {
+        "dailyPractice": {
+          "title": "Tägliche Kongruenz-Praxis",
+          "description": "5-Minuten Übung für mehr Kongruenz"
+        },
+        "updateLifeWheel": {
+          "title": "Lebensrad aktualisieren",
+          "description": "Wöchentliche Überprüfung Ihrer Fortschritte"
+        },
+        "continueModule": {
+          "title": "{{step}} - {{title}} fortsetzen",
+          "description": "Nächstes verfügbares Modul in dieser Phase"
+        }
+      },
+      "startButton": "Starten"
+    },
+    "dailyTip": {
+      "title": "Tipp des Tages",
+      "tips": [
+        "Reflektieren Sie über Momente, in denen Sie bereits vollständige Kongruenz erlebt haben.",
+        "Nehmen Sie sich heute Zeit, um einen Bereich Ihres Lebensrads genauer zu betrachten.",
+        "Probieren Sie eine kleine Übung aus dem Bereich 'Lebendigkeit' aus.",
+        "Identifizieren Sie eine Situation, in der Denken, Fühlen und Handeln nicht im Einklang sind.",
+        "Setzen Sie heute einen Mini-Schritt in Richtung Ihrer gewünschten Ziele um.",
+        "Fragen Sie sich: 'Wann fühle ich mich heute am lebendigsten?'",
+        "Üben Sie bewusst, innere und äußere Kongruenz in einer herausfordernden Situation."
+      ]
+    }
+  }
+}

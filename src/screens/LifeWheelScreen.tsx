@@ -39,14 +39,13 @@ import {
 import createLifeWheelScreenStyles from "../constants/lifeWheelScreenStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { useKlareStores } from "../hooks/useKlareStores";
-import { useUserStore } from "../store";
 import { LifeWheelArea } from "../types/store";
 // i18n
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 
 export default function LifeWheelScreen() {
   const navigation = useNavigation();
-  const { t } = useTranslation('lifeWheel');
+  const { t } = useTranslation(["lifeWheel", "common"]);
 
   const { lifeWheel, actions } = useKlareStores();
 
@@ -143,22 +142,14 @@ export default function LifeWheelScreen() {
       setHasChanges(false);
 
       if (Platform.OS === "ios") {
-        Alert.alert(
-          t('lifeWheel.alerts.saved'),
-          t('lifeWheel.alerts.savedSuccess'),
-          [{ text: t('common.ok') }],
-        );
+        Alert.alert(t("alerts.saved"), t("alerts.savedSuccess"), [
+          { text: t("common.ok") },
+        ]);
       } else {
-        Alert.alert(
-          t('lifeWheel.alerts.saved'),
-          t('lifeWheel.alerts.savedSuccess'),
-        );
+        Alert.alert(t("alerts.saved"), t("alerts.savedSuccess"));
       }
     } else {
-      Alert.alert(
-        t('lifeWheel.alerts.error'),
-        t('lifeWheel.alerts.saveError'),
-      );
+      Alert.alert(t("alerts.error"), t("alerts.saveError"));
     }
   }, [actions, t]);
 
@@ -184,29 +175,25 @@ export default function LifeWheelScreen() {
       e.preventDefault();
 
       // Benutzer fragen, ob sie ohne Speichern fortfahren wollen
-      Alert.alert(
-        t('lifeWheel.alerts.unsavedChanges'),
-        t('lifeWheel.alerts.saveBeforeContinue'),
-        [
-          {
-            text: t('lifeWheel.alerts.continueWithoutSaving'),
-            style: "destructive",
-            onPress: () => {
-              setHasChanges(false);
-              navigation.dispatch(e.data.action);
-            },
+      Alert.alert(t("alerts.unsavedChanges"), t("alerts.saveBeforeContinue"), [
+        {
+          text: t("alerts.continueWithoutSaving"),
+          style: "destructive",
+          onPress: () => {
+            setHasChanges(false);
+            navigation.dispatch(e.data.action);
           },
-          { text: t('actions.cancel'), style: "cancel" },
-          {
-            text: t('actions.save'),
-            style: "default",
-            onPress: async () => {
-              await handleSave();
-              navigation.dispatch(e.data.action);
-            },
+        },
+        { text: t("actions.cancel"), style: "cancel" },
+        {
+          text: t("actions.save"),
+          style: "default",
+          onPress: async () => {
+            await handleSave();
+            navigation.dispatch(e.data.action);
           },
-        ],
-      );
+        },
+      ]);
     });
 
     return unsubscribe;
@@ -218,12 +205,12 @@ export default function LifeWheelScreen() {
 
     return (
       <Card style={styles.card}>
-        <Card.Title title={t('lifeWheel.insights.title')} />
+        <Card.Title title={t("insights.title")} />
         <Card.Content>
           {lowAreas.length > 0 && (
             <View style={styles.insightSection}>
               <Text style={styles.insightTitle}>
-                {t('lifeWheel.insights.developmentAreas')}:
+                {t("insights.developmentAreas")}:
               </Text>
               {lowAreas.map((area) => (
                 <View key={`low-${area.id}`} style={styles.insightItem}>
@@ -235,7 +222,9 @@ export default function LifeWheelScreen() {
                   />
                   <Text style={styles.insightText}>
                     <Text style={{ fontWeight: "bold" }}>{area.name}</Text>:
-                    {t('lifeWheel.insights.needsAttention', { value: area.currentValue })}
+                    {t("insights.needsAttention", {
+                      value: area.currentValue,
+                    })}
                   </Text>
                 </View>
               ))}
@@ -244,7 +233,9 @@ export default function LifeWheelScreen() {
 
           {gapAreas.length > 0 && showTargetValues && (
             <View style={styles.insightSection}>
-              <Text style={styles.insightTitle}>{t('lifeWheel.insights.biggestDiscrepancies')}:</Text>
+              <Text style={styles.insightTitle}>
+                {t("insights.biggestDiscrepancies")}:
+              </Text>
               {gapAreas.map((area) => (
                 <View key={`gap-${area.id}`} style={styles.insightItem}>
                   <View
@@ -255,7 +246,10 @@ export default function LifeWheelScreen() {
                   />
                   <Text style={styles.insightText}>
                     <Text style={{ fontWeight: "bold" }}>{area.name}</Text>:
-                    {t('lifeWheel.insights.gapBetween', { current: area.currentValue, target: area.targetValue })}
+                    {t("insights.gapBetween", {
+                      current: area.currentValue,
+                      target: area.targetValue,
+                    })}
                   </Text>
                 </View>
               ))}
@@ -264,7 +258,9 @@ export default function LifeWheelScreen() {
 
           {strengthAreas.length > 0 && (
             <View style={styles.insightSection}>
-              <Text style={styles.insightTitle}>{t('lifeWheel.insights.strengths')}:</Text>
+              <Text style={styles.insightTitle}>
+                {t("insights.strengths")}:
+              </Text>
               {strengthAreas.map((area) => (
                 <View key={`strength-${area.id}`} style={styles.insightItem}>
                   <View
@@ -275,7 +271,9 @@ export default function LifeWheelScreen() {
                   />
                   <Text style={styles.insightText}>
                     <Text style={{ fontWeight: "bold" }}>{area.name}</Text>:
-                    {t('lifeWheel.insights.strengthArea', { value: area.currentValue })}
+                    {t("insights.strengthArea", {
+                      value: area.currentValue,
+                    })}
                   </Text>
                 </View>
               ))}
@@ -285,18 +283,14 @@ export default function LifeWheelScreen() {
           {lowAreas.length === 0 &&
             gapAreas.length === 0 &&
             strengthAreas.length === 0 && (
-              <Paragraph>
-                {t('lifeWheel.insights.noInsights')}
-              </Paragraph>
+              <Paragraph>{t("insights.noInsights")}</Paragraph>
             )}
 
           <Divider style={{ marginVertical: 16 }} />
 
           <View>
-            <Text style={styles.insightTitle}>{t('lifeWheel.insights.nextSteps')}</Text>
-            <Paragraph>
-              {t('lifeWheel.insights.nextStepsDescription')}
-            </Paragraph>
+            <Text style={styles.insightTitle}>{t("insights.nextSteps")}</Text>
+            <Paragraph>{t("insights.nextStepsDescription")}</Paragraph>
             <Button
               mode="contained"
               style={{ marginTop: 16 }}
@@ -307,7 +301,7 @@ export default function LifeWheelScreen() {
                 )
               }
             >
-              {t('lifeWheel.insights.toKlareMethod')}
+              {t("insights.toKlareMethod")}
             </Button>
           </View>
         </Card.Content>
@@ -334,10 +328,8 @@ export default function LifeWheelScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>{t('lifeWheel.title')}</Text>
-            <Text style={styles.subtitle}>
-              {t('lifeWheel.subtitle')}
-            </Text>
+            <Text style={styles.title}>{t("title")}</Text>
+            <Text style={styles.subtitle}>{t("subtitle")}</Text>
           </View>
 
           {/* Verbesserte Ansicht-Wahl (Tab-ähnlich) */}
@@ -348,7 +340,7 @@ export default function LifeWheelScreen() {
               buttons={[
                 {
                   value: "current",
-                  label: t('lifeWheel.currentState'),
+                  label: t("currentState"),
                   style:
                     viewMode === "current"
                       ? styles.activeSegment
@@ -357,7 +349,7 @@ export default function LifeWheelScreen() {
                 },
                 {
                   value: "target",
-                  label: t('lifeWheel.withTargetValues'),
+                  label: t("withTargetValues"),
                   style:
                     viewMode === "target"
                       ? styles.activeSegment
@@ -407,7 +399,7 @@ export default function LifeWheelScreen() {
               onPress={handleSave}
               icon="content-save"
             >
-              {t('lifeWheel.saveChanges')}
+              {t("saveChanges")}
             </Button>
           )}
 
@@ -418,9 +410,7 @@ export default function LifeWheelScreen() {
             activeOpacity={0.7}
           >
             <Text style={styles.insightsToggleText}>
-              {showInsights
-                ? t('lifeWheel.hideInsights')
-                : t('lifeWheel.showInsights')}
+              {showInsights ? t("hideInsights") : t("showInsights")}
             </Text>
             <Ionicons
               name={showInsights ? "chevron-up" : "chevron-down"}
@@ -450,7 +440,7 @@ export default function LifeWheelScreen() {
               onPress={handleSave}
               icon="content-save"
             >
-              {t('lifeWheel.save')}
+              {t("save")}
             </Button>
           </BlurView>
         </View>

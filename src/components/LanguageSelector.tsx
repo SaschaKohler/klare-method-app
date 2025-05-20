@@ -1,46 +1,57 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useTranslation } from 'react-i18next';
-import { getStoredLanguage, setStoredLanguage } from '../utils/i18n';
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
+import { setUserLanguage, getUserLanguage } from "../utils/i18nUtils";
 
-interface LanguageOption {
-  code: string;
-  label: string;
+interface LanguageSelectorProps {
+  containerStyle?: object;
+  showLabel?: boolean;
 }
 
-const LanguageSelector: React.FC = () => {
+/**
+ * Komponente zur Auswahl der Sprache
+ * Zeigt die verfügbaren Sprachen an und ermöglicht die Umschaltung
+ */
+const LanguageSelector: React.FC<LanguageSelectorProps> = ({
+  containerStyle,
+  showLabel = true,
+}) => {
   const { t, i18n } = useTranslation();
-  const currentLanguage = getStoredLanguage();
+  const currentLanguage = i18n.language || "de";
 
-  const languageOptions: LanguageOption[] = [
-    { code: 'de', label: t('app.german') },
-    { code: 'en', label: t('app.english') },
+  // Verfügbare Sprachen
+  const languages = [
+    { code: "de", label: t("app.german") },
+    { code: "en", label: t("app.english") },
   ];
 
+  // Funktion zum Ändern der Sprache
   const changeLanguage = (languageCode: string) => {
-    setStoredLanguage(languageCode);
+    setUserLanguage(languageCode);
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('app.language')}</Text>
-      <View style={styles.optionsContainer}>
-        {languageOptions.map((option) => (
+    <View style={[styles.container, containerStyle]}>
+      {showLabel && (
+        <Text style={styles.label}>{t("profile:languageSelection")}</Text>
+      )}
+      <View style={styles.buttonContainer}>
+        {languages.map((language) => (
           <TouchableOpacity
-            key={option.code}
+            key={language.code}
             style={[
-              styles.languageOption,
-              currentLanguage === option.code && styles.selectedLanguage,
+              styles.languageButton,
+              currentLanguage === language.code && styles.activeLanguageButton,
             ]}
-            onPress={() => changeLanguage(option.code)}
+            onPress={() => changeLanguage(language.code)}
           >
             <Text
               style={[
                 styles.languageText,
-                currentLanguage === option.code && styles.selectedLanguageText,
+                currentLanguage === language.code && styles.activeLanguageText,
               ]}
             >
-              {option.label}
+              {language.label}
             </Text>
           </TouchableOpacity>
         ))}
@@ -51,37 +62,36 @@ const LanguageSelector: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    marginVertical: 10,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
+  label: {
+    fontSize: 16,
+    fontWeight: "500",
+    marginBottom: 8,
   },
-  optionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
   },
-  languageOption: {
-    paddingVertical: 8,
+  languageButton: {
     paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 8,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#F0F0F0",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  selectedLanguage: {
-    borderColor: '#5D96E2',
-    backgroundColor: '#EDF2FA',
+  activeLanguageButton: {
+    backgroundColor: "#5E72E4",
   },
   languageText: {
-    fontSize: 16,
-    color: '#333',
+    fontSize: 14,
+    color: "#333",
   },
-  selectedLanguageText: {
-    color: '#5D96E2',
-    fontWeight: 'bold',
+  activeLanguageText: {
+    color: "#FFF",
+    fontWeight: "500",
   },
 });
 

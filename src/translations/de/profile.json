@@ -26,8 +26,12 @@
       "email": "E-Mail"
     }
   },
+  "auth": {
+    "signOut": "logout"
+  },
   "common": {
     "info": "Info",
     "ok": "OK"
   }
 }
+

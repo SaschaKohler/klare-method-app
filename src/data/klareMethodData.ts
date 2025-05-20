@@ -1,5 +1,6 @@
 // src/data/klareMethodData.ts
 import { klareColors } from "../constants/theme";
+import i18n from "../utils/i18n";
 
 export interface KlareStep {
   id: "K" | "L" | "A" | "R" | "E";
@@ -20,40 +21,53 @@ export interface Module {
   order: number;
 }
 
+// Hilfsfunktion zum Abrufen der übersetzten KLARE-Schritte
+const getTranslatedStep = (
+  id: "K" | "L" | "A" | "R" | "E",
+  defaultTitle: string,
+  defaultDescription: string,
+  color: string,
+  iconName: string,
+): KlareStep => {
+  return {
+    id,
+    title: i18n.t(`modules:${id}.title`, { defaultValue: defaultTitle }),
+    description: i18n.t(`modules:${id}.description`, {
+      defaultValue: defaultDescription,
+    }),
+    color,
+    iconName,
+  };
+};
+
 export const klareSteps: KlareStep[] = [
-  {
-    id: "K",
-    title: "Klarheit",
-    description: "über die aktuelle Situation",
-    color: klareColors.k,
-    iconName: "search",
-  },
-  {
-    id: "L",
-    title: "Lebendigkeit",
-    description: "und Ressourcen wiederentdecken",
-    color: klareColors.l,
-    iconName: "flash",
-  },
-  {
-    id: "A",
-    title: "Ausrichtung",
-    description: "der Lebensbereiche",
-    color: klareColors.a,
-    iconName: "compass",
-  },
-  {
-    id: "R",
-    title: "Realisierung",
-    description: "im Alltag",
-    color: klareColors.r,
-    iconName: "hammer",
-  },
-  {
-    id: "E",
-    title: "Entfaltung",
-    description: "durch vollständige Kongruenz",
-    color: klareColors.e,
-    iconName: "sparkles",
-  },
+  getTranslatedStep(
+    "K",
+    "Klarheit",
+    "über die aktuelle Situation",
+    klareColors.k,
+    "search",
+  ),
+  getTranslatedStep(
+    "L",
+    "Lebendigkeit",
+    "und Ressourcen wiederentdecken",
+    klareColors.l,
+    "flash",
+  ),
+  getTranslatedStep(
+    "A",
+    "Ausrichtung",
+    "der Lebensbereiche",
+    klareColors.a,
+    "compass",
+  ),
+  getTranslatedStep("R", "Realisierung", "im Alltag", klareColors.r, "hammer"),
+  getTranslatedStep(
+    "E",
+    "Entfaltung",
+    "durch vollständige Kongruenz",
+    klareColors.e,
+    "sparkles",
+  ),
 ];

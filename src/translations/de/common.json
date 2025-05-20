@@ -1,52 +1,69 @@
 {
+  "logo": {
+    "K": "K",
+    "L": "L",
+    "A": "A",
+    "R": "R",
+    "E": "E"
+  },
   "app": {
     "name": "KLARE Methode",
-    "settings": "Einstellungen",
-    "language": "Sprache",
     "german": "Deutsch",
-    "english": "Englisch"
+    "english": "Englisch",
+    "language": "Sprache"
   },
+  "ok": "OK",
   "actions": {
     "save": "Speichern",
     "cancel": "Abbrechen",
     "confirm": "Bestätigen",
     "delete": "Löschen",
     "edit": "Bearbeiten",
-    "add": "Hinzufügen",
-    "continue": "Weiter",
+    "close": "Schließen",
     "back": "Zurück",
-    "login": "Anmelden",
-    "logout": "Abmelden",
-    "register": "Registrieren",
-    "ok": "OK"
+    "next": "Weiter",
+    "submit": "Absenden",
+    "retry": "Wiederholen"
   },
-  "validation": {
-    "required": "Dieses Feld ist erforderlich",
-    "email": "Bitte gib eine gültige E-Mail-Adresse ein",
-    "min": "Bitte gib mindestens {{count}} Zeichen ein",
-    "max": "Bitte gib höchstens {{count}} Zeichen ein"
-  },
-  "navigation": {
-    "home": "Start",
-    "profile": "Profil",
-    "settings": "Einstellungen"
-  },
-  "auth": {
-    "signIn": "Anmelden",
-    "signUp": "Registrieren",
-    "signOut": "Abmelden",
-    "forgotPassword": "Passwort vergessen?",
-    "resetPassword": "Passwort zurücksetzen",
-    "email": "E-Mail",
-    "password": "Passwort",
-    "confirmPassword": "Passwort bestätigen",
-    "googleSignIn": "Mit Google anmelden",
-    "or": "oder"
+  "status": {
+    "loading": "Wird geladen...",
+    "error": "Ein Fehler ist aufgetreten",
+    "saving": "Wird gespeichert...",
+    "success": "Erfolgreich",
+    "noData": "Keine Daten verfügbar",
+    "offline": "Du bist offline",
+    "online": "Du bist online"
   },
   "errors": {
-    "generic": "Ein Fehler ist aufgetreten",
-    "network": "Netzwerkfehler",
-    "unauthorized": "Nicht autorisiert",
-    "notFound": "Nicht gefunden"
+    "generic": "Ein Fehler ist aufgetreten. Bitte versuche es später erneut.",
+    "network": "Netzwerkfehler. Bitte überprüfe deine Verbindung.",
+    "auth": "Authentifizierungsfehler. Bitte melde dich erneut an.",
+    "required": "Dieses Feld ist erforderlich.",
+    "invalid": "Ungültige Eingabe",
+    "session": "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an."
+  },
+  "datetime": {
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "tomorrow": "Morgen",
+    "days": "Tage",
+    "weeks": "Wochen",
+    "months": "Monate",
+    "years": "Jahre"
+  },
+  "feedback": {
+    "changesSaved": "Änderungen gespeichert",
+    "changesNotSaved": "Änderungen konnten nicht gespeichert werden",
+    "dataUpdated": "Daten aktualisiert",
+    "processFailed": "Vorgang fehlgeschlagen",
+    "processCompleted": "Vorgang abgeschlossen"
+  },
+  "confirmations": {
+    "deleteTitle": "Wirklich löschen?",
+    "deleteMessage": "Diese Aktion kann nicht rückgängig gemacht werden.",
+    "logoutTitle": "Wirklich abmelden?",
+    "logoutMessage": "Möchtest du dich wirklich abmelden?",
+    "discardChangesTitle": "Änderungen verwerfen?",
+    "discardChangesMessage": "Du hast ungespeicherte Änderungen. Möchtest du sie verwerfen?"
   }
 }

@@ -10,6 +10,8 @@ import Animated, {
   withSequence,
   Easing,
 } from "react-native-reanimated";
+// i18n
+import { useTranslation } from "react-i18next";
 
 interface KlareLogoProps {
   size?: number;
@@ -37,7 +39,8 @@ const KlareLogo: React.FC<KlareLogoProps> = ({
   // Animation Values
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
-
+  const { t } = useTranslation(["common"]);
+  //
   // Start animations if enabled
   useEffect(() => {
     if (animated) {
@@ -69,11 +72,11 @@ const KlareLogo: React.FC<KlareLogoProps> = ({
 
   // KLARE Farben und Buchstaben
   const letters = [
-    { letter: "K", color: klareColors.k },
-    { letter: "L", color: klareColors.l },
-    { letter: "A", color: klareColors.a },
-    { letter: "R", color: klareColors.r },
-    { letter: "E", color: klareColors.e },
+    { letter: t("common:logo.K"), color: klareColors.k },
+    { letter: t("common:logo.L"), color: klareColors.l },
+    { letter: t("common:logo.A"), color: klareColors.a },
+    { letter: t("common:logo.R"), color: klareColors.r },
+    { letter: t("common:logo.E"), color: klareColors.e },
   ];
 
   // Verwende den Container je nach Animation-Status

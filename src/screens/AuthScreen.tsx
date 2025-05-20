@@ -19,6 +19,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import KlareLogo from "../components/KlareLogo";
 import DeepLinkInfo from "../components/DeepLinkInfo";
+import CompactLanguageSelector from "../components/CompactLanguageSelector";
 import createAuthScreenStyles from "../constants/authScreenStyle";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { useUserStore } from "../store/useUserStore";
@@ -27,8 +28,14 @@ import { MotiText, MotiView } from "moti";
 import { MotiPressable } from "moti/interactions";
 import { supabase } from "../lib/supabase";
 import * as Linking from "expo-linking";
+import { useTranslation } from "react-i18next";
 // Importiere die vereinheitlichten Auth-Funktionen
-import { redirectTo, performOAuth, sendMagicLink, resendConfirmationEmail } from "../lib/auth";
+import {
+  redirectTo,
+  performOAuth,
+  sendMagicLink,
+  resendConfirmationEmail,
+} from "../lib/auth";
 
 // Auth states
 type AuthViewState = "welcome" | "signin" | "signup" | "forgot";
@@ -37,6 +44,9 @@ type AuthViewState = "welcome" | "signin" | "signup" | "forgot";
 type SocialProvider = "google" | "facebook" | "apple" | "twitter";
 
 export default function AuthScreen() {
+  // i18n und Übersetzung
+  const { t } = useTranslation(["auth", "common"]);
+
   // Auth state
   const [currentView, setCurrentView] = useState<AuthViewState>("welcome");
   const [email, setEmail] = useState("");
@@ -80,11 +90,13 @@ export default function AuthScreen() {
     if (error) {
       // Console-Ausgabe des Fehlers für Debugging
       console.error("Sign-in error:", error);
-      
+
       // Überprüfen, ob es sich um den "Email not confirmed" Fehler handelt
       // Entweder durch die benutzerdefinierte Fehlermeldung oder den Supabase AuthApiError
-      if (error.message === "email_not_confirmed" || 
-          (error.message && error.message.includes("Email not confirmed"))) {
+      if (
+        error.message === "email_not_confirmed" ||
+        (error.message && error.message.includes("Email not confirmed"))
+      ) {
         // Spezielle Behandlung für nicht bestätigte E-Mail-Adressen
         Alert.alert(
           "E-Mail nicht bestätigt",
@@ -96,36 +108,38 @@ export default function AuthScreen() {
                 try {
                   const redirectUrl = `klare-app://auth/callback`;
                   const { error: resendError } = await supabase.auth.resend({
-                    type: 'signup',
+                    type: "signup",
                     email,
                     options: {
                       emailRedirectTo: redirectUrl,
                     },
                   });
-                  
+
                   if (resendError) throw resendError;
-                  
+
                   Alert.alert(
                     "E-Mail gesendet",
-                    "Wir haben dir eine neue Bestätigungs-E-Mail gesendet. Bitte überprüfe dein E-Mail-Postfach und klicke auf den Bestätigungslink."
+                    "Wir haben dir eine neue Bestätigungs-E-Mail gesendet. Bitte überprüfe dein E-Mail-Postfach und klicke auf den Bestätigungslink.",
                   );
                 } catch (resendError) {
                   console.error("Fehler beim erneuten Senden:", resendError);
                   Alert.alert(
                     "Fehler",
-                    "Beim erneuten Senden der Bestätigungs-E-Mail ist ein Fehler aufgetreten. Bitte versuche es später noch einmal."
+                    "Beim erneuten Senden der Bestätigungs-E-Mail ist ein Fehler aufgetreten. Bitte versuche es später noch einmal.",
                   );
                 }
-              }
+              },
             },
             {
               text: "OK",
-              style: "cancel"
-            }
-          ]
+              style: "cancel",
+            },
+          ],
         );
       } else {
-        setError("Anmeldung fehlgeschlagen. Bitte überprüfe deine Zugangsdaten.");
+        setError(
+          "Anmeldung fehlgeschlagen. Bitte überprüfe deine Zugangsdaten.",
+        );
       }
     }
 
@@ -151,7 +165,7 @@ export default function AuthScreen() {
     try {
       // Verwende die neue Redirect-URL für die Registrierung
       console.log("Signing up with redirectTo:", redirectTo);
-      
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -167,7 +181,7 @@ export default function AuthScreen() {
         // Benutzer in Custom-Tabelle erstellen
         try {
           const now = new Date().toISOString();
-          
+
           // Erstelle Benutzerprofil in 'users'-Tabelle
           await supabase.from("users").insert({
             id: data.user?.id,
@@ -187,13 +201,20 @@ export default function AuthScreen() {
             [{ text: "OK", onPress: () => setCurrentView("signin") }],
           );
         } catch (createError) {
-          console.error("Fehler beim Erstellen des Benutzerprofils:", createError);
-          setError("Registrierung fehlgeschlagen. Bitte versuche es später erneut.");
+          console.error(
+            "Fehler beim Erstellen des Benutzerprofils:",
+            createError,
+          );
+          setError(
+            "Registrierung fehlgeschlagen. Bitte versuche es später erneut.",
+          );
         }
       }
     } catch (error) {
       console.error("Registrierungsfehler:", error);
-      setError("Registrierung fehlgeschlagen. Bitte versuche es mit einer anderen E-Mail-Adresse.");
+      setError(
+        "Registrierung fehlgeschlagen. Bitte versuche es mit einer anderen E-Mail-Adresse.",
+      );
     } finally {
       setLoading(false);
     }
@@ -317,11 +338,11 @@ export default function AuthScreen() {
     try {
       if (provider === "google") {
         console.log("Starting Google auth...");
-        
+
         try {
           // Einheitliche performOAuth-Funktion aus lib/auth.ts verwenden
           const result = await performOAuth("google");
-          
+
           if (result.success) {
             console.log("OAuth successful, session should be established");
             // Die Session wird automatisch vom URL-Handler in supabase.ts verarbeitet
@@ -329,34 +350,44 @@ export default function AuthScreen() {
           } else {
             console.log("OAuth flow unsuccessful:", result.error);
             if (result.error) {
-              setError(`Die Anmeldung mit Google ist fehlgeschlagen: ${result.error.message || "Unbekannter Fehler"}`);
+              setError(
+                `Die Anmeldung mit Google ist fehlgeschlagen: ${result.error.message || "Unbekannter Fehler"}`,
+              );
             }
           }
         } catch (oauthError) {
           console.error("OAuth process error:", oauthError);
-          
+
           // Fehlermeldung anzeigen
           if (oauthError instanceof Error) {
-            if (oauthError.message.includes("dismissed") || 
-                oauthError.message.includes("cancel")) {
+            if (
+              oauthError.message.includes("dismissed") ||
+              oauthError.message.includes("cancel")
+            ) {
               setError("Die Anmeldung wurde abgebrochen.");
             } else {
-              setError(`Die Anmeldung mit Google ist fehlgeschlagen: ${oauthError.message}`);
+              setError(
+                `Die Anmeldung mit Google ist fehlgeschlagen: ${oauthError.message}`,
+              );
             }
           } else {
-            setError("Die Anmeldung mit Google ist fehlgeschlagen. Bitte versuche es später erneut.");
+            setError(
+              "Die Anmeldung mit Google ist fehlgeschlagen. Bitte versuche es später erneut.",
+            );
           }
         }
       } else {
         // Für zukünftige Implementierungen anderer Provider
         Alert.alert(
           "Bald verfügbar",
-          `Die Anmeldung mit ${provider} wird in Kürze aktiviert.`
+          `Die Anmeldung mit ${provider} wird in Kürze aktiviert.`,
         );
       }
     } catch (error) {
       console.error(`Fehler bei der Anmeldung mit ${provider}:`, error);
-      setError(`Die Anmeldung mit ${provider} ist fehlgeschlagen. Bitte versuche es später erneut.`);
+      setError(
+        `Die Anmeldung mit ${provider} ist fehlgeschlagen. Bitte versuche es später erneut.`,
+      );
     } finally {
       setLoading(false);
     }
@@ -525,7 +556,7 @@ export default function AuthScreen() {
         transition={{ type: "timing", duration: 600, delay: 500 }}
         style={styles.welcomeTitle}
       >
-        Willkommen zur KLARE Methode
+        {t("auth:welcome")}
       </MotiText>
 
       <MotiText
@@ -534,8 +565,7 @@ export default function AuthScreen() {
         transition={{ type: "timing", duration: 600, delay: 600 }}
         style={[styles.subtitle, { textAlign: "center" }]}
       >
-        Entdecke den Weg zu mehr Kongruenz und authentischem Selbstausdruck in
-        allen Lebensbereichen.
+        {t("auth:subtitle")}
       </MotiText>
 
       <MotiView
@@ -554,7 +584,7 @@ export default function AuthScreen() {
           labelStyle={styles.buttonLabel}
           onPress={() => setCurrentView("signin")}
         >
-          Anmelden
+          {t("auth:login")}
         </Button>
 
         <Button
@@ -563,7 +593,7 @@ export default function AuthScreen() {
           labelStyle={styles.buttonLabel}
           onPress={() => setCurrentView("signup")}
         >
-          Registrieren
+          {t("auth:register")}
         </Button>
       </MotiView>
     </MotiView>
@@ -595,7 +625,7 @@ export default function AuthScreen() {
       </View>
 
       <TextInput
-        label="E-Mail oder Benutzername"
+        label={t("auth:email")}
         value={email}
         onChangeText={setEmail}
         style={styles.input}
@@ -617,7 +647,7 @@ export default function AuthScreen() {
       />
 
       <TextInput
-        label="Passwort"
+        label={t("auth:password")}
         value={password}
         onChangeText={setPassword}
         style={styles.passwordInput}
@@ -640,7 +670,7 @@ export default function AuthScreen() {
         style={styles.forgotPassword}
         onPress={() => setCurrentView("forgot")}
       >
-        <Text style={styles.forgotPasswordText}>Passwort vergessen?</Text>
+        <Text style={styles.forgotPasswordText}>{t("auth:lostPassword")}</Text>
       </TouchableRipple>
 
       {error && (
@@ -667,13 +697,13 @@ export default function AuthScreen() {
         loading={loading}
         disabled={loading || !email || !password}
       >
-        Anmelden
+        {t("auth:login")}
       </Button>
 
       <View style={styles.signupPromptContainer}>
-        <Text style={styles.promptText}>Noch kein Konto?</Text>
+        <Text style={styles.promptText}>{t("auth:noAccountYet")}</Text>
         <TouchableRipple onPress={() => setCurrentView("signup")}>
-          <Text style={styles.promptLink}>Registrieren</Text>
+          <Text style={styles.promptLink}>{t("auth:register")}</Text>
         </TouchableRipple>
       </View>
 
@@ -708,7 +738,7 @@ export default function AuthScreen() {
 
       <View style={styles.inputRow}>
         <TextInput
-          label="Vorname"
+          label={t("auth:firstName")}
           value={firstName}
           onChangeText={setFirstName}
           style={styles.halfInput}
@@ -728,7 +758,7 @@ export default function AuthScreen() {
           }
         />
         <TextInput
-          label="Nachname"
+          label={t("auth:lastName")}
           value={lastName}
           onChangeText={setLastName}
           style={styles.halfInput}
@@ -750,7 +780,7 @@ export default function AuthScreen() {
       </View>
 
       <TextInput
-        label="E-Mail"
+        label={t("auth:email")}
         value={email}
         onChangeText={setEmail}
         style={styles.input}
@@ -772,7 +802,7 @@ export default function AuthScreen() {
       />
 
       <TextInput
-        label="Passwort"
+        label={t("auth:password")}
         value={password}
         onChangeText={setPassword}
         style={styles.input}
@@ -792,7 +822,7 @@ export default function AuthScreen() {
       />
 
       <TextInput
-        label="Passwort bestätigen"
+        label={t("auth:confirmPassword")}
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         style={styles.input}
@@ -850,13 +880,13 @@ export default function AuthScreen() {
           !confirmPassword
         }
       >
-        Registrieren
+        {t("auth:register")}
       </Button>
 
       <View style={styles.signupPromptContainer}>
         <Text style={styles.promptText}>Bereits ein Konto?</Text>
         <TouchableRipple onPress={() => setCurrentView("signin")}>
-          <Text style={styles.promptLink}>Anmelden</Text>
+          <Text style={styles.promptLink}>{t("auth:login")}</Text>
         </TouchableRipple>
       </View>
 
@@ -903,12 +933,11 @@ export default function AuthScreen() {
       </MotiView>
 
       <Text style={styles.instructionText}>
-        Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum
-        Zurücksetzen deines Passworts.
+        {t("auth:lostPasswordInstructions")}
       </Text>
 
       <TextInput
-        label="E-Mail"
+        label={t("auth:email")}
         value={email}
         onChangeText={setEmail}
         style={styles.input}
@@ -952,14 +981,16 @@ export default function AuthScreen() {
         loading={loading}
         disabled={loading || !email}
       >
-        Passwort zurücksetzen
+        {t("auth:sendResetLink")}
       </Button>
 
       <View style={styles.termsContainer}>
         <Text style={styles.termsText}>
-          Mit der Fortsetzung stimmst du unseren{" "}
-          <Text style={styles.termsLink}>Nutzungsbedingungen</Text> und der{" "}
-          <Text style={styles.termsLink}>Datenschutzerklärung</Text> zu.
+          {t("auth:termsAndPrivacy")}{" "}
+          <Text style={styles.termsLink}>{t("auth:terms")} </Text>
+          {t("auth:and")}{" "}
+          <Text style={styles.termsLink}>{t("auth:privacy")} </Text>
+          {t("auth:policy")}
         </Text>
       </View>
     </MotiView>
@@ -968,6 +999,7 @@ export default function AuthScreen() {
   // Main render
   return (
     <SafeAreaView style={styles.container}>
+      <CompactLanguageSelector />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoid}
@@ -983,6 +1015,7 @@ export default function AuthScreen() {
                 {renderWelcomeView()}
               </View>
             )}
+
             {currentView === "signin" && renderSignInView()}
             {currentView === "signup" && renderSignUpView()}
             {currentView === "forgot" && renderForgotPasswordView()}
@@ -997,24 +1030,15 @@ export default function AuthScreen() {
         onRequestClose={() => setShowDeepLinkInfo(false)}
       >
         <SafeAreaView style={{ flex: 1 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              padding: 16,
-              justifyContent: "space-between",
-              alignItems: "center",
-              borderBottomWidth: 1,
-              borderBottomColor: "#eee",
-            }}
-          >
-            <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-              Deep Link Konfiguration
-            </Text>
-            <Pressable onPress={() => setShowDeepLinkInfo(false)}>
+          <View style={styles.modalContainer}>
+            <Pressable
+              style={styles.modalCloseButton}
+              onPress={() => setShowDeepLinkInfo(false)}
+            >
               <Ionicons name="close" size={24} color={theme.colors.text} />
             </Pressable>
+            <DeepLinkInfo />
           </View>
-          <DeepLinkInfo />
         </SafeAreaView>
       </Modal>
     </SafeAreaView>

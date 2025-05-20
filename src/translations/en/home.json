@@ -1,0 +1,72 @@
+{
+  "greeting": {
+    "morning": "Good Morning",
+    "day": "Good Day",
+    "evening": "Good Evening"
+  },
+  "progression": {
+    "program": "CLEAR Program - Day {{days}}",
+    "phase": "Phase {{id}}",
+    "nextPhase": "Next Phase:",
+    "inDays": "in {{days}} days"
+  },
+  "progress": {
+    "title": "Your Congruence Progress",
+    "totalProgress": "Total Progress",
+    "lifeWheelAverage": "Life Wheel ⌀",
+    "stats": {
+      "days": "Days",
+      "modules": "Modules",
+      "streak": "Streak"
+    },
+    "viewLifeWheel": "View Life Wheel"
+  },
+  "sections": {
+    "klareMethod": "CLEAR Method",
+    "visionBoard": {
+      "title": "Vision Board",
+      "description": "Visualize your life goals and visions",
+      "createButton": "Create Vision Board"
+    },
+    "focusAreas": {
+      "title": "Your Focus Areas",
+      "currentValue": "Current value: {{value}}/10",
+      "viewAllAreas": "View all life areas"
+    },
+    "nextActivities": {
+      "title": "Next Activities",
+      "types": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "module": "Module"
+      },
+      "activities": {
+        "dailyPractice": {
+          "title": "Daily Congruence Practice",
+          "description": "5-minute exercise for more congruence"
+        },
+        "updateLifeWheel": {
+          "title": "Update Life Wheel",
+          "description": "Weekly review of your progress"
+        },
+        "continueModule": {
+          "title": "{{step}} - Continue {{title}}",
+          "description": "Next available module in this phase"
+        }
+      },
+      "startButton": "Start"
+    },
+    "dailyTip": {
+      "title": "Tip of the Day",
+      "tips": [
+        "Reflect on moments when you have already experienced complete congruence.",
+        "Take time today to look more closely at one area of your life wheel.",
+        "Try a small exercise from the 'Liveliness' area.",
+        "Identify a situation where thinking, feeling, and acting are not in harmony.",
+        "Implement a mini-step today towards your desired goals.",
+        "Ask yourself: 'When do I feel most alive today?'",
+        "Consciously practice inner and outer congruence in a challenging situation."
+      ]
+    }
+  }
+}

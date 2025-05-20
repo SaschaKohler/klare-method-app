@@ -1,52 +1,68 @@
 {
+  "logo": {
+    "K": "C",
+    "L": "L",
+    "A": "E",
+    "R": "A",
+    "E": "R"
+  },
   "app": {
     "name": "CLEAR Method",
-    "settings": "Settings",
-    "language": "Language",
     "german": "German",
     "english": "English"
   },
+  "ok": "OK",
   "actions": {
     "save": "Save",
     "cancel": "Cancel",
     "confirm": "Confirm",
     "delete": "Delete",
     "edit": "Edit",
-    "add": "Add",
-    "continue": "Continue",
+    "close": "Close",
     "back": "Back",
-    "login": "Login",
-    "logout": "Logout",
-    "register": "Register",
-    "ok": "OK"
+    "next": "Next",
+    "submit": "Submit",
+    "retry": "Retry"
   },
-  "validation": {
-    "required": "This field is required",
-    "email": "Please enter a valid email address",
-    "min": "Please enter at least {{count}} characters",
-    "max": "Please enter at most {{count}} characters"
-  },
-  "navigation": {
-    "home": "Home",
-    "profile": "Profile",
-    "settings": "Settings"
-  },
-  "auth": {
-    "signIn": "Sign In",
-    "signUp": "Sign Up",
-    "signOut": "Sign Out",
-    "forgotPassword": "Forgot password?",
-    "resetPassword": "Reset Password",
-    "email": "Email",
-    "password": "Password",
-    "confirmPassword": "Confirm Password",
-    "googleSignIn": "Sign in with Google",
-    "or": "or"
+  "status": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "saving": "Saving...",
+    "success": "Success",
+    "noData": "No data available",
+    "offline": "You are offline",
+    "online": "You are online"
   },
   "errors": {
-    "generic": "An error occurred",
-    "network": "Network error",
-    "unauthorized": "Unauthorized",
-    "notFound": "Not found"
+    "generic": "An error occurred. Please try again later.",
+    "network": "Network error. Please check your connection.",
+    "auth": "Authentication error. Please log in again.",
+    "required": "This field is required.",
+    "invalid": "Invalid input",
+    "session": "Your session has expired. Please log in again."
+  },
+  "datetime": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow",
+    "days": "days",
+    "weeks": "weeks",
+    "months": "months",
+    "years": "years"
+  },
+  "feedback": {
+    "changesSaved": "Changes saved",
+    "changesNotSaved": "Changes could not be saved",
+    "dataUpdated": "Data updated",
+    "processFailed": "Process failed",
+    "processCompleted": "Process completed"
+  },
+  "confirmations": {
+    "deleteTitle": "Really delete?",
+    "deleteMessage": "This action cannot be undone.",
+    "logoutTitle": "Really log out?",
+    "logoutMessage": "Do you really want to log out?",
+    "discardChangesTitle": "Discard changes?",
+    "discardChangesMessage": "You have unsaved changes. Do you want to discard them?"
   }
 }

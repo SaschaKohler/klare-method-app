@@ -1,0 +1,172 @@
+{
+  "K": {
+    "title": "Klarheit",
+    "description": "über die aktuelle Situation",
+    "modules": {
+      "k-intro": {
+        "title": "Einführung in die Klarheit",
+        "description": "Überblick über den ersten Schritt der KLARE-Methode"
+      },
+      "k-theory": {
+        "title": "Die Theorie hinter Klarheit",
+        "description": "Verstehen, warum Klarheit der erste Schritt sein muss"
+      },
+      "k-lifewheel": {
+        "title": "Lebensrad-Analyse",
+        "description": "Bestandsaufnahme Ihrer aktuellen Lebenssituation"
+      },
+      "k-reality-check": {
+        "title": "Realitäts-Check Übung",
+        "description": "Ehrliche Bestandsaufnahme Ihrer aktuellen Situation"
+      },
+      "k-incongruence-finder": {
+        "title": "Inkongruenz-Finder",
+        "description": "Identifizieren Sie Diskrepanzen zwischen Denken, Fühlen und Handeln"
+      },
+      "k-reflection": {
+        "title": "Klarheits-Reflexion",
+        "description": "Reflektieren Sie Ihre Erkenntnisse aus den Klarheits-Übungen"
+      },
+      "k-quiz": {
+        "title": "Klarheits-Quiz",
+        "description": "Testen Sie Ihr Verständnis des Klarheits-Konzepts"
+      }
+    }
+  },
+  "L": {
+    "title": "Lebendigkeit",
+    "description": "und Ressourcen wiederentdecken",
+    "modules": {
+      "l-intro": {
+        "title": "Einführung in die Lebendigkeit",
+        "description": "Überblick über den zweiten Schritt der KLARE-Methode"
+      },
+      "l-theory": {
+        "title": "Die Theorie der Lebendigkeit",
+        "description": "Verstehen, wie natürliche Lebendigkeit Kongruenz fördert"
+      },
+      "l-resource-finder": {
+        "title": "Ressourcen-Finder",
+        "description": "Entdecken Sie Ihre natürlichen Energie- und Ressourcenquellen"
+      },
+      "l-vitality-moments": {
+        "title": "Lebendigkeits-Momente",
+        "description": "Identifizieren und verstärken Sie Momente natürlicher Lebendigkeit"
+      },
+      "l-energy-blockers": {
+        "title": "Energie-Blocker Analyse",
+        "description": "Identifizieren und transformieren Sie Energieblocker"
+      },
+      "l-embodiment": {
+        "title": "Verkörperungsübung",
+        "description": "Körperliche Übung zur Aktivierung Ihrer natürlichen Lebendigkeit"
+      },
+      "l-quiz": {
+        "title": "Lebendigkeits-Quiz",
+        "description": "Testen Sie Ihr Verständnis des Lebendigkeits-Konzepts"
+      }
+    }
+  },
+  "A": {
+    "title": "Ausrichtung",
+    "description": "der Lebensbereiche",
+    "modules": {
+      "a-intro": {
+        "title": "Einführung in die Ausrichtung",
+        "description": "Überblick über den dritten Schritt der KLARE-Methode"
+      },
+      "a-theory": {
+        "title": "Die Theorie der Ausrichtung",
+        "description": "Verstehen, wie Ausrichtung zu innerer Kohärenz führt"
+      },
+      "a-values-hierarchy": {
+        "title": "Werte-Hierarchie",
+        "description": "Erarbeiten einer kohärenten Hierarchie Ihrer Kernwerte"
+      },
+      "a-life-vision": {
+        "title": "Kongruente Lebensvision",
+        "description": "Entwickeln einer Vision, die alle Lebensbereiche integriert"
+      },
+      "a-decision-alignment": {
+        "title": "Entscheidungs-Alignment",
+        "description": "Praktische Methode zum Treffen kongruenter Entscheidungen"
+      },
+      "a-integration-check": {
+        "title": "Integrations-Check",
+        "description": "Überprüfen der Integrationsgrade Ihrer Lebensbereiche"
+      },
+      "a-quiz": {
+        "title": "Ausrichtungs-Quiz",
+        "description": "Testen Sie Ihr Verständnis des Ausrichtungs-Konzepts"
+      }
+    }
+  },
+  "R": {
+    "title": "Realisierung",
+    "description": "im Alltag",
+    "modules": {
+      "r-intro": {
+        "title": "Einführung in die Realisierung",
+        "description": "Überblick über den vierten Schritt der KLARE-Methode"
+      },
+      "r-theory": {
+        "title": "Die Theorie der Realisierung",
+        "description": "Verstehen, wie Realisierung zu nachhaltiger Kongruenz führt"
+      },
+      "r-habit-builder": {
+        "title": "Gewohnheits-Builder",
+        "description": "Entwickeln kongruenter Gewohnheiten für den Alltag"
+      },
+      "r-micro-steps": {
+        "title": "Mikro-Schritte-Planer",
+        "description": "Aufteilen großer Veränderungen in kleine, umsetzbare Schritte"
+      },
+      "r-environment-design": {
+        "title": "Umgebungs-Design",
+        "description": "Gestalten Sie Ihre Umgebung für optimale Kongruenz"
+      },
+      "r-accountability": {
+        "title": "Verantwortlichkeits-System",
+        "description": "Erstellen eines Verantwortlichkeits-Systems für Ihre Umsetzung"
+      },
+      "r-quiz": {
+        "title": "Realisierungs-Quiz",
+        "description": "Testen Sie Ihr Verständnis des Realisierungs-Konzepts"
+      }
+    }
+  },
+  "E": {
+    "title": "Entfaltung",
+    "description": "durch vollständige Kongruenz",
+    "modules": {
+      "e-intro": {
+        "title": "Einführung in die Entfaltung",
+        "description": "Überblick über den fünften Schritt der KLARE-Methode"
+      },
+      "e-theory": {
+        "title": "Die Theorie der Entfaltung",
+        "description": "Verstehen, wie vollständige Kongruenz zu müheloser Entfaltung führt"
+      },
+      "e-integration-practice": {
+        "title": "Integrations-Praxis",
+        "description": "Übung zur Integration aller KLARE-Aspekte in Ihrem Leben"
+      },
+      "e-effortless-manifestation": {
+        "title": "Mühelose Manifestation",
+        "description": "Erleben und verstärken müheloser Manifestationsmomente"
+      },
+      "e-congruence-check": {
+        "title": "Kongruenz-Check",
+        "description": "Überprüfen Ihrer Gesamtkongruenz in allen Lebensbereichen"
+      },
+      "e-sharing-wisdom": {
+        "title": "Weisheits-Weitergabe",
+        "description": "Teilen Ihrer Erkenntnisse und Unterstützen anderer"
+      },
+      "e-quiz": {
+        "title": "Entfaltungs-Quiz",
+        "description": "Testen Sie Ihr Verständnis des Entfaltungs-Konzepts"
+      }
+    }
+  }
+}

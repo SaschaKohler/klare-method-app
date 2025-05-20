@@ -1,34 +1,78 @@
 {
-  "lifeWheel": {
-    "title": "Life Wheel",
-    "subtitle": "Rate different areas of your life to gain clarity.",
-    "currentState": "Current State",
-    "withTargetValues": "With Target Values",
-    "saveChanges": "Save Changes",
-    "save": "Save",
-    "showInsights": "Show Insights",
-    "hideInsights": "Hide Insights",
-    "insights": {
-      "title": "Insights",
-      "developmentAreas": "Areas with Development Potential",
-      "needsAttention": "This area might need special attention (Value: {{value}}/10).",
-      "biggestDiscrepancies": "Biggest Discrepancies",
-      "gapBetween": "There's a significant gap between current ({{current}}) and target ({{target}}).",
-      "strengths": "Strength Areas",
-      "strengthArea": "This is a strength area (Value: {{value}}/10).",
-      "noInsights": "No special insights from the current values.",
-      "nextSteps": "Next Steps",
-      "nextStepsDescription": "Use the CLEAR Method to work on the areas with the biggest discrepancies. Start with the step \"C - Clarity\" to identify your actual needs.",
-      "toKlareMethod": "To CLEAR Method"
-    },
-    "alerts": {
-      "saved": "Saved",
-      "savedSuccess": "Your Life Wheel values have been successfully saved.",
-      "error": "Error",
-      "saveError": "An error occurred while saving. Please try again.",
-      "unsavedChanges": "Unsaved Changes",
-      "saveBeforeContinue": "You have unsaved changes to your Life Wheel. Would you like to save before continuing?",
-      "continueWithoutSaving": "Continue without saving"
-    }
+  "title": "Life Wheel",
+  "subtitle": "Rate different areas of your life and set goals for your future.",
+  "description": "Rate different areas of your life and set goals for each area.",
+  "currentState": "Current State",
+  "withTargetValues": "With Target Values",
+  "currentStatus": "Current Situation",
+  "targetStatus": "Target Status",
+  "saveChanges": "Save Changes",
+  "save": "Save",
+  "hideInsights": "Hide Insights",
+  "showInsights": "Show Insights",
+  "areas": {
+    "health": "Health",
+    "career": "Career",
+    "finances": "Finances",
+    "relationships": "Relationships",
+    "personalGrowth": "Personal Growth",
+    "fun": "Fun & Leisure",
+    "environment": "Environment",
+    "spirituality": "Spirituality"
+  },
+  "rating": {
+    "title": "Rating",
+    "scale": "Scale from 1 (very dissatisfied) to 10 (very satisfied)",
+    "current": "Current Rating",
+    "target": "Target Rating"
+  },
+  "actions": {
+    "addArea": "Add Area",
+    "editArea": "Edit Area",
+    "deleteArea": "Delete Area",
+    "saveWheel": "Save Life Wheel",
+    "resetWheel": "Reset",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "insights": {
+    "title": "Insights & Analysis",
+    "developmentAreas": "Development Areas",
+    "needsAttention": " Rating of {{value}}/10 indicates room for improvement",
+    "biggestDiscrepancies": "Biggest Discrepancies",
+    "gapBetween": " Current {{current}}/10, Target {{target}}/10",
+    "strengths": "Strengths",
+    "strengthArea": " Strong rating of {{value}}/10",
+    "noInsights": "No special insights available. Rate more areas to gain insights.",
+    "nextSteps": "Next Steps",
+    "nextStepsDescription": "Use your insights from the Life Wheel to plan concrete steps for improving your life situation with the CLEAR Method.",
+    "toKlareMethod": "To CLEAR Method"
+  },
+  "alerts": {
+    "saved": "Saved",
+    "savedSuccess": "Your changes have been successfully saved.",
+    "error": "Error",
+    "saveError": "An error occurred while saving. Please try again.",
+    "unsavedChanges": "Unsaved Changes",
+    "saveBeforeContinue": "Would you like to save your changes before continuing?",
+    "continueWithoutSaving": "Continue without saving"
+  },
+  "feedback": {
+    "saved": "Life Wheel saved!",
+    "error": "Error saving Life Wheel.",
+    "areaAdded": "Life area added",
+    "areaUpdated": "Life area updated",
+    "areaDeleted": "Life area deleted"
+  },
+  "analytics": {
+    "averageRating": "Average Rating",
+    "lowestArea": "Lowest Rating",
+    "highestArea": "Highest Rating",
+    "biggestGap": "Biggest Gap",
+    "overallBalance": "Overall Balance"
+  },
+  "confirmations": {
+    "deleteArea": "Do you really want to delete this life area?",
+    "resetWheel": "Do you really want to reset the Life Wheel? All ratings will be set to 1."
   }
 }

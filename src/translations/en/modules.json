@@ -1,0 +1,172 @@
+{
+  "K": {
+    "title": "Clarity",
+    "description": "about the current situation",
+    "modules": {
+      "k-intro": {
+        "title": "Introduction to Clarity",
+        "description": "Overview of the first step of the CLEAR Method"
+      },
+      "k-theory": {
+        "title": "The Theory Behind Clarity",
+        "description": "Understanding why clarity must be the first step"
+      },
+      "k-lifewheel": {
+        "title": "Life Wheel Analysis",
+        "description": "Taking stock of your current life situation"
+      },
+      "k-reality-check": {
+        "title": "Reality Check Exercise",
+        "description": "Honest assessment of your current situation"
+      },
+      "k-incongruence-finder": {
+        "title": "Incongruence Finder",
+        "description": "Identify discrepancies between thinking, feeling, and acting"
+      },
+      "k-reflection": {
+        "title": "Clarity Reflection",
+        "description": "Reflect on your insights from the clarity exercises"
+      },
+      "k-quiz": {
+        "title": "Clarity Quiz",
+        "description": "Test your understanding of the clarity concept"
+      }
+    }
+  },
+  "L": {
+    "title": "Liveliness",
+    "description": "and rediscovering resources",
+    "modules": {
+      "l-intro": {
+        "title": "Introduction to Liveliness",
+        "description": "Overview of the second step of the CLEAR Method"
+      },
+      "l-theory": {
+        "title": "The Theory of Liveliness",
+        "description": "Understanding how natural liveliness promotes congruence"
+      },
+      "l-resource-finder": {
+        "title": "Resource Finder",
+        "description": "Discover your natural energy and resource sources"
+      },
+      "l-vitality-moments": {
+        "title": "Vitality Moments",
+        "description": "Identify and amplify moments of natural liveliness"
+      },
+      "l-energy-blockers": {
+        "title": "Energy Blockers Analysis",
+        "description": "Identify and transform energy blockers"
+      },
+      "l-embodiment": {
+        "title": "Embodiment Exercise",
+        "description": "Physical exercise to activate your natural liveliness"
+      },
+      "l-quiz": {
+        "title": "Liveliness Quiz",
+        "description": "Test your understanding of the liveliness concept"
+      }
+    }
+  },
+  "A": {
+    "title": "Evolvement",
+    "description": "of life areas",
+    "modules": {
+      "a-intro": {
+        "title": "Introduction to Evolvement",
+        "description": "Overview of the third step of the CLEAR Method"
+      },
+      "a-theory": {
+        "title": "The Theory of Evolvement",
+        "description": "Understanding how evolvement leads to inner coherence"
+      },
+      "a-values-hierarchy": {
+        "title": "Values Hierarchy",
+        "description": "Developing a coherent hierarchy of your core values"
+      },
+      "a-life-vision": {
+        "title": "Congruent Life Vision",
+        "description": "Developing a vision that integrates all areas of life"
+      },
+      "a-decision-alignment": {
+        "title": "Decision Alignment",
+        "description": "Practical method for making congruent decisions"
+      },
+      "a-integration-check": {
+        "title": "Integration Check",
+        "description": "Verify the integration levels of your life areas"
+      },
+      "a-quiz": {
+        "title": "Evolvement Quiz",
+        "description": "Test your understanding of the evolvement concept"
+      }
+    }
+  },
+  "R": {
+    "title": "Action",
+    "description": "in everyday life",
+    "modules": {
+      "r-intro": {
+        "title": "Introduction to Action",
+        "description": "Overview of the fourth step of the CLEAR Method"
+      },
+      "r-theory": {
+        "title": "The Theory of Action",
+        "description": "Understanding how action leads to sustainable congruence"
+      },
+      "r-habit-builder": {
+        "title": "Habit Builder",
+        "description": "Developing congruent habits for everyday life"
+      },
+      "r-micro-steps": {
+        "title": "Micro-Steps Planner",
+        "description": "Breaking down big changes into small, actionable steps"
+      },
+      "r-environment-design": {
+        "title": "Environment Design",
+        "description": "Design your environment for optimal congruence"
+      },
+      "r-accountability": {
+        "title": "Accountability System",
+        "description": "Creating an accountability system for your implementation"
+      },
+      "r-quiz": {
+        "title": "Action Quiz",
+        "description": "Test your understanding of the action concept"
+      }
+    }
+  },
+  "E": {
+    "title": "Realization",
+    "description": "through complete congruence",
+    "modules": {
+      "e-intro": {
+        "title": "Introduction to Realization",
+        "description": "Overview of the fifth step of the CLEAR Method"
+      },
+      "e-theory": {
+        "title": "The Theory of Realization",
+        "description": "Understanding how complete congruence leads to effortless realization"
+      },
+      "e-integration-practice": {
+        "title": "Integration Practice",
+        "description": "Exercise for integrating all CLEAR aspects in your life"
+      },
+      "e-effortless-manifestation": {
+        "title": "Effortless Manifestation",
+        "description": "Experience and amplify moments of effortless manifestation"
+      },
+      "e-congruence-check": {
+        "title": "Congruence Check",
+        "description": "Check your overall congruence in all areas of life"
+      },
+      "e-sharing-wisdom": {
+        "title": "Sharing Wisdom",
+        "description": "Share your insights and support others"
+      },
+      "e-quiz": {
+        "title": "Realization Quiz",
+        "description": "Test your understanding of the realization concept"
+      }
+    }
+  }
+}

@@ -1,34 +1,78 @@
 {
-  "lifeWheel": {
-    "title": "Lebensrad",
-    "subtitle": "Bewerten Sie verschiedene Bereiche Ihres Lebens, um Klarheit zu gewinnen.",
-    "currentState": "Aktueller Zustand",
-    "withTargetValues": "Mit Zielwerten",
-    "saveChanges": "Änderungen speichern",
-    "save": "Speichern",
-    "showInsights": "Erkenntnisse anzeigen",
-    "hideInsights": "Erkenntnisse ausblenden",
-    "insights": {
-      "title": "Erkenntnisse",
-      "developmentAreas": "Bereiche mit Entwicklungspotenzial",
-      "needsAttention": "Dieser Bereich könnte besondere Aufmerksamkeit erfordern (Wert: {{value}}/10).",
-      "biggestDiscrepancies": "Größte Diskrepanzen",
-      "gapBetween": "Hier besteht eine große Lücke zwischen Ist ({{current}}) und Soll ({{target}}).",
-      "strengths": "Stärkebereiche",
-      "strengthArea": "Dies ist ein Stärkebereich (Wert: {{value}}/10).",
-      "noInsights": "Keine besonderen Erkenntnisse aus den aktuellen Werten.",
-      "nextSteps": "Nächste Schritte",
-      "nextStepsDescription": "Verwenden Sie die KLARE Methode, um an den Bereichen mit der größten Diskrepanz zu arbeiten. Beginnen Sie mit dem Schritt \"K - Klarheit\", um Ihre tatsächlichen Bedürfnisse zu identifizieren.",
-      "toKlareMethod": "Zur KLARE Methode"
-    },
-    "alerts": {
-      "saved": "Gespeichert",
-      "savedSuccess": "Ihre Lebensrad-Werte wurden erfolgreich gespeichert.",
-      "error": "Fehler",
-      "saveError": "Beim Speichern ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
-      "unsavedChanges": "Ungespeicherte Änderungen",
-      "saveBeforeContinue": "Sie haben ungespeicherte Änderungen am Lebensrad. Möchten Sie speichern, bevor Sie fortfahren?",
-      "continueWithoutSaving": "Ohne Speichern fortfahren"
-    }
+  "title": "Lebensrad",
+  "subtitle": "Bewerte die verschiedenen Bereiche deines Lebens und setze dir Ziele für deine Zukunft.",
+  "description": "Bewerte die verschiedenen Bereiche deines Lebens und setze dir Ziele für jeden Bereich.",
+  "currentState": "Aktuelle Situation",
+  "withTargetValues": "Mit Zielwerten",
+  "currentStatus": "Aktuelle Situation",
+  "targetStatus": "Zielvorstellung",
+  "saveChanges": "Änderungen speichern",
+  "save": "Speichern",
+  "hideInsights": "Einsichten ausblenden",
+  "showInsights": "Einsichten anzeigen",
+  "areas": {
+    "health": "Gesundheit",
+    "career": "Karriere",
+    "finances": "Finanzen",
+    "relationships": "Beziehungen",
+    "personalGrowth": "Persönliche Entwicklung",
+    "fun": "Spaß & Freizeit",
+    "environment": "Umgebung",
+    "spirituality": "Spiritualität"
+  },
+  "rating": {
+    "title": "Bewertung",
+    "scale": "Skala von 1 (sehr unzufrieden) bis 10 (sehr zufrieden)",
+    "current": "Aktuelle Bewertung",
+    "target": "Zielbewertung"
+  },
+  "actions": {
+    "addArea": "Bereich hinzufügen",
+    "editArea": "Bereich bearbeiten",
+    "deleteArea": "Bereich löschen",
+    "saveWheel": "Lebensrad speichern",
+    "resetWheel": "Zurücksetzen",
+    "cancel": "Abbrechen",
+    "save": "Speichern"
+  },
+  "insights": {
+    "title": "Einsichten & Erkenntnisse",
+    "developmentAreas": "Entwicklungsbereiche",
+    "needsAttention": " Bewertung von {{value}}/10 zeigt Handlungsbedarf",
+    "biggestDiscrepancies": "Größte Unterschiede",
+    "gapBetween": " Aktuell {{current}}/10, Ziel {{target}}/10",
+    "strengths": "Stärken",
+    "strengthArea": " Starke Bewertung mit {{value}}/10",
+    "noInsights": "Keine besonderen Einsichten verfügbar. Bewerte mehr Bereiche, um Erkenntnisse zu erhalten.",
+    "nextSteps": "Nächste Schritte",
+    "nextStepsDescription": "Nutze deine Erkenntnisse aus dem Lebensrad, um mit der KLARE-Methode konkrete Schritte zur Verbesserung deiner Lebenssituation zu planen.",
+    "toKlareMethod": "Zur KLARE-Methode"
+  },
+  "alerts": {
+    "saved": "Gespeichert",
+    "savedSuccess": "Deine Änderungen wurden erfolgreich gespeichert.",
+    "error": "Fehler",
+    "saveError": "Beim Speichern ist ein Fehler aufgetreten. Bitte versuche es erneut.",
+    "unsavedChanges": "Ungespeicherte Änderungen",
+    "saveBeforeContinue": "Möchtest du deine Änderungen speichern, bevor du fortfährst?",
+    "continueWithoutSaving": "Ohne Speichern fortfahren"
+  },
+  "feedback": {
+    "saved": "Lebensrad gespeichert!",
+    "error": "Fehler beim Speichern des Lebensrads.",
+    "areaAdded": "Lebensbereich hinzugefügt",
+    "areaUpdated": "Lebensbereich aktualisiert",
+    "areaDeleted": "Lebensbereich gelöscht"
+  },
+  "analytics": {
+    "averageRating": "Durchschnittliche Bewertung",
+    "lowestArea": "Niedrigste Bewertung",
+    "highestArea": "Höchste Bewertung",
+    "biggestGap": "Größte Lücke",
+    "overallBalance": "Gesamtbalance"
+  },
+  "confirmations": {
+    "deleteArea": "Möchtest du diesen Lebensbereich wirklich löschen?",
+    "resetWheel": "Möchtest du das Lebensrad wirklich zurücksetzen? Alle Bewertungen werden auf 1 gesetzt."
   }
 }
