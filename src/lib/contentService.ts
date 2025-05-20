@@ -113,14 +113,49 @@ export const loadModuleContent = async (
 
     // Quiz-Fragen laden (für quiz-Module)
     if (moduleData.content_type === "quiz") {
+      // Versuche zuerst, die Fragen aus der separaten Tabelle zu laden
       const { data: questionsData, error: questionsError } = await supabase
         .from("quiz_questions")
         .select("*")
         .eq("module_content_id", moduleData.id)
         .order("order_index", { ascending: true });
 
-      if (!questionsError && questionsData) {
+      if (!questionsError && questionsData && questionsData.length > 0) {
+        console.log(
+          `Loaded ${questionsData.length} questions from quiz_questions table`,
+        );
         fullModule.quiz_questions = questionsData;
+      }
+      // Fallback: Versuche, die Fragen aus dem content-JSONB zu extrahieren
+      else if (moduleData.content && moduleData.content.quiz_questions) {
+        console.log(
+          `Loading questions from content JSON for module ${moduleData.module_id}`,
+        );
+        // Stelle sicher, dass das Format der aus JSONB geladenen Fragen mit dem erwarteten Format übereinstimmt
+        fullModule.quiz_questions = moduleData.content.quiz_questions.map(
+          (q: any) => ({
+            id:
+              q.id ||
+              `${moduleData.module_id}-q${Math.random().toString(36).substring(2, 9)}`,
+            module_content_id: moduleData.id,
+            question: q.question,
+            question_type: q.question_type,
+            options: q.options,
+            correct_answer: q.correct_answer,
+            explanation: q.explanation,
+            order_index: q.order_index || 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }),
+        );
+        console.log(
+          `Loaded ${fullModule.quiz_questions.length} questions from content JSON`,
+        );
+      } else {
+        console.warn(
+          `No quiz questions found for module ${moduleData.module_id}`,
+        );
+        fullModule.quiz_questions = [];
       }
     }
 
@@ -161,8 +196,8 @@ export const loadModulesByStep = async (
 
 // Speichern von Übungsergebnissen
 export const saveExerciseResult = async (
-  exerciseId: string,
-  moduleId: string,
+  userId: string,
+  exerciseStepId: string,
   answer: any,
 ): Promise<boolean> => {
   try {
@@ -194,15 +229,38 @@ export const saveExerciseResult = async (
       }
     }
 
-    const { data, error } = await supabase.from("user_exercise_results").upsert(
-      {
-        exercise_id: exerciseId,
-        module_id: moduleId,
-        answer: answer,
-        created_at: new Date().toISOString(),
-      },
-      { onConflict: "exercise_id, module_id" },
-    );
+    // Zuerst prüfen, ob ein Eintrag bereits existiert
+    const { data: existingData, error: fetchError } = await supabase
+      .from("user_exercise_results")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("exercise_step_id", exerciseStepId)
+      .single();
+    
+    let result;
+    
+    if (existingData) {
+      // Update vorhandenen Eintrag
+      result = await supabase
+        .from("user_exercise_results")
+        .update({
+          answer: answer,
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", existingData.id);
+    } else {
+      // Neuen Eintrag einfügen
+      result = await supabase
+        .from("user_exercise_results")
+        .insert({
+          user_id: userId,
+          exercise_step_id: exerciseStepId,
+          answer: answer,
+          completed_at: new Date().toISOString(),
+        });
+    }
+    
+    const { error } = result;
 
     if (error) {
       console.error("Fehler beim Speichern des Übungsergebnisses:", error);

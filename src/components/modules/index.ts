@@ -11,6 +11,7 @@ export { default as LModuleComponent } from "./LModuleComponent";
 export { default as LModuleIndexComponent } from "./LModuleIndexComponent";
 
 // Export der A-Modul-Komponenten
+export { default as AModuleComponent } from "./AModuleComponent";
 export { default as VisionBoardExercise } from "./VisionBoardExercise";
 export { default as ValuesHierarchyComponent } from "./ValuesHierarchyComponent";
 

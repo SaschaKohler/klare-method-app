@@ -1,9 +1,10 @@
 // src/screens/DebugScreen.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Button, Card, Divider } from 'react-native-paper';
+import { Button, Card, Divider, List } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import StorageDebugger from '../components/debug/StorageDebugger';
+import ProgressDebugger from '../components/debug/ProgressDebugger';
 import { useTheme } from 'react-native-paper';
 
 /**
@@ -13,6 +14,7 @@ import { useTheme } from 'react-native-paper';
 const DebugScreen = () => {
   const navigation = useNavigation();
   const theme = useTheme();
+  const [expandedSection, setExpandedSection] = useState<string | null>('progress');
   
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -30,10 +32,25 @@ const DebugScreen = () => {
       
       <Divider style={styles.divider} />
       
-      {/* Storage-Debugger integrieren */}
-      <StorageDebugger />
-      
-      <Divider style={styles.divider} />
+      <View style={styles.tabContainer}>
+        <List.Accordion
+          title="Content Dripping & Fortschritt"
+          expanded={expandedSection === 'progress'}
+          onPress={() => setExpandedSection(expandedSection === 'progress' ? null : 'progress')}
+          style={styles.accordion}
+        >
+          <ProgressDebugger />
+        </List.Accordion>
+        
+        <List.Accordion
+          title="Storage & Datenverwaltung"
+          expanded={expandedSection === 'storage'}
+          onPress={() => setExpandedSection(expandedSection === 'storage' ? null : 'storage')}
+          style={styles.accordion}
+        >
+          <StorageDebugger />
+        </List.Accordion>
+      </View>
       
       <Card style={styles.card}>
         <Card.Title title="Navigation-Test" />
@@ -72,6 +89,12 @@ const styles = StyleSheet.create({
   },
   divider: {
     marginVertical: 8,
+  },
+  tabContainer: {
+    marginBottom: 16,
+  },
+  accordion: {
+    backgroundColor: 'white',
   },
   card: {
     margin: 16,

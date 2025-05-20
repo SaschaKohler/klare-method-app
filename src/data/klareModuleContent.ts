@@ -406,7 +406,7 @@ export const exerciseContent: Record<
     description:
       "Diese Übung hilft Ihnen, Ihre Kernwerte zu identifizieren und in eine stimmige Hierarchie zu bringen.",
     steps: [
-      "Nehmen Sie sich 30 Minuten ungestörte Zeit.",
+      "Nehmen Sie sich 30 Minuten ungestörte Zeit für diese wichtige Übung.",
       "Schreiben Sie zunächst alle Werte auf, die Ihnen wichtig erscheinen (mindestens 15-20).",
       "Reduzieren Sie die Liste auf 10 Werte, die am wichtigsten für Sie sind.",
       "Führen Sie für jeden Wert einen 'Warum ist das wichtig?'-Test durch, um dahinterliegende Kernwerte zu finden.",

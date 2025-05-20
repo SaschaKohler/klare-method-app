@@ -22,7 +22,7 @@ import {
 import { useUserStore } from "../store/useUserStore";
 
 // Import module-specific components
-import { LModuleComponent } from "../components/modules";
+import { LModuleComponent, AModuleComponent } from "../components/modules";
 import ModuleContentComponent from "../components/modules/ModuleContent";
 import ModuleExercise from "../components/modules/ModuleExercise";
 import ModuleQuiz from "../components/modules/ModuleQuiz";
@@ -149,6 +149,24 @@ const ModuleScreen = () => {
         />
       );
     }
+
+    // Prüfe, ob es ein A-Modul ist
+    if (
+      moduleData.module_id.startsWith("a-") &&
+      (moduleData.content_type === "exercise" ||
+        moduleData.module_id === "a-values-hierarchy" ||
+        moduleData.module_id === "a-life-vision" ||
+        moduleData.module_id === "a-decision-alignment" ||
+        moduleData.module_id === "a-integration-check")
+    ) {
+      return (
+        <AModuleComponent
+          module={moduleData}
+          onComplete={handleModuleComplete}
+        />
+      );
+    }
+
     switch (moduleData.content_type) {
       case "intro":
       case "theory":
@@ -186,11 +204,12 @@ const ModuleScreen = () => {
 
       case "video":
         return (
-          <ModuleVideoComponent
-            title={moduleData.title}
-            content={moduleData.content}
-            onComplete={handleModuleComplete}
-          />
+          <View style={styles.centeredContainer}>
+            <Text>Video module support is coming soon</Text>
+            <Button mode="contained" onPress={handleModuleComplete}>
+              Continue
+            </Button>
+          </View>
         );
 
       default:

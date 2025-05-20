@@ -51,9 +51,62 @@ const ModuleQuiz: React.FC<ModuleQuizProps> = ({
   const [score, setScore] = useState(0);
   const [isQuizCompleted, setIsQuizCompleted] = useState(false);
 
-  const currentQuestion = quizQuestions[currentQuestionIndex];
-  const isLastQuestion = currentQuestionIndex === quizQuestions.length - 1;
-  const progress = (currentQuestionIndex + 1) / quizQuestions.length;
+  // Ensure quizQuestions is properly formatted
+  const processedQuizQuestions = useMemo(() => {
+    if (!quizQuestions || quizQuestions.length === 0) {
+      console.warn("No quiz questions available");
+      return [];
+    }
+    
+    console.log("Processing quiz questions:", quizQuestions.length);
+    
+    return quizQuestions.map((q) => {
+      if (!q) return null;
+      
+      // Ensure correct answer is properly formatted
+      let correctAnswer = q.correct_answer;
+      
+      // Convert string arrays for multiple choice questions
+      if (q.question_type === "multiple_choice" && 
+          typeof correctAnswer === "string" && 
+          !Array.isArray(correctAnswer) &&
+          (correctAnswer.startsWith("[") || correctAnswer.includes(","))) {
+        try {
+          if (correctAnswer.startsWith("[")) {
+            correctAnswer = JSON.parse(correctAnswer);
+          } else if (correctAnswer.includes(",")) {
+            correctAnswer = correctAnswer.split(",").map(item => item.trim());
+          }
+        } catch (e) {
+          console.warn("Failed to parse correct_answer:", correctAnswer, e);
+        }
+      }
+      
+      // Ensure options is an array
+      let options = q.options;
+      if (typeof options === "string" && options.startsWith("[")) {
+        try {
+          options = JSON.parse(options);
+        } catch (e) {
+          console.warn("Failed to parse options JSON string:", options, e);
+          options = [];
+        }
+      } else if (!Array.isArray(options)) {
+        console.warn("Options is not an array:", options);
+        options = [];
+      }
+      
+      return {
+        ...q,
+        correct_answer: correctAnswer,
+        options: Array.isArray(options) ? options : [],
+      };
+    }).filter(q => q !== null);
+  }, [quizQuestions]);
+
+  const currentQuestion = processedQuizQuestions[currentQuestionIndex];
+  const isLastQuestion = currentQuestionIndex === processedQuizQuestions.length - 1;
+  const progress = processedQuizQuestions.length ? (currentQuestionIndex + 1) / processedQuizQuestions.length : 0;
 
   useEffect(() => {
     // Reset state when moving to next question
@@ -259,7 +312,7 @@ const ModuleQuiz: React.FC<ModuleQuizProps> = ({
   const renderQuizResults = () => {
     if (!isQuizCompleted) return null;
 
-    const percentage = (score / quizQuestions.length) * 100;
+    const percentage = (score / processedQuizQuestions.length) * 100;
     let resultMessage = "";
 
     if (percentage >= 80) {
@@ -276,7 +329,7 @@ const ModuleQuiz: React.FC<ModuleQuizProps> = ({
         <Card.Content>
           <Text style={styles.resultTitle}>Quiz abgeschlossen!</Text>
           <Text style={styles.scoreText}>
-            Dein Ergebnis: {score} von {quizQuestions.length} (
+            Dein Ergebnis: {score} von {processedQuizQuestions.length} (
             {percentage.toFixed(0)}%)
           </Text>
           <Text style={styles.resultMessage}>{resultMessage}</Text>
@@ -294,12 +347,24 @@ const ModuleQuiz: React.FC<ModuleQuizProps> = ({
           <Text style={styles.introText}>{content.intro_text}</Text>
         )}
 
-        {!isQuizCompleted && (
+        {processedQuizQuestions.length === 0 ? (
+          <Card style={styles.errorCard}>
+            <Card.Content>
+              <Text style={styles.errorText}>
+                Leider sind für dieses Quiz keine Fragen verfügbar. 
+                Bitte versuche es später noch einmal.
+              </Text>
+              <Button mode="contained" onPress={onComplete} style={styles.completeButton}>
+                Modul abschließen
+              </Button>
+            </Card.Content>
+          </Card>
+        ) : !isQuizCompleted ? (
           <>
             <Card style={styles.progressCard}>
               <Card.Content>
                 <Text style={styles.progressText}>
-                  Frage {currentQuestionIndex + 1} von {quizQuestions.length}
+                  Frage {currentQuestionIndex + 1} von {processedQuizQuestions.length}
                 </Text>
                 <ProgressBar
                   progress={progress}
@@ -332,9 +397,9 @@ const ModuleQuiz: React.FC<ModuleQuizProps> = ({
               </Card.Actions>
             </Card>
           </>
+        ) : (
+          renderQuizResults()
         )}
-
-        {isQuizCompleted && renderQuizResults()}
       </View>
     </ScrollView>
   );

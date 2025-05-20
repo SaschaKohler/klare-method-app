@@ -107,6 +107,29 @@ const createModuleQuizStyles = (theme: Theme, klareColors: any) =>
       lineHeight: 24,
       color: theme.colors.text,
     },
+    // Neue Stile für Fehlermeldungen
+    errorCard: {
+      marginTop: 16,
+      marginBottom: 24,
+      backgroundColor: theme.colors.surface,
+      padding: 8,
+    },
+    errorText: {
+      fontSize: 16,
+      textAlign: "center",
+      lineHeight: 24,
+      color: theme.colors.error,
+      marginBottom: 16,
+    },
+    completeButton: {
+      marginTop: 16,
+    },
+    quizInfo: {
+      fontSize: 16,
+      marginBottom: 16,
+      textAlign: "center",
+      color: theme.colors.text,
+    },
   });
 
 export default createModuleQuizStyles;

@@ -180,13 +180,16 @@ export const useProgressionStore = create<ProgressionState>()(
         ).length;
         const progress = completedCount / moduleIds.length;
 
-        // Im Cache speichern
-        set((state) => ({
-          moduleProgressCache: {
-            ...state.moduleProgressCache,
-            [cacheKey]: progress,
-          },
-        }));
+        // Hier verwenden wir ein Timeout, um den State nach dem Rendern zu aktualisieren
+        // Dies verhindert den Error "Cannot update a component while rendering a different component"
+        setTimeout(() => {
+          set((state) => ({
+            moduleProgressCache: {
+              ...state.moduleProgressCache,
+              [cacheKey]: progress,
+            },
+          }));
+        }, 0);
 
         return progress;
       },
