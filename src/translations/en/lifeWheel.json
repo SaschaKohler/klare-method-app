@@ -10,6 +10,12 @@
   "save": "Save",
   "hideInsights": "Hide Insights",
   "showInsights": "Show Insights",
+  "editor": {
+    "title": "Edit Areas",
+    "subtitle": "Tap on an area to edit or select directly in the life wheel.",
+    "currentValue": "Current Value",
+    "targetValue": "Target Value"
+  },
   "areas": {
     "health": "Health",
     "career": "Career",
@@ -18,7 +24,9 @@
     "personalGrowth": "Personal Growth",
     "fun": "Fun & Leisure",
     "environment": "Environment",
-    "spirituality": "Spirituality"
+    "spirituality": "Spirituality",
+    "family": "Family",
+    "leisure": "Leisure"
   },
   "rating": {
     "title": "Rating",

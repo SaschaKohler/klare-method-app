@@ -10,6 +10,12 @@
   "save": "Speichern",
   "hideInsights": "Einsichten ausblenden",
   "showInsights": "Einsichten anzeigen",
+  "editor": {
+    "title": "Bereiche bearbeiten",
+    "subtitle": "Tippen Sie auf einen Bereich, um ihn zu bearbeiten oder direkt im Lebensrad auswählen.",
+    "currentValue": "Aktueller Wert",
+    "targetValue": "Zielwert"
+  },
   "areas": {
     "health": "Gesundheit",
     "career": "Karriere",
@@ -18,7 +24,9 @@
     "personalGrowth": "Persönliche Entwicklung",
     "fun": "Spaß & Freizeit",
     "environment": "Umgebung",
-    "spirituality": "Spiritualität"
+    "spirituality": "Spiritualität",
+    "family": "Familie",
+    "leisure": "Freizeit"
   },
   "rating": {
     "title": "Bewertung",
