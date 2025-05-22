@@ -107,6 +107,7 @@ export interface KlareStoreResult {
       areaId: string,
       currentValue: number,
       targetValue: number,
+      userId?: string,
     ) => Promise<void>;
     average: number;
     // saveLifeWheelData: (userId: string) => Promise<boolean>;

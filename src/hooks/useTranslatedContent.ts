@@ -1,7 +1,6 @@
-// Beispielimplementierung für die Integration der Datenbankübersetzungen in das Frontend
-// Diese Datei zeigt, wie die übersetzten Inhalte aus der Datenbank abgerufen werden können
-
+// Internationalisierungs-Hook für die Klare-Methode-App
 import { useEffect, useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../utils/supabaseClient';
 
@@ -27,15 +26,13 @@ export function usePracticalExercises(stepId: string) {
       try {
         setLoading(true);
         
-        // Verwende die RPC-Funktion mit dem aktuellen Sprachcode
         const { data, error } = await supabase
           .rpc('get_translated_practical_exercises', {
             p_step_id: stepId,
-            p_lang: i18n.language // Aktueller Sprachcode von i18next
+            p_lang: i18n.language
           });
           
         if (error) throw error;
-        
         setExercises(data || []);
       } catch (err) {
         console.error('Fehler beim Abrufen der Übungen:', err);
@@ -46,41 +43,11 @@ export function usePracticalExercises(stepId: string) {
     };
 
     fetchExercises();
-  }, [stepId, i18n.language]); // Neu laden, wenn sich die Sprache ändert
+  }, [stepId, i18n.language]);
 
   return { exercises, loading, error };
 }
-
-// Beispiel-Komponente, die übersetzte Inhalte verwendet
-export function PracticalExercisesList({ stepId }: { stepId: string }) {
-  const { t } = useTranslation();
-  const { exercises, loading, error } = usePracticalExercises(stepId);
-
-  if (loading) return <Text>{t('common:loading')}</Text>;
-  if (error) return <Text>{t('common:error')}</Text>;
-  
-  return (
-    <View>
-      <Text style={styles.title}>{t('exercises:practicalExercises')}</Text>
-      {exercises.map(exercise => (
-        <View key={exercise.id} style={styles.exerciseItem}>
-          <Text style={styles.exerciseTitle}>{exercise.title}</Text>
-          {exercise.description && (
-            <Text style={styles.exerciseDescription}>{exercise.description}</Text>
-          )}
-          {exercise.duration_minutes && (
-            <Text style={styles.exerciseDuration}>
-              {t('exercises:duration', { minutes: exercise.duration_minutes })}
-            </Text>
-          )}
-        </View>
-      ))}
-    </View>
-  );
-}
-
-// Beispiel für die direkte Verwendung der update_translations-Funktion
-// Diese könnte in einem Admin-Bereich verwendet werden
+// Funktion zum Aktualisieren von Übersetzungen
 export async function updateTranslation(
   tableName: string,
   schemaName: string,
@@ -99,10 +66,92 @@ export async function updateTranslation(
       });
       
     if (error) throw error;
-    
     return { success: true };
   } catch (err) {
     console.error('Fehler beim Aktualisieren der Übersetzung:', err);
     return { success: false, error: err };
   }
 }
+
+// Beispiel-Komponente für übersetzte Übungen
+interface PracticalExercisesListProps {
+  stepId: string;
+}
+
+export function PracticalExercisesList({ stepId }: PracticalExercisesListProps) {
+  const { t } = useTranslation();
+  const { exercises, loading, error } = usePracticalExercises(stepId);
+
+  if (loading) return <Text style={styles.loadingText}>{t('common:loading')}</Text>;
+  if (error) return <Text style={styles.errorText}>{t('common:error')}</Text>;
+  
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>{t('exercises:practicalExercises')}</Text>
+      {exercises.map(exercise => (
+        <View key={exercise.id} style={styles.exerciseItem}>
+          <Text style={styles.exerciseTitle}>{exercise.title}</Text>
+          {exercise.description && (
+            <Text style={styles.exerciseDescription}>{exercise.description}</Text>
+          )}
+          {exercise.duration_minutes && (
+            <Text style={styles.exerciseDuration}>
+              {t('exercises:duration', { minutes: exercise.duration_minutes })}
+            </Text>
+          )}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+// Styles für die Komponenten
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#333',
+  },
+  exerciseItem: {
+    backgroundColor: '#f5f5f5',
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  exerciseTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#222',
+  },
+  exerciseDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 8,
+    color: '#666',
+  },
+  exerciseDuration: {
+    fontSize: 12,
+    color: '#888',
+    fontStyle: 'italic',
+  },
+  loadingText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
+    color: '#666',
+  },
+  errorText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
+    color: '#d32f2f',
+  },
+});

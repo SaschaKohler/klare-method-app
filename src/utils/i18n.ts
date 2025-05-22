@@ -3,7 +3,6 @@ import { initReactI18next } from "react-i18next";
 import { MMKV } from "react-native-mmkv";
 import { Platform, NativeModules } from "react-native";
 
-// Übersetzungen direkt importieren
 // Deutsch
 import deCommon from "../translations/de/common.json";
 import deHome from "../translations/de/home.json";
@@ -31,7 +30,7 @@ const resources = {
     navigation: deNavigation,
     lifeWheel: deLifeWheel,
     auth: deAuth,
-    modules: deModules, // Neue Module-Übersetzungen hinzufügen
+    modules: deModules,
   },
   en: {
     common: enCommon,
@@ -40,7 +39,7 @@ const resources = {
     navigation: enNavigation,
     lifeWheel: enLifeWheel,
     auth: enAuth,
-    modules: enModules, // Neue Module-Übersetzungen hinzufügen
+    modules: enModules,
   },
 };
 

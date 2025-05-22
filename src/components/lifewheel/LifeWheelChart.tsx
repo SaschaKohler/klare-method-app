@@ -20,8 +20,7 @@ import {
   darkKlareColors,
   lightKlareColors,
 } from "../../constants/theme";
-import { useUserStore } from "../../store/useUserStore";
-import { LifeWheelArea } from "../../store/useLifeWheelStore";
+import { useLifeWheelStore, LifeWheelArea } from "../../store/useLifeWheelStore";
 
 // Konstanten für das Lebensrad
 const WHEEL_PADDING = 40;
@@ -48,9 +47,14 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
   const themeColors = isDarkMode ? darkKlareColors : lightKlareColors;
 
   // Entweder direkt übergebene Daten oder Daten aus dem Store nehmen
-  const storeLifeWheelAreas = useUserStore((state) => state.lifeWheelAreas);
+  const { lifeWheelAreas: storeLifeWheelAreas } = useLifeWheelStore();
   // Wenn LifeWheelAreas als Prop übergeben wurden, verwende diese, ansonsten aus dem Store
   const lifeWheelAreas = propLifeWheelAreas || storeLifeWheelAreas;
+
+  // Debug: Was erhält die Chart-Komponente?
+  console.log('LifeWheelChart: propLifeWheelAreas =', propLifeWheelAreas);
+  console.log('LifeWheelChart: storeLifeWheelAreas =', storeLifeWheelAreas);
+  console.log('LifeWheelChart: final lifeWheelAreas =', lifeWheelAreas);
 
   // Berechnete Werte
   const center = size / 2;

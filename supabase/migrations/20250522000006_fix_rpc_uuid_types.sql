@@ -1,6 +1,9 @@
--- Migration: Erstellen der RPC-Funktion für übersetzte life_wheel_areas
+-- Migration: Korrektur der RPC-Funktion für korrekte UUID-Datentypen
 
--- RPC-Funktion zum Abrufen von übersetzten life_wheel_areas
+-- Alte Funktion löschen
+DROP FUNCTION IF EXISTS get_translated_life_wheel_areas(TEXT, TEXT);
+
+-- RPC-Funktion mit korrigierten Datentypen neu erstellen
 CREATE OR REPLACE FUNCTION get_translated_life_wheel_areas(
   p_user_id TEXT,
   p_lang TEXT DEFAULT 'en'
@@ -43,4 +46,4 @@ $$ LANGUAGE plpgsql STABLE;
 GRANT EXECUTE ON FUNCTION get_translated_life_wheel_areas(TEXT, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION get_translated_life_wheel_areas(TEXT, TEXT) TO service_role;
 
-COMMENT ON FUNCTION get_translated_life_wheel_areas IS 'Gibt übersetzte life_wheel_areas für einen Benutzer in der angegebenen Sprache zurück.';
+COMMENT ON FUNCTION get_translated_life_wheel_areas IS 'Gibt übersetzte life_wheel_areas für einen Benutzer in der angegebenen Sprache zurück. Korrigierte UUID-Version.';

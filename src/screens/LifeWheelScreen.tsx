@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -15,14 +15,14 @@ import {
   LifeWheelLegend,
   LifeWheelChart,
 } from "../components";
-import { useTranslatedLifeWheelAreas } from "../hooks/useTranslatedLifeWheelAreas";
 import { useKlareStores } from "../hooks";
+import { useLifeWheelStore } from "../store/useLifeWheelStore";
 import createLifeWheelScreenStyles from "../constants/lifeWheelScreenStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { useTheme } from "react-native-paper";
 
 const LifeWheelScreen = () => {
-  const { t } = useTranslation("lifeWheel");
+  const { t, i18n } = useTranslation("lifeWheel");
   const { user } = useKlareStores();
   const [showInsights, setShowInsights] = useState(true);
   const [selectedAreaId, setSelectedAreaId] = useState(null);
@@ -34,18 +34,35 @@ const LifeWheelScreen = () => {
     [theme, klareColors],
   );
 
-  // Verwenden des neuen Hooks für übersetzte LifeWheel-Bereiche
-  const { areas, loading, error, updateArea } = useTranslatedLifeWheelAreas(
-    user?.id || "",
-  );
+  // Store für LifeWheel-Daten verwenden
+  const {
+    lifeWheelAreas: areas,
+    metadata: { isLoading: loading, error },
+    loadTranslatedAreas,
+    updateLifeWheelArea,
+    refreshTranslations,
+  } = useLifeWheelStore();
+
+  // Daten laden wenn User verfügbar ist oder sich die Sprache ändert
+  useEffect(() => {
+    if (user?.id) {
+      loadTranslatedAreas(user.id);
+    }
+  }, [user?.id, i18n.language, loadTranslatedAreas]);
 
   // Handler für Wertänderungen im LifeWheelEditor
-  // Lokales Update durch Optimistic UI im Hook, kein reload nötig
   const handleAreaValueChange = (id, updates) => {
-    updateArea(id, updates);
-    
-    // Aktualisiere auch adaptedAreasForChart, falls nötig
-    // Dies ist optional, da der Hook bereits optimistisches UI-Update macht
+    // Optimistische Updates über den Store
+    console.log("handleAreaValueChange", id, updates);
+
+    // Direkt die Updates übergeben - der Store kümmert sich um das Merging
+    // userId für Datenbank-Synchronisation übergeben
+    updateLifeWheelArea(
+      id,
+      updates.current_value,
+      updates.target_value,
+      user?.id,
+    );
   };
 
   // Handler für Klicks auf Bereiche im Chart
@@ -66,13 +83,13 @@ const LifeWheelScreen = () => {
       .slice(0, 3);
   };
 
-  // Datentransformation für den LifeWheelChart
+  // Datentransformation für den LifeWheelChart (Store verwendet bereits camelCase)
   const adaptedAreasForChart = useMemo(() => {
     return areas.map((area) => ({
       id: area.id,
       name: area.name,
-      currentValue: area.current_value,
-      targetValue: area.target_value,
+      currentValue: area.currentValue, // Store verwendet camelCase
+      targetValue: area.targetValue, // Store verwendet camelCase
     }));
   }, [areas]);
 
@@ -93,7 +110,7 @@ const LifeWheelScreen = () => {
             />
             <Text style={styles.insightText}>
               {area.name}:{" "}
-              {t("insights.needsAttention", { value: area.current_value })}
+              {t("insights.needsAttention", { value: area.currentValue })}
             </Text>
           </View>
         ))}
@@ -113,9 +130,9 @@ const LifeWheelScreen = () => {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
+          backgroundColor: theme.colors.background,
         }}
       >
-        <CustomHeader title={t("title")} />
         <ActivityIndicator size="large" color={klareColors.k} />
       </SafeAreaView>
     );
@@ -167,7 +184,7 @@ const LifeWheelScreen = () => {
           selectedAreaId={selectedAreaId}
         />
 
-        <LifeWheelLegend />
+        {/* <LifeWheelLegend /> */}
 
         <TouchableOpacity
           style={styles.insightsToggle}

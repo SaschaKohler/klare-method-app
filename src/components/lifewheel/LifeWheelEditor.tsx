@@ -1,5 +1,11 @@
 // src/components/lifewheel/LifeWheelEditor.tsx
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { View, StyleSheet, ScrollView, Platform } from "react-native";
 import { Text, Card, useTheme } from "react-native-paper";
 import Slider from "@react-native-community/slider";
@@ -9,11 +15,14 @@ import {
   lightKlareColors,
 } from "../../constants/theme";
 import { useTranslation } from "react-i18next";
-import debounce from 'lodash/debounce';
+import debounce from "lodash/debounce";
 
 interface LifeWheelEditorProps {
   areas: any[]; // Wir verwenden das Datenformat aus dem Hook
-  onValueChange: (areaId: string, updates: { current_value?: number; target_value?: number }) => void;
+  onValueChange: (
+    areaId: string,
+    updates: { current_value?: number; target_value?: number },
+  ) => void;
   selectedAreaId?: string | null;
 }
 
@@ -30,23 +39,34 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
   const [expandedAreaId, setExpandedAreaId] = useState<string | null>(null);
   const [localValues, setLocalValues] = useState<Record<string, number>>({});
 
-  const styles = useMemo(() => createStyles(theme, themeColors), [theme, themeColors]);
+  const styles = useMemo(
+    () => createStyles(theme, themeColors),
+    [theme, themeColors],
+  );
 
   // Debounced Handler für API-Aufrufe
   const debouncedUpdateValue = useCallback(
-    debounce((areaId: string, updates: { current_value?: number; target_value?: number }) => {
-      onValueChange(areaId, updates);
-    }, 500), // 500ms Verzögerung, bevor der API-Aufruf gestartet wird
-    [onValueChange]
+    debounce(
+      (
+        areaId: string,
+        updates: { current_value?: number; target_value?: number },
+      ) => {
+        onValueChange(areaId, updates);
+      },
+      500,
+    ), // 500ms Verzögerung, bevor der API-Aufruf gestartet wird
+    [onValueChange],
   );
 
   // Wenn sich selectedAreaId ändert, wird dieser Bereich expandiert
   useEffect(() => {
     if (selectedAreaId) {
       setExpandedAreaId(selectedAreaId);
-      
+
       // Scrolle zur ausgewählten Karte, wenn sie existiert
-      const selectedIndex = areas.findIndex(area => area.id === selectedAreaId);
+      const selectedIndex = areas.findIndex(
+        (area) => area.id === selectedAreaId,
+      );
       if (selectedIndex !== -1 && scrollViewRef.current) {
         // Berechne ungefähre Position der Karte
         const cardHeight = 120; // ungefähre Höhe einer Karte in Pixeln
@@ -59,21 +79,26 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
   // Initialer Zustand für lokale Werte
   useEffect(() => {
     const initialValues: Record<string, number> = {};
-    areas.forEach(area => {
-      initialValues[`${area.id}_current`] = area.current_value;
-      initialValues[`${area.id}_target`] = area.target_value;
+    areas.forEach((area) => {
+      initialValues[`${area.id}_current`] = area.currentValue;
+      initialValues[`${area.id}_target`] = area.targetValue;
     });
     setLocalValues(initialValues);
   }, [areas]);
 
   // Aktualisiere den Wert eines Bereichs
-  const handleValueChange = (areaId: string, valueType: "current" | "target", value: number) => {
+  const handleValueChange = (
+    areaId: string,
+    valueType: "current" | "target",
+    value: number,
+  ) => {
+    console.log("handleValueChange:", areaId, valueType, value);
     // Sofort den lokalen Zustand aktualisieren für flüssige UI
-    setLocalValues(prev => ({
+    setLocalValues((prev) => ({
       ...prev,
-      [`${areaId}_${valueType}`]: value
+      [`${areaId}_${valueType}`]: value,
     }));
-    
+
     // Mit Verzögerung an API senden
     if (valueType === "current") {
       debouncedUpdateValue(areaId, { current_value: value });
@@ -86,17 +111,19 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
   const renderAreaCard = (area: any) => {
     const isExpanded = expandedAreaId === area.id;
     // Verwende lokalen Wert falls vorhanden, sonst den Original-Wert
-    const currentValue = localValues[`${area.id}_current`] !== undefined 
-      ? localValues[`${area.id}_current`] 
-      : area.current_value;
-    
-    const targetValue = localValues[`${area.id}_target`] !== undefined 
-      ? localValues[`${area.id}_target`] 
-      : area.target_value;
-      
+    const currentValue =
+      localValues[`${area.id}_current`] !== undefined
+        ? localValues[`${area.id}_current`]
+        : area.current_value;
+
+    const targetValue =
+      localValues[`${area.id}_target`] !== undefined
+        ? localValues[`${area.id}_target`]
+        : area.target_value;
+
     return (
-      <Card 
-        key={area.id} 
+      <Card
+        key={area.id}
         style={[styles.card, isExpanded && styles.expandedCard]}
         onPress={() => setExpandedAreaId(isExpanded ? null : area.id)}
       >
@@ -105,16 +132,18 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
             <Text style={styles.areaName}>{area.name}</Text>
             <Text style={styles.areaValue}>{currentValue}/10</Text>
           </View>
-          
+
           {isExpanded && (
             <View style={styles.expandedContent}>
               {/* Aktueller Wert Slider */}
               <View style={styles.sliderContainer}>
                 <View style={styles.sliderLabelContainer}>
-                  <Text style={styles.sliderLabel}>{t("editor.currentValue")}</Text>
+                  <Text style={styles.sliderLabel}>
+                    {t("editor.currentValue")}
+                  </Text>
                   <Text style={styles.sliderValue}>{currentValue}</Text>
                 </View>
-              
+
                 <Slider
                   style={styles.slider}
                   minimumValue={1}
@@ -122,38 +151,46 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
                   step={1}
                   value={currentValue}
                   // Verwende ein Event für Bewegung UND Loslassen
-                  onValueChange={(value) => handleValueChange(area.id, "current", value)}
+                  onValueChange={(value) =>
+                    handleValueChange(area.id, "current", value)
+                  }
                   minimumTrackTintColor={themeColors.k}
                   maximumTrackTintColor={isDarkMode ? "#555" : "#ccc"}
                   thumbTintColor={themeColors.k}
                 />
-                
+
                 <View style={styles.sliderMarkers}>
                   <Text style={styles.sliderMarkerText}>1</Text>
                   <Text style={styles.sliderMarkerText}>5</Text>
                   <Text style={styles.sliderMarkerText}>10</Text>
                 </View>
               </View>
-              
+
               {/* Zielwert Slider */}
               <View style={styles.sliderContainer}>
                 <View style={styles.sliderLabelContainer}>
-                  <Text style={styles.sliderLabel}>{t("editor.targetValue")}</Text>
-                  <Text style={[styles.sliderValue, { color: themeColors.a }]}>{targetValue}</Text>
+                  <Text style={styles.sliderLabel}>
+                    {t("editor.targetValue")}
+                  </Text>
+                  <Text style={[styles.sliderValue, { color: themeColors.a }]}>
+                    {targetValue}
+                  </Text>
                 </View>
-              
+
                 <Slider
                   style={styles.slider}
                   minimumValue={1}
                   maximumValue={10}
                   step={1}
                   value={targetValue}
-                  onValueChange={(value) => handleValueChange(area.id, "target", value)}
+                  onValueChange={(value) =>
+                    handleValueChange(area.id, "target", value)
+                  }
                   minimumTrackTintColor={themeColors.a}
                   maximumTrackTintColor={isDarkMode ? "#555" : "#ccc"}
                   thumbTintColor={themeColors.a}
                 />
-                
+
                 <View style={styles.sliderMarkers}>
                   <Text style={styles.sliderMarkerText}>1</Text>
                   <Text style={styles.sliderMarkerText}>5</Text>
@@ -171,7 +208,7 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
     <View style={styles.container}>
       <Text style={styles.title}>{t("editor.title")}</Text>
       <Text style={styles.subtitle}>{t("editor.subtitle")}</Text>
-      
+
       <ScrollView ref={scrollViewRef} style={styles.scrollView}>
         {areas.map(renderAreaCard)}
       </ScrollView>
@@ -197,7 +234,7 @@ const createStyles = (theme: any, themeColors: typeof klareColors) =>
       opacity: 0.7,
     },
     scrollView: {
-      maxHeight: Platform.OS === 'ios' ? 400 : 370,
+      maxHeight: Platform.OS === "ios" ? 400 : 370,
     },
     card: {
       marginVertical: 8,
