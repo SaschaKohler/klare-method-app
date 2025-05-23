@@ -22,7 +22,7 @@ type TranslatedLifeWheelArea = LifeWheelArea & {
 /**
  * @deprecated Dieser Hook wird durch useLifeWheelStore ersetzt.
  * Verwende stattdessen: useLifeWheelStore().loadTranslatedAreas()
- * 
+ *
  * Custom Hook zum Abrufen übersetzter LifeWheel-Bereiche
  * @param userId Die ID des Benutzers
  * @returns Ein Objekt mit den übersetzten LifeWheel-Bereichen und Funktionen zum Laden und Aktualisieren
@@ -47,21 +47,22 @@ export const useTranslatedLifeWheelAreas = (userId: string) => {
 
       // Direkte Abfrage der Tabelle mit Übersetzungslogik
       const fetchTranslatedQuery = async () => {
-        console.log('Verwende direkte Datenbankabfrage mit Übersetzungslogik');
+        console.log("Verwende direkte Datenbankabfrage mit Übersetzungslogik");
         const { data, error } = await supabase
-          .from('life_wheel_areas')
-          .select('*')
-          .eq('user_id', userId);
+          .from("life_wheel_areas")
+          .select("*")
+          .eq("user_id", userId);
 
         if (error) throw new Error(error.message);
-        
+
         // Übersetzte Namen hinzufügen
-        const translatedData = data?.map(area => ({
-          ...area,
-          name: area.translations?.[i18n.language]?.name || area.name
-        })) || [];
-        
-        console.log('Übersetzte Daten:', translatedData);
+        const translatedData =
+          data?.map((area) => ({
+            ...area,
+            name: area.translations?.[i18n.language]?.name || area.name,
+          })) || [];
+
+        console.log("Übersetzte Daten:", translatedData);
         return translatedData;
       };
 

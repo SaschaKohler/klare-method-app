@@ -6,6 +6,7 @@ import { de } from "date-fns/locale";
 import { MotiView } from "moti";
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
+  Alert,
   FlatList,
   RefreshControl,
   ScrollView,
@@ -39,7 +40,11 @@ import { darkKlareColors, lightKlareColors } from "../constants/theme";
 
 // Import useKlareStores instead of individual stores
 import { useKlareStores } from "../hooks";
-import { JournalEntry, JournalTemplate, journalService } from "../services/JournalService";
+import {
+  JournalEntry,
+  JournalTemplate,
+  journalService,
+} from "../services/JournalService";
 
 export default function JournalScreen() {
   const navigation = useNavigation();
@@ -58,12 +63,11 @@ export default function JournalScreen() {
   const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
-  //FIX:
   const [filterMenuVisible, setFilterMenuVisible] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  //FIX:
   const [selectedTemplate, setSelectedTemplate] =
     useState<JournalTemplate | null>(null);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
@@ -84,14 +88,20 @@ export default function JournalScreen() {
 
   const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
-  // Header Animation
-  const headerHeight = 140;
+  // Header Animation - More compact and subtle
+  const headerHeight = 60; // Reduced height for a more compact UI
   const headerContainerStyle = useAnimatedStyle(() => {
     return {
       height: interpolate(
         scrollY.value,
         [0, headerHeight],
-        [headerHeight, 60],
+        [headerHeight, 50], 
+        Extrapolation.CLAMP,
+      ),
+      opacity: interpolate(
+        scrollY.value,
+        [headerHeight - 40, headerHeight * 3],
+        [1, 0.95],
         Extrapolation.CLAMP,
       ),
     };
@@ -101,21 +111,20 @@ export default function JournalScreen() {
     return {
       opacity: interpolate(
         scrollY.value,
-        [headerHeight - 50, headerHeight - 10],
+        [headerHeight - 40, headerHeight - 10],
         [0, 1],
         Extrapolation.CLAMP,
       ),
-    };
-  });
-
-  const headerContentStyle = useAnimatedStyle(() => {
-    return {
-      opacity: interpolate(
-        scrollY.value,
-        [0, headerHeight - 40],
-        [1, 0],
-        Extrapolation.CLAMP,
-      ),
+      transform: [
+        {
+          translateY: interpolate(
+            scrollY.value,
+            [0, headerHeight],
+            [10, 0],
+            Extrapolation.CLAMP,
+          ),
+        },
+      ],
     };
   });
 
@@ -155,30 +164,34 @@ export default function JournalScreen() {
     }, [user?.id, selectedDate]), // Re-run when user ID or selected date changes
   );
 
-  // Refresh-Funktion
+  // Refresh function
   const onRefresh = async () => {
     setRefreshing(true);
     if (user?.id) {
       try {
-        // Diagnosecheck durchführen
-        const diagnosticReport = await journalService.diagnoseJournalStorage(user.id);
+        // Run diagnostic check
+        const diagnosticReport = await journalService.diagnoseJournalStorage(
+          user.id,
+        );
         console.log("Journal storage diagnosis:", diagnosticReport);
-        
-        // Wenn Probleme festgestellt wurden, Reparatur durchführen
-        if (diagnosticReport.localDataParseCheck !== 'valid array' || 
-            diagnosticReport.localStorageStatus === 'empty') {
+
+        // If issues detected, attempt repair
+        if (
+          diagnosticReport.localDataParseCheck !== "valid array" ||
+          diagnosticReport.localStorageStatus === "empty"
+        ) {
           console.log("Journal storage issues detected, attempting repair...");
           const repaired = await journalService.repairJournalStorage(user.id);
-          
+
           if (repaired) {
             console.log("Journal storage successfully repaired");
           } else {
             console.warn("Journal storage repair failed");
           }
         }
-        
-        // Daten aktualisieren
-        await journalService.getUserEntries(user.id); // Lädt und synchronisiert die Daten
+
+        // Update data
+        await journalService.getUserEntries(user.id); // Loads and syncs data
         const dateEntries = await journalService.getEntriesByDate(
           user.id,
           selectedDate,
@@ -199,12 +212,11 @@ export default function JournalScreen() {
     const fetchEntriesForDate = async () => {
       if (user?.id) {
         setLoading(true);
-        // Füge leere Einträge für die letzten 7 Tage hinzu, um Scrollen zu ermöglichen
         const dateEntries = await getEntriesByDate(user.id, selectedDate);
 
-        // Wenn heute ausgewählt ist und keine Einträge existieren, zeige Platzhalter
-        const isToday = isToday(selectedDate);
-        const showEmptyToday = isToday && dateEntries.length === 0;
+        // If today is selected and no entries exist, show placeholder
+        const isCurrentDay = isToday(selectedDate);
+        const showEmptyToday = isCurrentDay && dateEntries.length === 0;
 
         setEntriesForSelectedDate(
           showEmptyToday
@@ -213,8 +225,8 @@ export default function JournalScreen() {
         );
         setLoading(false);
 
-        // Scroll zu heute wenn es der initiale Load ist
-        if (isToday) {
+        // Scroll to today if it's the initial load
+        if (isCurrentDay) {
           setTimeout(() => {
             flatListRef.current?.scrollToIndex({ index: 0, animated: true });
           }, 100);
@@ -225,26 +237,36 @@ export default function JournalScreen() {
     fetchEntriesForDate();
   }, [selectedDate, user?.id]);
 
-  // Ref für die FlatList
+  // Ref for the FlatList
   const flatListRef = useRef<FlatList<JournalEntry>>(null);
 
-  // Formatiere das Datum für die Anzeige
+  // Format date for display
   const formatEntryDate = (dateString: string) => {
-    const date = parseISO(dateString);
-
-    if (isToday(date)) {
-      return `Heute, ${format(date, "HH:mm")}`;
-    } else if (isYesterday(date)) {
-      return `Gestern, ${format(date, "HH:mm")}`;
-    } else {
-      return format(date, "dd. MMMM yyyy, HH:mm", { locale: de });
+    // Guard against undefined or invalid dateString
+    if (!dateString) {
+      return "Unbekanntes Datum";
+    }
+    
+    try {
+      const date = parseISO(dateString);
+      
+      if (isToday(date)) {
+        return `Heute, ${format(date, "HH:mm")}`;
+      } else if (isYesterday(date)) {
+        return `Gestern, ${format(date, "HH:mm")}`;
+      } else {
+        return format(date, "dd. MMMM yyyy, HH:mm", { locale: de });
+      }
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Ungültiges Datum";
     }
   };
 
-  // Erstelle einen neuen Eintrag
+  // Create a new entry
   const createNewEntry = (template?: JournalTemplate) => {
     try {
-      // Wenn eine Vorlage ausgewählt wurde, öffne den Editor mit der Vorlage
+      // If a template is selected, open the editor with the template
       if (template) {
         navigation.navigate(
           "JournalEditor" as never,
@@ -254,7 +276,7 @@ export default function JournalScreen() {
           } as never,
         );
       } else {
-        // Andernfalls öffne einen leeren Editor
+        // Otherwise open an empty editor
         navigation.navigate(
           "JournalEditor" as never,
           { date: selectedDate.toISOString() } as never,
@@ -265,7 +287,7 @@ export default function JournalScreen() {
     }
   };
 
-  // Öffne einen vorhandenen Eintrag
+  // Open an existing entry
   const openEntry = (entry: JournalEntry) => {
     navigation.navigate(
       "JournalViewer" as never,
@@ -273,13 +295,13 @@ export default function JournalScreen() {
     );
   };
 
-  // Filtere Vorlagen nach Kategorie
+  // Filter templates by category
   const filteredTemplates = useMemo(() => {
     if (!activeCategory) return templates;
     return templates.filter((template) => template.category === activeCategory);
   }, [templates, activeCategory]);
 
-  // Rendere einen Tag-Chip
+  // Render a tag chip
   const renderTagChip = (tag: string, index: number) => (
     <Chip
       key={`${tag}-${index}`}
@@ -291,7 +313,7 @@ export default function JournalScreen() {
     </Chip>
   );
 
-  // Rendere ein Mood-Rating
+  // Render mood rating
   const renderMoodRating = (rating: number) => {
     const iconName =
       rating >= 7 ? "happy" : rating >= 4 ? "happy-outline" : "sad-outline";
@@ -306,12 +328,12 @@ export default function JournalScreen() {
     );
   };
 
-  // Rendere eine Vorlage
+  // Render a template
   const renderTemplate = ({ item }: { item: JournalTemplate }) => (
     <MotiView
-      from={{ opacity: 0, scale: 0.9 }}
+      from={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ type: "timing", duration: 300 }}
+      transition={{ type: "timing", duration: 250 }}
     >
       <TouchableOpacity
         onPress={() => {
@@ -345,12 +367,12 @@ export default function JournalScreen() {
     </MotiView>
   );
 
-  // Rendere einen Tagebucheintrag
+  // Render a journal entry
   const renderEntry = ({ item }: { item: JournalEntry }) => (
     <MotiView
-      from={{ opacity: 0, translateX: -20 }}
-      animate={{ opacity: 1, translateX: 0 }}
-      transition={{ type: "timing", duration: 300, delay: 100 }}
+      from={{ opacity: 0, translateY: 5 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: "timing", duration: 250 }}
     >
       <TouchableOpacity onPress={() => openEntry(item)}>
         <Card style={styles.entryCard}>
@@ -399,7 +421,7 @@ export default function JournalScreen() {
     </MotiView>
   );
 
-  // Rendere die Kategorieleiste
+  // Render category tabs
   const renderCategoryTabs = () => (
     <ScrollView
       horizontal
@@ -457,26 +479,50 @@ export default function JournalScreen() {
     </ScrollView>
   );
 
-  // Rendere den Kalender-Strip
-  const renderCalendarStrip = () => (
-    <View style={styles.calendarContainer}>
-      <CalendarStrip
-        selectedDate={selectedDate}
-        onDateSelected={setSelectedDate}
-        startingDate={subDays(new Date(), 7)} // Nur 7 Tage zurück statt 14
-        scrollToOnSetSelectedDate={true} // Scrollt automatisch zum ausgewählten Datum
-        scrollerPaging={true} // Ermöglicht paging
-        highlightColor={klareColors.k}
-        dayTextStyle={{ color: theme.colors.text }}
-        dateTextStyle={{ color: theme.colors.text }}
-        highlightDateTextStyle={{ color: "white" }}
-        highlightDateContainerStyle={{ backgroundColor: klareColors.k }}
-        style={{ height: 100 }} // Etwas höher für bessere Sichtbarkeit
-      />
+  // Render compact day selector
+  const renderDaySelector = () => (
+    <View style={styles.daySelectorContainer}>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.dayButtonsContainer}
+      >
+        {Array.from({ length: 10 }, (_, i) => {
+          const date = subDays(new Date(), 9 - i);
+          const isSelected = format(date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+          
+          return (
+            <TouchableOpacity 
+              key={i} 
+              style={[
+                styles.dayButton,
+                isSelected && styles.selectedDayButton
+              ]}
+              onPress={() => setSelectedDate(date)}
+            >
+              <Text style={[
+                styles.dayName, 
+                isSelected && styles.selectedDayText
+              ]}>
+                {format(date, 'E', { locale: de })}
+              </Text>
+              <Text style={[
+                styles.dayNumber, 
+                isSelected && styles.selectedDayText
+              ]}>
+                {format(date, 'd')}
+              </Text>
+              {isToday(date) && (
+                <View style={styles.todayIndicator} />
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 
-  // Rendere den Inhalt basierend auf dem Zustand
+  // Render content based on state
   const renderContent = () => {
     if (loading) {
       return (
@@ -503,7 +549,6 @@ export default function JournalScreen() {
           <FlatList
             data={filteredTemplates}
             renderItem={renderTemplate}
-            scrollEnabled={false}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.templatesList}
             showsVerticalScrollIndicator={false}
@@ -514,54 +559,70 @@ export default function JournalScreen() {
 
     return (
       <>
-        {renderCalendarStrip()}
-
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            {format(selectedDate, "EEEE, dd. MMMM yyyy", { locale: de })}
+        {/* Date display and day selector */}
+        <View style={styles.dateContainer}>
+          <Text style={styles.currentMonthYear}>
+            {format(selectedDate, "MMMM yyyy", { locale: de })}
           </Text>
-          <Button
-            mode="text"
-            onPress={() => setShowTemplateSelector(true)}
-            labelStyle={{ color: klareColors.k }}
-          >
-            Vorlage wählen
-          </Button>
+          {renderDaySelector()}
         </View>
 
         {entriesForSelectedDate.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons
-              name="book-outline"
-              size={60}
-              color={`${klareColors.k}50`}
-            />
-            <Text style={styles.emptyText}>
-              Noch keine Einträge für diesen Tag
-            </Text>
-            <Button
-              mode="contained"
-              style={{ backgroundColor: klareColors.k, marginTop: 16 }}
-              onPress={() => createNewEntry()}
+          <View style={styles.emptyStateContainer}>
+            <MotiView
+              from={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", damping: 15 }}
             >
-              Ersten Eintrag erstellen
-            </Button>
+              <View style={styles.emptyIconContainer}>
+                <Ionicons
+                  name="book-outline"
+                  size={48}
+                  color={`${klareColors.k}80`}
+                />
+              </View>
+              <Text style={styles.emptyTitle}>
+                Noch keine Einträge für{" "}
+                {isToday(selectedDate) ? "heute" : format(selectedDate, "dd. MMMM", { locale: de })}
+              </Text>
+              <Text style={styles.emptySubtitle}>
+                Reflektiere deinen Tag und schaffe mehr Klarheit
+              </Text>
+              
+              {/* Quick action buttons */}
+              <View style={styles.quickActionsContainer}>
+                <TouchableOpacity
+                  style={[styles.quickActionButton, { backgroundColor: klareColors.k }]}
+                  onPress={() => createNewEntry()}
+                >
+                  <Ionicons name="create-outline" size={20} color="white" />
+                  <Text style={styles.quickActionText}>
+                    Freier Eintrag
+                  </Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[styles.quickActionButton, styles.secondaryButton]}
+                  onPress={() => setShowTemplateSelector(true)}
+                >
+                  <Ionicons name="list-outline" size={20} color={klareColors.k} />
+                  <Text style={[styles.quickActionText, { color: klareColors.k }]}>
+                    Mit Vorlage
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </MotiView>
           </View>
         ) : (
-          <FlatList
+          <Animated.FlatList
             ref={flatListRef}
             data={entriesForSelectedDate}
             renderItem={renderEntry}
-            scrollEnabled={true}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.entriesList}
             showsVerticalScrollIndicator={false}
-            initialScrollIndex={isToday(selectedDate) ? 0 : undefined}
-            getItemLayout={(data, index) => ({
-              length: 120,
-              offset: 120 * index,
-              index,
-            })}
+            onScroll={scrollHandler}
+            scrollEventThrottle={16}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -581,151 +642,173 @@ export default function JournalScreen() {
       edges={["left", "right"]} // Only apply safe area to left and right edges
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
-      {/* Animated Header */}
+      {/* Streamlined header */}
       <Animated.View style={[styles.headerContainer, headerContainerStyle]}>
         <View style={styles.headerTop}>
-          <Animated.Text style={[styles.headerTitle, headerTitleStyle]}>
-            Klarheits-Tagebuch
-          </Animated.Text>
-          <Menu
-            visible={menuVisible}
-            onDismiss={() => setMenuVisible(false)}
-            anchor={
-              <IconButton
-                icon="dots-vertical"
-                size={24}
-                onPress={() => setMenuVisible(true)}
-                iconColor={theme.colors.text}
+          <View style={styles.headerTitleContainer}>
+            <Animated.Text style={[styles.headerTitle, headerTitleStyle]}>
+              Journal
+            </Animated.Text>
+          </View>
+          
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.searchToggle}
+              onPress={() => setShowSearch(!showSearch)}
+            >
+              <Ionicons name="search-outline" size={22} color={theme.colors.text} />
+            </TouchableOpacity>
+            
+            <Menu
+              visible={menuVisible}
+              onDismiss={() => setMenuVisible(false)}
+              anchor={
+                <IconButton
+                  icon="dots-vertical"
+                  size={22}
+                  onPress={() => setMenuVisible(true)}
+                  iconColor={theme.colors.text}
+                />
+              }
+            >
+              <Menu.Item
+                onPress={() => {
+                  setMenuVisible(false);
+                }}
+                title="Einstellungen"
+                leadingIcon="cog"
               />
-            }
-          >
-            <Menu.Item
-              onPress={() => {
-                setMenuVisible(false);
-                // Hier könnte eine Einstellungen-Navigation stattfinden
-              }}
-              title="Einstellungen"
-              leadingIcon="cog"
-            />
-            <Menu.Item
-              onPress={() => {
-                setMenuVisible(false);
-                // Hier könnte eine Exportfunktion implementiert werden
-              }}
-              title="Einträge exportieren"
-              leadingIcon="export"
-            />
-            <Menu.Item
-              onPress={() => {
-                setMenuVisible(false);
-                
-                if (user?.id) {
-                  // Diagnose-Tool für Entwickler starten
-                  Alert.alert(
-                    "Storage Diagnose starten",
-                    "Diese Funktion prüft den Journal-Storage auf Probleme und versucht, diese zu beheben.",
-                    [
-                      {
-                        text: "Abbrechen",
-                        style: "cancel"
-                      },
-                      {
-                        text: "Diagnose starten",
-                        onPress: async () => {
-                          try {
-                            // Diagnose durchführen
-                            const result = await journalService.diagnoseJournalStorage(user.id);
-                            console.log("Diagnose-Ergebnis:", result);
-                            
-                            if (result.localDataParseCheck !== 'valid array' || 
-                                result.localStorageStatus === 'empty' ||
-                                result.keysMatch !== 'match') {
-                              
-                              // Probleme gefunden, Reparatur anbieten
+              <Menu.Item
+                onPress={() => {
+                  setMenuVisible(false);
+                }}
+                title="Einträge exportieren"
+                leadingIcon="export"
+              />
+              <Menu.Item
+                onPress={() => {
+                  setMenuVisible(false);
+
+                  if (user?.id) {
+                    // Start diagnostic tool for developers
+                    Alert.alert(
+                      "Storage Diagnose starten",
+                      "Diese Funktion prüft den Journal-Storage auf Probleme und versucht, diese zu beheben.",
+                      [
+                        {
+                          text: "Abbrechen",
+                          style: "cancel",
+                        },
+                        {
+                          text: "Diagnose starten",
+                          onPress: async () => {
+                            try {
+                              // Perform diagnosis
+                              const result =
+                                await journalService.diagnoseJournalStorage(
+                                  user.id,
+                                );
+                              console.log("Diagnose-Ergebnis:", result);
+
+                              if (
+                                result.localDataParseCheck !== "valid array" ||
+                                result.localStorageStatus === "empty" ||
+                                result.keysMatch !== "match"
+                              ) {
+                                // Problems found, offer repair
+                                Alert.alert(
+                                  "Probleme gefunden",
+                                  `Speicherzustand: ${result.localStorageStatus}\nFormat: ${result.localDataParseCheck}\nKeyMapping: ${result.keysMatch}\n\nMöchten Sie eine Reparatur versuchen?`,
+                                  [
+                                    {
+                                      text: "Abbrechen",
+                                      style: "cancel",
+                                    },
+                                    {
+                                      text: "Reparieren",
+                                      onPress: async () => {
+                                        const repaired =
+                                          await journalService.repairJournalStorage(
+                                            user.id,
+                                          );
+
+                                        if (repaired) {
+                                          Alert.alert(
+                                            "Reparatur erfolgreich",
+                                            "Der Journal-Storage wurde erfolgreich repariert. Die App wird jetzt die Daten neu laden.",
+                                            [
+                                              {
+                                                text: "OK",
+                                                onPress: () => onRefresh(),
+                                              },
+                                            ],
+                                          );
+                                        } else {
+                                          Alert.alert(
+                                            "Reparatur fehlgeschlagen",
+                                            "Die Reparatur konnte nicht durchgeführt werden. Bitte versuchen Sie, die App neu zu starten.",
+                                          );
+                                        }
+                                      },
+                                    },
+                                  ],
+                                );
+                              } else {
+                                // No problem found
+                                Alert.alert(
+                                  "Diagnose abgeschlossen",
+                                  "Keine Probleme im Journal-Storage gefunden.\n\nStorage: " +
+                                    `${result.storageType}\nEntries lokal: ${result.localEntryCount}\nServer: ${result.serverStatus}\nEntries Server: ${result.serverEntryCount}`,
+                                  [{ text: "OK" }],
+                                );
+                              }
+                            } catch (error) {
+                              console.error("Diagnose-Fehler:", error);
                               Alert.alert(
-                                "Probleme gefunden",
-                                `Speicherzustand: ${result.localStorageStatus}\nFormat: ${result.localDataParseCheck}\nKeyMapping: ${result.keysMatch}\n\nMöchten Sie eine Reparatur versuchen?`,
-                                [
-                                  {
-                                    text: "Abbrechen",
-                                    style: "cancel"
-                                  },
-                                  {
-                                    text: "Reparieren",
-                                    onPress: async () => {
-                                      const repaired = await journalService.repairJournalStorage(user.id);
-                                      
-                                      if (repaired) {
-                                        Alert.alert(
-                                          "Reparatur erfolgreich",
-                                          "Der Journal-Storage wurde erfolgreich repariert. Die App wird jetzt die Daten neu laden.",
-                                          [
-                                            {
-                                              text: "OK",
-                                              onPress: () => onRefresh()
-                                            }
-                                          ]
-                                        );
-                                      } else {
-                                        Alert.alert(
-                                          "Reparatur fehlgeschlagen",
-                                          "Die Reparatur konnte nicht durchgeführt werden. Bitte versuchen Sie, die App neu zu starten."
-                                        );
-                                      }
-                                    }
-                                  }
-                                ]
-                              );
-                            } else {
-                              // Kein Problem gefunden
-                              Alert.alert(
-                                "Diagnose abgeschlossen",
-                                "Keine Probleme im Journal-Storage gefunden.\n\nStorage: " +
-                                `${result.storageType}\nEntries lokal: ${result.localEntryCount}\nServer: ${result.serverStatus}\nEntries Server: ${result.serverEntryCount}`,
-                                [{ text: "OK" }]
+                                "Fehler",
+                                "Bei der Diagnose ist ein Fehler aufgetreten: " +
+                                  error.message,
                               );
                             }
-                          } catch (error) {
-                            console.error("Diagnose-Fehler:", error);
-                            Alert.alert("Fehler", "Bei der Diagnose ist ein Fehler aufgetreten: " + error.message);
-                          }
-                        }
-                      }
-                    ]
-                  );
-                }
-              }}
-              title="Storage-Diagnose"
-              leadingIcon="doctor"
-            />
-            <Menu.Item
-              onPress={() => {
-                setMenuVisible(false);
-                // Hier könnte eine Hilfe-Navigation stattfinden
-              }}
-              title="Hilfe"
-              leadingIcon="help-circle"
-            />
-          </Menu>
+                          },
+                        },
+                      ],
+                    );
+                  }
+                }}
+                title="Storage-Diagnose"
+                leadingIcon="doctor"
+              />
+              <Menu.Item
+                onPress={() => {
+                  setMenuVisible(false);
+                }}
+                title="Hilfe"
+                leadingIcon="help-circle"
+              />
+            </Menu>
+          </View>
         </View>
-
-        <Animated.View style={[styles.headerContent, headerContentStyle]}>
-          <Text style={styles.headerSlogan}>
-            Tägliche Reflexion für mehr Klarheit und Kongruenz
-          </Text>
+        
+        {/* Search bar - conditionally rendered */}
+        {showSearch && (
           <Searchbar
-            placeholder="Tagebucheinträge durchsuchen"
-            onChangeText={setSearchQuery}
+            placeholder="Einträge durchsuchen..."
             value={searchQuery}
+            onChangeText={setSearchQuery}
             style={styles.searchBar}
+            inputStyle={styles.searchInput}
+            iconColor={klareColors.textSecondary}
           />
-        </Animated.View>
+        )}
       </Animated.View>
 
       {/* Main Content */}
-      <View style={styles.scrollContent}>{renderContent()}</View>
+      <View style={styles.contentContainer}>
+        {renderContent()}
+      </View>
 
-      {/* FAB für neuen Eintrag */}
+      {/* FAB for new entry */}
       <FAB
         style={[styles.fab, { backgroundColor: klareColors.k }]}
         icon="pencil-plus"

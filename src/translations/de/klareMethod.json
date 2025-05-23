@@ -1,0 +1,151 @@
+{
+  "title": "KLARE Methode",
+  "autoRotate": {
+    "start": "Auto-Rotation starten",
+    "stop": "Auto-Rotation stoppen"
+  },
+  "tabs": {
+    "overview": "Übersicht",
+    "transformation": "Transformation",
+    "exercises": "Übungen",
+    "questions": "Fragen",
+    "modules": "Module"
+  },
+  "overview": {
+    "meaningTitle": "Was bedeutet {{stepTitle}}?",
+    "aboutTitle": "Worum geht es im Schritt {{stepId}}?",
+    "descriptions": {
+      "K": "Klarheit ist der erste essenzielle Schritt in der KLARE Methode. Hier geht es darum, eine ehrliche Standortbestimmung vorzunehmen und sich der aktuellen Situation bewusst zu werden. Ohne Klarheit über den Ist-Zustand ist keine zielgerichtete Veränderung möglich.",
+      "L": "Lebendigkeit beschäftigt sich mit der Wiederentdeckung und Aktivierung Ihrer natürlichen Ressourcen und Energien. Dieser Schritt identifiziert Blockaden und befreit den natürlichen Energiefluss, der für authentische Kongruenz unerlässlich ist.",
+      "A": "Ausrichtung fokussiert auf die Integration aller Lebensbereiche und die Schaffung einer kohärenten Vision. Hier werden Werte, Ziele und Handlungen in Einklang gebracht, um eine durchgängige Kongruenz zu ermöglichen.",
+      "R": "Realisierung überführt die Erkenntnis in konkretes Handeln im Alltag. Dieser praktische Schritt etabliert neue Gewohnheiten und Strukturen, die Ihre Kongruenz nachhaltig im täglichen Leben verankern.",
+      "E": "Entfaltung ist das Ergebnis vollständiger Kongruenz in allen Lebensbereichen. Hier erleben Sie mühelose Manifestation Ihrer Ziele, anhaltende Erfüllung und kontinuierliches Wachstum auf natürliche Weise."
+    },
+    "aboutTexts": {
+      "K": "Der K-Schritt hilft Ihnen, Ihre aktuelle Situation ehrlich zu erkennen und anzunehmen. Sie werden Ihr Lebensrad analysieren und Inkongruenzen identifizieren.",
+      "L": "Der L-Schritt aktiviert Ihre natürlichen Energiequellen und hilft Ihnen, Blockaden zu überwinden, die Ihren natürlichen Energiefluss behindern.",
+      "A": "Der A-Schritt bringt alle Ihre Lebensbereiche in Einklang und schafft eine kohärente Vision, die alle Aspekte Ihres Lebens integriert.",
+      "R": "Der R-Schritt überführt Ihre Erkenntnisse in konkretes, nachhaltiges Handeln durch bewusste Gewohnheiten und Routinen.",
+      "E": "Der E-Schritt führt zur mühelosen Entfaltung durch vollständige Kongruenz in allen Lebensbereichen und kontinuierlichem Wachstum."
+    }
+  },
+  "transformation": {
+    "loading": "Transformationswege werden geladen..."
+  },
+  "exercises": {
+    "title": "Praktische Übungen",
+    "loading": "Übungen werden geladen...",
+    "viewAll": "Alle Übungen anzeigen"
+  },
+  "questions": {
+    "title": "Unterstützende Fragen",
+    "loading": "Fragen werden geladen..."
+  },
+  "modules": {
+    "title": "Module für {{stepTitle}}",
+    "loading": "Module werden geladen...",
+    "noModules": "Keine Module für diesen Schritt verfügbar.",
+    "startModules": "Module starten",
+    "openModule": "Öffnen",
+    "locked": "Gesperrt",
+    "viewAll": "Alle Module ansehen",
+    "contentTypes": {
+      "video": "Video",
+      "theory": "Theorie",
+      "intro": "Intro",
+      "exercise": "Übung",
+      "quiz": "Quiz"
+    },
+    "duration": "{{duration}} Min."
+  },
+  "stepTitles": {
+    "K": "Klarheit",
+    "L": "Lebendigkeit", 
+    "A": "Ausrichtung",
+    "R": "Realisierung",
+    "E": "Entfaltung"
+  },
+  "fallbackData": {
+    "transformationPaths": {
+      "K": [
+        { "from": "Vermeidung und Verdrängung", "to": "Ehrliche Selbstreflexion" },
+        { "from": "Unklarheit über Ist-Zustand", "to": "Präzise Standortbestimmung" },
+        { "from": "Selbsttäuschung", "to": "Authentische Selbsterkenntnis" }
+      ],
+      "L": [
+        { "from": "Energielosigkeit und Blockaden", "to": "Natürliche Lebensenergie" },
+        { "from": "Verschüttete Ressourcen", "to": "Wiederentdeckte Kraftquellen" },
+        { "from": "Stagnation im Alltag", "to": "Spontane Leichtigkeit" }
+      ],
+      "A": [
+        { "from": "Widersprüchliche Ziele", "to": "Kongruente Zielausrichtung" },
+        { "from": "Getrennte Lebensbereiche", "to": "Ganzheitliche Integration" },
+        { "from": "Wertekonflikt", "to": "Innere Werte-Harmonie" }
+      ],
+      "R": [
+        { "from": "Ideen ohne Umsetzung", "to": "Konsequente Realisierung" },
+        { "from": "Sporadische Bemühungen", "to": "Nachhaltige Integration im Alltag" },
+        { "from": "Rückfall in alte Muster", "to": "Selbstverstärkende neue Gewohnheiten" }
+      ],
+      "E": [
+        { "from": "Stagnierende Entwicklung", "to": "Kontinuierliches Wachstum" },
+        { "from": "Anstrengende Zielerreichung", "to": "Mühelose Manifestation" },
+        { "from": "Fragmentierte Lebensbereiche", "to": "Vollständige Kongruenz in allen Dimensionen" }
+      ]
+    },
+    "practicalExercises": {
+      "K": [
+        "Lebensrad-Analyse zur Standortbestimmung",
+        "Journaling zu Diskrepanzen zwischen Wunsch und Realität",
+        "Feedback-Einholung von vertrauten Personen"
+      ],
+      "L": [
+        "Identifikation von Momenten natürlicher Lebendigkeit",
+        "Ressourcen-Anker für positive Energiezustände",
+        "Blockaden-Mapping und Auflösungsstrategien"
+      ],
+      "A": [
+        "Werte-Hierarchie und Lebensbereiche-Integration",
+        "Visionboard für Ihre ideale Kongruenz",
+        "Ausrichtungs-Check für Entscheidungen"
+      ],
+      "R": [
+        "Micro-Habits für tägliche Kongruenz-Praxis",
+        "Wochenplan mit integrierten Kongruenz-Ritualen",
+        "Fortschrittstracking mit visuellen Hilfsmitteln"
+      ],
+      "E": [
+        "Regelmäßiger Kongruenz-Check mit dem KLARE-System",
+        "Journaling zu mühelosen Erfolgs-Momenten",
+        "Mentoring und Weitergabe Ihrer Erkenntnisse"
+      ]
+    },
+    "supportingQuestions": {
+      "K": [
+        "Welche Diskrepanzen zwischen Wunsch und Realität nehme ich aktuell in meinen Lebensbereichen wahr?",
+        "In welchen Bereichen meines Lebens fühle ich mich nicht vollständig authentisch?",
+        "Welche Glaubenssätze hindern mich an einer realistischen Selbstwahrnehmung?"
+      ],
+      "L": [
+        "In welchen Momenten fühle ich mich vollständig lebendig und energiegeladen?",
+        "Welche Aktivitäten oder Umgebungen blockieren meinen natürlichen Energiefluss?",
+        "Welche verschütteten Talente und Ressourcen möchte ich wiederentdecken?"
+      ],
+      "A": [
+        "Wie kann ich meine unterschiedlichen Lebensbereiche harmonischer integrieren?",
+        "Welche meiner Werte stehen aktuell im Konflikt miteinander?",
+        "Wie kann ich meine Ziele mit meinen tiefsten Werten in Einklang bringen?"
+      ],
+      "R": [
+        "Welche konkreten täglichen Gewohnheiten können meine Kongruenz unterstützen?",
+        "Wie kann ich Hindernisse für die nachhaltige Umsetzung überwinden?",
+        "Welche Strukturen brauche ich, um alte Muster zu durchbrechen?"
+      ],
+      "E": [
+        "Wie kann ich mein Wachstum mühelos und natürlich gestalten?",
+        "In welchen Bereichen erlebe ich bereits mühelose Manifestation?",
+        "Wie kann ich anderen von meinen Erkenntnissen weitergeben?"
+      ]
+    }
+  }
+}

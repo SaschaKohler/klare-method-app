@@ -20,7 +20,10 @@ import {
   darkKlareColors,
   lightKlareColors,
 } from "../../constants/theme";
-import { useLifeWheelStore, LifeWheelArea } from "../../store/useLifeWheelStore";
+import {
+  useLifeWheelStore,
+  LifeWheelArea,
+} from "../../store/useLifeWheelStore";
 
 // Konstanten für das Lebensrad
 const WHEEL_PADDING = 40;
@@ -52,9 +55,9 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
   const lifeWheelAreas = propLifeWheelAreas || storeLifeWheelAreas;
 
   // Debug: Was erhält die Chart-Komponente?
-  console.log('LifeWheelChart: propLifeWheelAreas =', propLifeWheelAreas);
-  console.log('LifeWheelChart: storeLifeWheelAreas =', storeLifeWheelAreas);
-  console.log('LifeWheelChart: final lifeWheelAreas =', lifeWheelAreas);
+  // console.log('LifeWheelChart: propLifeWheelAreas =', propLifeWheelAreas);
+  // console.log('LifeWheelChart: storeLifeWheelAreas =', storeLifeWheelAreas);
+  // console.log('LifeWheelChart: final lifeWheelAreas =', lifeWheelAreas);
 
   // Berechnete Werte
   const center = size / 2;
@@ -203,11 +206,12 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
           const [expanded, setExpanded] = React.useState(false);
 
           // Standardmäßig nur Anfangsbuchstaben groß zeigen
-          const displayText = expanded 
-            ? area.name 
-            : area.name.split(' ')
-                .map(w => w.charAt(0).toUpperCase())
-                .join('');
+          const displayText = expanded
+            ? area.name
+            : area.name
+                .split(" ")
+                .map((w) => w.charAt(0).toUpperCase())
+                .join("");
 
           // Textgröße anpassen
           const fontSize = expanded ? 10 : 14;
@@ -296,12 +300,20 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
                 x={currentPoint.x}
                 y={currentPoint.y - 15}
                 textAnchor="middle"
-                alignmentBaseline={Platform.OS === "android" ? "middle" : "central"}
+                alignmentBaseline={
+                  Platform.OS === "android" ? "middle" : "central"
+                }
                 fontSize="9"
                 fontWeight="bold"
                 fill={themeColors.text}
                 // Leichter Textschatten für bessere Lesbarkeit
-                stroke={Platform.OS === "android" ? (isDarkMode ? "#00000055" : "#ffffff55") : "none"}
+                stroke={
+                  Platform.OS === "android"
+                    ? isDarkMode
+                      ? "#00000055"
+                      : "#ffffff55"
+                    : "none"
+                }
                 strokeWidth="0.5"
               >
                 {area.currentValue}
@@ -332,12 +344,20 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
                         x={targetPoint.x}
                         y={targetPoint.y - 15}
                         textAnchor="middle"
-                        alignmentBaseline={Platform.OS === "android" ? "middle" : "central"}
+                        alignmentBaseline={
+                          Platform.OS === "android" ? "middle" : "central"
+                        }
                         fontSize="9"
                         fontWeight="bold"
                         fill={themeColors.a}
                         // Leichter Textschatten für bessere Lesbarkeit
-                        stroke={Platform.OS === "android" ? (isDarkMode ? "#00000055" : "#ffffff55") : "none"}
+                        stroke={
+                          Platform.OS === "android"
+                            ? isDarkMode
+                              ? "#00000055"
+                              : "#ffffff55"
+                            : "none"
+                        }
                         strokeWidth="0.5"
                       >
                         {area.targetValue}

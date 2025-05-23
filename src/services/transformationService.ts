@@ -1,5 +1,6 @@
 // src/services/transformationService.ts
 import { supabase } from "../lib/supabase";
+import { getLocalizedStepId, getTranslationData } from "../utils/i18nUtils";
 
 export interface TransformationPoint {
   id: string;
@@ -30,6 +31,12 @@ export interface SupportingQuestion {
 export const getTransformationPaths = async (
   stepId: "K" | "L" | "A" | "R" | "E",
 ): Promise<TransformationPoint[]> => {
+  console.log(`[TransformationService] Getting transformation paths for step: ${stepId}`);
+  
+  // TEMPORARY: Force fallback for testing
+  console.log("FORCING FALLBACK for transformation paths testing");
+  return getFallbackTransformationPaths(stepId);
+  
   // Alternativer Weg mit rpc (Remote Procedure Call)
   const { data, error } = await supabase.rpc("get_transformation_paths", {
     step: stepId,
@@ -37,29 +44,37 @@ export const getTransformationPaths = async (
 
   if (error) {
     console.error("Error fetching transformation paths:", error);
+    console.log("Falling back to static data");
     // Fallback to static data if needed
     return getFallbackTransformationPaths(stepId);
   }
 
+  console.log(`[TransformationService] Got ${data?.length || 0} transformation paths from Supabase`);
   return data || [];
-};
-
-/**
+};/**
  * Fetches all practical exercises for a specific KLARE step
  */
 export const getPracticalExercises = async (
   stepId: "K" | "L" | "A" | "R" | "E",
 ): Promise<PracticalExercise[]> => {
+  console.log(`[TransformationService] Getting practical exercises for step: ${stepId}`);
+  
+  // TEMPORARY: Force fallback for testing
+  console.log("FORCING FALLBACK for testing");
+  return getFallbackPracticalExercises(stepId);
+  
   const { data, error } = await supabase.rpc("get_practical_exercises", {
     step: stepId,
   });
 
   if (error) {
     console.error("Error fetching practical exercises:", error);
+    console.log("Falling back to static data");
     // Fallback to static data if needed
     return getFallbackPracticalExercises(stepId);
   }
 
+  console.log(`[TransformationService] Got ${data?.length || 0} exercises from Supabase`);
   return data || [];
 };
 
@@ -69,64 +84,38 @@ export const getPracticalExercises = async (
 export const getSupportingQuestions = async (
   stepId: "K" | "L" | "A" | "R" | "E",
 ): Promise<SupportingQuestion[]> => {
+  console.log(`[TransformationService] Getting supporting questions for step: ${stepId}`);
+  
+  // TEMPORARY: Force fallback for testing
+  console.log("FORCING FALLBACK for supporting questions testing");
+  return getFallbackSupportingQuestions(stepId);
+  
   const { data, error } = await supabase.rpc("get_supporting_questions", {
     step: stepId,
   });
 
   if (error) {
     console.error("Error fetching supporting questions:", error);
+    console.log("Falling back to static data");
     // Fallback to static data if needed
     return getFallbackSupportingQuestions(stepId);
   }
 
+  console.log(`[TransformationService] Got ${data?.length || 0} supporting questions from Supabase`);
   return data || [];
 };
 
-// Fallback data in case the Supabase connection fails
+// Fallback data in case the Supabase connection fails - now using translations
 const getFallbackTransformationPaths = (
   stepId: "K" | "L" | "A" | "R" | "E",
 ): TransformationPoint[] => {
-  const staticData: Record<string, { from: string; to: string }[]> = {
-    K: [
-      { from: "Vermeidung und Verdrängung", to: "Ehrliche Selbstreflexion" },
-      { from: "Unklarheit über Ist-Zustand", to: "Präzise Standortbestimmung" },
-      { from: "Selbsttäuschung", to: "Authentische Selbsterkenntnis" },
-    ],
-    L: [
-      {
-        from: "Energielosigkeit und Blockaden",
-        to: "Natürliche Lebensenergie",
-      },
-      { from: "Verschüttete Ressourcen", to: "Wiederentdeckte Kraftquellen" },
-      { from: "Stagnation im Alltag", to: "Spontane Leichtigkeit" },
-    ],
-    A: [
-      { from: "Widersprüchliche Ziele", to: "Kongruente Zielausrichtung" },
-      { from: "Getrennte Lebensbereiche", to: "Ganzheitliche Integration" },
-      { from: "Wertekonflikt", to: "Innere Werte-Harmonie" },
-    ],
-    R: [
-      { from: "Ideen ohne Umsetzung", to: "Konsequente Realisierung" },
-      {
-        from: "Sporadische Bemühungen",
-        to: "Nachhaltige Integration im Alltag",
-      },
-      {
-        from: "Rückfall in alte Muster",
-        to: "Selbstverstärkende neue Gewohnheiten",
-      },
-    ],
-    E: [
-      { from: "Stagnierende Entwicklung", to: "Kontinuierliches Wachstum" },
-      { from: "Anstrengende Zielerreichung", to: "Mühelose Manifestation" },
-      {
-        from: "Fragmentierte Lebensbereiche",
-        to: "Vollständige Kongruenz in allen Dimensionen",
-      },
-    ],
-  };
+  console.log(`[TransformationService] Getting fallback transformation paths for step: ${stepId}`);
+  const localizedStepId = getLocalizedStepId(stepId);
+  console.log(`[TransformationService] Localized step ID: ${localizedStepId}`);
+  const transformationPaths = getTranslationData(`fallbackData.transformationPaths.${localizedStepId}`) || [];
+  console.log(`[TransformationService] Found ${transformationPaths.length} transformation paths`);
 
-  return staticData[stepId].map((item, index) => ({
+  return transformationPaths.map((item: { from: string; to: string }, index: number) => ({
     id: `fallback-${stepId}-${index}`,
     step_id: stepId,
     from_text: item.from,
@@ -138,35 +127,13 @@ const getFallbackTransformationPaths = (
 const getFallbackPracticalExercises = (
   stepId: "K" | "L" | "A" | "R" | "E",
 ): PracticalExercise[] => {
-  const staticData: Record<string, string[]> = {
-    K: [
-      "Lebensrad-Analyse zur Standortbestimmung",
-      "Journaling zu Diskrepanzen zwischen Wunsch und Realität",
-      "Feedback-Einholung von vertrauten Personen",
-    ],
-    L: [
-      "Identifikation von Momenten natürlicher Lebendigkeit",
-      "Ressourcen-Anker für positive Energiezustände",
-      "Blockaden-Mapping und Auflösungsstrategien",
-    ],
-    A: [
-      "Werte-Hierarchie und Lebensbereiche-Integration",
-      "Visionboard für Ihre ideale Kongruenz",
-      "Ausrichtungs-Check für Entscheidungen",
-    ],
-    R: [
-      "Micro-Habits für tägliche Kongruenz-Praxis",
-      "Wochenplan mit integrierten Kongruenz-Ritualen",
-      "Fortschrittstracking mit visuellen Hilfsmitteln",
-    ],
-    E: [
-      "Regelmäßiger Kongruenz-Check mit dem KLARE-System",
-      "Journaling zu mühelosen Erfolgs-Momenten",
-      "Mentoring und Weitergabe Ihrer Erkenntnisse",
-    ],
-  };
+  console.log(`[TransformationService] Getting fallback exercises for step: ${stepId}`);
+  const localizedStepId = getLocalizedStepId(stepId);
+  console.log(`[TransformationService] Localized step ID: ${localizedStepId}`);
+  const exercises = getTranslationData(`fallbackData.practicalExercises.${localizedStepId}`) || [];
+  console.log(`[TransformationService] Found ${exercises.length} exercises`);
 
-  return staticData[stepId].map((item, index) => ({
+  return exercises.map((item: string, index: number) => ({
     id: `fallback-${stepId}-${index}`,
     step_id: stepId,
     title: item,
@@ -178,35 +145,13 @@ const getFallbackPracticalExercises = (
 const getFallbackSupportingQuestions = (
   stepId: "K" | "L" | "A" | "R" | "E",
 ): SupportingQuestion[] => {
-  const staticData: Record<string, string[]> = {
-    K: [
-      "Welche Diskrepanzen zwischen Wunsch und Realität nehme ich aktuell in meinen Lebensbereichen wahr?",
-      "In welchen Bereichen meines Lebens fühle ich mich nicht vollständig authentisch?",
-      "Welche Glaubenssätze hindern mich an einer realistischen Selbstwahrnehmung?",
-    ],
-    L: [
-      "In welchen Momenten fühle ich mich vollständig lebendig und energiegeladen?",
-      "Welche Aktivitäten oder Umgebungen blockieren meinen natürlichen Energiefluss?",
-      "Welche verschütteten Talente und Ressourcen möchte ich wiederentdecken?",
-    ],
-    A: [
-      "Wie kann ich meine unterschiedlichen Lebensbereiche harmonischer integrieren?",
-      "Welche meiner Werte stehen aktuell im Konflikt miteinander?",
-      "Wie kann ich meine Ziele mit meinen tiefsten Werten in Einklang bringen?",
-    ],
-    R: [
-      "Welche konkreten täglichen Gewohnheiten können meine Kongruenz unterstützen?",
-      "Wie kann ich Hindernisse für die nachhaltige Umsetzung überwinden?",
-      "Welche Strukturen brauche ich, um alte Muster zu durchbrechen?",
-    ],
-    E: [
-      "Wie kann ich mein Wachstum mühelos und natürlich gestalten?",
-      "In welchen Bereichen erlebe ich bereits mühelose Manifestation?",
-      "Wie kann ich anderen von meinen Erkenntnissen weitergeben?",
-    ],
-  };
+  console.log(`[TransformationService] Getting fallback supporting questions for step: ${stepId}`);
+  const localizedStepId = getLocalizedStepId(stepId);
+  console.log(`[TransformationService] Localized step ID: ${localizedStepId}`);
+  const questions = getTranslationData(`fallbackData.supportingQuestions.${localizedStepId}`) || [];
+  console.log(`[TransformationService] Found ${questions.length} supporting questions`);
 
-  return staticData[stepId].map((item, index) => ({
+  return questions.map((item: string, index: number) => ({
     id: `fallback-${stepId}-${index}`,
     step_id: stepId,
     question_text: item,

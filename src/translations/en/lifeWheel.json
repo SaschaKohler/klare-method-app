@@ -82,5 +82,27 @@
   "confirmations": {
     "deleteArea": "Do you really want to delete this life area?",
     "resetWheel": "Do you really want to reset the Life Wheel? All ratings will be set to 1."
+  },
+  "modal": {
+    "subtitle": "Edit your values",
+    "development": "Development Potential",
+    "improvementNeeded": "You want to improve by {{difference}} points",
+    "satisfied": "You are satisfied with the current state",
+    "overachieving": "You already exceed your target expectations",
+    "notes": "Notes",
+    "notesPlaceholder": "What is important to you in this area? What steps do you want to take?",
+    "done": "Done"
+  },
+  "valueDescriptions": {
+    "1": "Very dissatisfied",
+    "2": "Dissatisfied",
+    "3": "Rather dissatisfied",
+    "4": "Neutral",
+    "5": "Okay",
+    "6": "Rather satisfied",
+    "7": "Satisfied",
+    "8": "Very satisfied",
+    "9": "Excellent",
+    "10": "Perfect"
   }
 }

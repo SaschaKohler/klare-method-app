@@ -37,6 +37,8 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
+import { getLocalizedStepId } from "../utils/i18nUtils";
 import { KlareMethodNavigationTabs, TransformationList } from "../components";
 import createKlareMethodScreenStyles from "../constants/klareMethodScreenStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
@@ -69,8 +71,7 @@ export default function KlareMethodScreen() {
   const navigation = useNavigation();
   const route = useRoute<KlareMethodScreenRouteProp>();
   const scrollViewRef = useRef<ScrollView>(null);
-
-  const { progression, theme: themeStore } = useKlareStores();
+  const { t, i18n } = useTranslation("klareMethod");  const { progression, theme: themeStore } = useKlareStores();
 
   // State für den aktiven KLARE-Schritt und den aktiven Tab
   const [activeStepId, setActiveStepId] = useState<"K" | "L" | "A" | "R" | "E">(
@@ -138,9 +139,7 @@ export default function KlareMethodScreen() {
     };
 
     loadContent();
-  }, [activeStepId]);
-
-  // Module für den aktiven Schritt laden
+  }, [activeStepId]);  // Module für den aktiven Schritt laden
   useEffect(() => {
     const fetchModules = async () => {
       setIsLoading(true);
@@ -187,7 +186,6 @@ export default function KlareMethodScreen() {
   }, [activeStepId, backgroundColorProgress, iconSizeProgress, contentOpacity]);
 
   // Animierte Styles
-
   const animatedIconContainerStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: iconSizeProgress.value }],
@@ -220,9 +218,7 @@ export default function KlareMethodScreen() {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [autoRotate]);
-
-  // Umschalten des Auto-Rotationsmodus
+  }, [autoRotate]);  // Umschalten des Auto-Rotationsmodus
   const toggleAutoRotate = () => {
     setAutoRotate((prev) => !prev);
   };
@@ -253,59 +249,22 @@ export default function KlareMethodScreen() {
   // Render Methoden für verschiedene Tabs
   const renderOverviewTab = () => (
     <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>Was bedeutet {activeStep.title}?</Text>
+      <Text style={styles.sectionTitle}>
+        {t("overview.meaningTitle", { stepTitle: t(`stepTitles.${getLocalizedStepId(activeStepId)}`) })}
+      </Text>
 
       <Paragraph style={styles.description}>
-        {activeStepId === "K" &&
-          "Klarheit ist der erste essenzielle Schritt in der KLARE Methode. Hier geht es darum, eine ehrliche Standortbestimmung vorzunehmen und sich der aktuellen Situation bewusst zu werden. Ohne Klarheit über den Ist-Zustand ist keine zielgerichtete Veränderung möglich."}
-        {activeStepId === "L" &&
-          "Lebendigkeit beschäftigt sich mit der Wiederentdeckung und Aktivierung Ihrer natürlichen Ressourcen und Energien. Dieser Schritt identifiziert Blockaden und befreit den natürlichen Energiefluss, der für authentische Kongruenz unerlässlich ist."}
-        {activeStepId === "A" &&
-          "Ausrichtung fokussiert auf die Integration aller Lebensbereiche und die Schaffung einer kohärenten Vision. Hier werden Werte, Ziele und Handlungen in Einklang gebracht, um eine durchgängige Kongruenz zu ermöglichen."}
-        {activeStepId === "R" &&
-          "Realisierung überführt die Erkenntnis in konkretes Handeln im Alltag. Dieser praktische Schritt etabliert neue Gewohnheiten und Strukturen, die Ihre Kongruenz nachhaltig im täglichen Leben verankern."}
-        {activeStepId === "E" &&
-          "Entfaltung ist das Ergebnis vollständiger Kongruenz in allen Lebensbereichen. Hier erleben Sie mühelose Manifestation Ihrer Ziele, anhaltende Erfüllung und kontinuierliches Wachstum auf natürliche Weise."}
+        {t(`overview.descriptions.${getLocalizedStepId(activeStepId)}`)}
       </Paragraph>
 
       <Card style={styles.infoCard}>
         <Card.Content>
           <Title style={[styles.infoTitle, { color: activeStep.color }]}>
-            Worum geht es im Schritt {activeStepId}?
+            {t("overview.aboutTitle", { stepId: getLocalizedStepId(activeStepId) })}
           </Title>
-          {activeStepId === "K" && (
-            <Paragraph>
-              Der K-Schritt hilft Ihnen, Ihre aktuelle Situation ehrlich zu
-              erkennen und anzunehmen. Sie werden Ihr Lebensrad analysieren und
-              Inkongruenzen identifizieren.
-            </Paragraph>
-          )}
-          {activeStepId === "L" && (
-            <Paragraph>
-              Der L-Schritt aktiviert Ihre natürlichen Energiequellen und hilft
-              Ihnen, Blockaden zu überwinden, die Ihren natürlichen Energiefluss
-              behindern.
-            </Paragraph>
-          )}
-          {activeStepId === "A" && (
-            <Paragraph>
-              Der A-Schritt bringt alle Ihre Lebensbereiche in Einklang und
-              schafft eine kohärente Vision, die alle Aspekte Ihres Lebens
-              integriert.
-            </Paragraph>
-          )}
-          {activeStepId === "R" && (
-            <Paragraph>
-              Der R-Schritt überführt Ihre Erkenntnisse in konkretes,
-              nachhaltiges Handeln durch bewusste Gewohnheiten und Routinen.
-            </Paragraph>
-          )}
-          {activeStepId === "E" && (
-            <Paragraph>
-              Der E-Schritt führt zur mühelosen Entfaltung durch vollständige
-              Kongruenz in allen Lebensbereichen und kontinuierlichem Wachstum.
-            </Paragraph>
-          )}
+          <Paragraph>
+            {t(`overview.aboutTexts.${getLocalizedStepId(activeStepId)}`)}
+          </Paragraph>
         </Card.Content>
       </Card>
 
@@ -316,7 +275,7 @@ export default function KlareMethodScreen() {
           style={[styles.actionButton, { backgroundColor: activeStep.color }]}
           onPress={() => navigateToModules()}
         >
-          Module starten
+          {t("modules.startModules")}
         </Button>
       </View>
     </View>
@@ -328,7 +287,7 @@ export default function KlareMethodScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={activeStep.color} />
           <Text style={styles.loadingText}>
-            Transformationswege werden geladen...
+            {t("transformation.loading")}
           </Text>
         </View>
       ) : (
@@ -346,12 +305,12 @@ export default function KlareMethodScreen() {
 
   const renderExercisesTab = () => (
     <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>Praktische Übungen</Text>
+      <Text style={styles.sectionTitle}>{t("exercises.title")}</Text>
 
       {isContentLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={activeStep.color} />
-          <Text style={styles.loadingText}>Übungen werden geladen...</Text>
+          <Text style={styles.loadingText}>{t("exercises.loading")}</Text>
         </View>
       ) : (
         <List.Section>
@@ -385,7 +344,7 @@ export default function KlareMethodScreen() {
           style={[styles.actionButton, { backgroundColor: activeStep.color }]}
           onPress={() => navigateToModules()}
         >
-          Alle Übungen anzeigen
+          {t("exercises.viewAll")}
         </Button>
       </View>
     </View>
@@ -393,12 +352,12 @@ export default function KlareMethodScreen() {
 
   const renderQuestionsTab = () => (
     <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>Unterstützende Fragen</Text>
+      <Text style={styles.sectionTitle}>{t("questions.title")}</Text>
 
       {isContentLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={activeStep.color} />
-          <Text style={styles.loadingText}>Fragen werden geladen...</Text>
+          <Text style={styles.loadingText}>{t("questions.loading")}</Text>
         </View>
       ) : (
         supportingQuestions.map((question) => (
@@ -436,16 +395,18 @@ export default function KlareMethodScreen() {
     };
     return (
       <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>Module für {activeStep.title}</Text>
+        <Text style={styles.sectionTitle}>
+          {t("modules.title", { stepTitle: t(`stepTitles.${getLocalizedStepId(activeStepId)}`) })}
+        </Text>
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={activeStep.color} />
-            <Text style={styles.loadingText}>Module werden geladen...</Text>
+            <Text style={styles.loadingText}>{t("modules.loading")}</Text>
           </View>
         ) : availableModules.length === 0 ? (
           <View style={styles.noModulesContainer}>
             <Text style={styles.noModulesText}>
-              Keine Module für diesen Schritt verfügbar.
+              {t("modules.noModules")}
             </Text>
           </View>
         ) : (
@@ -467,15 +428,16 @@ export default function KlareMethodScreen() {
                   <View style={styles.moduleHeader}>
                     <View>
                       <Text style={styles.moduleType}>
-                        {module.content_type === "video"
+                        {t(`modules.contentTypes.${module.content_type}`) || 
+                         (module.content_type === "video"
                           ? "Video"
                           : module.content_type === "theory"
-                            ? "Theorie"
+                            ? "Theory"
                             : module.content_type === "intro"
                               ? "Intro"
                               : module.content_type === "exercise"
-                                ? "Übung"
-                                : "Quiz"}
+                                ? "Exercise"
+                                : "Quiz")}
                       </Text>
                       <Title
                         style={[
@@ -516,8 +478,7 @@ export default function KlareMethodScreen() {
                         color={themeKlareColors.textSecondary}
                       />
                       <Text style={styles.moduleDurationText}>
-                        // TODO: duration on module
-                        {module.duration} Min.
+                        {t("modules.duration", { duration: module.duration || 5 })}
                       </Text>
                     </View>
 
@@ -532,7 +493,7 @@ export default function KlareMethodScreen() {
                           marginVertical: 0,
                         }}
                       >
-                        Öffnen
+                        {t("modules.openModule")}
                       </Button>
                     ) : (
                       <Chip
@@ -541,7 +502,7 @@ export default function KlareMethodScreen() {
                         icon="lock-closed"
                         compact
                       >
-                        Gesperrt
+                        {t("modules.locked")}
                       </Chip>
                     )}
                   </View>
@@ -562,15 +523,13 @@ export default function KlareMethodScreen() {
               ]}
               onPress={() => navigateToModules()}
             >
-              Alle Module ansehen
+              {t("modules.viewAll")}
             </Button>
           </View>
         )}
       </View>
     );
-  };
-
-  return (
+  };  return (
     <SafeAreaView style={styles.container}>
       <StatusBar
         style={isDarkMode ? "light" : "dark"}
@@ -588,7 +547,7 @@ export default function KlareMethodScreen() {
               color={themeKlareColors.text}
             />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>KLARE Methode</Text>
+          <Text style={styles.headerTitle}>{t("title")}</Text>
         </View>
 
         <TouchableOpacity onPress={toggleAutoRotate}>
@@ -632,7 +591,7 @@ export default function KlareMethodScreen() {
                 />
               </Animated.View>
               <Text style={[styles.stepLetter, { color: step.color }]}>
-                {step.id}
+                {getLocalizedStepId(step.id)}
               </Text>
               <Text
                 style={[
@@ -644,7 +603,7 @@ export default function KlareMethodScreen() {
                   },
                 ]}
               >
-                {step.title}
+                {t(`stepTitles.${getLocalizedStepId(step.id)}`)}
               </Text>
             </TouchableOpacity>
           );

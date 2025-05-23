@@ -7,10 +7,12 @@ const createLifeWheelScreenStyles = (theme: Theme, themeColors: any) =>
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
+      overflow: "visible", // Für korrekte Animation-Darstellung
     },
     scrollContent: {
       padding: 15,
       paddingBottom: 32,
+      overflow: "visible", // Erlaubt Animationen über die ScrollView-Grenzen hinaus
     },
     header: {
       marginBottom: 16,
@@ -81,6 +83,8 @@ const createLifeWheelScreenStyles = (theme: Theme, themeColors: any) =>
       marginBottom: 16,
       borderRadius: 12,
       backgroundColor: theme.colors.surface,
+      overflow: "visible", // Erlaubt Chart-Animation über die Grenzen hinaus
+      position: "relative", // Für korrekte z-index Behandlung
       ...Platform.select({
         ios: {
           shadowColor: theme.dark ? "rgba(255,255,255,0.15)" : "#000",
@@ -116,23 +120,6 @@ const createLifeWheelScreenStyles = (theme: Theme, themeColors: any) =>
         },
       }),
     },
-    saveButton: {
-      backgroundColor: theme.colors.primary,
-      marginBottom: 16,
-      paddingVertical: 8,
-      ...Platform.select({
-        ios: {
-          display: "none", // Use floating button on iOS
-        },
-      }),
-    },
-    floatingSaveContainer: {
-      position: "absolute",
-      left: 0,
-      right: 0,
-      alignItems: "center",
-      zIndex: 1000,
-    },
     blurView: {
       borderRadius: 20,
       overflow: "hidden",
@@ -146,11 +133,6 @@ const createLifeWheelScreenStyles = (theme: Theme, themeColors: any) =>
           shadowRadius: 5,
         },
       }),
-    },
-    floatingSaveButton: {
-      backgroundColor: theme.colors.primary,
-      borderRadius: 16,
-      paddingHorizontal: 16,
     },
     insightsToggle: {
       flexDirection: "row",

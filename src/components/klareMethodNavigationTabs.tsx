@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { Text, useTheme } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import createKlareMethodNavigationTabsStyles from "../constants/klareMethodNavigationTabsStyles";
 import { darkKlareColors, lightKlareColors, theme } from "../constants/theme";
 
@@ -23,6 +24,8 @@ const KlareMethodNavigationTabs: React.FC<KlareMethodNavigationTabsProps> = ({
   activeStepColor,
   onTabChange,
 }) => {
+  const { t } = useTranslation("klareMethod");
+
   const tabs: Array<{
     key: TabType;
     icon: string;
@@ -31,29 +34,30 @@ const KlareMethodNavigationTabs: React.FC<KlareMethodNavigationTabsProps> = ({
     {
       key: "overview",
       icon: "information-circle-outline",
-      label: "Überblick",
+      label: t("tabs.overview"),
     },
     {
       key: "transformation",
       icon: "repeat-outline",
-      label: "Transformation",
+      label: t("tabs.transformation"),
     },
     {
       key: "exercises",
       icon: "fitness-outline",
-      label: "Übungen",
+      label: t("tabs.exercises"),
     },
     {
       key: "questions",
       icon: "help-circle-outline",
-      label: "Fragen",
+      label: t("tabs.questions"),
     },
     {
       key: "modules",
       icon: "apps-outline",
-      label: "Module",
+      label: t("tabs.modules"),
     },
   ];
+
   const theme = useTheme();
   const isDarkMode = theme.dark;
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;

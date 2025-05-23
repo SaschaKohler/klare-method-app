@@ -6,8 +6,15 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { View, StyleSheet, ScrollView, Platform } from "react-native";
-import { Text, Card, useTheme } from "react-native-paper";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Platform,
+  TouchableOpacity,
+  Animated,
+} from "react-native";
+import { Text, Card, useTheme, IconButton } from "react-native-paper";
 import Slider from "@react-native-community/slider";
 import {
   klareColors,
@@ -16,6 +23,7 @@ import {
 } from "../../constants/theme";
 import { useTranslation } from "react-i18next";
 import debounce from "lodash/debounce";
+import LifeWheelAreaModal from "./LifeWheelAreaModal";
 
 interface LifeWheelEditorProps {
   areas: any[]; // Wir verwenden das Datenformat aus dem Hook
@@ -24,12 +32,20 @@ interface LifeWheelEditorProps {
     updates: { current_value?: number; target_value?: number },
   ) => void;
   selectedAreaId?: string | null;
+  onEditingStart?: () => void;
+  onEditingEnd?: () => void;
+  isEditing?: boolean;
+  onUserActivity?: () => void;
 }
 
 const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
   areas,
   onValueChange,
   selectedAreaId,
+  onEditingStart,
+  onEditingEnd,
+  isEditing = false,
+  onUserActivity,
 }) => {
   const { t } = useTranslation("lifeWheel");
   const theme = useTheme();
@@ -38,11 +54,34 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const [expandedAreaId, setExpandedAreaId] = useState<string | null>(null);
   const [localValues, setLocalValues] = useState<Record<string, number>>({});
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedModalArea, setSelectedModalArea] = useState<any>(null);
+  const editorAnimation = useRef(new Animated.Value(0)).current; // 0 = normal, 1 = editing mode
 
   const styles = useMemo(
     () => createStyles(theme, themeColors),
     [theme, themeColors],
   );
+
+  // Animierte Styles für den Container
+  const animatedContainerStyle = {
+    transform: [
+      {
+        translateY: editorAnimation.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, -350], // Nach oben bewegen während Editing
+        }),
+      },
+    ],
+  };
+
+  // Animierte Styles für den Header (Opacity)
+  const animatedHeaderStyle = {
+    opacity: editorAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [1, 0], // Ausblenden während Editing
+    }),
+  };
 
   // Debounced Handler für API-Aufrufe
   const debouncedUpdateValue = useCallback(
@@ -73,8 +112,13 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
         const offset = selectedIndex * cardHeight;
         scrollViewRef.current.scrollTo({ y: offset, animated: true });
       }
+
+      // Wenn noch nicht im Editing-Modus, starte das Editing
+      if (!isEditing) {
+        onEditingStart?.();
+      }
     }
-  }, [selectedAreaId, areas]);
+  }, [selectedAreaId, areas, isEditing, onEditingStart]);
 
   // Initialer Zustand für lokale Werte
   useEffect(() => {
@@ -93,6 +137,10 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
     value: number,
   ) => {
     console.log("handleValueChange:", areaId, valueType, value);
+
+    // User-Aktivität melden
+    onUserActivity?.();
+
     // Sofort den lokalen Zustand aktualisieren für flüssige UI
     setLocalValues((prev) => ({
       ...prev,
@@ -105,6 +153,50 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
     } else {
       debouncedUpdateValue(areaId, { target_value: value });
     }
+  };
+
+  // Handler für Card-Expansion mit Editing-Callbacks
+  const handleCardPress = (areaId: string) => {
+    const isCurrentlyExpanded = expandedAreaId === areaId;
+
+    // User-Aktivität melden
+    onUserActivity?.();
+
+    if (!isCurrentlyExpanded) {
+      // Karte wird geöffnet - Editing startet
+      setExpandedAreaId(areaId);
+      onEditingStart?.();
+    } else {
+      // Karte wird geschlossen - Editing endet
+      setExpandedAreaId(null);
+      onEditingEnd?.();
+    }
+  };
+
+  // Reagiere auf Änderungen des isEditing-Props von außen
+  useEffect(() => {
+    if (!isEditing) {
+      // Wenn Editing von außen beendet wird, auch expandedAreaId zurücksetzen
+      setExpandedAreaId(null);
+    }
+
+    // Animiere den Editor basierend auf isEditing
+    Animated.timing(editorAnimation, {
+      toValue: isEditing ? 1 : 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, [isEditing, editorAnimation]);
+
+  // Handler für Modal
+  const handleOpenModal = (area: any) => {
+    setSelectedModalArea(area);
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setSelectedModalArea(null);
   };
 
   // Rendere einen einzelnen Bereichscard
@@ -125,12 +217,20 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
       <Card
         key={area.id}
         style={[styles.card, isExpanded && styles.expandedCard]}
-        onPress={() => setExpandedAreaId(isExpanded ? null : area.id)}
+        onPress={() => handleCardPress(area.id)}
       >
         <Card.Content>
           <View style={styles.cardHeader}>
             <Text style={styles.areaName}>{area.name}</Text>
-            <Text style={styles.areaValue}>{currentValue}/10</Text>
+            <View style={styles.cardActions}>
+              <Text style={styles.areaValue}>{currentValue}/10</Text>
+              {/* <IconButton */}
+              {/*   icon="edit" */}
+              {/*   size={20} */}
+              {/*   onPress={() => handleOpenModal(area)} */}
+              {/*   iconColor={themeColors.k} */}
+              {/* /> */}
+            </View>
           </View>
 
           {isExpanded && (
@@ -205,14 +305,26 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t("editor.title")}</Text>
-      <Text style={styles.subtitle}>{t("editor.subtitle")}</Text>
+    <Animated.View style={[styles.container, animatedContainerStyle]}>
+      <Animated.View style={animatedHeaderStyle}>
+        <Text style={styles.title}>{t("editor.title")}</Text>
+        <Text style={styles.subtitle}>{t("editor.subtitle")}</Text>
+      </Animated.View>
 
-      <ScrollView ref={scrollViewRef} style={styles.scrollView}>
+      <ScrollView
+        ref={scrollViewRef}
+        style={[styles.scrollView, isEditing && styles.scrollViewEditing]}
+      >
         {areas.map(renderAreaCard)}
       </ScrollView>
-    </View>
+
+      <LifeWheelAreaModal
+        visible={modalVisible}
+        area={selectedModalArea}
+        onClose={handleCloseModal}
+        onValueChange={onValueChange}
+      />
+    </Animated.View>
   );
 };
 
@@ -220,6 +332,7 @@ const createStyles = (theme: any, themeColors: typeof klareColors) =>
   StyleSheet.create({
     container: {
       marginVertical: 16,
+      paddingTop: 16,
     },
     title: {
       fontSize: 20,
@@ -234,7 +347,12 @@ const createStyles = (theme: any, themeColors: typeof klareColors) =>
       opacity: 0.7,
     },
     scrollView: {
-      maxHeight: Platform.OS === "ios" ? 400 : 370,
+      // maxHeight: Platform.OS === "ios" ? 400 : 370,
+      paddingHorizontal: 5,
+    },
+    scrollViewEditing: {
+      maxHeight: Platform.OS === "ios" ? 500 : 470, // Mehr Höhe während Editing
+      // marginTop: -16, // Negative Margin um nach oben zu rutschen
     },
     card: {
       marginVertical: 8,
@@ -259,6 +377,11 @@ const createStyles = (theme: any, themeColors: typeof klareColors) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
+    },
+    cardActions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
     },
     areaName: {
       fontSize: 16,

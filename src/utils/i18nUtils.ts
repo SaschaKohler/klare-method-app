@@ -1,113 +1,52 @@
-// utils/i18nUtils.ts
-// Dieses Modul enthält Hilfsfunktionen für die Internationalisierung
+// src/utils/i18nUtils.ts
+import i18n from "./i18n";
+import { getStoredLanguage, setStoredLanguage } from "./i18n";
 
-import { MMKV } from 'react-native-mmkv';
-import { Platform, NativeModules } from 'react-native';
-import i18n from '../utils/i18n';
-
-// Storage-Schlüssel für die Spracheinstellung
-const LANGUAGE_KEY = 'user_language';
-
-// Storage-Instanz
-const storage = new MMKV();
-
-/**
- * Ermittelt die bevorzugte Systemsprache des Geräts
- * Mit Fallback-Mechanismen für fehlerhafte oder fehlende Implementierungen
- */
-export function getDeviceLanguage(): string {
-  try {
-    // Für iOS
-    if (Platform.OS === 'ios') {
-      const locale =
-        NativeModules.SettingsManager?.settings?.AppleLocale ||
-        NativeModules.SettingsManager?.settings?.AppleLanguages?.[0] ||
-        'de'; // Fallback auf Deutsch
-      return locale.slice(0, 2); // Nimm nur die ersten 2 Zeichen, z.B. 'de' aus 'de_DE'
-    }
-    
-    // Für Android
-    if (Platform.OS === 'android') {
-      const locale = NativeModules.I18nManager?.localeIdentifier || 'de';
-      return locale.slice(0, 2);
-    }
-    
-    // Für andere Plattformen
-    return 'de'; // Standardmäßig Deutsch
-  } catch (error) {
-    console.warn('Fehler beim Ermitteln der Systemsprache:', error);
-    return 'de'; // Fallback auf Deutsch
+// Helper function to map KLARE steps to CLEAR steps for English
+export const getLocalizedStepId = (stepId: "K" | "L" | "A" | "R" | "E"): string => {
+  if (i18n.language === "en") {
+    const mapping: { [key: string]: string } = {
+      K: "C",
+      L: "L", 
+      A: "E",
+      R: "A",
+      E: "R"
+    };
+    return mapping[stepId] || stepId;
   }
-}
+  return stepId;
+};
 
-/**
- * Speichert die vom Benutzer ausgewählte Sprache
- */
-export function setUserLanguage(languageCode: string): void {
+// Safe function to get translation data with fallback
+export const getTranslationData = (path: string): any => {
   try {
-    // Sprache im Storage speichern
-    storage.set(LANGUAGE_KEY, languageCode);
+    console.log(`[i18nUtils] Getting translation data for path: ${path}, language: ${i18n.language}`);
+    const keys = path.split('.');
+    let result = i18n.getResourceBundle(i18n.language, "klareMethod");
     
-    // i18next-Sprache aktualisieren
-    i18n.changeLanguage(languageCode);
+    console.log(`[i18nUtils] Resource bundle:`, result ? "loaded" : "null");
     
-    console.log(`Sprache auf ${languageCode} geändert`);
-  } catch (error) {
-    console.error('Fehler beim Speichern der Spracheinstellung:', error);
-  }
-}
-
-/**
- * Ruft die gespeicherte Spracheinstellung ab oder verwendet das Gerät als Fallback
- */
-export function getUserLanguage(): string {
-  try {
-    // Versuche, gespeicherte Spracheinstellung zu laden
-    const storedLanguage = storage.getString(LANGUAGE_KEY);
-    
-    if (storedLanguage) {
-      return storedLanguage;
+    for (const key of keys) {
+      result = result?.[key];
+      if (!result) {
+        console.warn(`Translation path not found: ${path} for language ${i18n.language}`);
+        return null;
+      }
     }
     
-    // Wenn keine gespeicherte Einstellung, verwende Gerätesprache
-    const deviceLanguage = getDeviceLanguage();
-    
-    // Überprüfe, ob wir die Sprache unterstützen
-    const supportedLanguages = ['de', 'en'];
-    if (supportedLanguages.includes(deviceLanguage)) {
-      return deviceLanguage;
-    }
-    
-    // Fallback auf Deutsch, wenn Gerätesprache nicht unterstützt wird
-    return 'de';
+    console.log(`[i18nUtils] Found data for ${path}:`, result);
+    return result;
   } catch (error) {
-    console.error('Fehler beim Abrufen der Spracheinstellung:', error);
-    return 'de'; // Fallback auf Deutsch
+    console.error(`Error accessing translation data for path: ${path}`, error);
+    return null;
   }
-}
+};
 
-/**
- * Generiert ein Übersetzungsobjekt für ein bestimmtes Feld
- * Nützlich für die Aktualisierung von Übersetzungen in der Datenbank
- */
-export function createTranslationObject(
-  fieldName: string, 
-  translatedText: string
-): Record<string, string> {
-  return {
-    [fieldName]: translatedText
-  };
-}
+// Language management functions (for LanguageSelector compatibility)
+export const setUserLanguage = (language: string): void => {
+  setStoredLanguage(language);
+};
 
-/**
- * Formatiert ein Datum basierend auf der aktuellen Sprache
- */
-export function formatDate(date: Date): string {
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  };
-  
-  return date.toLocaleDateString(i18n.language, options);
-}
+export const getUserLanguage = (): string => {
+  return getStoredLanguage();
+};

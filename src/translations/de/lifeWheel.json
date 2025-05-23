@@ -82,5 +82,27 @@
   "confirmations": {
     "deleteArea": "Möchtest du diesen Lebensbereich wirklich löschen?",
     "resetWheel": "Möchtest du das Lebensrad wirklich zurücksetzen? Alle Bewertungen werden auf 1 gesetzt."
+  },
+  "modal": {
+    "subtitle": "Bearbeite deine Werte",
+    "development": "Entwicklungspotential",
+    "improvementNeeded": "Du möchtest dich um {{difference}} Punkte verbessern",
+    "satisfied": "Du bist zufrieden mit dem aktuellen Stand",
+    "overachieving": "Du übertrifftst bereits deine Zielvorstellung",
+    "notes": "Notizen",
+    "notesPlaceholder": "Was ist dir in diesem Bereich wichtig? Welche Schritte möchtest du unternehmen?",
+    "done": "Fertig"
+  },
+  "valueDescriptions": {
+    "1": "Sehr unzufrieden",
+    "2": "Unzufrieden",
+    "3": "Eher unzufrieden",
+    "4": "Neutral",
+    "5": "Okay",
+    "6": "Eher zufrieden",
+    "7": "Zufrieden",
+    "8": "Sehr zufrieden",
+    "9": "Ausgezeichnet",
+    "10": "Perfekt"
   }
 }

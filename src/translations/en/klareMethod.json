@@ -1,0 +1,151 @@
+{
+  "title": "CLEAR Method",
+  "autoRotate": {
+    "start": "Start auto-rotation",
+    "stop": "Stop auto-rotation"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "transformation": "Transformation",
+    "exercises": "Exercises",
+    "questions": "Questions",
+    "modules": "Modules"
+  },
+  "overview": {
+    "meaningTitle": "What does {{stepTitle}} mean?",
+    "aboutTitle": "What is step {{stepId}} about?",
+    "descriptions": {
+      "C": "Clarity is the first essential step in the CLEAR Method. It involves taking an honest assessment of your current situation and becoming aware of where you are. Without clarity about your present state, no targeted change is possible.",
+      "L": "Liveliness deals with rediscovering and activating your natural resources and energies. This step identifies blockages and frees the natural energy flow that is essential for authentic congruence.",
+      "E": "Evolvement focuses on integrating all areas of life and creating a coherent vision. Here values, goals, and actions are brought into alignment to enable consistent congruence.",
+      "A": "Action transforms insights into concrete everyday behavior. This practical step establishes new habits and structures that sustainably anchor your congruence in daily life.",
+      "R": "Realization is the result of complete congruence in all areas of life. Here you experience effortless manifestation of your goals, lasting fulfillment, and continuous growth in a natural way."
+    },
+    "aboutTexts": {
+      "C": "The C-step helps you honestly recognize and accept your current situation. You will analyze your life wheel and identify incongruences.",
+      "L": "The L-step activates your natural energy sources and helps you overcome blockages that hinder your natural energy flow.",
+      "E": "The E-step brings all your life areas into alignment and creates a coherent vision that integrates all aspects of your life.",
+      "A": "The A-step transforms your insights into concrete, sustainable action through conscious habits and routines.",
+      "R": "The R-step leads to effortless realization through complete congruence in all areas of life and continuous growth."
+    }
+  },
+  "transformation": {
+    "loading": "Loading transformation paths..."
+  },
+  "exercises": {
+    "title": "Practical Exercises",
+    "loading": "Loading exercises...",
+    "viewAll": "View all exercises"
+  },
+  "questions": {
+    "title": "Supporting Questions",
+    "loading": "Loading questions..."
+  },
+  "modules": {
+    "title": "Modules for {{stepTitle}}",
+    "loading": "Loading modules...",
+    "noModules": "No modules available for this step.",
+    "startModules": "Start modules",
+    "openModule": "Open",
+    "locked": "Locked",
+    "viewAll": "View all modules",
+    "contentTypes": {
+      "video": "Video",
+      "theory": "Theory",
+      "intro": "Intro",
+      "exercise": "Exercise",
+      "quiz": "Quiz"
+    },
+    "duration": "{{duration}} min."
+  },
+  "stepTitles": {
+    "C": "Clarity",
+    "L": "Liveliness",
+    "E": "Evolvement",
+    "A": "Action",
+    "R": "Realization"
+  },
+  "fallbackData": {
+    "transformationPaths": {
+      "C": [
+        { "from": "Avoidance and suppression", "to": "Honest self-reflection" },
+        { "from": "Unclear current state", "to": "Precise situational assessment" },
+        { "from": "Self-deception", "to": "Authentic self-awareness" }
+      ],
+      "L": [
+        { "from": "Lack of energy and blockages", "to": "Natural life energy" },
+        { "from": "Buried resources", "to": "Rediscovered sources of strength" },
+        { "from": "Stagnation in daily life", "to": "Spontaneous lightness" }
+      ],
+      "E": [
+        { "from": "Contradictory goals", "to": "Congruent goal alignment" },
+        { "from": "Separated life areas", "to": "Holistic integration" },
+        { "from": "Value conflicts", "to": "Inner value harmony" }
+      ],
+      "A": [
+        { "from": "Ideas without implementation", "to": "Consistent realization" },
+        { "from": "Sporadic efforts", "to": "Sustainable integration in daily life" },
+        { "from": "Relapse into old patterns", "to": "Self-reinforcing new habits" }
+      ],
+      "R": [
+        { "from": "Stagnating development", "to": "Continuous growth" },
+        { "from": "Effortful goal achievement", "to": "Effortless manifestation" },
+        { "from": "Fragmented life areas", "to": "Complete congruence in all dimensions" }
+      ]
+    },
+    "practicalExercises": {
+      "C": [
+        "Life wheel analysis for situational assessment",
+        "Journaling about discrepancies between wish and reality",
+        "Gathering feedback from trusted people"
+      ],
+      "L": [
+        "Identification of moments of natural liveliness",
+        "Resource anchors for positive energy states",
+        "Blockage mapping and resolution strategies"
+      ],
+      "E": [
+        "Value hierarchy and life area integration",
+        "Vision board for your ideal congruence",
+        "Alignment check for decisions"
+      ],
+      "A": [
+        "Micro-habits for daily congruence practice",
+        "Weekly plan with integrated congruence rituals",
+        "Progress tracking with visual aids"
+      ],
+      "R": [
+        "Regular congruence check with the CLEAR system",
+        "Journaling about effortless success moments",
+        "Mentoring and sharing your insights"
+      ]
+    },
+    "supportingQuestions": {
+      "C": [
+        "What discrepancies between wish and reality do I currently perceive in my life areas?",
+        "In which areas of my life do I not feel completely authentic?",
+        "What beliefs prevent me from realistic self-perception?"
+      ],
+      "L": [
+        "In which moments do I feel completely alive and energized?",
+        "Which activities or environments block my natural energy flow?",
+        "Which buried talents and resources would I like to rediscover?"
+      ],
+      "E": [
+        "How can I integrate my different life areas more harmoniously?",
+        "Which of my values are currently in conflict with each other?",
+        "How can I align my goals with my deepest values?"
+      ],
+      "A": [
+        "What concrete daily habits can support my congruence?",
+        "How can I overcome obstacles to sustainable implementation?",
+        "What structures do I need to break old patterns?"
+      ],
+      "R": [
+        "How can I design my growth effortlessly and naturally?",
+        "In which areas do I already experience effortless manifestation?",
+        "How can I pass on my insights to others?"
+      ]
+    }
+  }
+}

@@ -11,6 +11,7 @@ import deNavigation from "../translations/de/navigation.json";
 import deLifeWheel from "../translations/de/lifeWheel.json";
 import deAuth from "../translations/de/auth.json";
 import deModules from "../translations/de/modules.json"; // Neue Module-Übersetzungen
+import deKlareMethod from "../translations/de/klareMethod.json"; // KlareMethod-Übersetzungen
 
 // Englisch
 import enCommon from "../translations/en/common.json";
@@ -20,6 +21,7 @@ import enNavigation from "../translations/en/navigation.json";
 import enLifeWheel from "../translations/en/lifeWheel.json";
 import enAuth from "../translations/en/auth.json";
 import enModules from "../translations/en/modules.json"; // Neue Module-Übersetzungen
+import enKlareMethod from "../translations/en/klareMethod.json"; // KlareMethod-Übersetzungen
 
 // Ressourcen-Bundle erstellen
 const resources = {
@@ -31,6 +33,7 @@ const resources = {
     lifeWheel: deLifeWheel,
     auth: deAuth,
     modules: deModules,
+    klareMethod: deKlareMethod,
   },
   en: {
     common: enCommon,
@@ -40,6 +43,7 @@ const resources = {
     lifeWheel: enLifeWheel,
     auth: enAuth,
     modules: enModules,
+    klareMethod: enKlareMethod,
   },
 };
 
@@ -103,7 +107,7 @@ i18n.use(initReactI18next).init({
   lng: language,
   fallbackLng: "de",
   supportedLngs: SUPPORTED_LANGUAGES,
-  ns: ["common", "profile", "navigation", "lifeWheel", "auth", "modules"], // Modules-Namespace hinzufügen
+  ns: ["common", "profile", "navigation", "lifeWheel", "auth", "modules", "klareMethod"], // KlareMethod-Namespace hinzufügen
   defaultNS: "common",
   fallbackNS: "common",
   interpolation: {
