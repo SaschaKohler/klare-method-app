@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@env";
 import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
 import { Platform } from "react-native";
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -99,7 +100,7 @@ export const extractOAuthParams = (url: string) => {
   }
 };
 
-// Vereinfachte, robuste Hilfsfunktion für den OAuth-Prozess
+// Vereinfachte, robuste Hilfsfunktion für den OAuth-Prozess mit automatischem Browser-Schließen
 export const performOAuth = async (
   provider: "google" | "facebook" | "apple",
 ) => {
@@ -150,18 +151,145 @@ export const performOAuth = async (
 
     console.log(`Opening ${provider} auth URL:`, data.url);
 
-    // Direkt mit Linking öffnen - einfach und zuverlässig
-    await Linking.openURL(data.url);
-    console.log("Opened OAuth URL successfully");
-
-    return { success: true };
+    // Verwende WebBrowser anstelle von Linking für bessere Kontrolle über das Browser-Verhalten
+    // und automatisches Schließen nach dem Callback
+    if (Platform.OS !== "web") {
+      // Mobile Plattformen: WebBrowser für bessere Kontrolle
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+      
+      console.log("WebBrowser result:", result);
+      
+      if (result.type === "success") {
+        console.log("OAuth URL opened successfully and browser closed");
+        
+        // WICHTIG: WebBrowser verarbeitet die Callback-URL nicht automatisch
+        // Wir müssen sie manuell an unseren URL-Handler weiterleiten
+        if (result.url) {
+          console.log("Processing OAuth callback URL manually:", result.url);
+          
+          // Simuliere den URL-Handler-Aufruf
+          try {
+            await processAuthCallback(result.url);
+          } catch (callbackError) {
+            console.error("Error processing OAuth callback:", callbackError);
+            return { success: false, error: callbackError };
+          }
+        }
+        
+        return { success: true };
+      } else if (result.type === "cancel") {
+        console.log("OAuth was cancelled by user");
+        return { success: false, error: new Error("OAuth wurde vom Benutzer abgebrochen") };
+      } else {
+        console.log("OAuth failed or was dismissed");
+        return { success: false, error: new Error("OAuth fehlgeschlagen") };
+      }
+    } else {
+      // Web: Fallback zu Linking
+      await Linking.openURL(data.url);
+      console.log("Opened OAuth URL successfully (web)");
+      return { success: true };
+    }
   } catch (error) {
     console.error("OAuth process error:", error);
     return { success: false, error };
   }
 };
 
-// Vereinfachte Funktion zum Erstellen der OAuth-Redirect-URL
+// Separate Funktion für die Verarbeitung von Auth-Callbacks
+const processAuthCallback = async (url: string) => {
+  console.log("Processing auth callback:", url);
+  
+  if (!url || !url.includes("auth/callback")) {
+    console.log("URL is not an auth callback, skipping");
+    return;
+  }
+  
+  try {
+    // Parse URL-Parameter mit unserer spezialisierten Funktion
+    const {
+      code,
+      state,
+      error: authError,
+      errorDescription,
+      type, // Typ der Auth-Aktion (signup, recovery etc.)
+    } = extractOAuthParams(url);
+
+    // Fehlerbehandlung, falls in der URL ein Fehler zurückgegeben wurde
+    if (authError) {
+      console.error(`Auth error in callback: ${authError} - ${errorDescription}`);
+      throw new Error(`Auth error: ${authError} - ${errorDescription}`);
+    }
+
+    // Code-basierten Flow verarbeiten
+    if (code) {
+      console.log("Auth code found, exchanging for session");
+
+      // OAuth Flow abschließen
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (error) {
+        console.error("Error exchanging code for session:", error);
+        throw error;
+      }
+
+      if (data?.session) {
+        console.log("Successfully got session:", data.session.user.id);
+        
+        // Trigger user data loading
+        try {
+          const { useUserStore } = require("../store/useUserStore");
+          
+          // Benutzerprofil erstellen/aktualisieren
+          await useUserStore.getState().createUserProfileIfNeeded();
+          await useUserStore.getState().loadUserData();
+          
+          console.log("User data loaded successfully after auth");
+          
+          // Explizit das isLoading auf false setzen für sofortige UI-Updates
+          useUserStore.setState({ isLoading: false });
+        } catch (storeError) {
+          console.error("Error updating user data:", storeError);
+          // Bei Fehler trotzdem Loading beenden
+          const { useUserStore } = require("../store/useUserStore");
+          useUserStore.setState({ isLoading: false });
+          throw storeError;
+        }
+      }
+    } else {
+      console.log("No auth code in URL, checking current session");
+      
+      // Session-Check
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (sessionData?.session) {
+        console.log("Found existing session");
+        
+        try {
+          const { useUserStore } = require("../store/useUserStore");
+          await useUserStore.getState().loadUserData();
+          console.log("User data loaded from existing session");
+        } catch (storeError) {
+          console.error("Error loading user data:", storeError);
+          throw storeError;
+        }
+      } else {
+        console.warn("No session found and no auth code. Auth may have failed.");
+        // Sicherstellen, dass Loading-State beendet wird
+        try {
+          const { useUserStore } = require("../store/useUserStore");
+          useUserStore.setState({ isLoading: false });
+        } catch (storeError) {
+          console.error("Error updating loading state:", storeError);
+        }
+        throw new Error("No session found and no auth code");
+      }
+    }
+  } catch (error) {
+    console.error("Error processing auth callback:", error);
+    throw error;
+  }
+};
 export const getOAuthRedirectUrl = () => {
   // Für Mobile Apps, das App-Schema verwenden
   if (Platform.OS !== "web") {
@@ -191,73 +319,19 @@ if (Platform.OS !== "web") {
     console.log("Deep link received:", url);
     
     if (url && url.includes("auth/callback")) {
-      console.log("Processing auth callback:", url);
-      
+      // Browser-Fenster schließen, falls es noch geöffnet ist
       try {
-        // Parse URL-Parameter mit unserer spezialisierten Funktion
-        const {
-          code,
-          state,
-          error: authError,
-          errorDescription,
-          type, // Typ der Auth-Aktion (signup, recovery etc.)
-        } = extractOAuthParams(url);
-
-        // Fehlerbehandlung, falls in der URL ein Fehler zurückgegeben wurde
-        if (authError) {
-          console.error(`Auth error in callback: ${authError} - ${errorDescription}`);
-          return;
-        }
-
-        // Code-basierten Flow verarbeiten
-        if (code) {
-          console.log("Auth code found, exchanging for session");
-
-          // OAuth Flow abschließen
-          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-
-          if (error) {
-            console.error("Error exchanging code for session:", error);
-            return;
-          }
-
-          if (data?.session) {
-            console.log("Successfully got session:", data.session.user.id);
-            
-            // Trigger user data loading
-            try {
-              const { useUserStore } = require("../store/useUserStore");
-              
-              // Benutzerprofil erstellen/aktualisieren
-              await useUserStore.getState().createUserProfileIfNeeded();
-              await useUserStore.getState().loadUserData();
-              
-              console.log("User data loaded successfully after auth");
-            } catch (storeError) {
-              console.error("Error updating user data:", storeError);
-            }
-          }
-        } else {
-          console.log("No auth code in URL, checking current session");
-          
-          // Session-Check
-          const { data: sessionData } = await supabase.auth.getSession();
-          
-          if (sessionData?.session) {
-            console.log("Found existing session");
-            
-            try {
-              const { useUserStore } = require("../store/useUserStore");
-              await useUserStore.getState().loadUserData();
-            } catch (storeError) {
-              console.error("Error loading user data:", storeError);
-            }
-          } else {
-            console.warn("No session found and no auth code. Auth may have failed.");
-          }
-        }
+        await WebBrowser.dismissBrowser();
+        console.log("Browser dismissed successfully");
+      } catch (dismissError) {
+        console.log("Browser dismiss not needed or failed:", dismissError);
+      }
+      
+      // Verwende die gemeinsame processAuthCallback Funktion
+      try {
+        await processAuthCallback(url);
       } catch (error) {
-        console.error("Error processing auth callback:", error);
+        console.error("Error in URL handler:", error);
       }
     }
   };

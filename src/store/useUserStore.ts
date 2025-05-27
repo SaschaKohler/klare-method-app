@@ -486,15 +486,15 @@ export const useUserStore = createBaseStore<UserState>(
       try {
         console.log("Starting Google auth flow...");
 
-        // Import required helper function
-        const { openOAuthSession } = await import("../lib/supabase");
+        // Import required helper function from lib/auth.ts
+        const { performOAuth } = await import("../lib/auth");
 
         // Starte den OAuth-Prozess
-        const { result, error } = await openOAuthSession("google");
+        const result = await performOAuth("google");
 
-        if (error) {
-          console.error("OAuth process error:", error);
-          throw error;
+        if (!result.success) {
+          console.error("OAuth process error:", result.error);
+          throw result.error;
         }
 
         // In diesem Punkt warten wir NICHT auf ein Ergebnis, da die App erst nach Redirect

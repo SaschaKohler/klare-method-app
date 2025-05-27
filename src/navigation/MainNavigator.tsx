@@ -221,47 +221,20 @@ const MainNavigator = () => {
             console.log("MainNavigator: Creating user profile if needed...");
             await useUserStore.getState().createUserProfileIfNeeded();
 
-            // HINWEIS: Wir rufen loadUserData nicht hier auf, um doppelte Ladungen zu vermeiden
-            // Es wird bereits in App.tsx und bei anderen Events aufgerufen
-
-            // Direktes setzen des Benutzers im Store nur, wenn keine Daten vorhanden sind
-            const currentUser = useUserStore.getState().user;
-            if (!currentUser) {
-              useUserStore.setState(
-                {
-                  user: {
-                    id: sessionData.session.user.id,
-                    name:
-                      sessionData.session.user.user_metadata?.name ||
-                      "Benutzer",
-                    email: email,
-                    progress: 0,
-                    streak: 0,
-                    lastActive: new Date().toISOString(),
-                    joinDate: new Date().toISOString(),
-                    completedModules: [],
-                  },
-                  isLoading: false,
-                },
-                false,
-                "klare-user-storage",
-              ); // Explizit den korrekten Storage-Key angeben
-              console.log("User state updated directly in MainNavigator");
-            }
+            // Lade die kompletten Benutzerdaten
+            console.log("MainNavigator: Loading user data...");
+            await useUserStore.getState().loadUserData();
+            console.log("User data loaded successfully in MainNavigator");
           } catch (error) {
             console.error("Error loading user after session check:", error);
+            // Bei Fehler Loading-State beenden
+            useUserStore.setState({ isLoading: false });
           }
         } else {
-          // Wenn die E-Mail nicht bestätigt ist, null setzen
-          console.log("Email not verified, setting user to null");
-          useUserStore.setState(
-            {
-              user: null,
-              isLoading: false,
-            },
-            false,
-            "klare-user-storage",
-          ); // Explizit den korrekten Storage-Key angeben
+          // Wenn die E-Mail nicht bestätigt ist, User löschen und Loading beenden
+          console.log("Email not verified, clearing user");
+          useUserStore.getState().clearUser();
+          useUserStore.setState({ isLoading: false });
         }
       } else {
         console.log("No active session found in MainNavigator");
@@ -327,38 +300,20 @@ const MainNavigator = () => {
           // Nur beim Bestätigen oder Anmelden mit bestätigter E-Mail Benutzerdaten laden
           if (isVerified) {
             try {
-              // HINWEIS: Da loadUserData bereits woanders aufgerufen wird,
-              // vermeiden wir hier einen redundanten Aufruf
-
-              // Direktes setzen des Benutzers für sofortige Wirkung, aber nur wenn nötig
-              const currentUser = useUserStore.getState().user;
-              if (!currentUser || currentUser.id !== session.user.id) {
-                useUserStore.setState(
-                  {
-                    user: session.user,
-                    isLoading: false,
-                  },
-                  false,
-                  "klare-user-storage",
-                ); // Explizit den korrekten Storage-Key angeben
-                console.log("User state updated in auth state change handler");
-              }
+              // Lade die kompletten Benutzerdaten nach erfolgreichem OAuth
+              console.log("Loading user data after OAuth success...");
+              await useUserStore.getState().loadUserData();
+              console.log("User data loaded successfully after OAuth");
             } catch (error) {
               console.error(
-                "Error updating user after auth state change:",
+                "Error loading user data after auth state change:",
                 error,
               );
             }
           } else {
-            // Wenn die E-Mail nicht bestätigt ist, null setzen
-            useUserStore.setState(
-              {
-                user: null,
-                isLoading: false,
-              },
-              false,
-              "klare-user-storage",
-            ); // Explizit den korrekten Storage-Key angeben
+            // Wenn die E-Mail nicht bestätigt ist, User löschen und Loading beenden
+            useUserStore.getState().clearUser();
+            useUserStore.setState({ isLoading: false });
           }
         } else {
           // Kein Benutzer, daher keine Verifizierung
