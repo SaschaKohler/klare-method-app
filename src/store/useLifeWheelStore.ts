@@ -165,18 +165,6 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
           get().setLoading(true);
           get().setError(null);
 
-          // Lokale Daten laden
-          // const lifeWheelData = mmkvStorage.getString(StorageKeys.LIFE_WHEEL);
-          const lifeWheelData = unifiedStorage.getString(
-            StorageKeys.LIFE_WHEEL,
-          );
-          if (lifeWheelData) {
-            set((state) => ({
-              ...state,
-              lifeWheelAreas: JSON.parse(lifeWheelData),
-            }));
-          }
-
           // Server-Daten laden wenn UserId vorhanden
           if (userId) {
             try {
@@ -211,12 +199,7 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
                   lifeWheelAreas: formattedWheelData,
                 }));
 
-                // Lokal speichern
-                if (formattedWheelData) {
-                  const wheelData = JSON.stringify(formattedWheelData);
-                  unifiedStorage.set(StorageKeys.LIFE_WHEEL, wheelData);
-                }
-
+                // Lokale Speicherung übernimmt persist middleware automatisch
                 get().updateLastSync();
               }
             } catch (syncError) {
@@ -240,6 +223,7 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
         userId?: string,
       ) => {
         try {
+          // State aktualisieren - persist middleware übernimmt automatisch die lokale Speicherung
           set((state) => ({
             ...state,
             lifeWheelAreas: state.lifeWheelAreas.map((area) => {
@@ -259,14 +243,7 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
             }),
           }));
 
-          // Lokal speichern
-          if (get().lifeWheelAreas) {
-            const wheelData = JSON.stringify(get().lifeWheelAreas);
-            console.log("Speichere Lebensrad-Daten lokal", wheelData);
-            unifiedStorage.set(StorageKeys.LIFE_WHEEL, wheelData);
-          }
-
-          // Debounced Datenbank-Synchronisation auslösen
+          // Nur noch debounced Datenbank-Synchronisation (lokale Speicherung übernimmt persist middleware)
           if (userId) {
             debouncedSyncToDatabase(userId);
           }
@@ -281,17 +258,10 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
       saveLifeWheelData: async (userId) => {
         console.log("(saveLifeWheelData)", userId);
         try {
-          // Daten speichern
           get().setLoading(true);
           const { lifeWheelAreas } = get();
 
-          // Lokal speichern
-          if (get().lifeWheelAreas) {
-            const wheelData = JSON.stringify(get().lifeWheelAreas);
-            unifiedStorage.set(StorageKeys.LIFE_WHEEL, wheelData);
-          }
-
-          // Mit Server synchronisieren wenn UserId vorhanden
+          // Mit Server synchronisieren wenn UserId vorhanden (lokale Speicherung übernimmt persist middleware)
           if (userId) {
             try {
               for (const area of lifeWheelAreas) {
@@ -411,12 +381,7 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
             lifeWheelAreas: translatedData,
           }));
 
-          // Lokal speichern
-          if (translatedData.length > 0) {
-            const wheelData = JSON.stringify(translatedData);
-            unifiedStorage.set(StorageKeys.LIFE_WHEEL, wheelData);
-          }
-
+          // Lokale Speicherung übernimmt persist middleware automatisch
           get().updateLastSync();
         } catch (error) {
           console.error(
