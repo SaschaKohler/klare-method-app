@@ -1,0 +1,23 @@
+{
+  "editor": {
+    "newEntry": "Neuer Eintrag",
+    "editEntry": "Eintrag bearbeiten",
+    "discardTitle": "Änderungen verwerfen?",
+    "discardMessage": "Möchten Sie diesen Eintrag wirklich verwerfen? Alle ungespeicherten Änderungen gehen verloren.",
+    "cancel": "Abbrechen",
+    "discard": "Verwerfen",
+    "saveError": "Speichern fehlgeschlagen",
+    "saveErrorMessage": "Der Eintrag konnte nicht gespeichert werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
+    "contentMissing": "Inhalt fehlt",
+    "contentMissingMessage": "Bitte geben Sie einen Tagebucheintrag ein",
+    "userError": "Benutzerfehler",
+    "userErrorMessage": "Keine Benutzer-ID gefunden",
+    "tags": "Tags",
+    "addTag": "Tag hinzufügen",
+    "newTag": "Neuer Tag...",
+    "suggestions": "Vorschläge",
+    "moodRating": "Stimmung",
+    "clarityRating": "Klarheits-Level",
+    "startWriting": "Beginne zu schreiben..."
+  }
+}

@@ -12,6 +12,8 @@ import deLifeWheel from "../translations/de/lifeWheel.json";
 import deAuth from "../translations/de/auth.json";
 import deModules from "../translations/de/modules.json"; // Neue Module-Übersetzungen
 import deKlareMethod from "../translations/de/klareMethod.json"; // KlareMethod-Übersetzungen
+import deJournal from "../translations/de/journal.json"; // Journal-Übersetzungen
+import deJournalEditor from "../translations/de/journalEditor.json"; // JournalEditor-Übersetzungen
 
 // Englisch
 import enCommon from "../translations/en/common.json";
@@ -22,6 +24,8 @@ import enLifeWheel from "../translations/en/lifeWheel.json";
 import enAuth from "../translations/en/auth.json";
 import enModules from "../translations/en/modules.json"; // Neue Module-Übersetzungen
 import enKlareMethod from "../translations/en/klareMethod.json"; // KlareMethod-Übersetzungen
+import enJournal from "../translations/en/journal.json"; // Journal-Übersetzungen
+import enJournalEditor from "../translations/en/journalEditor.json"; // JournalEditor-Übersetzungen
 
 // Ressourcen-Bundle erstellen
 const resources = {
@@ -34,6 +38,8 @@ const resources = {
     auth: deAuth,
     modules: deModules,
     klareMethod: deKlareMethod,
+    journal: deJournal,
+    journalEditor: deJournalEditor,
   },
   en: {
     common: enCommon,
@@ -44,6 +50,8 @@ const resources = {
     auth: enAuth,
     modules: enModules,
     klareMethod: enKlareMethod,
+    journal: enJournal,
+    journalEditor: enJournalEditor,
   },
 };
 
@@ -90,6 +98,10 @@ export const getStoredLanguage = (): string => {
 export const setStoredLanguage = (language: string): void => {
   storage.set("language", language);
   i18n.changeLanguage(language);
+  
+  // Clear journal templates cache to reload with new language
+  // This will be handled by the components that use the templates
+  console.log('Language changed to:', language);
 };
 
 // Unterstützte Sprachen
@@ -107,7 +119,7 @@ i18n.use(initReactI18next).init({
   lng: language,
   fallbackLng: "de",
   supportedLngs: SUPPORTED_LANGUAGES,
-  ns: ["common", "profile", "navigation", "lifeWheel", "auth", "modules", "klareMethod"], // KlareMethod-Namespace hinzufügen
+  ns: ["common", "profile", "navigation", "lifeWheel", "auth", "modules", "klareMethod", "journal", "journalEditor"], // JournalEditor-Namespace hinzufügen
   defaultNS: "common",
   fallbackNS: "common",
   interpolation: {

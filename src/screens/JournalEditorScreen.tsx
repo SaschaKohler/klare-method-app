@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { format, parseISO } from "date-fns";
-import { de } from "date-fns/locale";
+import { de, enUS } from "date-fns/locale";
 import { MotiView } from "moti";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -28,6 +28,7 @@ import {
   Text,
   useTheme,
 } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 import { createJournalEditorStyles } from "../constants/journalEditorStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { useKlareStores } from "../hooks";
@@ -58,9 +59,13 @@ type JournalTemplate = {
 };
 
 export default function JournalEditorScreen() {
+  const { t, i18n } = useTranslation(["journal", "journalEditor"]);
   const navigation = useNavigation();
   const route = useRoute();
   const { entryId, templateId, date } = route.params || {};
+  
+  // Get date locale based on current language
+  const dateLocale = i18n.language === "de" ? de : enUS;
 
   const klareStore = useKlareStores();
   const user = useUserStore((state) => state.user);
@@ -188,7 +193,7 @@ export default function JournalEditorScreen() {
   const formatEntryDate = (dateString: string) => {
     const date =
       typeof dateString === "string" ? parseISO(dateString) : dateString;
-    return format(date, "EEEE, dd. MMMM yyyy", { locale: de });
+    return format(date, "EEEE, dd. MMMM yyyy", { locale: dateLocale });
   };
 
   // Speichern eines Eintrags
@@ -196,12 +201,18 @@ export default function JournalEditorScreen() {
     try {
       // Validate input
       if (!entry.entry_content?.trim()) {
-        Alert.alert("Inhalt fehlt", "Bitte geben Sie einen Tagebucheintrag ein");
+        Alert.alert(
+          t("editor.contentMissing", { ns: "journalEditor", defaultValue: "Content Missing" }),
+          t("editor.contentMissingMessage", { ns: "journalEditor", defaultValue: "Please enter a journal entry" })
+        );
         return;
       }
 
       if (!user?.id) {
-        Alert.alert("Benutzerfehler", "Keine Benutzer-ID gefunden");
+        Alert.alert(
+          t("editor.userError", { ns: "journalEditor", defaultValue: "User Error" }),
+          t("editor.userErrorMessage", { ns: "journalEditor", defaultValue: "No user ID found" })
+        );
         return;
       }
 
@@ -248,15 +259,14 @@ export default function JournalEditorScreen() {
 
       let errorDetails = "";
       if (error?.message) {
-        errorDetails = `\n\nTechnischer Fehler: ${error.message}`;
+        errorDetails = `\n\n${t("editor.technicalError", { ns: "journalEditor", defaultValue: "Technical error" })}: ${error.message}`;
       } else if (error?.code) {
-        errorDetails = `\n\nFehlercode: ${error.code}`;
+        errorDetails = `\n\n${t("editor.errorCode", { ns: "journalEditor", defaultValue: "Error code" })}: ${error.code}`;
       }
 
       Alert.alert(
-        "Speichern fehlgeschlagen",
-        `Der Eintrag konnte nicht gespeichert werden.${errorDetails}` +
-        "\n\nBitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
+        t("editor.saveError", { ns: "journalEditor", defaultValue: "Save Failed" }),
+        `${t("editor.saveErrorMessage", { ns: "journalEditor", defaultValue: "The entry could not be saved. Please check your internet connection and try again." })}${errorDetails}`
       );
     } finally {
       setIsSaving(false);
@@ -316,7 +326,7 @@ export default function JournalEditorScreen() {
               textStyle={{ color: klareColors.textSecondary }}
               onPress={() => setTagMenuVisible(true)}
             >
-              Tag hinzufügen
+              {t("editor.addTag", { ns: "journalEditor", defaultValue: "Add Tag" })}
             </Chip>
           }
           contentStyle={styles.tagMenuContent}
@@ -326,7 +336,7 @@ export default function JournalEditorScreen() {
               style={[styles.tagInput, { color: theme.colors.text }]}
               value={newTag}
               onChangeText={setNewTag}
-              placeholder="Neuer Tag..."
+              placeholder={t("editor.newTag", { ns: "journalEditor", defaultValue: "New Tag..." })}
               placeholderTextColor={klareColors.textSecondary}
               onSubmitEditing={() => {
                 addTag(newTag);
@@ -348,7 +358,7 @@ export default function JournalEditorScreen() {
             <Text
               style={[styles.suggestedTagsTitle, { color: theme.colors.text }]}
             >
-              Vorschläge
+              {t("editor.suggestions", { ns: "journalEditor", defaultValue: "Suggestions" })}
             </Text>
             <View style={styles.suggestedTags}>
               {[
@@ -445,7 +455,7 @@ export default function JournalEditorScreen() {
     </View>
   );
 
-  // Dialog zum Bestätigen des Verwerfens
+  // Rendere den Dialog zum Bestätigen des Verwerfens
   const renderDiscardDialog = () => (
     <Portal>
       <Dialog
@@ -453,16 +463,18 @@ export default function JournalEditorScreen() {
         onDismiss={() => setDiscardDialogVisible(false)}
         style={{ backgroundColor: theme.colors.surface }}
       >
-        <Dialog.Title>Änderungen verwerfen?</Dialog.Title>
+        <Dialog.Title>{t("editor.discardTitle", { ns: "journal", defaultValue: "Discard changes?" })}</Dialog.Title>
         <Dialog.Content>
           <Text style={{ color: theme.colors.text }}>
-            Möchten Sie diesen Eintrag wirklich verwerfen? Alle ungespeicherten
-            Änderungen gehen verloren.
+            {t("editor.discardMessage", { 
+              ns: "journal", 
+              defaultValue: "Do you really want to discard this entry? All unsaved changes will be lost."
+            })}
           </Text>
         </Dialog.Content>
         <Dialog.Actions>
           <Button onPress={() => setDiscardDialogVisible(false)}>
-            Abbrechen
+            {t("editor.cancel", { ns: "journal", defaultValue: "Cancel" })}
           </Button>
           <Button
             onPress={() => {
@@ -470,7 +482,7 @@ export default function JournalEditorScreen() {
               navigation.goBack();
             }}
           >
-            Verwerfen
+            {t("editor.discard", { ns: "journal", defaultValue: "Discard" })}
           </Button>
         </Dialog.Actions>
       </Dialog>
@@ -507,7 +519,8 @@ export default function JournalEditorScreen() {
           }}
         />
         <Appbar.Content
-          title={entry.id ? "Eintrag bearbeiten" : "Neuer Eintrag"}
+          title={entry.id ? t("editor.editEntry", { ns: "journal", defaultValue: "Edit Entry" }) : 
+                           t("editor.newEntry", { ns: "journal", defaultValue: "New Entry" })}
           subtitle={formatEntryDate(entry.entry_date)}
         />
         <Appbar.Action
@@ -554,24 +567,24 @@ export default function JournalEditorScreen() {
           multiline
           value={entry.entry_content}
           onChangeText={(text) => setEntry({ ...entry, entry_content: text })}
-          placeholder="Beginne zu schreiben..."
+          placeholder={t("editor.startWriting", { ns: "journalEditor", defaultValue: "Start writing..." })}
           placeholderTextColor={klareColors.textSecondary}
           autoFocus={false}
         />
 
         <View style={styles.metadataContainer}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Tags
+            {t("editor.tags", { ns: "journalEditor", defaultValue: "Tags" })}
           </Text>
           {renderTags()}
 
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Stimmung
+            {t("editor.moodRating", { ns: "journalEditor", defaultValue: "Mood Rating" })}
           </Text>
           {renderMoodSlider()}
 
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Klarheits-Level
+            {t("editor.clarityRating", { ns: "journalEditor", defaultValue: "Clarity Level" })}
           </Text>
           {renderClaritySlider()}
         </View>

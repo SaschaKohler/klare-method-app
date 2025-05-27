@@ -3,6 +3,7 @@ import { unifiedStorage, StorageKeys } from "../storage/unifiedStorage";
 import uuid from "react-native-uuid";
 import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
+import i18n from "../utils/i18n";
 
 // Types
 export interface JournalEntry {
@@ -43,7 +44,7 @@ export interface JournalTemplateCategory {
 class JournalService {
   // Cache entries in memory for faster access
   private entriesCache: Record<string, JournalEntry[]> = {};
-  private templatesCache: JournalTemplate[] | null = null;
+  private templatesCache: Record<string, JournalTemplate[]> = {}; // Language-specific cache
   private categoriesCache: JournalTemplateCategory[] | null = null;
 
   // Get all journal entries for a user
@@ -463,11 +464,14 @@ class JournalService {
   }
 
   // Get journal templates
-  async getTemplates(): Promise<JournalTemplate[]> {
+  async getTemplates(language?: string): Promise<JournalTemplate[]> {
     try {
-      // Check cache first
-      if (this.templatesCache) {
-        return this.templatesCache;
+      // Get the current language or use default
+      const currentLanguage = language || 'de';
+      
+      // Check language-specific cache first
+      if (this.templatesCache[currentLanguage]) {
+        return this.templatesCache[currentLanguage];
       }
 
       // If online, get from server
@@ -482,18 +486,36 @@ class JournalService {
           if (!error && data) {
             // Transform server data to match our interface
             const templates: JournalTemplate[] = data.map(
-              (item: any): JournalTemplate => ({
-                id: item.id,
-                title: item.title,
-                description: item.description,
-                promptQuestions: item.prompt_questions,
-                category: item.category,
-                orderIndex: item.order_index,
-              }),
+              (item: any): JournalTemplate => {
+                // Get translations for current language
+                const translations = item.translations || {};
+                const languageData = translations[currentLanguage] || {};
+                
+                // Debug log for translations
+                if (__DEV__) {
+                  console.log(`Template ${item.id} (${item.title}): `, {
+                    hasTranslations: !!translations,
+                    availableLanguages: translations ? Object.keys(translations) : [],
+                    currentLanguage,
+                    usingTranslation: !!languageData.title,
+                  });
+                }
+                
+                return {
+                  id: item.id,
+                  title: languageData.title || item.title,
+                  description: languageData.description || item.description,
+                  promptQuestions: Array.isArray(languageData.promptQuestions) 
+                    ? languageData.promptQuestions 
+                    : item.prompt_questions,
+                  category: item.category,
+                  orderIndex: item.order_index,
+                };
+              }
             );
 
-            // Update cache
-            this.templatesCache = templates;
+            // Update language-specific cache
+            this.templatesCache[currentLanguage] = templates;
 
             return templates;
           }
@@ -511,8 +533,11 @@ class JournalService {
   }
 
   // Get template categories
-  async getTemplateCategories(): Promise<JournalTemplateCategory[]> {
+  async getTemplateCategories(language?: string): Promise<JournalTemplateCategory[]> {
     try {
+      // Get the current language or use default
+      const currentLanguage = language || 'de';
+      
       // Check cache first
       if (this.categoriesCache) {
         return this.categoriesCache;
@@ -530,13 +555,29 @@ class JournalService {
           if (!error && data) {
             // Transform server data to match our interface
             const categories: JournalTemplateCategory[] = data.map(
-              (item: any): JournalTemplateCategory => ({
-                id: item.id,
-                name: item.name,
-                description: item.description,
-                icon: item.icon,
-                orderIndex: item.order_index,
-              }),
+              (item: any): JournalTemplateCategory => {
+                // Get translations for current language
+                const translations = item.translations || {};
+                const languageData = translations[currentLanguage] || {};
+                
+                // Debug log for translations
+                if (__DEV__) {
+                  console.log(`Category ${item.id} (${item.name}): `, {
+                    hasTranslations: !!translations,
+                    availableLanguages: translations ? Object.keys(translations) : [],
+                    currentLanguage,
+                    usingTranslation: !!languageData.name,
+                  });
+                }
+                
+                return {
+                  id: item.id,
+                  name: languageData.name || item.name,
+                  description: languageData.description || item.description,
+                  icon: item.icon,
+                  orderIndex: item.order_index,
+                };
+              }
             );
 
             // Update cache
@@ -741,9 +782,11 @@ class JournalService {
       delete this.entriesCache[userId];
     } else {
       this.entriesCache = {};
-      this.templatesCache = null;
-      this.categoriesCache = null;
     }
+    
+    // Always clear template and category caches to ensure fresh translations
+    this.templatesCache = {}; // Clear all language caches
+    this.categoriesCache = null;
   }
 }
 

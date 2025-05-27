@@ -290,5 +290,5 @@ export const useVisionBoardStore = createBaseStore<VisionBoardStoreState>(
       return items.filter((item) => item.life_area === categoryName);
     },
   }),
-  StorageKeys.VISION_BOARD,
+  "visionBoard",
 );

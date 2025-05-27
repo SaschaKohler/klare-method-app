@@ -1,13 +1,12 @@
 // src/store/useJournalStore.ts
 import { format } from "date-fns";
 import {
-  journalService,
   JournalEntry,
+  journalService,
   JournalTemplate,
   JournalTemplateCategory,
 } from "../services/JournalService";
-import { createBaseStore, BaseState } from "./createBaseStore";
-import { StorageKeys } from "../storage/unifiedStorage";
+import { BaseState, createBaseStore } from "./createBaseStore";
 
 interface JournalStoreState extends BaseState {
   // State
@@ -100,7 +99,10 @@ export const useJournalStore = createBaseStore<JournalStoreState>(
     loadTemplates: async () => {
       try {
         set({ isLoading: true });
-        const templates = await journalService.getTemplates();
+        // Get current language from i18n
+        const { default: i18n } = await import("../utils/i18n");
+        const currentLanguage = i18n.language || "de";
+        const templates = await journalService.getTemplates(currentLanguage);
         set({ templates, isLoading: false });
       } catch (error) {
         console.error("Error loading journal templates:", error);
@@ -289,5 +291,5 @@ export const useJournalStore = createBaseStore<JournalStoreState>(
       }
     },
   }),
-  StorageKeys.JOURNAL,
+  "journal",
 );

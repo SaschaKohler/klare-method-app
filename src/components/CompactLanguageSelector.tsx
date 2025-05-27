@@ -3,12 +3,16 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { storage, setStoredLanguage } from "../utils/i18n";
+import { journalService } from "../services/JournalService";
 
 const CompactLanguageSelector = () => {
   const { i18n, t } = useTranslation(["auth", "common"]);
 
   const changeLanguage = (lng: string) => {
     setStoredLanguage(lng);
+    // Clear journal cache to reload templates with new language
+    journalService.clearCache();
+    console.log('Cache cleared for language change:', lng);
   };
 
   return (

@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { setUserLanguage, getUserLanguage } from "../utils/i18nUtils";
+import { journalService } from "../services/JournalService";
 
 interface LanguageSelectorProps {
   containerStyle?: object;
@@ -28,6 +29,9 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   // Funktion zum Ändern der Sprache
   const changeLanguage = (languageCode: string) => {
     setUserLanguage(languageCode);
+    // Clear journal cache to reload templates with new language
+    journalService.clearCache();
+    console.log('Cache cleared for language change:', languageCode);
   };
 
   return (

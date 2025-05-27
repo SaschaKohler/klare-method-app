@@ -7,6 +7,234 @@ export type Json =
   | Json[]
 
 export type Database = {
+  klare_content: {
+    Tables: {
+      practical_exercises: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          sort_order: number
+          step_id: string
+          title: string
+          translations: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          sort_order?: number
+          step_id: string
+          title: string
+          translations?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          sort_order?: number
+          step_id?: string
+          title?: string
+          translations?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      supporting_questions: {
+        Row: {
+          created_at: string
+          id: string
+          question_text: string
+          sort_order: number
+          step_id: string
+          translations: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_text: string
+          sort_order?: number
+          step_id: string
+          translations?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_text?: string
+          sort_order?: number
+          step_id?: string
+          translations?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transformation_paths: {
+        Row: {
+          created_at: string
+          from_text: string
+          id: string
+          sort_order: number
+          step_id: string
+          to_text: string
+          translations: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          from_text: string
+          id?: string
+          sort_order?: number
+          step_id: string
+          to_text: string
+          translations?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          from_text?: string
+          id?: string
+          sort_order?: number
+          step_id?: string
+          to_text?: string
+          translations?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      translated_practical_exercises: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          description_en: string | null
+          duration_minutes: number | null
+          id: string | null
+          sort_order: number | null
+          step_id: string | null
+          title: string | null
+          title_en: string | null
+          translations: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          description_en?: never
+          duration_minutes?: number | null
+          id?: string | null
+          sort_order?: number | null
+          step_id?: string | null
+          title?: string | null
+          title_en?: never
+          translations?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          description_en?: never
+          duration_minutes?: number | null
+          id?: string | null
+          sort_order?: number | null
+          step_id?: string | null
+          title?: string | null
+          title_en?: never
+          translations?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      translated_supporting_questions: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          question_text: string | null
+          question_text_en: string | null
+          sort_order: number | null
+          step_id: string | null
+          translations: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          question_text?: string | null
+          question_text_en?: never
+          sort_order?: number | null
+          step_id?: string | null
+          translations?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          question_text?: string | null
+          question_text_en?: never
+          sort_order?: number | null
+          step_id?: string | null
+          translations?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      translated_transformation_paths: {
+        Row: {
+          created_at: string | null
+          from_text: string | null
+          from_text_en: string | null
+          id: string | null
+          sort_order: number | null
+          step_id: string | null
+          to_text: string | null
+          to_text_en: string | null
+          translations: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          from_text?: string | null
+          from_text_en?: never
+          id?: string | null
+          sort_order?: number | null
+          step_id?: string | null
+          to_text?: string | null
+          to_text_en?: never
+          translations?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          from_text?: string | null
+          from_text_en?: never
+          id?: string | null
+          sort_order?: number | null
+          step_id?: string | null
+          to_text?: string | null
+          to_text_en?: never
+          translations?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       completed_modules: {
@@ -1085,15 +1313,42 @@ export type Database = {
     Functions: {
       get_practical_exercises: {
         Args: { step: string }
-        Returns: unknown[]
+        Returns: {
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          sort_order: number
+          step_id: string
+          title: string
+          translations: Json | null
+          updated_at: string
+        }[]
       }
       get_supporting_questions: {
         Args: { step: string }
-        Returns: unknown[]
+        Returns: {
+          created_at: string
+          id: string
+          question_text: string
+          sort_order: number
+          step_id: string
+          translations: Json | null
+          updated_at: string
+        }[]
       }
       get_transformation_paths: {
         Args: { step: string }
-        Returns: unknown[]
+        Returns: {
+          created_at: string
+          from_text: string
+          id: string
+          sort_order: number
+          step_id: string
+          to_text: string
+          translations: Json | null
+          updated_at: string
+        }[]
       }
       get_translated_content_sections: {
         Args: { p_module_content_id: string; p_lang?: string }
@@ -1309,6 +1564,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  klare_content: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

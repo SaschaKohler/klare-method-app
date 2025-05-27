@@ -1,0 +1,47 @@
+{
+  "title": "Journal",
+  "emptyState": {
+    "title": "Noch keine Einträge für {{date}}",
+    "subtitle": "Reflektiere deinen Tag und schaffe mehr Klarheit",
+    "today": "heute",
+    "freeEntry": "Freier Eintrag",
+    "withTemplate": "Mit Vorlage"
+  },
+  "templateSelector": {
+    "title": "Vorlage auswählen",
+    "back": "Zurück",
+    "allCategories": "Alle",
+    "moreQuestions": "+{{count}} weitere Fragen"
+  },
+  "calendar": {
+    "today": "Heute",
+    "yesterday": "Gestern"
+  },
+  "search": {
+    "placeholder": "Einträge durchsuchen..."
+  },
+  "menu": {
+    "settings": "Einstellungen",
+    "export": "Einträge exportieren",
+    "diagnose": "Storage-Diagnose",
+    "help": "Hilfe"
+  },
+  "diagnose": {
+    "startTitle": "Storage Diagnose starten",
+    "startDescription": "Diese Funktion prüft den Journal-Storage auf Probleme und versucht, diese zu beheben.",
+    "cancel": "Abbrechen",
+    "start": "Diagnose starten",
+    "problemsFound": "Probleme gefunden",
+    "problemsDetails": "Speicherzustand: {{storageStatus}}\nFormat: {{formatStatus}}\nKeyMapping: {{keyStatus}}\n\nMöchten Sie eine Reparatur versuchen?",
+    "repair": "Reparieren",
+    "successTitle": "Reparatur erfolgreich",
+    "successDescription": "Der Journal-Storage wurde erfolgreich repariert. Die App wird jetzt die Daten neu laden.",
+    "failureTitle": "Reparatur fehlgeschlagen",
+    "failureDescription": "Die Reparatur konnte nicht durchgeführt werden. Bitte versuchen Sie, die App neu zu starten.",
+    "noProblemTitle": "Diagnose abgeschlossen",
+    "noProblemDescription": "Keine Probleme im Journal-Storage gefunden.\n\nStorage: {{storageType}}\nEntries lokal: {{localCount}}\nServer: {{serverStatus}}\nEntries Server: {{serverCount}}",
+    "ok": "OK",
+    "errorTitle": "Fehler",
+    "errorDescription": "Bei der Diagnose ist ein Fehler aufgetreten: {{errorMessage}}"
+  }
+}

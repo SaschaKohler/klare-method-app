@@ -1,8 +1,8 @@
-// src/screens/JournalScreen.tsx - Updated to use JournalStore
+// src/screens/JournalScreen.tsx - Updated to use JournalStore and i18n
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { format, isToday, isYesterday, parseISO, subDays } from "date-fns";
-import { de } from "date-fns/locale";
+import { de, enUS } from "date-fns/locale";
 import { MotiView } from "moti";
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
@@ -37,6 +37,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import CalendarStrip from "../components/CalendarStrip";
 import { createJournalStyles } from "../constants/journalStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
+import { useTranslation } from "react-i18next";
 
 // Import useKlareStores instead of individual stores
 import { useKlareStores } from "../hooks";
@@ -47,6 +48,7 @@ import {
 } from "../services/JournalService";
 
 export default function JournalScreen() {
+  const { t, i18n } = useTranslation(["journal"]);
   const navigation = useNavigation();
   const klareStore = useKlareStores();
   const { user } = klareStore;
@@ -75,6 +77,9 @@ export default function JournalScreen() {
     JournalEntry[]
   >([]);
   const [loading, setLoading] = useState(true);
+
+  // Get date locale based on current language
+  const dateLocale = i18n.language === "de" ? de : enUS;
 
   // Theme handling
   const theme = useTheme();
@@ -244,22 +249,22 @@ export default function JournalScreen() {
   const formatEntryDate = (dateString: string) => {
     // Guard against undefined or invalid dateString
     if (!dateString) {
-      return "Unbekanntes Datum";
+      return t("calendar.invalidDate", { ns: "journal", defaultValue: "Unknown Date" });
     }
     
     try {
       const date = parseISO(dateString);
       
       if (isToday(date)) {
-        return `Heute, ${format(date, "HH:mm")}`;
+        return `${t("calendar.today", { ns: "journal" })}, ${format(date, "HH:mm")}`;
       } else if (isYesterday(date)) {
-        return `Gestern, ${format(date, "HH:mm")}`;
+        return `${t("calendar.yesterday", { ns: "journal" })}, ${format(date, "HH:mm")}`;
       } else {
-        return format(date, "dd. MMMM yyyy, HH:mm", { locale: de });
+        return format(date, "dd. MMMM yyyy, HH:mm", { locale: dateLocale });
       }
     } catch (error) {
       console.error("Error formatting date:", error);
-      return "Ungültiges Datum";
+      return t("calendar.invalidDate", { ns: "journal", defaultValue: "Invalid Date" });
     }
   };
 
@@ -357,7 +362,10 @@ export default function JournalScreen() {
               ))}
               {item.promptQuestions.length > 2 && (
                 <Text style={styles.templateQuestionMore}>
-                  +{item.promptQuestions.length - 2} weitere Fragen
+                  {t("templateSelector.moreQuestions", { 
+                    count: item.promptQuestions.length - 2, 
+                    ns: "journal" 
+                  })}
                 </Text>
               )}
             </View>
@@ -442,7 +450,7 @@ export default function JournalScreen() {
               !activeCategory && { color: klareColors.k },
             ]}
           >
-            Alle
+            {t("templateSelector.allCategories", { ns: "journal" })}
           </Text>
         </TouchableOpacity>
 
@@ -504,7 +512,7 @@ export default function JournalScreen() {
                 styles.dayName, 
                 isSelected && styles.selectedDayText
               ]}>
-                {format(date, 'E', { locale: de })}
+                {format(date, 'E', { locale: dateLocale })}
               </Text>
               <Text style={[
                 styles.dayNumber, 
@@ -536,13 +544,15 @@ export default function JournalScreen() {
       return (
         <>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Vorlage auswählen</Text>
+            <Text style={styles.sectionTitle}>
+              {t("templateSelector.title", { ns: "journal" })}
+            </Text>
             <Button
               mode="text"
               onPress={() => setShowTemplateSelector(false)}
               labelStyle={{ color: klareColors.k }}
             >
-              Zurück
+              {t("templateSelector.back", { ns: "journal" })}
             </Button>
           </View>
           {renderCategoryTabs()}
@@ -562,7 +572,7 @@ export default function JournalScreen() {
         {/* Date display and day selector */}
         <View style={styles.dateContainer}>
           <Text style={styles.currentMonthYear}>
-            {format(selectedDate, "MMMM yyyy", { locale: de })}
+            {format(selectedDate, "MMMM yyyy", { locale: dateLocale })}
           </Text>
           {renderDaySelector()}
         </View>
@@ -582,11 +592,15 @@ export default function JournalScreen() {
                 />
               </View>
               <Text style={styles.emptyTitle}>
-                Noch keine Einträge für{" "}
-                {isToday(selectedDate) ? "heute" : format(selectedDate, "dd. MMMM", { locale: de })}
+                {t("emptyState.title", { 
+                  ns: "journal", 
+                  date: isToday(selectedDate) 
+                    ? t("emptyState.today", { ns: "journal" }) 
+                    : format(selectedDate, "dd. MMMM", { locale: dateLocale }) 
+                })}
               </Text>
               <Text style={styles.emptySubtitle}>
-                Reflektiere deinen Tag und schaffe mehr Klarheit
+                {t("emptyState.subtitle", { ns: "journal" })}
               </Text>
               
               {/* Quick action buttons */}
@@ -597,7 +611,7 @@ export default function JournalScreen() {
                 >
                   <Ionicons name="create-outline" size={20} color="white" />
                   <Text style={styles.quickActionText}>
-                    Freier Eintrag
+                    {t("emptyState.freeEntry", { ns: "journal" })}
                   </Text>
                 </TouchableOpacity>
                 
@@ -607,7 +621,7 @@ export default function JournalScreen() {
                 >
                   <Ionicons name="list-outline" size={20} color={klareColors.k} />
                   <Text style={[styles.quickActionText, { color: klareColors.k }]}>
-                    Mit Vorlage
+                    {t("emptyState.withTemplate", { ns: "journal" })}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -647,7 +661,7 @@ export default function JournalScreen() {
         <View style={styles.headerTop}>
           <View style={styles.headerTitleContainer}>
             <Animated.Text style={[styles.headerTitle, headerTitleStyle]}>
-              Journal
+              {t("title", { ns: "journal" })}
             </Animated.Text>
           </View>
           
@@ -675,14 +689,14 @@ export default function JournalScreen() {
                 onPress={() => {
                   setMenuVisible(false);
                 }}
-                title="Einstellungen"
+                title={t("menu.settings", { ns: "journal" })}
                 leadingIcon="cog"
               />
               <Menu.Item
                 onPress={() => {
                   setMenuVisible(false);
                 }}
-                title="Einträge exportieren"
+                title={t("menu.export", { ns: "journal" })}
                 leadingIcon="export"
               />
               <Menu.Item
@@ -692,15 +706,15 @@ export default function JournalScreen() {
                   if (user?.id) {
                     // Start diagnostic tool for developers
                     Alert.alert(
-                      "Storage Diagnose starten",
-                      "Diese Funktion prüft den Journal-Storage auf Probleme und versucht, diese zu beheben.",
+                      t("diagnose.startTitle", { ns: "journal" }),
+                      t("diagnose.startDescription", { ns: "journal" }),
                       [
                         {
-                          text: "Abbrechen",
+                          text: t("diagnose.cancel", { ns: "journal" }),
                           style: "cancel",
                         },
                         {
-                          text: "Diagnose starten",
+                          text: t("diagnose.start", { ns: "journal" }),
                           onPress: async () => {
                             try {
                               // Perform diagnosis
@@ -717,15 +731,20 @@ export default function JournalScreen() {
                               ) {
                                 // Problems found, offer repair
                                 Alert.alert(
-                                  "Probleme gefunden",
-                                  `Speicherzustand: ${result.localStorageStatus}\nFormat: ${result.localDataParseCheck}\nKeyMapping: ${result.keysMatch}\n\nMöchten Sie eine Reparatur versuchen?`,
+                                  t("diagnose.problemsFound", { ns: "journal" }),
+                                  t("diagnose.problemsDetails", { 
+                                    ns: "journal",
+                                    storageStatus: result.localStorageStatus,
+                                    formatStatus: result.localDataParseCheck,
+                                    keyStatus: result.keysMatch
+                                  }),
                                   [
                                     {
-                                      text: "Abbrechen",
+                                      text: t("diagnose.cancel", { ns: "journal" }),
                                       style: "cancel",
                                     },
                                     {
-                                      text: "Reparieren",
+                                      text: t("diagnose.repair", { ns: "journal" }),
                                       onPress: async () => {
                                         const repaired =
                                           await journalService.repairJournalStorage(
@@ -734,19 +753,19 @@ export default function JournalScreen() {
 
                                         if (repaired) {
                                           Alert.alert(
-                                            "Reparatur erfolgreich",
-                                            "Der Journal-Storage wurde erfolgreich repariert. Die App wird jetzt die Daten neu laden.",
+                                            t("diagnose.successTitle", { ns: "journal" }),
+                                            t("diagnose.successDescription", { ns: "journal" }),
                                             [
                                               {
-                                                text: "OK",
+                                                text: t("diagnose.ok", { ns: "journal" }),
                                                 onPress: () => onRefresh(),
                                               },
                                             ],
                                           );
                                         } else {
                                           Alert.alert(
-                                            "Reparatur fehlgeschlagen",
-                                            "Die Reparatur konnte nicht durchgeführt werden. Bitte versuchen Sie, die App neu zu starten.",
+                                            t("diagnose.failureTitle", { ns: "journal" }),
+                                            t("diagnose.failureDescription", { ns: "journal" }),
                                           );
                                         }
                                       },
@@ -756,18 +775,25 @@ export default function JournalScreen() {
                               } else {
                                 // No problem found
                                 Alert.alert(
-                                  "Diagnose abgeschlossen",
-                                  "Keine Probleme im Journal-Storage gefunden.\n\nStorage: " +
-                                    `${result.storageType}\nEntries lokal: ${result.localEntryCount}\nServer: ${result.serverStatus}\nEntries Server: ${result.serverEntryCount}`,
-                                  [{ text: "OK" }],
+                                  t("diagnose.noProblemTitle", { ns: "journal" }),
+                                  t("diagnose.noProblemDescription", { 
+                                    ns: "journal",
+                                    storageType: result.storageType,
+                                    localCount: result.localEntryCount,
+                                    serverStatus: result.serverStatus,
+                                    serverCount: result.serverEntryCount
+                                  }),
+                                  [{ text: t("diagnose.ok", { ns: "journal" }) }],
                                 );
                               }
                             } catch (error) {
                               console.error("Diagnose-Fehler:", error);
                               Alert.alert(
-                                "Fehler",
-                                "Bei der Diagnose ist ein Fehler aufgetreten: " +
-                                  error.message,
+                                t("diagnose.errorTitle", { ns: "journal" }),
+                                t("diagnose.errorDescription", { 
+                                  ns: "journal", 
+                                  errorMessage: error.message 
+                                }),
                               );
                             }
                           },
@@ -776,14 +802,14 @@ export default function JournalScreen() {
                     );
                   }
                 }}
-                title="Storage-Diagnose"
+                title={t("menu.diagnose", { ns: "journal" })}
                 leadingIcon="doctor"
               />
               <Menu.Item
                 onPress={() => {
                   setMenuVisible(false);
                 }}
-                title="Hilfe"
+                title={t("menu.help", { ns: "journal" })}
                 leadingIcon="help-circle"
               />
             </Menu>
@@ -793,7 +819,7 @@ export default function JournalScreen() {
         {/* Search bar - conditionally rendered */}
         {showSearch && (
           <Searchbar
-            placeholder="Einträge durchsuchen..."
+            placeholder={t("search.placeholder", { ns: "journal" })}
             value={searchQuery}
             onChangeText={setSearchQuery}
             style={styles.searchBar}

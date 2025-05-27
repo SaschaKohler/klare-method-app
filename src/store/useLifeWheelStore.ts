@@ -453,5 +453,5 @@ export const useLifeWheelStore = createBaseStore<LifeWheelState>(
       },
     };
   },
-  StorageKeys.LIFE_WHEEL,
+  "lifeWheel",
 );

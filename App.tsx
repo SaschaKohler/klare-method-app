@@ -21,6 +21,11 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 // i18n
 import { I18nextProvider } from 'react-i18next';
 import i18n from './src/utils/i18n';
+// Journal Translation Provider
+import JournalTranslationProvider from './src/providers/JournalTranslationProvider';
+
+// Debug-Tools
+import debugInternationalization from './src/utils/debugInternationalization';
 
 // Import from barrel exports
 import { KlareLogo } from "./src/components";
@@ -62,6 +67,7 @@ export default function App() {
 
   // User store
   const loadUserData = useUserStore((state) => state.loadUserData);
+  const user = useUserStore((state) => state.user);
   const { loadResources } = useResourceStore();
 
   // Debug store hydration status
@@ -131,8 +137,20 @@ export default function App() {
   const theme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
-    loadResources();
-  }, [loadResources]);
+    if (user?.id) {
+      loadResources(user.id);
+    }
+  }, [loadResources, user?.id]);
+
+  // Debug internationalization in dev mode
+  useEffect(() => {
+    if (__DEV__) {
+      // Verzögerung, um sicherzustellen, dass alle Stores geladen sind
+      setTimeout(() => {
+        debugInternationalization();
+      }, 2000);
+    }
+  }, []);
 
   // Monitor system theme changes
   useEffect(() => {
@@ -298,18 +316,20 @@ export default function App() {
       <I18nextProvider i18n={i18n}>
         <SafeAreaProvider>
           <PaperProvider theme={theme}>
-            <NavigationContainer
-              ref={navigationRef}
-              onReady={() => {
-                // Setze die Navigation-Referenz für globale Navigation
-                if (navigationRef.current) {
-                  setTopLevelNavigator(navigationRef.current);
-                }
-              }}
-            >
-              <MainNavigator />
-              <StatusBar style={isDarkMode ? "light" : "dark"} />
-            </NavigationContainer>
+            <JournalTranslationProvider>
+              <NavigationContainer
+                ref={navigationRef}
+                onReady={() => {
+                  // Setze die Navigation-Referenz für globale Navigation
+                  if (navigationRef.current) {
+                    setTopLevelNavigator(navigationRef.current);
+                  }
+                }}
+              >
+                <MainNavigator />
+                <StatusBar style={isDarkMode ? "light" : "dark"} />
+              </NavigationContainer>
+            </JournalTranslationProvider>
           </PaperProvider>
         </SafeAreaProvider>
       </I18nextProvider>

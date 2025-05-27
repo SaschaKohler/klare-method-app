@@ -145,7 +145,7 @@ export function createBaseStore<T extends BaseState>(
               },
             }),
             false,
-            StorageKeys.LAST_SYNC,
+            persistConfigKey as string,
           );
         },
 
@@ -176,7 +176,5 @@ export function createBaseStore<T extends BaseState>(
   );
 }
 
-// Erweiterte StorageKeys für bessere Organisation
-export enum StorageKeys {
-  LAST_SYNC = "last-sync",
-}
+// Import StorageKeys from the main storage module
+import { StorageKeys } from "../storage/unifiedStorage";

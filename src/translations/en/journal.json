@@ -1,0 +1,47 @@
+{
+  "title": "Journal",
+  "emptyState": {
+    "title": "No entries for {{date}} yet",
+    "subtitle": "Reflect on your day and create more clarity",
+    "today": "today",
+    "freeEntry": "Free Entry",
+    "withTemplate": "With Template"
+  },
+  "templateSelector": {
+    "title": "Select Template",
+    "back": "Back",
+    "allCategories": "All",
+    "moreQuestions": "+{{count}} more questions"
+  },
+  "calendar": {
+    "today": "Today",
+    "yesterday": "Yesterday"
+  },
+  "search": {
+    "placeholder": "Search entries..."
+  },
+  "menu": {
+    "settings": "Settings",
+    "export": "Export Entries",
+    "diagnose": "Storage Diagnosis",
+    "help": "Help"
+  },
+  "diagnose": {
+    "startTitle": "Start Storage Diagnosis",
+    "startDescription": "This function checks the journal storage for problems and attempts to fix them.",
+    "cancel": "Cancel",
+    "start": "Start Diagnosis",
+    "problemsFound": "Problems Found",
+    "problemsDetails": "Storage status: {{storageStatus}}\nFormat: {{formatStatus}}\nKey mapping: {{keyStatus}}\n\nDo you want to attempt a repair?",
+    "repair": "Repair",
+    "successTitle": "Repair Successful",
+    "successDescription": "The journal storage has been successfully repaired. The app will now reload the data.",
+    "failureTitle": "Repair Failed",
+    "failureDescription": "The repair could not be completed. Please try restarting the app.",
+    "noProblemTitle": "Diagnosis Complete",
+    "noProblemDescription": "No problems found in journal storage.\n\nStorage: {{storageType}}\nLocal entries: {{localCount}}\nServer: {{serverStatus}}\nServer entries: {{serverCount}}",
+    "ok": "OK",
+    "errorTitle": "Error",
+    "errorDescription": "An error occurred during diagnosis: {{errorMessage}}"
+  }
+}

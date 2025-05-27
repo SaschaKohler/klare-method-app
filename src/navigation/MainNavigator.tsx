@@ -16,8 +16,6 @@ import { Ionicons } from "@expo/vector-icons";
 import CustomHeader from "../components/CustomHeader";
 import { useTheme } from "react-native-paper";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
-// i18n
-import { useTranslation } from 'react-i18next';
 
 // Screens
 import HomeScreen from "../screens/HomeScreen";
@@ -32,9 +30,7 @@ import JournalViewerScreen from "../screens/JournalViewerScreen";
 import VisionBoardScreen from "../screens/VisionBoardScreen";
 import EditResource from "../screens/resources/EditResource";
 import ResourceLibraryScreen from "../screens/resources/ResourceLibraryScreen";
-import ResourceLibrary from "../components/resources/ResourceLibrary";
 import ResourceFinder from "../components/resources/ResourceFinder";
-import { black } from "react-native-paper/lib/typescript/styles/themes/v2/colors";
 import { supabase } from "../lib/supabase";
 
 // Definiere die Stack-Parameter
@@ -70,7 +66,6 @@ const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
   const theme = useTheme();
-  const { t } = useTranslation('navigation');
   const isDarkMode = theme.dark;
   const themeColors = isDarkMode ? darkKlareColors : lightKlareColors;
 
@@ -136,8 +131,8 @@ const TabNavigator = () => {
         name="Home"
         component={HomeScreen}
         options={{
-          title: t('tabs.home'),
-          tabBarAccessibilityLabel: t('accessibility.homeTab'),
+          title: "Home",
+          tabBarAccessibilityLabel: "Home Tab",
           header: (props) => <CustomHeader />,
           tabBarTestID: "home-tab",
         }}
@@ -146,8 +141,8 @@ const TabNavigator = () => {
         name="LifeWheel"
         component={LifeWheelScreen}
         options={{
-          title: t('tabs.lifewheel'),
-          tabBarAccessibilityLabel: t('accessibility.lifewheelTab'),
+          title: "Lebensrad",
+          tabBarAccessibilityLabel: "Life Wheel Tab",
           header: (props) => <CustomHeader />,
           tabBarTestID: "lifewheel-tab",
         }}
@@ -156,8 +151,8 @@ const TabNavigator = () => {
         name="Journal"
         component={JournalScreen}
         options={{
-          title: t('tabs.journal'),
-          tabBarAccessibilityLabel: t('accessibility.journalTab'),
+          title: "Journal",
+          tabBarAccessibilityLabel: "Journal Tab",
           header: (props) => <CustomHeader />,
           tabBarTestID: "journal-tab",
         }}
@@ -166,8 +161,8 @@ const TabNavigator = () => {
         name="Profile"
         component={ProfileScreen}
         options={{
-          title: t('tabs.profile'),
-          tabBarAccessibilityLabel: t('accessibility.profileTab'),
+          title: "Profil",
+          tabBarAccessibilityLabel: "Profile Tab",
           header: (props) => <CustomHeader />,
           tabBarTestID: "profile-tab",
         }}
@@ -232,20 +227,25 @@ const MainNavigator = () => {
             // Direktes setzen des Benutzers im Store nur, wenn keine Daten vorhanden sind
             const currentUser = useUserStore.getState().user;
             if (!currentUser) {
-              useUserStore.setState({
-                user: {
-                  id: sessionData.session.user.id,
-                  name:
-                    sessionData.session.user.user_metadata?.name || "Benutzer",
-                  email: email,
-                  progress: 0,
-                  streak: 0,
-                  lastActive: new Date().toISOString(),
-                  joinDate: new Date().toISOString(),
-                  completedModules: [],
+              useUserStore.setState(
+                {
+                  user: {
+                    id: sessionData.session.user.id,
+                    name:
+                      sessionData.session.user.user_metadata?.name ||
+                      "Benutzer",
+                    email: email,
+                    progress: 0,
+                    streak: 0,
+                    lastActive: new Date().toISOString(),
+                    joinDate: new Date().toISOString(),
+                    completedModules: [],
+                  },
+                  isLoading: false,
                 },
-                isLoading: false,
-              }, false, "klare-user-storage"); // Explizit den korrekten Storage-Key angeben
+                false,
+                "klare-user-storage",
+              ); // Explizit den korrekten Storage-Key angeben
               console.log("User state updated directly in MainNavigator");
             }
           } catch (error) {
@@ -254,10 +254,14 @@ const MainNavigator = () => {
         } else {
           // Wenn die E-Mail nicht bestätigt ist, null setzen
           console.log("Email not verified, setting user to null");
-          useUserStore.setState({
-            user: null,
-            isLoading: false,
-          }, false, "klare-user-storage"); // Explizit den korrekten Storage-Key angeben
+          useUserStore.setState(
+            {
+              user: null,
+              isLoading: false,
+            },
+            false,
+            "klare-user-storage",
+          ); // Explizit den korrekten Storage-Key angeben
         }
       } else {
         console.log("No active session found in MainNavigator");
@@ -325,14 +329,18 @@ const MainNavigator = () => {
             try {
               // HINWEIS: Da loadUserData bereits woanders aufgerufen wird,
               // vermeiden wir hier einen redundanten Aufruf
-              
+
               // Direktes setzen des Benutzers für sofortige Wirkung, aber nur wenn nötig
               const currentUser = useUserStore.getState().user;
               if (!currentUser || currentUser.id !== session.user.id) {
-                useUserStore.setState({
-                  user: session.user,
-                  isLoading: false,
-                }, false, "klare-user-storage"); // Explizit den korrekten Storage-Key angeben
+                useUserStore.setState(
+                  {
+                    user: session.user,
+                    isLoading: false,
+                  },
+                  false,
+                  "klare-user-storage",
+                ); // Explizit den korrekten Storage-Key angeben
                 console.log("User state updated in auth state change handler");
               }
             } catch (error) {
@@ -343,10 +351,14 @@ const MainNavigator = () => {
             }
           } else {
             // Wenn die E-Mail nicht bestätigt ist, null setzen
-            useUserStore.setState({
-              user: null,
-              isLoading: false,
-            }, false, "klare-user-storage"); // Explizit den korrekten Storage-Key angeben
+            useUserStore.setState(
+              {
+                user: null,
+                isLoading: false,
+              },
+              false,
+              "klare-user-storage",
+            ); // Explizit den korrekten Storage-Key angeben
           }
         } else {
           // Kein Benutzer, daher keine Verifizierung
@@ -459,7 +471,7 @@ const MainNavigator = () => {
             component={TabNavigator}
             options={{ headerShown: false }}
           />
-          
+
           {/* Debug-Screen (nur im Entwicklungsmodus) */}
           {__DEV__ && (
             <Stack.Screen
@@ -475,7 +487,7 @@ const MainNavigator = () => {
               }}
             />
           )}
-          
+
           <Stack.Screen
             name="KlareMethod"
             component={KlareMethodScreen}

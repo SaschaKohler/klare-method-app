@@ -1,0 +1,23 @@
+{
+  "editor": {
+    "newEntry": "New Entry",
+    "editEntry": "Edit Entry",
+    "discardTitle": "Discard changes?",
+    "discardMessage": "Do you really want to discard this entry? All unsaved changes will be lost.",
+    "cancel": "Cancel",
+    "discard": "Discard",
+    "saveError": "Save Failed",
+    "saveErrorMessage": "The entry could not be saved. Please check your internet connection and try again.",
+    "contentMissing": "Content Missing",
+    "contentMissingMessage": "Please enter a journal entry",
+    "userError": "User Error",
+    "userErrorMessage": "No user ID found",
+    "tags": "Tags",
+    "addTag": "Add Tag",
+    "newTag": "New Tag...",
+    "suggestions": "Suggestions",
+    "moodRating": "Mood Rating",
+    "clarityRating": "Clarity Level",
+    "startWriting": "Start writing..."
+  }
+}

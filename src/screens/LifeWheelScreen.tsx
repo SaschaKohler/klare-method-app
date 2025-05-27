@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import {
   View,
-  StyleSheet,
   Text,
   TouchableOpacity,
   ActivityIndicator,
@@ -17,12 +16,7 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
-import CustomHeader from "../components/CustomHeader";
-import {
-  LifeWheelEditor,
-  LifeWheelLegend,
-  LifeWheelChart,
-} from "../components";
+import { LifeWheelEditor, LifeWheelChart } from "../components";
 import { useKlareStores } from "../hooks";
 import { useLifeWheelStore } from "../store/useLifeWheelStore";
 import createLifeWheelScreenStyles from "../constants/lifeWheelScreenStyles";

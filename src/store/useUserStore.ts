@@ -790,5 +790,5 @@ export const useUserStore = createBaseStore<UserState>(
       set({ lifeWheelAreas: lifeWheelStore.lifeWheelAreas });
     },
   }),
-  StorageKeys.USER,
+  "user",
 );
