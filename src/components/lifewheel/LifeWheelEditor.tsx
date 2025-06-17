@@ -124,8 +124,9 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
   useEffect(() => {
     const initialValues: Record<string, number> = {};
     areas.forEach((area) => {
-      initialValues[`${area.id}_current`] = area.currentValue;
-      initialValues[`${area.id}_target`] = area.targetValue;
+      // Runden auf ganze Zahlen für Konsistenz
+      initialValues[`${area.id}_current`] = Math.round(area.currentValue || 0);
+      initialValues[`${area.id}_target`] = Math.round(area.targetValue || 0);
     });
     setLocalValues(initialValues);
   }, [areas]);
@@ -136,7 +137,9 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
     valueType: "current" | "target",
     value: number,
   ) => {
-    console.log("handleValueChange:", areaId, valueType, value);
+    // Runden auf ganze Zahlen für bessere UX und Datenkonsistenz
+    const roundedValue = Math.round(value);
+    console.log("handleValueChange:", areaId, valueType, roundedValue);
 
     // User-Aktivität melden
     onUserActivity?.();
@@ -144,14 +147,14 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
     // Sofort den lokalen Zustand aktualisieren für flüssige UI
     setLocalValues((prev) => ({
       ...prev,
-      [`${areaId}_${valueType}`]: value,
+      [`${areaId}_${valueType}`]: roundedValue,
     }));
 
     // Mit Verzögerung an API senden
     if (valueType === "current") {
-      debouncedUpdateValue(areaId, { current_value: value });
+      debouncedUpdateValue(areaId, { current_value: roundedValue });
     } else {
-      debouncedUpdateValue(areaId, { target_value: value });
+      debouncedUpdateValue(areaId, { target_value: roundedValue });
     }
   };
 

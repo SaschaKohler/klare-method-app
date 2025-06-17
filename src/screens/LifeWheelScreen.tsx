@@ -48,9 +48,8 @@ const LifeWheelScreen = () => {
   const {
     lifeWheelAreas: areas,
     metadata: { isLoading: loading, error },
-    loadTranslatedAreas,
+    loadLifeWheelData,
     updateLifeWheelArea,
-    refreshTranslations,
   } = useLifeWheelStore();
 
   // Timer-Management für Auto-Return
@@ -78,9 +77,9 @@ const LifeWheelScreen = () => {
   // Daten laden wenn User verfügbar ist oder sich die Sprache ändert
   useEffect(() => {
     if (user?.id) {
-      loadTranslatedAreas(user.id);
+      loadLifeWheelData(user.id);
     }
-  }, [user?.id, i18n.language, loadTranslatedAreas]);
+  }, [user?.id, i18n.language, loadLifeWheelData]);
 
   // Handler für Wertänderungen im LifeWheelEditor
   const handleAreaValueChange = (id, updates) => {
@@ -90,14 +89,17 @@ const LifeWheelScreen = () => {
     // Timer zurücksetzen bei jeder Benutzeraktivität
     resetInactivityTimer();
 
-    // Direkt die Updates übergeben - der Store kümmert sich um das Merging
-    // userId für Datenbank-Synchronisation übergeben
-    updateLifeWheelArea(
-      id,
-      updates.current_value,
-      updates.target_value,
-      user?.id,
-    );
+    // Nur die tatsächlich geänderten Werte übernehmen - andere Werte beibehalten
+    const updateObj = {};
+    if (updates.current_value !== undefined) {
+      updateObj.currentValue = Math.round(updates.current_value);
+    }
+    if (updates.target_value !== undefined) {
+      updateObj.targetValue = Math.round(updates.target_value);
+    }
+
+    // Updates im neuen Format für AI-ready Store
+    updateLifeWheelArea(id, updateObj);
   };
 
   // Handler für Editing-Start
