@@ -27,7 +27,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { MotiText, MotiView } from "moti";
 import { MotiPressable } from "moti/interactions";
 import { supabase } from "../lib/supabase";
-import * as Linking from "expo-linking";
 import { useTranslation } from "react-i18next";
 // Importiere die vereinfachte OAuth-Implementierung
 import { performSimpleOAuth } from "../lib/simpleOAuth";
@@ -221,7 +220,9 @@ export default function AuthScreen() {
     // Check if user is already authenticated - ONE-TIME CHECK ONLY
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        console.log("Found existing session in AuthScreen - letting MainNavigator handle it");
+        console.log(
+          "Found existing session in AuthScreen - letting MainNavigator handle it",
+        );
         // Don't call loadUserData here - MainNavigator will handle it
       }
     });
@@ -237,7 +238,9 @@ export default function AuthScreen() {
     //   },
     // );
 
-    console.log("AuthScreen: Auth listener disabled - handled by MainNavigator");
+    console.log(
+      "AuthScreen: Auth listener disabled - handled by MainNavigator",
+    );
 
     return () => {
       console.log("Cleaning up auth listener in AuthScreen");
@@ -280,13 +283,20 @@ export default function AuthScreen() {
         } else {
           console.log("❌ OAuth unsuccessful:", result.error);
           if (result.error) {
-            if (result.error.message.includes("cancelled") || result.error.message.includes("cancel")) {
+            if (
+              result.error.message.includes("cancelled") ||
+              result.error.message.includes("cancel")
+            ) {
               setError("Die Anmeldung wurde abgebrochen.");
             } else {
-              setError(`Die Anmeldung mit Google ist fehlgeschlagen: ${result.error.message}`);
+              setError(
+                `Die Anmeldung mit Google ist fehlgeschlagen: ${result.error.message}`,
+              );
             }
           } else {
-            setError("Die Anmeldung mit Google ist fehlgeschlagen. Bitte versuche es erneut.");
+            setError(
+              "Die Anmeldung mit Google ist fehlgeschlagen. Bitte versuche es erneut.",
+            );
           }
         }
       } else {

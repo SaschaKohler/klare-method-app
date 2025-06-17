@@ -504,8 +504,21 @@ export default function HomeScreen() {
               icon="chart-bar"
               mode="outlined"
               onPress={() => navigation.navigate("LifeWheel" as never)}
-              style={{ borderColor: klareColors.k }}
-              labelStyle={{ color: klareColors.k }}
+              style={{ 
+                borderColor: klareColors.k,
+                borderWidth: 2,
+                minHeight: 48,
+              }}
+              labelStyle={{ 
+                color: klareColors.k,
+                fontSize: 16,
+                fontWeight: "600",
+                textTransform: "none"
+              }}
+              contentStyle={{
+                paddingVertical: 8,
+                paddingHorizontal: 16,
+              }}
             >
               {t("progress.viewLifeWheel")}
             </Button>
@@ -541,8 +554,21 @@ export default function HomeScreen() {
           <Card.Actions>
             <Button
               mode="contained"
-              onPress={() => navigation.navigate("VisionBoard")}
-              style={{ backgroundColor: klareColors.a }}
+              onPress={() => navigation.navigate("VisionBoard" as never)}
+              style={{ 
+                backgroundColor: klareColors.a,
+                minHeight: 48,
+              }}
+              labelStyle={{ 
+                color: "white",
+                fontSize: 16,
+                fontWeight: "600",
+                textTransform: "none"
+              }}
+              contentStyle={{
+                paddingVertical: 8,
+                paddingHorizontal: 16,
+              }}
             >
               {t("sections.visionBoard.createButton")}
             </Button>
@@ -578,6 +604,15 @@ export default function HomeScreen() {
             <Button
               mode="text"
               onPress={() => navigation.navigate("LifeWheel" as never)}
+              labelStyle={{ 
+                color: klareColors.k,
+                fontSize: 16,
+                fontWeight: "600",
+                textTransform: "none"
+              }}
+              contentStyle={{
+                paddingVertical: 8,
+              }}
             >
               {t("sections.focusAreas.viewAllAreas")}
             </Button>
@@ -668,17 +703,33 @@ export default function HomeScreen() {
               <Card.Actions>
                 <Button
                   mode="contained"
-                  style={{ backgroundColor: stepInfo?.color || klareColors.k }}
-                  labelStyle={{ color: "white" }}
+                  style={{ 
+                    backgroundColor: stepInfo?.color || klareColors.k,
+                    minHeight: 48,
+                  }}
+                  labelStyle={{ 
+                    color: "white",
+                    fontSize: 16,
+                    fontWeight: "600",
+                    textTransform: "none"
+                  }}
+                  contentStyle={{
+                    paddingVertical: 8,
+                    paddingHorizontal: 16,
+                  }}
                   onPress={() => {
+                    console.log('Button pressed for activity:', activity.type, activity.id);
                     if (activity.type === "module") {
-                      navigation.navigate(
-                        "KlareMethod" as never,
-                        { step: activity.step } as never,
-                      );
+                      // Navigate to modules screen with specific step
+                      navigation.navigate("Modules" as never, { 
+                        step: activity.step,
+                        autoOpen: true 
+                      } as never);
                     } else if (activity.type === "daily") {
-                      // Tägliche Übung starten
+                      // Navigate to journal for daily reflection
+                      navigation.navigate("Journal" as never);
                     } else if (activity.type === "weekly") {
+                      // Navigate to life wheel for weekly update
                       navigation.navigate("LifeWheel" as never);
                     }
                   }}

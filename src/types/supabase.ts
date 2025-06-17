@@ -1037,9 +1037,12 @@ export type Database = {
       user_profiles: {
         Row: {
           age: number | null
+          age_range: string | null
           communication_style: string | null
           created_at: string | null
           current_challenges: string[] | null
+          experience_level: string | null
+          first_name: string | null
           goals: Json | null
           id: string
           last_assessment_date: string | null
@@ -1047,18 +1050,26 @@ export type Database = {
           life_priorities: string[] | null
           location: string | null
           occupation: string | null
+          onboarding_completed_at: string | null
           personality_profile: Json | null
           preferences: Json | null
+          preferred_name: string | null
+          primary_goals: string[] | null
+          privacy_settings: Json | null
           profile_completeness: number | null
           relationship_status: string | null
+          time_commitment: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           age?: number | null
+          age_range?: string | null
           communication_style?: string | null
           created_at?: string | null
           current_challenges?: string[] | null
+          experience_level?: string | null
+          first_name?: string | null
           goals?: Json | null
           id?: string
           last_assessment_date?: string | null
@@ -1066,18 +1077,26 @@ export type Database = {
           life_priorities?: string[] | null
           location?: string | null
           occupation?: string | null
+          onboarding_completed_at?: string | null
           personality_profile?: Json | null
           preferences?: Json | null
+          preferred_name?: string | null
+          primary_goals?: string[] | null
+          privacy_settings?: Json | null
           profile_completeness?: number | null
           relationship_status?: string | null
+          time_commitment?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           age?: number | null
+          age_range?: string | null
           communication_style?: string | null
           created_at?: string | null
           current_challenges?: string[] | null
+          experience_level?: string | null
+          first_name?: string | null
           goals?: Json | null
           id?: string
           last_assessment_date?: string | null
@@ -1085,10 +1104,15 @@ export type Database = {
           life_priorities?: string[] | null
           location?: string | null
           occupation?: string | null
+          onboarding_completed_at?: string | null
           personality_profile?: Json | null
           preferences?: Json | null
+          preferred_name?: string | null
+          primary_goals?: string[] | null
+          privacy_settings?: Json | null
           profile_completeness?: number | null
           relationship_status?: string | null
+          time_commitment?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1100,7 +1124,7 @@ export type Database = {
           completed_modules: Json | null
           created_at: string | null
           email: string | null
-          id: string | null
+          id: string
           join_date: string | null
           last_active: string | null
           name: string | null
@@ -1115,7 +1139,7 @@ export type Database = {
           completed_modules?: Json | null
           created_at?: string | null
           email?: string | null
-          id?: string | null
+          id: string
           join_date?: string | null
           last_active?: string | null
           name?: string | null
@@ -1130,7 +1154,7 @@ export type Database = {
           completed_modules?: Json | null
           created_at?: string | null
           email?: string | null
-          id?: string | null
+          id?: string
           join_date?: string | null
           last_active?: string | null
           name?: string | null

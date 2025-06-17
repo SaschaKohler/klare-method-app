@@ -61,8 +61,9 @@ export const useOnboarding = () => {
       };
     }
 
-    // If server says completed, trust that
+    // If server says completed, trust that and mark as not required
     if (serverCompleted === true) {
+      console.log('✅ Server says onboarding is completed');
       return {
         isRequired: false,
         isInProgress: false,
@@ -72,18 +73,33 @@ export const useOnboarding = () => {
       };
     }
 
-    // If local store says completed but server doesn't, we need to sync
-    if (localCompleted && serverCompleted === false) {
+    // If local store says completed, also trust that (for immediate UI updates)
+    if (localCompleted) {
+      console.log('✅ Local store says onboarding is completed');
+      return {
+        isRequired: false,
+        isInProgress: false,
+        isCompleted: true,
+        currentStep: 5,
+        completionProgress: 100,
+      };
+    }
+
+    // If server explicitly says not completed (false, not null)
+    if (serverCompleted === false) {
+      console.log('❌ Server says onboarding is not completed');
       return {
         isRequired: true,
-        isInProgress: true,
+        isInProgress: currentStep > 1 || profile.firstName.length > 0,
         isCompleted: false,
         currentStep,
         completionProgress: getCompletionProgress(),
       };
     }
 
-    // Normal onboarding flow
+    // Still checking server status (serverCompleted === null)
+    // Default to requiring onboarding for safety
+    console.log('🔄 Still checking server onboarding status...');
     return {
       isRequired: true,
       isInProgress: currentStep > 1 || profile.firstName.length > 0,
@@ -104,6 +120,8 @@ export const useOnboarding = () => {
     setError(null);
 
     try {
+      console.log('💾 Saving onboarding data to server...');
+      
       // Save to server
       await OnboardingService.completeOnboarding(user.id, {
         profile,
@@ -111,11 +129,12 @@ export const useOnboarding = () => {
         lifeWheelAreas,
       });
 
-      // Update local state
+      // Update local state IMMEDIATELY
+      console.log('✅ Server save successful, updating local state...');
       completeOnboarding();
       setServerCompleted(true);
 
-      console.log('🎉 Onboarding completed successfully!');
+      console.log('🎉 Onboarding completed successfully! Local and server state updated.');
       return true;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to complete onboarding';

@@ -100,15 +100,31 @@ const OnboardingCompleteScreen: React.FC = () => {
         useNativeDriver: false,
       }).start();
     }, 500);
+
+    // Auto-complete onboarding after 5 seconds if user doesn't click anything
+    const autoCompleteTimer = setTimeout(() => {
+      handleStartJourney();
+    }, 5000);
+
+    return () => clearTimeout(autoCompleteTimer);
   }, []);
 
   const handleStartJourney = async () => {
-    await completeOnboardingFlow();
-    // Navigation will be handled by OnboardingWrapper based on completion status
+    console.log('🚀 Starting journey - completing onboarding...');
+    const success = await completeOnboardingFlow();
+    console.log('Onboarding completion result:', success);
+    
+    if (success) {
+      // The OnboardingWrapper should now recognize the completed status
+      // and automatically show the main app - no additional actions needed
+      console.log('✅ Onboarding completed successfully, should navigate to main app');
+    } else {
+      console.error('❌ Failed to complete onboarding');
+    }
   };
 
   const handleExploreFirst = () => {
-    // Navigate to first module or tutorial
+    // Same as start journey - complete onboarding first
     handleStartJourney();
   };
 
@@ -427,9 +443,14 @@ const OnboardingCompleteScreen: React.FC = () => {
               <Button
                 onPress={handleStartJourney}
                 style={{
-                  backgroundColor: lightKlareColors.k,
-                  paddingVertical: 16,
+                  backgroundColor: lightKlareColors.r,
+                  paddingVertical: 18,
                   borderRadius: 12,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4,
+                  elevation: 2,
                 }}
               >
                 <View
@@ -443,30 +464,40 @@ const OnboardingCompleteScreen: React.FC = () => {
                     style={{
                       color: "white",
                       fontSize: 18,
-                      fontWeight: "600",
+                      fontWeight: "700",
                       marginRight: 8,
+                      textShadowColor: "rgba(0,0,0,0.3)",
+                      textShadowOffset: { width: 0, height: 1 },
+                      textShadowRadius: 2,
                     }}
                   >
                     {t("complete.actions.start_journey")}
                   </Text>
-                  <Ionicons name="rocket" size={20} color="white" />
+                  <Ionicons name="rocket" size={22} color="white" />
                 </View>
               </Button>
 
               <Button
                 onPress={handleExploreFirst}
-                variant="outline"
                 style={{
-                  borderColor: lightKlareColors.l,
-                  paddingVertical: 12,
+                  backgroundColor: "rgba(255,255,255,0.9)",
+                  borderColor: "#4F46E5", 
+                  borderWidth: 2,
+                  paddingVertical: 14,
                   borderRadius: 12,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 2,
+                  elevation: 1,
                 }}
               >
                 <Text
                   style={{
-                    color: lightKlareColors.l,
+                    color: "#4F46E5",
                     fontSize: 16,
-                    fontWeight: "500",
+                    fontWeight: "600",
+                    textAlign: "center",
                   }}
                 >
                   {t("complete.actions.explore_first")} →
