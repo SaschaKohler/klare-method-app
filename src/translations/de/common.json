@@ -22,6 +22,11 @@
     "close": "Schließen",
     "back": "Zurück",
     "next": "Weiter",
+    "previous": "Zurück",
+    "continue": "Weiter",
+    "complete": "Abschließen",
+    "select": "Auswählen",
+    "info": "Info",
     "submit": "Absenden",
     "retry": "Wiederholen"
   },

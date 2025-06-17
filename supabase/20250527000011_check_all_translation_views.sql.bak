@@ -1,0 +1,78 @@
+-- Quick Check: Status aller Übersetzungs-Views
+-- Diese Query prüft alle translated Views auf englische Übersetzungen
+
+-- 1. Exercise Steps Status
+DO $$
+DECLARE
+    translated_count INTEGER := 0;
+    total_count INTEGER := 0;
+BEGIN
+    SELECT COUNT(*) INTO translated_count 
+    FROM translated_exercise_steps 
+    WHERE title_en IS NOT NULL AND title_en != title;
+    
+    SELECT COUNT(*) INTO total_count 
+    FROM exercise_steps;
+    
+    RAISE NOTICE 'EXERCISE STEPS: % von % übersetzt (%%%)', 
+        translated_count, total_count, 
+        CASE WHEN total_count > 0 THEN ROUND((translated_count::DECIMAL / total_count::DECIMAL) * 100, 1) ELSE 0 END;
+END $$;
+
+-- 2. Quiz Questions Status  
+DO $$
+DECLARE
+    translated_count INTEGER := 0;
+    total_count INTEGER := 0;
+BEGIN
+    SELECT COUNT(*) INTO translated_count 
+    FROM translated_quiz_questions 
+    WHERE question_en IS NOT NULL AND question_en != question;
+    
+    SELECT COUNT(*) INTO total_count 
+    FROM quiz_questions;
+    
+    RAISE NOTICE 'QUIZ QUESTIONS: % von % übersetzt (%%%)', 
+        translated_count, total_count,
+        CASE WHEN total_count > 0 THEN ROUND((translated_count::DECIMAL / total_count::DECIMAL) * 100, 1) ELSE 0 END;
+END $$;
+
+-- 3. Module Contents Status
+DO $$
+DECLARE
+    translated_count INTEGER := 0;
+    total_count INTEGER := 0;
+BEGIN
+    SELECT COUNT(*) INTO translated_count 
+    FROM translated_module_contents 
+    WHERE title_en IS NOT NULL AND title_en != title;
+    
+    SELECT COUNT(*) INTO total_count 
+    FROM module_contents;
+    
+    RAISE NOTICE 'MODULE CONTENTS: % von % übersetzt (%%%)', 
+        translated_count, total_count,
+        CASE WHEN total_count > 0 THEN ROUND((translated_count::DECIMAL / total_count::DECIMAL) * 100, 1) ELSE 0 END;
+END $$;
+
+-- 4. Verbleibende Content Sections
+DO $$
+DECLARE
+    remaining_count INTEGER := 0;
+BEGIN
+    SELECT COUNT(*) INTO remaining_count 
+    FROM translated_content_sections 
+    WHERE title_en IS NULL OR title_en = title;
+    
+    RAISE NOTICE 'CONTENT SECTIONS: % noch zu übersetzen', remaining_count;
+    
+    -- Zeige die unübersetzten Titel
+    FOR rec IN 
+        SELECT title 
+        FROM translated_content_sections 
+        WHERE title_en IS NULL OR title_en = title
+        LIMIT 5
+    LOOP
+        RAISE NOTICE '  - "%"', rec.title;
+    END LOOP;
+END $$;

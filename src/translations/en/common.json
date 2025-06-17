@@ -9,7 +9,8 @@
   "app": {
     "name": "CLEAR Method",
     "german": "German",
-    "english": "English"
+    "english": "English",
+    "language": "Language"
   },
   "ok": "OK",
   "actions": {
@@ -21,6 +22,11 @@
     "close": "Close",
     "back": "Back",
     "next": "Next",
+    "previous": "Previous",
+    "continue": "Continue",
+    "complete": "Complete",
+    "select": "Select",
+    "info": "Info",
     "submit": "Submit",
     "retry": "Retry"
   },

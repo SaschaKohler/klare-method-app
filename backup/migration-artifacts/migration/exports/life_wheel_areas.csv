@@ -1,0 +1,9 @@
+id,user_id,name,current_value,target_value,created_at,updated_at,translations
+0465c907-b625-4e7a-bcf9-78c904c4ef77,e7a2f4f1-0c54-443b-b89a-6ba16204ce1c,career,10,10,2025-05-19 07:21:32.607,2025-05-29 14:53:46.947,"{""de"":{""name"":""Karriere""}}"
+aab34d80-142f-4d92-b20b-ea4c308d82f9,e7a2f4f1-0c54-443b-b89a-6ba16204ce1c,family,6,5,2025-05-19 07:21:32.371,2025-05-29 14:53:46.196,"{""de"":{""name"":""Familie""}}"
+a8ab179f-8918-4b08-ba74-2eee2a496c85,e7a2f4f1-0c54-443b-b89a-6ba16204ce1c,finances,4,9,2025-05-19 07:21:32.773,2025-05-29 14:53:45.612,"{""de"":{""name"":""Finanzen""}}"
+1ee7f41c-2295-467e-8a07-0a420a641ead,e7a2f4f1-0c54-443b-b89a-6ba16204ce1c,health,5,6,2025-05-19 07:21:31.989,2025-05-29 14:53:46.546,"{""de"":{""name"":""Gesundheit""}}"
+c038b124-a5e2-492a-b9dc-f96945fa299f,e7a2f4f1-0c54-443b-b89a-6ba16204ce1c,leisure,7,7,2025-05-19 07:21:33.305,2025-05-29 14:53:46.364,"{""de"":{""name"":""Freizeit""}}"
+fa14ec2f-ba20-4a69-bfb2-948ac4e4c58b,e7a2f4f1-0c54-443b-b89a-6ba16204ce1c,personalGrowth,7,4,2025-05-19 07:21:33.006,2025-05-29 14:53:46.03,"{""de"":{""name"":""Persönliche Entwicklung""}}"
+3dac4218-2db9-4464-b23a-792d1679e9c9,e7a2f4f1-0c54-443b-b89a-6ba16204ce1c,relationships,6,6,2025-05-19 07:21:32.205,2025-05-29 14:53:45.88,"{""de"":{""name"":""Beziehungen""}}"
+411f4b13-7543-46ce-a943-6a6eab6b74bf,e7a2f4f1-0c54-443b-b89a-6ba16204ce1c,spirituality,5,8,2025-05-19 07:21:33.471,2025-05-29 14:53:46.746,"{""de"":{""name"":""Spiritualität""}}"

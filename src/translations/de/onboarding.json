@@ -1,0 +1,223 @@
+{
+  "welcome": {
+    "title": "Willkommen bei KLARE",
+    "subtitle": "Entdecke deine authentische Stärke und finde Klarheit in allen Lebensbereichen",
+    "method_title": "Die KLARE Methode",
+    "method_steps": {
+      "k": "Klarheit",
+      "l": "Lebendigkeit",
+      "a": "Ausrichtung",
+      "r": "Realisierung",
+      "e": "Entfaltung"
+    },
+    "benefits_title": "Was erwartet dich?",
+    "benefits": {
+      "personal_growth": {
+        "title": "Persönliches Wachstum",
+        "description": "Entdecke deine Potentiale und entwickle dich kontinuierlich weiter"
+      },
+      "ai_guidance": {
+        "title": "KI-gestützte Begleitung",
+        "description": "Erhalte personalisierte Impulse und Fragen basierend auf deinem Fortschritt"
+      },
+      "privacy_first": {
+        "title": "Datenschutz zuerst",
+        "description": "Deine Daten bleiben bei dir - lokale Speicherung und volle Kontrolle"
+      },
+      "science_based": {
+        "title": "Wissenschaftlich fundiert",
+        "description": "Basierend auf bewährten Coaching-Methoden und psychologischen Erkenntnissen"
+      }
+    },
+    "get_started": "Jetzt starten",
+    "footer_text": "Beginne deine Reise zu mehr Klarheit und Authentizität"
+  },
+  "ai_intro": {
+    "title": "Dein KI-Coach",
+    "subtitle": "Erfahre, wie künstliche Intelligenz deine persönliche Entwicklung unterstützen kann",
+    "features": {
+      "personalized_guidance": {
+        "title": "Personalisierte Führung",
+        "description": "Angepasste Fragen und Übungen basierend auf deinen Zielen und Fortschritt"
+      },
+      "adaptive_questions": {
+        "title": "Adaptive Fragen",
+        "description": "Intelligente Reflexionsfragen, die sich an deine Entwicklung anpassen"
+      },
+      "progress_insights": {
+        "title": "Fortschritts-Einblicke",
+        "description": "Erkenne Muster und Entwicklungen in deiner persönlichen Reise"
+      },
+      "privacy_guaranteed": {
+        "title": "Datenschutz garantiert",
+        "description": "Alle KI-Funktionen respektieren deine Privatsphäre und Datenkontrolle"
+      }
+    },
+    "enable_ai": "KI-Features aktivieren",
+    "ai_enabled_description": "Du erhältst personalisierte Unterstützung und adaptive Inhalte basierend auf deinen Bedürfnissen.",
+    "ai_disabled_description": "Du nutzt die Standard-Inhalte ohne KI-Personalisierung. Du kannst dies jederzeit ändern.",
+    "safety_title": "Deine Sicherheit ist garantiert",
+    "safety": {
+      "local_first": "Deine Daten bleiben lokal auf deinem Gerät gespeichert",
+      "gdpr_compliant": "Vollständig DSGVO-konform und europäische Datenschutz-Standards",
+      "always_optional": "KI-Features sind immer optional und können jederzeit deaktiviert werden",
+      "transparent_processing": "Transparente Verarbeitung - du weißt immer, was passiert"
+    }
+  },
+  "privacy": {
+    "title": "Datenschutz-Einstellungen",
+    "subtitle": "Wähle, wie deine Daten verarbeitet werden sollen. Du hast die volle Kontrolle.",
+    "data_processing": {
+      "title": "Datenverarbeitung wählen",
+      "info_title": "Informationen zur Datenverarbeitung",
+      "local": {
+        "title": "Nur lokal",
+        "description": "Alle Daten bleiben auf deinem Gerät",
+        "info": "Deine Daten werden ausschließlich lokal auf deinem Gerät gespeichert. Keine Cloud-Synchronisation, keine KI-Features, maximaler Datenschutz."
+      },
+      "cloud": {
+        "title": "Cloud-Synchronisation",
+        "description": "Synchronisation zwischen Geräten möglich",
+        "info": "Deine Daten werden verschlüsselt in der Cloud gespeichert, damit du sie auf mehreren Geräten nutzen kannst. Keine KI-Verarbeitung."
+      },
+      "ai_enabled": {
+        "title": "KI-erweitert",
+        "description": "Personalisierte KI-Unterstützung aktiviert",
+        "info": "Ermöglicht personalisierte KI-Features mit höchsten Datenschutz-Standards. Deine Daten werden nur für deine persönliche Entwicklung genutzt."
+      }
+    },
+    "additional_settings": {
+      "title": "Weitere Einstellungen"
+    },
+    "settings": {
+      "analytics": {
+        "title": "Nutzungsstatistiken",
+        "description": "Anonyme Nutzungsdaten zur App-Verbesserung"
+      },
+      "crashReporting": {
+        "title": "Crash-Berichte",
+        "description": "Automatische Fehlerberichte für bessere Stabilität"
+      },
+      "marketing": {
+        "title": "Marketing-Kommunikation",
+        "description": "Informationen über neue Features und Updates"
+      },
+      "aiFeatures": {
+        "title": "KI-Features",
+        "description": "Personalisierte Inhalte und intelligente Vorschläge"
+      },
+      "personalInsights": {
+        "title": "Persönliche Einblicke",
+        "description": "Analyse deiner Fortschritte und Entwicklungsmuster"
+      }
+    },
+    "gdpr": {
+      "title": "DSGVO-Konformität",
+      "description": "Deine Rechte nach der Datenschutz-Grundverordnung sind vollständig gewährleistet:",
+      "rights": {
+        "data_access": "Vollständiger Zugang zu deinen Daten",
+        "data_portability": "Export deiner Daten in standardisierten Formaten",
+        "data_deletion": "Löschung deiner Daten auf Anfrage",
+        "consent_withdrawal": "Widerruf der Einwilligung jederzeit möglich"
+      }
+    }
+  },
+  "profile": {
+    "title": "Dein Profil erstellen",
+    "subtitle": "Hilf uns, die App an deine Bedürfnisse anzupassen",
+    "basic_info": {
+      "title": "Grundinformationen",
+      "first_name": "Vorname",
+      "first_name_placeholder": "Wie sollen wir dich nennen?",
+      "preferred_name": "Bevorzugter Name",
+      "preferred_name_placeholder": "Optional: Spitzname oder bevorzugter Name",
+      "age_range": "Altersbereich"
+    },
+    "goals": {
+      "title": "Deine Hauptziele",
+      "description": "Wähle bis zu 3 Bereiche, die dir besonders wichtig sind:",
+      "options": {
+        "self_awareness": "Selbstwahrnehmung",
+        "stress_reduction": "Stressabbau",
+        "life_balance": "Lebensbalance",
+        "career_clarity": "Berufliche Klarheit",
+        "relationships": "Beziehungen",
+        "personal_growth": "Persönliches Wachstum",
+        "confidence": "Selbstvertrauen",
+        "decision_making": "Entscheidungsfindung"
+      }
+    },
+    "challenges": {
+      "title": "Aktuelle Herausforderungen",
+      "description": "Womit beschäftigst du dich gerade? (Mehrfachauswahl möglich)",
+      "options": {
+        "overwhelm": "Überforderung",
+        "lack_direction": "Fehlende Richtung",
+        "procrastination": "Prokrastination",
+        "self_doubt": "Selbstzweifel",
+        "work_life_balance": "Work-Life-Balance",
+        "communication": "Kommunikation",
+        "motivation": "Motivation",
+        "change_resistance": "Veränderungsresistenz"
+      }
+    },
+    "experience": {
+      "title": "Erfahrung & Engagement",
+      "level": "Deine Erfahrung mit Selbstreflexion",
+      "levels": {
+        "beginner": "Anfänger",
+        "some_experience": "Etwas Erfahrung",
+        "experienced": "Erfahren"
+      },
+      "time_commitment": "Wie viel Zeit möchtest du täglich investieren?",
+      "time_options": {
+        "5_mins": "5 Minuten",
+        "10_mins": "10 Minuten",
+        "20_mins": "20 Minuten",
+        "30_mins": "30+ Minuten"
+      }
+    }
+  },
+  "life_wheel": {
+    "title": "Dein Lebensrad",
+    "subtitle": "Bewerte deinen aktuellen Stand und setze dir Ziele für jeden Lebensbereich",
+    "progress": "Bereich {{current}} von {{total}}",
+    "current_satisfaction": "Aktuelle Zufriedenheit",
+    "target_satisfaction": "Ziel-Zufriedenheit",
+    "area_descriptions": {
+      "health": "Körperliche und geistige Gesundheit, Fitness, Wohlbefinden",
+      "career": "Berufliche Erfüllung, Karriereentwicklung, Arbeitsplatz",
+      "relationships": "Familie, Freunde, Partnerschaft, soziale Kontakte",
+      "personal_growth": "Lernen, Entwicklung, Hobbys, Kreativität",
+      "finances": "Finanzielle Sicherheit, Einkommen, Investments",
+      "fun_recreation": "Freizeit, Entspannung, Spaß, Abenteuer",
+      "physical_environment": "Wohnung, Arbeitsplatz, Umgebung",
+      "contribution": "Sinnvolle Arbeit, Ehrenamt, Beitrag zur Gesellschaft"
+    }
+  },
+  "complete": {
+    "congratulations": "Geschafft!",
+    "welcome_message": "Willkommen in deiner persönlichen Entwicklungsreise mit der KLARE Methode",
+    "setup_complete": "Dein Setup ist komplett:",
+    "stats": {
+      "life_wheel_areas": "Lebensrad Bereiche",
+      "current_average": "Aktueller Durchschnitt",
+      "target_average": "Ziel-Durchschnitt",
+      "improvement_potential": "Verbesserungspotential:",
+      "points": "Punkte"
+    },
+    "next_steps": {
+      "title": "Deine nächsten Schritte:",
+      "explore_module": "Erstes Modul erkunden",
+      "explore_module_desc": "Beginne mit deinem ersten KLARE-Schritt",
+      "refine_wheel": "Lebensrad verfeinern",
+      "refine_wheel_desc": "Verfeinere deine Ziele in den 8 Lebensbereichen",
+      "daily_reflection": "Tägliche Reflexion",
+      "daily_reflection_desc": "Nutze die Journal-Funktion für deine Gedanken"
+    },
+    "actions": {
+      "start_journey": "Jetzt durchstarten",
+      "explore_first": "Später erkunden"
+    }
+  }
+}

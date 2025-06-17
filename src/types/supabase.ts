@@ -7,398 +7,399 @@ export type Json =
   | Json[]
 
 export type Database = {
-  klare_content: {
-    Tables: {
-      practical_exercises: {
-        Row: {
-          created_at: string
-          description: string | null
-          duration_minutes: number | null
-          id: string
-          sort_order: number
-          step_id: string
-          title: string
-          translations: Json | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          duration_minutes?: number | null
-          id?: string
-          sort_order?: number
-          step_id: string
-          title: string
-          translations?: Json | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          duration_minutes?: number | null
-          id?: string
-          sort_order?: number
-          step_id?: string
-          title?: string
-          translations?: Json | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      supporting_questions: {
-        Row: {
-          created_at: string
-          id: string
-          question_text: string
-          sort_order: number
-          step_id: string
-          translations: Json | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          question_text: string
-          sort_order?: number
-          step_id: string
-          translations?: Json | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          question_text?: string
-          sort_order?: number
-          step_id?: string
-          translations?: Json | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      transformation_paths: {
-        Row: {
-          created_at: string
-          from_text: string
-          id: string
-          sort_order: number
-          step_id: string
-          to_text: string
-          translations: Json | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          from_text: string
-          id?: string
-          sort_order?: number
-          step_id: string
-          to_text: string
-          translations?: Json | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          from_text?: string
-          id?: string
-          sort_order?: number
-          step_id?: string
-          to_text?: string
-          translations?: Json | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-    }
-    Views: {
-      translated_practical_exercises: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          description_en: string | null
-          duration_minutes: number | null
-          id: string | null
-          sort_order: number | null
-          step_id: string | null
-          title: string | null
-          title_en: string | null
-          translations: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          description_en?: never
-          duration_minutes?: number | null
-          id?: string | null
-          sort_order?: number | null
-          step_id?: string | null
-          title?: string | null
-          title_en?: never
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          description_en?: never
-          duration_minutes?: number | null
-          id?: string | null
-          sort_order?: number | null
-          step_id?: string | null
-          title?: string | null
-          title_en?: never
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      translated_supporting_questions: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          question_text: string | null
-          question_text_en: string | null
-          sort_order: number | null
-          step_id: string | null
-          translations: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string | null
-          question_text?: string | null
-          question_text_en?: never
-          sort_order?: number | null
-          step_id?: string | null
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string | null
-          question_text?: string | null
-          question_text_en?: never
-          sort_order?: number | null
-          step_id?: string | null
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      translated_transformation_paths: {
-        Row: {
-          created_at: string | null
-          from_text: string | null
-          from_text_en: string | null
-          id: string | null
-          sort_order: number | null
-          step_id: string | null
-          to_text: string | null
-          to_text_en: string | null
-          translations: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          from_text?: string | null
-          from_text_en?: never
-          id?: string | null
-          sort_order?: number | null
-          step_id?: string | null
-          to_text?: string | null
-          to_text_en?: never
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          from_text?: string | null
-          from_text_en?: never
-          id?: string | null
-          sort_order?: number | null
-          step_id?: string | null
-          to_text?: string | null
-          to_text_en?: never
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
-      completed_modules: {
+      ai_conversations: {
         Row: {
-          completed_at: string | null
+          ai_model: string | null
+          conversation_type: string
+          created_at: string | null
+          generation_metadata: Json | null
           id: string
-          module_id: string
+          message_content: string
+          message_type: string
+          prompt_template_id: string | null
+          session_id: string
           user_id: string
         }
         Insert: {
-          completed_at?: string | null
+          ai_model?: string | null
+          conversation_type: string
+          created_at?: string | null
+          generation_metadata?: Json | null
           id?: string
-          module_id: string
+          message_content: string
+          message_type: string
+          prompt_template_id?: string | null
+          session_id: string
           user_id: string
         }
         Update: {
-          completed_at?: string | null
+          ai_model?: string | null
+          conversation_type?: string
+          created_at?: string | null
+          generation_metadata?: Json | null
           id?: string
-          module_id?: string
+          message_content?: string
+          message_type?: string
+          prompt_template_id?: string | null
+          session_id?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "completed_modules_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      ai_prompt_templates: {
+        Row: {
+          created_at: string | null
+          difficulty_range: number[] | null
+          id: string
+          is_active: boolean | null
+          model_settings: Json | null
+          module_reference: string | null
+          personalization_factors: string[] | null
+          priority: number | null
+          prompt_template: string
+          prompt_type: string
+          safety_filters: string[] | null
+          target_user_profiles: Json | null
+          template_name: string
+          updated_at: string | null
+          variables: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          difficulty_range?: number[] | null
+          id?: string
+          is_active?: boolean | null
+          model_settings?: Json | null
+          module_reference?: string | null
+          personalization_factors?: string[] | null
+          priority?: number | null
+          prompt_template: string
+          prompt_type: string
+          safety_filters?: string[] | null
+          target_user_profiles?: Json | null
+          template_name: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          difficulty_range?: number[] | null
+          id?: string
+          is_active?: boolean | null
+          model_settings?: Json | null
+          module_reference?: string | null
+          personalization_factors?: string[] | null
+          priority?: number | null
+          prompt_template?: string
+          prompt_type?: string
+          safety_filters?: string[] | null
+          target_user_profiles?: Json | null
+          template_name?: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Relationships: []
+      }
+      ai_service_logs: {
+        Row: {
+          cost_estimate: number | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          input_data: Json | null
+          operation_type: string
+          output_data: Json | null
+          response_time_ms: number | null
+          service_name: string
+          success: boolean
+          tokens_used: number | null
+          user_id: string | null
+        }
+        Insert: {
+          cost_estimate?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          input_data?: Json | null
+          operation_type: string
+          output_data?: Json | null
+          response_time_ms?: number | null
+          service_name: string
+          success: boolean
+          tokens_used?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          cost_estimate?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          input_data?: Json | null
+          operation_type?: string
+          output_data?: Json | null
+          response_time_ms?: number | null
+          service_name?: string
+          success?: boolean
+          tokens_used?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      completed_modules: {
+        Row: {
+          action_items: string[] | null
+          challenges_faced: string[] | null
+          completed_at: string | null
+          difficulty_experienced: number | null
+          id: string | null
+          key_insights: string[] | null
+          module_id: string | null
+          responses: Json | null
+          satisfaction_rating: number | null
+          time_spent_seconds: number | null
+          user_id: string | null
+        }
+        Insert: {
+          action_items?: string[] | null
+          challenges_faced?: string[] | null
+          completed_at?: string | null
+          difficulty_experienced?: number | null
+          id?: string | null
+          key_insights?: string[] | null
+          module_id?: string | null
+          responses?: Json | null
+          satisfaction_rating?: number | null
+          time_spent_seconds?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          action_items?: string[] | null
+          challenges_faced?: string[] | null
+          completed_at?: string | null
+          difficulty_experienced?: number | null
+          id?: string | null
+          key_insights?: string[] | null
+          module_id?: string | null
+          responses?: Json | null
+          satisfaction_rating?: number | null
+          time_spent_seconds?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       content_sections: {
         Row: {
-          content: string | null
+          content: Json | null
+          content_type: string | null
           created_at: string | null
-          id: string
-          media_url: string | null
-          module_content_id: string
-          order_index: number
-          title: string
+          description: string | null
+          id: string | null
+          module_id: string | null
+          order_index: number | null
+          title: string | null
           translations: Json | null
           updated_at: string | null
         }
         Insert: {
-          content?: string | null
+          content?: Json | null
+          content_type?: string | null
           created_at?: string | null
-          id?: string
-          media_url?: string | null
-          module_content_id: string
-          order_index: number
-          title: string
+          description?: string | null
+          id?: string | null
+          module_id?: string | null
+          order_index?: number | null
+          title?: string | null
           translations?: Json | null
           updated_at?: string | null
         }
         Update: {
-          content?: string | null
+          content?: Json | null
+          content_type?: string | null
           created_at?: string | null
-          id?: string
-          media_url?: string | null
-          module_content_id?: string
-          order_index?: number
-          title?: string
+          description?: string | null
+          id?: string | null
+          module_id?: string | null
+          order_index?: number | null
+          title?: string | null
           translations?: Json | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "content_sections_module_content_id_fkey"
-            columns: ["module_content_id"]
-            isOneToOne: false
-            referencedRelation: "module_contents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "content_sections_module_content_id_fkey"
-            columns: ["module_content_id"]
-            isOneToOne: false
-            referencedRelation: "translated_module_contents"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      exercise_steps: {
+      excercise_steps: {
         Row: {
           created_at: string | null
-          id: string
-          instructions: string
-          module_content_id: string
+          id: string | null
+          instructions: string | null
+          module_content_id: string | null
           options: Json | null
-          order_index: number
-          step_type: string
-          title: string
+          order_index: number | null
+          step_type: string | null
+          title: string | null
           translations: Json | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
-          id?: string
-          instructions: string
-          module_content_id: string
+          id?: string | null
+          instructions?: string | null
+          module_content_id?: string | null
           options?: Json | null
-          order_index: number
-          step_type: string
-          title: string
+          order_index?: number | null
+          step_type?: string | null
+          title?: string | null
           translations?: Json | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
-          id?: string
-          instructions?: string
-          module_content_id?: string
+          id?: string | null
+          instructions?: string | null
+          module_content_id?: string | null
           options?: Json | null
-          order_index?: number
-          step_type?: string
-          title?: string
+          order_index?: number | null
+          step_type?: string | null
+          title?: string | null
           translations?: Json | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "exercise_steps_module_content_id_fkey"
-            columns: ["module_content_id"]
-            isOneToOne: false
-            referencedRelation: "module_contents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "exercise_steps_module_content_id_fkey"
-            columns: ["module_content_id"]
-            isOneToOne: false
-            referencedRelation: "translated_module_contents"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      generated_content: {
+        Row: {
+          ai_model: string
+          cache_expires_at: string | null
+          content_type: string
+          created_at: string | null
+          generated_content: Json
+          generated_title: string | null
+          generation_timestamp: string | null
+          id: string
+          personalization_context: Json | null
+          prompt_used: string | null
+          template_id: string
+          usage_count: number | null
+          user_feedback: string | null
+          user_id: string
+          user_rating: number | null
+          was_helpful: boolean | null
+        }
+        Insert: {
+          ai_model: string
+          cache_expires_at?: string | null
+          content_type: string
+          created_at?: string | null
+          generated_content: Json
+          generated_title?: string | null
+          generation_timestamp?: string | null
+          id?: string
+          personalization_context?: Json | null
+          prompt_used?: string | null
+          template_id: string
+          usage_count?: number | null
+          user_feedback?: string | null
+          user_id: string
+          user_rating?: number | null
+          was_helpful?: boolean | null
+        }
+        Update: {
+          ai_model?: string
+          cache_expires_at?: string | null
+          content_type?: string
+          created_at?: string | null
+          generated_content?: Json
+          generated_title?: string | null
+          generation_timestamp?: string | null
+          id?: string
+          personalization_context?: Json | null
+          prompt_used?: string | null
+          template_id?: string
+          usage_count?: number | null
+          user_feedback?: string | null
+          user_id?: string
+          user_rating?: number | null
+          was_helpful?: boolean | null
+        }
+        Relationships: []
+      }
+      journal_entries: {
+        Row: {
+          ai_insights: Json | null
+          content: string
+          created_at: string | null
+          growth_indicators: string[] | null
+          id: string
+          is_private: boolean | null
+          mood_rating: number | null
+          tags: string[] | null
+          template_id: string | null
+          title: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_insights?: Json | null
+          content: string
+          created_at?: string | null
+          growth_indicators?: string[] | null
+          id?: string
+          is_private?: boolean | null
+          mood_rating?: number | null
+          tags?: string[] | null
+          template_id?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_insights?: Json | null
+          content?: string
+          created_at?: string | null
+          growth_indicators?: string[] | null
+          id?: string
+          is_private?: boolean | null
+          mood_rating?: number | null
+          tags?: string[] | null
+          template_id?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       journal_template_categories: {
         Row: {
+          color_hex: string | null
           created_at: string | null
           description: string | null
           icon: string | null
-          id: string
-          name: string
-          order_index: number
+          id: string | null
+          name: string | null
+          order_index: number | null
           translations: Json | null
           updated_at: string | null
         }
         Insert: {
+          color_hex?: string | null
           created_at?: string | null
           description?: string | null
           icon?: string | null
-          id?: string
-          name: string
-          order_index: number
+          id?: string | null
+          name?: string | null
+          order_index?: number | null
           translations?: Json | null
           updated_at?: string | null
         }
         Update: {
+          color_hex?: string | null
           created_at?: string | null
           description?: string | null
           icon?: string | null
-          id?: string
-          name?: string
-          order_index?: number
+          id?: string | null
+          name?: string | null
+          order_index?: number | null
           translations?: Json | null
           updated_at?: string | null
         }
@@ -409,10 +410,13 @@ export type Database = {
           category: string | null
           created_at: string | null
           description: string | null
-          id: string
-          order_index: number
-          prompt_questions: Json
-          title: string
+          difficulty_level: number | null
+          id: string | null
+          klare_steps: string[] | null
+          order_index: number | null
+          prompt_questions: Json | null
+          suitable_for_profiles: Json | null
+          title: string | null
           translations: Json | null
           updated_at: string | null
         }
@@ -420,10 +424,13 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           description?: string | null
-          id?: string
-          order_index: number
-          prompt_questions: Json
-          title: string
+          difficulty_level?: number | null
+          id?: string | null
+          klare_steps?: string[] | null
+          order_index?: number | null
+          prompt_questions?: Json | null
+          suitable_for_profiles?: Json | null
+          title?: string | null
           translations?: Json | null
           updated_at?: string | null
         }
@@ -431,10 +438,13 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           description?: string | null
-          id?: string
-          order_index?: number
-          prompt_questions?: Json
-          title?: string
+          difficulty_level?: number | null
+          id?: string | null
+          klare_steps?: string[] | null
+          order_index?: number | null
+          prompt_questions?: Json | null
+          suitable_for_profiles?: Json | null
+          title?: string | null
           translations?: Json | null
           updated_at?: string | null
         }
@@ -443,80 +453,225 @@ export type Database = {
       life_wheel_areas: {
         Row: {
           created_at: string | null
-          current_value: number
-          id: string
-          name: string
-          target_value: number
+          current_value: number | null
+          id: string | null
+          improvement_actions: string[] | null
+          name: string | null
+          notes: string | null
+          priority_level: number | null
+          target_value: number | null
           translations: Json | null
           updated_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
-          current_value: number
-          id?: string
-          name: string
-          target_value: number
+          current_value?: number | null
+          id?: string | null
+          improvement_actions?: string[] | null
+          name?: string | null
+          notes?: string | null
+          priority_level?: number | null
+          target_value?: number | null
           translations?: Json | null
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
-          current_value?: number
-          id?: string
-          name?: string
-          target_value?: number
+          current_value?: number | null
+          id?: string | null
+          improvement_actions?: string[] | null
+          name?: string | null
+          notes?: string | null
+          priority_level?: number | null
+          target_value?: number | null
           translations?: Json | null
           updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      life_wheel_snapshots: {
+        Row: {
+          context: string | null
+          created_at: string | null
+          id: string
+          improvements: Json | null
+          insights: string[] | null
+          priority_areas: string[] | null
+          snapshot_data: Json
+          user_id: string
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string | null
+          id?: string
+          improvements?: Json | null
+          insights?: string[] | null
+          priority_areas?: string[] | null
+          snapshot_data: Json
+          user_id: string
+        }
+        Update: {
+          context?: string | null
+          created_at?: string | null
+          id?: string
+          improvements?: Json | null
+          insights?: string[] | null
+          priority_areas?: string[] | null
+          snapshot_data?: Json
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "life_wheel_areas_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       module_contents: {
         Row: {
-          content: Json | null
-          content_type: string
+          content: string | null
           created_at: string | null
-          description: string | null
-          id: string
-          module_id: string
-          order_index: number
-          title: string
+          id: string | null
+          media_url: string | null
+          module_content_id: string | null
+          order_index: number | null
+          title: string | null
           translations: Json | null
           updated_at: string | null
         }
         Insert: {
-          content?: Json | null
-          content_type: string
+          content?: string | null
           created_at?: string | null
-          description?: string | null
-          id?: string
-          module_id: string
-          order_index: number
-          title: string
+          id?: string | null
+          media_url?: string | null
+          module_content_id?: string | null
+          order_index?: number | null
+          title?: string | null
           translations?: Json | null
           updated_at?: string | null
         }
         Update: {
-          content?: Json | null
-          content_type?: string
+          content?: string | null
           created_at?: string | null
-          description?: string | null
-          id?: string
-          module_id?: string
-          order_index?: number
-          title?: string
+          id?: string | null
+          media_url?: string | null
+          module_content_id?: string | null
+          order_index?: number | null
+          title?: string | null
           translations?: Json | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      modules: {
+        Row: {
+          content_type: string | null
+          created_at: string | null
+          description: string | null
+          difficulty_level: number | null
+          estimated_duration: number | null
+          id: string
+          is_active: boolean | null
+          klare_step: string
+          learning_objectives: string[] | null
+          metadata: Json | null
+          order_index: number
+          prerequisites: string[] | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string | null
+          description?: string | null
+          difficulty_level?: number | null
+          estimated_duration?: number | null
+          id?: string
+          is_active?: boolean | null
+          klare_step: string
+          learning_objectives?: string[] | null
+          metadata?: Json | null
+          order_index: number
+          prerequisites?: string[] | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string | null
+          description?: string | null
+          difficulty_level?: number | null
+          estimated_duration?: number | null
+          id?: string
+          is_active?: boolean | null
+          klare_step?: string
+          learning_objectives?: string[] | null
+          metadata?: Json | null
+          order_index?: number
+          prerequisites?: string[] | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      personal_insights: {
+        Row: {
+          ai_model: string | null
+          confidence_score: number | null
+          created_at: string | null
+          description: string
+          id: string
+          insight_type: string
+          is_active: boolean | null
+          related_areas: string[] | null
+          related_modules: string[] | null
+          source: string
+          supporting_evidence: string[] | null
+          title: string
+          updated_at: string | null
+          user_acknowledged: boolean | null
+          user_id: string
+          user_notes: string | null
+          user_rating: number | null
+        }
+        Insert: {
+          ai_model?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          description: string
+          id?: string
+          insight_type: string
+          is_active?: boolean | null
+          related_areas?: string[] | null
+          related_modules?: string[] | null
+          source: string
+          supporting_evidence?: string[] | null
+          title: string
+          updated_at?: string | null
+          user_acknowledged?: boolean | null
+          user_id: string
+          user_notes?: string | null
+          user_rating?: number | null
+        }
+        Update: {
+          ai_model?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          insight_type?: string
+          is_active?: boolean | null
+          related_areas?: string[] | null
+          related_modules?: string[] | null
+          source?: string
+          supporting_evidence?: string[] | null
+          title?: string
+          updated_at?: string | null
+          user_acknowledged?: boolean | null
+          user_id?: string
+          user_notes?: string | null
+          user_rating?: number | null
         }
         Relationships: []
       }
@@ -548,293 +703,442 @@ export type Database = {
           user_id?: string
           value_name?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "personal_values_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      quiz_questions: {
+      practical_excercises: {
         Row: {
-          correct_answer: Json | null
           created_at: string | null
-          explanation: string | null
-          id: string
-          module_content_id: string
-          options: Json | null
-          order_index: number
-          question: string
-          question_type: string
+          description: string | null
+          duration_minutes: string | null
+          id: string | null
+          sort_order: number | null
+          step_id: string | null
+          title: string | null
           translations: Json | null
           updated_at: string | null
         }
         Insert: {
-          correct_answer?: Json | null
           created_at?: string | null
-          explanation?: string | null
-          id?: string
-          module_content_id: string
-          options?: Json | null
-          order_index: number
-          question: string
-          question_type: string
+          description?: string | null
+          duration_minutes?: string | null
+          id?: string | null
+          sort_order?: number | null
+          step_id?: string | null
+          title?: string | null
           translations?: Json | null
           updated_at?: string | null
         }
         Update: {
-          correct_answer?: Json | null
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: string | null
+          id?: string | null
+          sort_order?: number | null
+          step_id?: string | null
+          title?: string | null
+          translations?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      quiz_questions: {
+        Row: {
+          correct_answer: string | null
+          created_at: string | null
+          explanation: string | null
+          id: string | null
+          module_content_id: string | null
+          options: Json | null
+          order_index: number | null
+          question: string | null
+          question_type: string | null
+          translations: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          correct_answer?: string | null
           created_at?: string | null
           explanation?: string | null
-          id?: string
-          module_content_id?: string
+          id?: string | null
+          module_content_id?: string | null
           options?: Json | null
-          order_index?: number
-          question?: string
-          question_type?: string
+          order_index?: number | null
+          question?: string | null
+          question_type?: string | null
           translations?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          correct_answer?: string | null
+          created_at?: string | null
+          explanation?: string | null
+          id?: string | null
+          module_content_id?: string | null
+          options?: Json | null
+          order_index?: number | null
+          question?: string | null
+          question_type?: string | null
+          translations?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      static_content: {
+        Row: {
+          content: string
+          content_format: string | null
+          content_type: string
+          created_at: string | null
+          estimated_reading_time: number | null
+          id: string
+          interaction_config: Json | null
+          interaction_type: string | null
+          is_interactive: boolean | null
+          media_urls: string[] | null
+          module_id: string | null
+          order_index: number
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          content_format?: string | null
+          content_type: string
+          created_at?: string | null
+          estimated_reading_time?: number | null
+          id?: string
+          interaction_config?: Json | null
+          interaction_type?: string | null
+          is_interactive?: boolean | null
+          media_urls?: string[] | null
+          module_id?: string | null
+          order_index: number
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          content_format?: string | null
+          content_type?: string
+          created_at?: string | null
+          estimated_reading_time?: number | null
+          id?: string
+          interaction_config?: Json | null
+          interaction_type?: string | null
+          is_interactive?: boolean | null
+          media_urls?: string[] | null
+          module_id?: string | null
+          order_index?: number
+          title?: string
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "quiz_questions_module_content_id_fkey"
-            columns: ["module_content_id"]
+            foreignKeyName: "static_content_module_id_fkey"
+            columns: ["module_id"]
             isOneToOne: false
-            referencedRelation: "module_contents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "quiz_questions_module_content_id_fkey"
-            columns: ["module_content_id"]
-            isOneToOne: false
-            referencedRelation: "translated_module_contents"
+            referencedRelation: "modules"
             referencedColumns: ["id"]
           },
         ]
       }
-      resources: {
+      supporting_questions: {
         Row: {
-          activation_tips: string | null
-          category: string
-          created_at: string
-          description: string | null
+          created_at: string | null
+          id: string | null
+          question_text: string | null
+          sort_order: number | null
+          step_id: string | null
+          translations: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          question_text?: string | null
+          sort_order?: number | null
+          step_id?: string | null
+          translations?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          question_text?: string | null
+          sort_order?: number | null
+          step_id?: string | null
+          translations?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      translations: {
+        Row: {
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          field_name: string
           id: string
-          last_activated: string | null
-          name: string
-          rating: number
-          updated_at: string
+          language_code: string
+          translated_text: string
+          translation_quality: string | null
+          translator_notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          field_name: string
+          id?: string
+          language_code: string
+          translated_text: string
+          translation_quality?: string | null
+          translator_notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          field_name?: string
+          id?: string
+          language_code?: string
+          translated_text?: string
+          translation_quality?: string | null
+          translator_notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_answers: {
+        Row: {
+          answer_category: string | null
+          answer_data: Json
+          content_reference: string | null
+          content_type: string
+          created_at: string | null
+          emotional_tone: string | null
+          id: string
+          key_themes: string[] | null
+          klare_step: string | null
+          question_text: string
+          response_time_seconds: number | null
+          sentiment_score: number | null
           user_id: string
         }
         Insert: {
-          activation_tips?: string | null
-          category: string
-          created_at?: string
-          description?: string | null
-          id: string
-          last_activated?: string | null
-          name: string
-          rating?: number
-          updated_at?: string
+          answer_category?: string | null
+          answer_data: Json
+          content_reference?: string | null
+          content_type: string
+          created_at?: string | null
+          emotional_tone?: string | null
+          id?: string
+          key_themes?: string[] | null
+          klare_step?: string | null
+          question_text: string
+          response_time_seconds?: number | null
+          sentiment_score?: number | null
           user_id: string
         }
         Update: {
-          activation_tips?: string | null
-          category?: string
-          created_at?: string
-          description?: string | null
+          answer_category?: string | null
+          answer_data?: Json
+          content_reference?: string | null
+          content_type?: string
+          created_at?: string | null
+          emotional_tone?: string | null
           id?: string
-          last_activated?: string | null
-          name?: string
-          rating?: number
-          updated_at?: string
+          key_themes?: string[] | null
+          klare_step?: string | null
+          question_text?: string
+          response_time_seconds?: number | null
+          sentiment_score?: number | null
           user_id?: string
         }
         Relationships: []
       }
-      user_exercise_results: {
+      user_events: {
         Row: {
-          answer: Json | null
-          completed_at: string | null
-          exercise_step_id: string
+          created_at: string | null
+          device_info: Json | null
+          event_data: Json | null
+          event_type: string
           id: string
+          page_or_module: string | null
+          session_id: string | null
           user_id: string
         }
         Insert: {
-          answer?: Json | null
-          completed_at?: string | null
-          exercise_step_id: string
+          created_at?: string | null
+          device_info?: Json | null
+          event_data?: Json | null
+          event_type: string
           id?: string
+          page_or_module?: string | null
+          session_id?: string | null
           user_id: string
         }
         Update: {
-          answer?: Json | null
-          completed_at?: string | null
-          exercise_step_id?: string
+          created_at?: string | null
+          device_info?: Json | null
+          event_data?: Json | null
+          event_type?: string
           id?: string
+          page_or_module?: string | null
+          session_id?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_exercise_results_exercise_step_id_fkey"
-            columns: ["exercise_step_id"]
-            isOneToOne: false
-            referencedRelation: "exercise_steps"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_exercise_results_exercise_step_id_fkey"
-            columns: ["exercise_step_id"]
-            isOneToOne: false
-            referencedRelation: "translated_exercise_steps"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_exercise_results_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      user_journal_entries: {
+      user_patterns: {
         Row: {
-          category: string | null
-          clarity_rating: number | null
+          confidence_score: number | null
           created_at: string | null
-          entry_content: string
-          entry_date: string | null
+          first_detected: string | null
           id: string
-          is_archived: boolean | null
-          is_favorite: boolean | null
-          mood_rating: number | null
-          tags: string[] | null
+          is_active: boolean | null
+          last_confirmed: string | null
+          pattern_description: string
+          pattern_type: string
+          supporting_events: number | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
-          category?: string | null
-          clarity_rating?: number | null
+          confidence_score?: number | null
           created_at?: string | null
-          entry_content: string
-          entry_date?: string | null
+          first_detected?: string | null
           id?: string
-          is_archived?: boolean | null
-          is_favorite?: boolean | null
-          mood_rating?: number | null
-          tags?: string[] | null
+          is_active?: boolean | null
+          last_confirmed?: string | null
+          pattern_description: string
+          pattern_type: string
+          supporting_events?: number | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
-          category?: string | null
-          clarity_rating?: number | null
+          confidence_score?: number | null
           created_at?: string | null
-          entry_content?: string
-          entry_date?: string | null
+          first_detected?: string | null
           id?: string
-          is_archived?: boolean | null
-          is_favorite?: boolean | null
-          mood_rating?: number | null
-          tags?: string[] | null
+          is_active?: boolean | null
+          last_confirmed?: string | null
+          pattern_description?: string
+          pattern_type?: string
+          supporting_events?: number | null
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_journal_entries_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      user_quiz_answers: {
+      user_profiles: {
         Row: {
-          completed_at: string | null
+          age: number | null
+          communication_style: string | null
+          created_at: string | null
+          current_challenges: string[] | null
+          goals: Json | null
           id: string
-          is_correct: boolean | null
-          question_id: string
-          user_answer: Json | null
+          last_assessment_date: string | null
+          learning_style: string | null
+          life_priorities: string[] | null
+          location: string | null
+          occupation: string | null
+          personality_profile: Json | null
+          preferences: Json | null
+          profile_completeness: number | null
+          relationship_status: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
-          completed_at?: string | null
+          age?: number | null
+          communication_style?: string | null
+          created_at?: string | null
+          current_challenges?: string[] | null
+          goals?: Json | null
           id?: string
-          is_correct?: boolean | null
-          question_id: string
-          user_answer?: Json | null
+          last_assessment_date?: string | null
+          learning_style?: string | null
+          life_priorities?: string[] | null
+          location?: string | null
+          occupation?: string | null
+          personality_profile?: Json | null
+          preferences?: Json | null
+          profile_completeness?: number | null
+          relationship_status?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
-          completed_at?: string | null
+          age?: number | null
+          communication_style?: string | null
+          created_at?: string | null
+          current_challenges?: string[] | null
+          goals?: Json | null
           id?: string
-          is_correct?: boolean | null
-          question_id?: string
-          user_answer?: Json | null
+          last_assessment_date?: string | null
+          learning_style?: string | null
+          life_priorities?: string[] | null
+          location?: string | null
+          occupation?: string | null
+          personality_profile?: Json | null
+          preferences?: Json | null
+          profile_completeness?: number | null
+          relationship_status?: string | null
+          updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_quiz_answers_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "quiz_questions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_quiz_answers_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "translated_quiz_questions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_quiz_answers_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       users: {
         Row: {
-          completed_modules: string[] | null
+          ai_mode_enabled: boolean | null
+          completed_modules: Json | null
           created_at: string | null
-          email: string
-          id: string
+          email: string | null
+          id: string | null
           join_date: string | null
           last_active: string | null
-          name: string
-          progress: number | null
-          streak: number | null
+          name: string | null
+          personalization_level: string | null
+          preferred_language: string | null
+          progress: string | null
+          streak: string | null
+          updated_at: string | null
         }
         Insert: {
-          completed_modules?: string[] | null
+          ai_mode_enabled?: boolean | null
+          completed_modules?: Json | null
           created_at?: string | null
-          email: string
-          id: string
+          email?: string | null
+          id?: string | null
           join_date?: string | null
           last_active?: string | null
-          name: string
-          progress?: number | null
-          streak?: number | null
+          name?: string | null
+          personalization_level?: string | null
+          preferred_language?: string | null
+          progress?: string | null
+          streak?: string | null
+          updated_at?: string | null
         }
         Update: {
-          completed_modules?: string[] | null
+          ai_mode_enabled?: boolean | null
+          completed_modules?: Json | null
           created_at?: string | null
-          email?: string
-          id?: string
+          email?: string | null
+          id?: string | null
           join_date?: string | null
           last_active?: string | null
-          name?: string
-          progress?: number | null
-          streak?: number | null
+          name?: string | null
+          personalization_level?: string | null
+          preferred_language?: string | null
+          progress?: string | null
+          streak?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -893,560 +1197,29 @@ export type Database = {
           vision_board_id?: string | null
           width?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "vision_board_items_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "vision_board_items_vision_board_id_fkey"
-            columns: ["vision_board_id"]
-            isOneToOne: false
-            referencedRelation: "vision_boards"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vision_boards: {
-        Row: {
-          background_type: string
-          background_value: string | null
-          created_at: string | null
-          description: string | null
-          id: string
-          is_active: boolean | null
-          layout_type: string
-          title: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          background_type: string
-          background_value?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          layout_type?: string
-          title: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          background_type?: string
-          background_value?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          layout_type?: string
-          title?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vision_boards_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
-      translated_content_sections: {
-        Row: {
-          content: string | null
-          content_en: string | null
-          created_at: string | null
-          id: string | null
-          media_url: string | null
-          module_content_id: string | null
-          order_index: number | null
-          title: string | null
-          title_en: string | null
-          translations: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          content?: string | null
-          content_en?: never
-          created_at?: string | null
-          id?: string | null
-          media_url?: string | null
-          module_content_id?: string | null
-          order_index?: number | null
-          title?: string | null
-          title_en?: never
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          content?: string | null
-          content_en?: never
-          created_at?: string | null
-          id?: string | null
-          media_url?: string | null
-          module_content_id?: string | null
-          order_index?: number | null
-          title?: string | null
-          title_en?: never
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "content_sections_module_content_id_fkey"
-            columns: ["module_content_id"]
-            isOneToOne: false
-            referencedRelation: "module_contents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "content_sections_module_content_id_fkey"
-            columns: ["module_content_id"]
-            isOneToOne: false
-            referencedRelation: "translated_module_contents"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      translated_exercise_steps: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          instructions: string | null
-          instructions_en: string | null
-          module_content_id: string | null
-          options: Json | null
-          order_index: number | null
-          step_type: string | null
-          title: string | null
-          title_en: string | null
-          translations: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string | null
-          instructions?: string | null
-          instructions_en?: never
-          module_content_id?: string | null
-          options?: Json | null
-          order_index?: number | null
-          step_type?: string | null
-          title?: string | null
-          title_en?: never
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string | null
-          instructions?: string | null
-          instructions_en?: never
-          module_content_id?: string | null
-          options?: Json | null
-          order_index?: number | null
-          step_type?: string | null
-          title?: string | null
-          title_en?: never
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "exercise_steps_module_content_id_fkey"
-            columns: ["module_content_id"]
-            isOneToOne: false
-            referencedRelation: "module_contents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "exercise_steps_module_content_id_fkey"
-            columns: ["module_content_id"]
-            isOneToOne: false
-            referencedRelation: "translated_module_contents"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      translated_journal_template_categories: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          description_en: string | null
-          icon: string | null
-          id: string | null
-          name: string | null
-          name_en: string | null
-          order_index: number | null
-          translations: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          description_en?: never
-          icon?: string | null
-          id?: string | null
-          name?: string | null
-          name_en?: never
-          order_index?: number | null
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          description_en?: never
-          icon?: string | null
-          id?: string | null
-          name?: string | null
-          name_en?: never
-          order_index?: number | null
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      translated_journal_templates: {
-        Row: {
-          category: string | null
-          created_at: string | null
-          description: string | null
-          description_en: string | null
-          id: string | null
-          order_index: number | null
-          prompt_questions: Json | null
-          title: string | null
-          title_en: string | null
-          translations: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          description_en?: never
-          id?: string | null
-          order_index?: number | null
-          prompt_questions?: Json | null
-          title?: string | null
-          title_en?: never
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          description_en?: never
-          id?: string | null
-          order_index?: number | null
-          prompt_questions?: Json | null
-          title?: string | null
-          title_en?: never
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      translated_life_wheel_areas: {
-        Row: {
-          created_at: string | null
-          current_value: number | null
-          id: string | null
-          name: string | null
-          name_en: string | null
-          target_value: number | null
-          translations: Json | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          current_value?: number | null
-          id?: string | null
-          name?: string | null
-          name_en?: never
-          target_value?: number | null
-          translations?: Json | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          current_value?: number | null
-          id?: string | null
-          name?: string | null
-          name_en?: never
-          target_value?: number | null
-          translations?: Json | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "life_wheel_areas_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      translated_module_contents: {
-        Row: {
-          content: Json | null
-          content_type: string | null
-          created_at: string | null
-          description: string | null
-          description_en: string | null
-          id: string | null
-          module_id: string | null
-          order_index: number | null
-          title: string | null
-          title_en: string | null
-          translations: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          content?: Json | null
-          content_type?: string | null
-          created_at?: string | null
-          description?: string | null
-          description_en?: never
-          id?: string | null
-          module_id?: string | null
-          order_index?: number | null
-          title?: string | null
-          title_en?: never
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          content?: Json | null
-          content_type?: string | null
-          created_at?: string | null
-          description?: string | null
-          description_en?: never
-          id?: string | null
-          module_id?: string | null
-          order_index?: number | null
-          title?: string | null
-          title_en?: never
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      translated_quiz_questions: {
-        Row: {
-          correct_answer: Json | null
-          created_at: string | null
-          explanation: string | null
-          explanation_en: string | null
-          id: string | null
-          module_content_id: string | null
-          options: Json | null
-          order_index: number | null
-          question: string | null
-          question_en: string | null
-          question_type: string | null
-          translations: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          correct_answer?: Json | null
-          created_at?: string | null
-          explanation?: string | null
-          explanation_en?: never
-          id?: string | null
-          module_content_id?: string | null
-          options?: Json | null
-          order_index?: number | null
-          question?: string | null
-          question_en?: never
-          question_type?: string | null
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          correct_answer?: Json | null
-          created_at?: string | null
-          explanation?: string | null
-          explanation_en?: never
-          id?: string | null
-          module_content_id?: string | null
-          options?: Json | null
-          order_index?: number | null
-          question?: string | null
-          question_en?: never
-          question_type?: string | null
-          translations?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "quiz_questions_module_content_id_fkey"
-            columns: ["module_content_id"]
-            isOneToOne: false
-            referencedRelation: "module_contents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "quiz_questions_module_content_id_fkey"
-            columns: ["module_content_id"]
-            isOneToOne: false
-            referencedRelation: "translated_module_contents"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
-      get_practical_exercises: {
-        Args: { step: string }
-        Returns: {
-          created_at: string
-          description: string | null
-          duration_minutes: number | null
-          id: string
-          sort_order: number
-          step_id: string
-          title: string
-          translations: Json | null
-          updated_at: string
-        }[]
-      }
-      get_supporting_questions: {
-        Args: { step: string }
-        Returns: {
-          created_at: string
-          id: string
-          question_text: string
-          sort_order: number
-          step_id: string
-          translations: Json | null
-          updated_at: string
-        }[]
-      }
-      get_transformation_paths: {
-        Args: { step: string }
-        Returns: {
-          created_at: string
-          from_text: string
-          id: string
-          sort_order: number
-          step_id: string
-          to_text: string
-          translations: Json | null
-          updated_at: string
-        }[]
-      }
-      get_translated_content_sections: {
-        Args: { p_module_content_id: string; p_lang?: string }
-        Returns: {
-          id: string
-          module_content_id: string
-          title: string
-          content: string
-          media_url: string
-          order_index: number
-        }[]
-      }
-      get_translated_life_wheel_areas: {
-        Args: { p_user_id: string; p_lang?: string }
-        Returns: {
-          id: string
-          user_id: string
-          name: string
-          current_value: number
-          target_value: number
-          created_at: string
-          updated_at: string
-          translations: Json
-        }[]
-      }
-      get_translated_practical_exercises: {
-        Args: { p_step_id: string; p_lang?: string }
-        Returns: {
-          id: string
-          step_id: string
-          title: string
-          description: string
-          duration_minutes: number
-          sort_order: number
-        }[]
-      }
-      get_translated_supporting_questions: {
-        Args: { p_step_id: string; p_lang?: string }
-        Returns: {
-          id: string
-          step_id: string
-          question_text: string
-          sort_order: number
-        }[]
+      cleanup_orphaned_storage_objects: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       get_translated_text: {
         Args: {
-          original_text: string
-          translations: Json
-          field_name: string
-          lang_code?: string
+          p_entity_type: string
+          p_entity_id: string
+          p_field_name: string
+          p_language_code?: string
         }
         Returns: string
       }
-      get_translated_transformation_paths: {
-        Args: { p_step_id: string; p_lang?: string }
-        Returns: {
-          id: string
-          step_id: string
-          from_text: string
-          to_text: string
-          sort_order: number
-        }[]
-      }
-      import_translations_batch: {
-        Args: {
-          p_table_name: string
-          p_schema_name?: string
-          p_lang_code?: string
-        }
-        Returns: number
-      }
-      set_life_wheel_area_translation: {
-        Args: { p_id: string; p_lang: string; p_field: string; p_value: string }
-        Returns: boolean
-      }
-      set_life_wheel_area_translations: {
-        Args: { p_id: string; p_lang: string; p_translations: Json }
-        Returns: boolean
-      }
-      set_translation: {
-        Args: {
-          translations: Json
-          lang_code: string
-          field_name: string
-          translated_text: string
-        }
-        Returns: Json
-      }
-      update_translations: {
-        Args: {
-          p_table_name: string
-          p_id: string
-          p_lang_code: string
-          p_translations: Json
-          p_schema_name?: string
-        }
-        Returns: boolean
+      get_user_storage_path: {
+        Args: { bucket_name: string }
+        Returns: string
       }
     }
     Enums: {
@@ -1564,9 +1337,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  klare_content: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

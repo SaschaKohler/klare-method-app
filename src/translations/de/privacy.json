@@ -1,0 +1,151 @@
+{
+  "privacy": {
+    "title": "Datenschutz & Privacy",
+    "subtitle": "Kontrollieren Sie, wie Ihre Daten verwendet werden",
+    "loading": "Laden...",
+    "updateFailed": "Einstellungen konnten nicht gespeichert werden",
+    
+    "ai": {
+      "title": "KI-Integration",
+      "enabled": "KI-Unterstützung aktivieren",
+      "enabledDescription": "Ermöglicht personalisierte Fragen und intelligente Analysen Ihrer Antworten",
+      "personalization": "KI-Personalisierung",
+      "personalizationDescription": "KI passt Fragen an Ihre Bedürfnisse und Ihren Fortschritt an",
+      "questions": "KI-generierte Fragen",
+      "questionsDescription": "Zusätzlich zu statischen Fragen können KI-generierte Fragen angezeigt werden"
+    },
+    
+    "aiConsent": {
+      "title": "KI-Zustimmung erforderlich",
+      "message": "Durch die Aktivierung der KI-Unterstützung stimmen Sie zu, dass anonymisierte Daten für die Verbesserung Ihrer Erfahrung verwendet werden. Sensitive und intime Daten bleiben lokal gespeichert.",
+      "accept": "Zustimmen",
+      "decline": "Ablehnen"
+    },
+    
+    "data": {
+      "title": "Datenspeicherung",
+      "sensitiveLocal": "Sensitive Daten nur lokal",
+      "sensitiveLocalDescription": "Persönliche Daten werden nur auf Ihrem Gerät gespeichert",
+      "intimateLocal": "Intime Daten nur lokal",
+      "intimateLocalDescription": "Sehr persönliche Inhalte verlassen niemals Ihr Gerät"
+    },
+    
+    "dataLevels": {
+      "title": "Datenschutz-Level wählen",
+      "localOnly": {
+        "title": "Nur lokal",
+        "description": "Alle Daten bleiben auf Ihrem Gerät"
+      },
+      "cloudSafe": {
+        "title": "Cloud-sicher",
+        "description": "Nicht-sensitive Daten werden verschlüsselt gespeichert"
+      },
+      "aiEnabled": {
+        "title": "KI-optimiert",
+        "description": "Anonymisierte Daten für KI-Verbesserungen"
+      }
+    },
+    
+    "content": {
+      "title": "Inhalts-Präferenzen",
+      "staticPreferred": "Bevorzuge statische Fragen",
+      "staticPreferredDescription": "Bewährte, vordefinierte Fragen werden bevorzugt"
+    },
+    
+    "language": {
+      "title": "Sprache & Übersetzung",
+      "selector": "Bevorzugte Sprache",
+      "autoTranslate": "Automatische Übersetzung",
+      "autoTranslateDescription": "Inhalte automatisch in Ihre Sprache übersetzen"
+    },
+    
+    "actions": {
+      "exportData": "Daten exportieren",
+      "deleteData": "Alle Daten löschen"
+    },
+    
+    "hints": {
+      "intimate": {
+        "title": "Intime Inhalte erkannt",
+        "message": "Diese Antwort wird nur lokal auf Ihrem Gerät gespeichert und niemals mit KI-Services geteilt."
+      },
+      "sensitive": {
+        "title": "Sensitive Inhalte",
+        "message": "Persönliche Daten werden entsprechend Ihren Privacy-Einstellungen behandelt."
+      },
+      "general": {
+        "title": "Allgemeine Inhalte",
+        "message": "Diese Daten können sicher gespeichert und optional für KI-Verbesserungen verwendet werden."
+      }
+    }
+  },
+  
+  "journal": {
+    "input": {
+      "placeholder": "Teilen Sie Ihre Gedanken mit..."
+    },
+    "save": "Speichern",
+    "saving": "Wird gespeichert...",
+    "saveFailed": "Speichern fehlgeschlagen",
+    
+    "saved": {
+      "title": "Antwort gespeichert",
+      "general": "Ihre Antwort wurde sicher gespeichert.",
+      "sensitive": "Ihre persönliche Antwort wurde entsprechend Ihren Privacy-Einstellungen gespeichert.",
+      "intimate": "Ihre intime Antwort wurde nur lokal auf Ihrem Gerät gespeichert."
+    },
+    
+    "sensitivity": {
+      "public": "Öffentlich",
+      "sensitive": "Sensitiv",
+      "intimate": "Intim"
+    }
+  },
+  
+  "content": {
+    "modes": {
+      "title": "Inhalts-Modus wählen",
+      "static": {
+        "title": "Statisch",
+        "description": "Bewährte, vordefinierte Fragen und Übungen"
+      },
+      "hybrid": {
+        "title": "Hybrid",
+        "description": "Kombination aus statischen und KI-generierten Inhalten"
+      },
+      "ai": {
+        "title": "KI-Enhanced",
+        "description": "Vollständig personalisierte KI-generierte Inhalte"
+      }
+    }
+  },
+  
+  "storage": {
+    "localOnly": {
+      "title": "Nur lokal",
+      "description": "Auf Gerät gespeichert"
+    },
+    "cloudSafe": {
+      "title": "Cloud-sicher",
+      "description": "Verschlüsselt gespeichert"
+    },
+    "aiEnabled": {
+      "title": "KI-optimiert",
+      "description": "Für KI-Verbesserung"
+    }
+  },
+  
+  "sensitivity": {
+    "public": "Öffentlich",
+    "sensitive": "Sensitiv",
+    "intimate": "Intim"
+  },
+  
+  "common": {
+    "ok": "OK",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "loading": "Laden...",
+    "error": "Fehler"
+  }
+}

@@ -14,6 +14,9 @@ import deModules from "../translations/de/modules.json"; // Neue Module-Überset
 import deKlareMethod from "../translations/de/klareMethod.json"; // KlareMethod-Übersetzungen
 import deJournal from "../translations/de/journal.json"; // Journal-Übersetzungen
 import deJournalEditor from "../translations/de/journalEditor.json"; // JournalEditor-Übersetzungen
+import deOnboarding from "../translations/de/onboarding.json"; // Onboarding-Übersetzungen
+import deAi from "../translations/de/ai.json"; // AI-Übersetzungen
+import dePrivacy from "../translations/de/privacy.json"; // Privacy-Übersetzungen
 
 // Englisch
 import enCommon from "../translations/en/common.json";
@@ -26,6 +29,9 @@ import enModules from "../translations/en/modules.json"; // Neue Module-Überset
 import enKlareMethod from "../translations/en/klareMethod.json"; // KlareMethod-Übersetzungen
 import enJournal from "../translations/en/journal.json"; // Journal-Übersetzungen
 import enJournalEditor from "../translations/en/journalEditor.json"; // JournalEditor-Übersetzungen
+import enOnboarding from "../translations/en/onboarding.json"; // Onboarding-Übersetzungen
+import enAi from "../translations/en/ai.json"; // AI-Übersetzungen
+import enPrivacy from "../translations/en/privacy.json"; // Privacy-Übersetzungen
 
 // Ressourcen-Bundle erstellen
 const resources = {
@@ -40,6 +46,9 @@ const resources = {
     klareMethod: deKlareMethod,
     journal: deJournal,
     journalEditor: deJournalEditor,
+    onboarding: deOnboarding,
+    ai: deAi,
+    privacy: dePrivacy,
   },
   en: {
     common: enCommon,
@@ -52,6 +61,9 @@ const resources = {
     klareMethod: enKlareMethod,
     journal: enJournal,
     journalEditor: enJournalEditor,
+    onboarding: enOnboarding,
+    ai: enAi,
+    privacy: enPrivacy,
   },
 };
 
@@ -119,7 +131,7 @@ i18n.use(initReactI18next).init({
   lng: language,
   fallbackLng: "de",
   supportedLngs: SUPPORTED_LANGUAGES,
-  ns: ["common", "profile", "navigation", "lifeWheel", "auth", "modules", "klareMethod", "journal", "journalEditor"], // JournalEditor-Namespace hinzufügen
+  ns: ["common", "profile", "navigation", "lifeWheel", "auth", "modules", "klareMethod", "journal", "journalEditor", "onboarding", "ai", "privacy"], // Alle Namespaces hinzufügen
   defaultNS: "common",
   fallbackNS: "common",
   interpolation: {

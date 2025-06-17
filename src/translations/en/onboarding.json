@@ -1,0 +1,223 @@
+{
+  "welcome": {
+    "title": "Welcome to CLEAR",
+    "subtitle": "Discover your authentic strength and find clarity in all areas of life",
+    "method_title": "The CLEAR Method",
+    "method_steps": {
+      "c": "Clarity",
+      "l": "Liveliness",
+      "e": "Evolvement",
+      "a": "Action",
+      "r": "Realization"
+    },
+    "benefits_title": "What awaits you?",
+    "benefits": {
+      "personal_growth": {
+        "title": "Personal Growth",
+        "description": "Discover your potential and develop continuously"
+      },
+      "ai_guidance": {
+        "title": "AI-Powered Guidance",
+        "description": "Receive personalized impulses and questions based on your progress"
+      },
+      "privacy_first": {
+        "title": "Privacy First",
+        "description": "Your data stays with you - local storage and full control"
+      },
+      "science_based": {
+        "title": "Science-Based",
+        "description": "Based on proven coaching methods and psychological insights"
+      }
+    },
+    "get_started": "Get Started",
+    "footer_text": "Begin your journey to more clarity and authenticity"
+  },
+  "ai_intro": {
+    "title": "Your AI Coach",
+    "subtitle": "Learn how artificial intelligence can support your personal development",
+    "features": {
+      "personalized_guidance": {
+        "title": "Personalized Guidance",
+        "description": "Customized questions and exercises based on your goals and progress"
+      },
+      "adaptive_questions": {
+        "title": "Adaptive Questions",
+        "description": "Intelligent reflection questions that adapt to your development"
+      },
+      "progress_insights": {
+        "title": "Progress Insights",
+        "description": "Recognize patterns and developments in your personal journey"
+      },
+      "privacy_guaranteed": {
+        "title": "Privacy Guaranteed",
+        "description": "All AI features respect your privacy and data control"
+      }
+    },
+    "enable_ai": "Enable AI Features",
+    "ai_enabled_description": "You'll receive personalized support and adaptive content based on your needs.",
+    "ai_disabled_description": "You'll use standard content without AI personalization. You can change this anytime.",
+    "safety_title": "Your Safety is Guaranteed",
+    "safety": {
+      "local_first": "Your data remains stored locally on your device",
+      "gdpr_compliant": "Fully GDPR compliant and European data protection standards",
+      "always_optional": "AI features are always optional and can be disabled anytime",
+      "transparent_processing": "Transparent processing - you always know what's happening"
+    }
+  },
+  "privacy": {
+    "title": "Privacy Settings",
+    "subtitle": "Choose how your data should be processed. You have full control.",
+    "data_processing": {
+      "title": "Choose Data Processing",
+      "info_title": "Data Processing Information",
+      "local": {
+        "title": "Local Only",
+        "description": "All data stays on your device",
+        "info": "Your data is stored exclusively locally on your device. No cloud sync, no AI features, maximum privacy."
+      },
+      "cloud": {
+        "title": "Cloud Sync",
+        "description": "Synchronization between devices possible",
+        "info": "Your data is stored encrypted in the cloud so you can use it across multiple devices. No AI processing."
+      },
+      "ai_enabled": {
+        "title": "AI-Enhanced",
+        "description": "Personalized AI support activated",
+        "info": "Enables personalized AI features with highest data protection standards. Your data is only used for your personal development."
+      }
+    },
+    "additional_settings": {
+      "title": "Additional Settings"
+    },
+    "settings": {
+      "analytics": {
+        "title": "Usage Statistics",
+        "description": "Anonymous usage data for app improvement"
+      },
+      "crashReporting": {
+        "title": "Crash Reports",
+        "description": "Automatic error reports for better stability"
+      },
+      "marketing": {
+        "title": "Marketing Communication",
+        "description": "Information about new features and updates"
+      },
+      "aiFeatures": {
+        "title": "AI Features",
+        "description": "Personalized content and intelligent suggestions"
+      },
+      "personalInsights": {
+        "title": "Personal Insights",
+        "description": "Analysis of your progress and development patterns"
+      }
+    },
+    "gdpr": {
+      "title": "GDPR Compliance",
+      "description": "Your rights under the General Data Protection Regulation are fully guaranteed:",
+      "rights": {
+        "data_access": "Full access to your data",
+        "data_portability": "Export your data in standardized formats",
+        "data_deletion": "Deletion of your data upon request",
+        "consent_withdrawal": "Withdrawal of consent possible at any time"
+      }
+    }
+  },
+  "profile": {
+    "title": "Create Your Profile",
+    "subtitle": "Help us adapt the app to your needs",
+    "basic_info": {
+      "title": "Basic Information",
+      "first_name": "First Name",
+      "first_name_placeholder": "What should we call you?",
+      "preferred_name": "Preferred Name",
+      "preferred_name_placeholder": "Optional: Nickname or preferred name",
+      "age_range": "Age Range"
+    },
+    "goals": {
+      "title": "Your Main Goals",
+      "description": "Choose up to 3 areas that are particularly important to you:",
+      "options": {
+        "self_awareness": "Self-Awareness",
+        "stress_reduction": "Stress Reduction",
+        "life_balance": "Life Balance",
+        "career_clarity": "Career Clarity",
+        "relationships": "Relationships",
+        "personal_growth": "Personal Growth",
+        "confidence": "Confidence",
+        "decision_making": "Decision Making"
+      }
+    },
+    "challenges": {
+      "title": "Current Challenges",
+      "description": "What are you currently dealing with? (Multiple selection possible)",
+      "options": {
+        "overwhelm": "Overwhelm",
+        "lack_direction": "Lack of Direction",
+        "procrastination": "Procrastination",
+        "self_doubt": "Self-Doubt",
+        "work_life_balance": "Work-Life Balance",
+        "communication": "Communication",
+        "motivation": "Motivation",
+        "change_resistance": "Change Resistance"
+      }
+    },
+    "experience": {
+      "title": "Experience & Commitment",
+      "level": "Your experience with self-reflection",
+      "levels": {
+        "beginner": "Beginner",
+        "some_experience": "Some Experience",
+        "experienced": "Experienced"
+      },
+      "time_commitment": "How much time would you like to invest daily?",
+      "time_options": {
+        "5_mins": "5 Minutes",
+        "10_mins": "10 Minutes",
+        "20_mins": "20 Minutes",
+        "30_mins": "30+ Minutes"
+      }
+    }
+  },
+  "life_wheel": {
+    "title": "Your Life Wheel",
+    "subtitle": "Rate your current status and set goals for each area of life",
+    "progress": "Area {{current}} of {{total}}",
+    "current_satisfaction": "Current Satisfaction",
+    "target_satisfaction": "Target Satisfaction",
+    "area_descriptions": {
+      "health": "Physical and mental health, fitness, well-being",
+      "career": "Professional fulfillment, career development, workplace",
+      "relationships": "Family, friends, partnership, social contacts",
+      "personal_growth": "Learning, development, hobbies, creativity",
+      "finances": "Financial security, income, investments",
+      "fun_recreation": "Leisure, relaxation, fun, adventure",
+      "physical_environment": "Home, workplace, environment",
+      "contribution": "Meaningful work, volunteering, contribution to society"
+    }
+  },
+  "complete": {
+    "congratulations": "Success!",
+    "welcome_message": "Welcome to your personal development journey with the CLEAR Method",
+    "setup_complete": "Your setup is complete:",
+    "stats": {
+      "life_wheel_areas": "Life Wheel Areas",
+      "current_average": "Current Average",
+      "target_average": "Target Average",
+      "improvement_potential": "Improvement Potential:",
+      "points": "Points"
+    },
+    "next_steps": {
+      "title": "Your next steps:",
+      "explore_module": "Explore First Module",
+      "explore_module_desc": "Begin with your first CLEAR step",
+      "refine_wheel": "Refine Life Wheel",
+      "refine_wheel_desc": "Refine your goals in the 8 life areas",
+      "daily_reflection": "Daily Reflection",
+      "daily_reflection_desc": "Use the journal function for your thoughts"
+    },
+    "actions": {
+      "start_journey": "Start Journey",
+      "explore_first": "Explore Later"
+    }
+  }
+}

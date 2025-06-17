@@ -65,6 +65,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
+  const { t, i18n } = useTranslation("lifeWheel");
+
   const theme = useTheme();
   const isDarkMode = theme.dark;
   const themeColors = isDarkMode ? darkKlareColors : lightKlareColors;
@@ -141,7 +143,7 @@ const TabNavigator = () => {
         name="LifeWheel"
         component={LifeWheelScreen}
         options={{
-          title: "Lebensrad",
+          title: t("title"),
           tabBarAccessibilityLabel: "Life Wheel Tab",
           header: (props) => <CustomHeader />,
           tabBarTestID: "lifewheel-tab",
@@ -175,6 +177,7 @@ const TabNavigator = () => {
 import EmailConfirmationScreen from "../components/auth/EmailConfirmationScreen";
 // Debug-Screen importieren
 import DebugScreen from "../screens/DebugScreen";
+import { useTranslation } from "react-i18next";
 
 const MainNavigator = () => {
   // State für Force-Update nach OAuth
@@ -215,27 +218,16 @@ const MainNavigator = () => {
         );
 
         // Benutzerprofil nur erstellen, wenn die E-Mail bestätigt ist
-        if (isVerified) {
-          try {
-            // Erstelle das Benutzerprofil, falls es noch nicht existiert
-            console.log("MainNavigator: Creating user profile if needed...");
-            await useUserStore.getState().createUserProfileIfNeeded();
-
-            // Lade die kompletten Benutzerdaten
-            console.log("MainNavigator: Loading user data...");
-            await useUserStore.getState().loadUserData();
-            console.log("User data loaded successfully in MainNavigator");
-          } catch (error) {
-            console.error("Error loading user after session check:", error);
-            // Bei Fehler Loading-State beenden
+          // DISABLED TO PREVENT INFINITE LOOP
+          // SIMPLIFIED: Only create profile, App.tsx will handle loadUserData
+          if (isVerified) {
+            console.log("MainNavigator: User verified - letting App.tsx handle data loading");
+            // await useUserStore.getState().createUserProfileIfNeeded(); // DISABLED TEMPORARILY
+          } else {
+            console.log("Email not verified, clearing user");
+            useUserStore.getState().clearUser();
             useUserStore.setState({ isLoading: false });
           }
-        } else {
-          // Wenn die E-Mail nicht bestätigt ist, User löschen und Loading beenden
-          console.log("Email not verified, clearing user");
-          useUserStore.getState().clearUser();
-          useUserStore.setState({ isLoading: false });
-        }
       } else {
         console.log("No active session found in MainNavigator");
         setIsEmailVerified(null); // Kein Benutzer, daher keine Verifizierung
@@ -243,18 +235,43 @@ const MainNavigator = () => {
     }
 
     checkSession();
-  }, [loadUserData, forceRefresh]);
+  }, [forceRefresh]); // FIXED: Removed loadUserData dependency to prevent infinite loop
 
   // Deep Link-Handler für Authentifizierungs-Callbacks
   useEffect(() => {
     // Funktion zum Verarbeiten von OAuth-Callbacks
-    const handleOAuthCallback = ({ url }: { url: string }) => {
+    const handleOAuthCallback = async ({ url }: { url: string }) => {
       if (url && url.includes("auth/callback")) {
-        console.log("Auth callback detected in MainNavigator:", url);
-        // Erzwinge Neuprüfung der Session
-        setTimeout(() => {
-          setForceRefresh((prev) => prev + 1);
-        }, 1000); // Kleiner Delay für stabile Verarbeitung
+        console.log("🔗 Auth callback detected in MainNavigator:", url);
+        
+        // SOFORTIGE Verarbeitung ohne Delay
+        console.log("🚀 Processing OAuth callback immediately...");
+        
+        // Session sofort neu laden
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          
+          if (sessionData?.session) {
+            console.log("✅ Session found after callback, loading user data...");
+            
+            // User Store sofort aktualisieren
+            useUserStore.setState({ 
+              user: sessionData.session.user,
+              isLoading: false 
+            });
+            
+            // User-Daten laden
+            await useUserStore.getState().createUserProfileIfNeeded();
+            await useUserStore.getState().loadUserData();
+            
+            console.log("✅ User data loaded successfully after OAuth callback");
+          }
+        } catch (error) {
+          console.error("❌ Error processing OAuth callback:", error);
+        }
+        
+        // Zusätzlich: Force-Refresh als Backup
+        setForceRefresh((prev) => prev + 1);
       }
     };
 
@@ -297,19 +314,10 @@ const MainNavigator = () => {
             isVerified ? "Verified" : "Not verified",
           );
 
-          // Nur beim Bestätigen oder Anmelden mit bestätigter E-Mail Benutzerdaten laden
+          // REMOVED ALL loadUserData() calls to prevent infinite loop
           if (isVerified) {
-            try {
-              // Lade die kompletten Benutzerdaten nach erfolgreichem OAuth
-              console.log("Loading user data after OAuth success...");
-              await useUserStore.getState().loadUserData();
-              console.log("User data loaded successfully after OAuth");
-            } catch (error) {
-              console.error(
-                "Error loading user data after auth state change:",
-                error,
-              );
-            }
+            // The App.tsx useEffect will handle data loading
+            console.log("Auth listener: User verified - App.tsx will handle data loading");
           } else {
             // Wenn die E-Mail nicht bestätigt ist, User löschen und Loading beenden
             useUserStore.getState().clearUser();

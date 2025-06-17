@@ -1,5 +1,6 @@
 // src/utils/journalDebug.ts
 
+import { debugLog } from './debugConfig';
 import { journalService } from '../services/JournalService';
 import i18n from './i18n';
 
@@ -9,10 +10,9 @@ import i18n from './i18n';
  * Übersetzungen zu testen
  */
 export const debugJournalTranslations = async () => {
-  if (!__DEV__) return;
-
-  console.log('===== JOURNAL TRANSLATION DEBUG =====');
-  console.log(`Current language: ${i18n.language}`);
+  debugLog('I18N_DEBUG', '=== JOURNAL TRANSLATION DEBUG ===', {
+    currentLanguage: i18n.language
+  });
   
   // Teste beide Sprachen
   const languages = ['de', 'en'];

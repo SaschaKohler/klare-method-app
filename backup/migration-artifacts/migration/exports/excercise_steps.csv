@@ -1,0 +1,784 @@
+id,module_content_id,title,instructions,step_type,options,order_index,created_at,updated_at,translations
+e9a9cfd3-20c1-4e30-9b20-700a1a26ae6f,19e3c13e-110f-4b42-bfed-981d2c59df86,Einführung zum Entscheidungskompass,"Der Entscheidungskompass ist ein strukturierter Ansatz, um Entscheidungen im Einklang mit Ihren Werten und Ihrer Vision zu treffen. Er integriert rationale Analyse mit intuitiver Weisheit und schafft so kongruente Entscheidungen.
+
+Viele Menschen treffen Entscheidungen entweder rein rational (was oft emotionale Aspekte ignoriert) oder rein emotional (was manchmal langfristige Konsequenzen übersieht). Der Entscheidungskompass verbindet beide Ansätze.
+
+In dieser Übung lernen Sie, wie Sie diesen Kompass für Ihre eigenen Entscheidungen nutzen können - von alltäglichen Wahlmöglichkeiten bis hin zu lebensverändernden Entscheidungen.",introduction,"{""next_button_text"":""Beginnen""}",1,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Decision Compass Step"",""instructions"":""Continue with the decision compass process. Use the systematic approach to make aligned choices.""}}"
+3dacd0b4-9c3b-42e7-a84c-b7b4175743ae,19e3c13e-110f-4b42-bfed-981d2c59df86,Entscheidungssituation definieren,"Denken Sie an eine aktuelle Entscheidung, die Sie treffen müssen oder möchten. Dies kann eine kleine Alltagsentscheidung oder eine größere Lebensentscheidung sein.
+
+Beschreiben Sie die Entscheidungssituation so klar wie möglich:
+- Um welche Entscheidung geht es genau?
+- Welche Optionen stehen zur Auswahl?
+- Bis wann muss die Entscheidung getroffen werden?
+- Wer ist von dieser Entscheidung betroffen?
+
+Versuchen Sie, die Situation ohne Verzerrung oder voreilige Schlussfolgerungen zu beschreiben. Fokussieren Sie sich zunächst nur auf die Fakten der Situation.",reflection,"{""min_length"":50,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie Ihre aktuelle Entscheidungssituation:""}",2,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Define the Decision"",""instructions"":""Clearly articulate the decision you need to make. What exactly are you trying to decide? The clearer your question, the better your answer will be.""}}"
+24fa7e29-1299-4bfa-afae-a44a92f7b45f,19e3c13e-110f-4b42-bfed-981d2c59df86,Werte-Prüfung,"Jetzt werden Sie Ihre Entscheidungsoptionen anhand Ihrer Kernwerte überprüfen. 
+
+Rufen Sie sich Ihre Top-5-Werte in Erinnerung (die Sie in der Werte-Hierarchie-Übung definiert haben). Für jede Option in Ihrer Entscheidungssituation, bewerten Sie:
+
+1. Inwiefern unterstützt oder verletzt diese Option jeden Ihrer Kernwerte?
+2. Gibt es Wertekonflikte zwischen verschiedenen Optionen?
+3. Welche Option ist am besten mit Ihrer gesamten Wertehierarchie vereinbar?
+
+Denken Sie daran: Es geht nicht nur darum, einzelne Werte zu erfüllen, sondern um die Gesamtausrichtung mit Ihrer Wertehierarchie.",reflection,"{""min_length"":100,""next_button_text"":""Weiter"",""reflection_prompt"":""Analysieren Sie Ihre Entscheidungsoptionen im Hinblick auf Ihre Kernwerte:""}",3,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Values Check"",""instructions"":""Review your core values. How do the different options align with what truly matters to you? Values-based decisions lead to greater satisfaction.""}}"
+dd1b9184-b86e-4651-8509-e3795e66321f,19e3c13e-110f-4b42-bfed-981d2c59df86,Visions-Prüfung,"Nun werden Sie Ihre Entscheidungsoptionen im Kontext Ihrer größeren Lebensvision betrachten.
+
+Denken Sie an Ihr Vision Board und Ihre langfristigen Ziele. Für jede Option in Ihrer Entscheidungssituation, reflektieren Sie:
+
+1. Inwiefern bringt Sie diese Option Ihrer Vision näher oder entfernt Sie davon?
+2. Wie passt diese Option in das Gesamtbild Ihres gewünschten Lebens?
+3. Würde Ihr zukünftiges Selbst diese Entscheidung gutheißen?
+
+Es geht darum, die kurzfristigen Konsequenzen einer Entscheidung mit Ihren langfristigen Aspirationen in Einklang zu bringen.",reflection,"{""min_length"":100,""next_button_text"":""Weiter"",""reflection_prompt"":""Analysieren Sie Ihre Entscheidungsoptionen im Hinblick auf Ihre Lebensvision:""}",4,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Decision Compass Step"",""instructions"":""Continue with the decision compass process. Use the systematic approach to make aligned choices.""}}"
+61ca436c-96b8-47d2-ba1b-e00cfff721af,19e3c13e-110f-4b42-bfed-981d2c59df86,Körperweisheit einbeziehen,"Unser Körper verfügt über eine eigene Form von Intelligenz, die oft unbewusste Muster und Informationen integriert, die unserem bewussten Denken nicht zugänglich sind.
+
+Für jede Ihrer Entscheidungsoptionen, führen Sie folgende Übung durch:
+
+1. Schließen Sie die Augen und atmen Sie einige Male tief durch
+2. Stellen Sie sich vor, Sie hätten sich bereits für Option A entschieden
+3. Beobachten Sie aufmerksam, wie sich Ihr Körper dabei anfühlt:
+   - Gibt es Anspannung oder Entspannung?
+   - Fühlt sich Ihr Atem frei oder eingeschränkt an?
+   - Spüren Sie Weite oder Enge in Ihrer Brust?
+   - Gibt es ein Gefühl von Leichtigkeit oder Schwere?
+4. Wiederholen Sie den Prozess für jede Option
+
+Diese körperlichen Reaktionen können wertvolle Hinweise auf Ihre tiefere Weisheit geben.",reflection,"{""min_length"":100,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie Ihre körperlichen Reaktionen auf die verschiedenen Optionen:""}",5,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Decision Compass Step"",""instructions"":""Continue with the decision compass process. Use the systematic approach to make aligned choices.""}}"
+dece0f70-441e-4b78-a7f7-369ad70019d5,19e3c13e-110f-4b42-bfed-981d2c59df86,Integration und Entscheidung,"Nun ist es Zeit, alle Aspekte zu integrieren und zu einer kongruenten Entscheidung zu kommen.
+
+Betrachten Sie:
+- Was haben Sie aus der Werte-Prüfung gelernt?
+- Was hat die Visions-Prüfung ergeben?
+- Was hat Ihre Körperweisheit Ihnen mitgeteilt?
+
+Manchmal stimmen alle drei Perspektiven überein, was die Entscheidung klar macht. Oft gibt es jedoch scheinbare Widersprüche, die eine tiefere Integration erfordern.
+
+Basierend auf allen drei Perspektiven, welche Entscheidung erscheint Ihnen am kongruentesten - also am besten mit Ihren Werten, Ihrer Vision und Ihrer tieferen Weisheit übereinstimmend?",reflection,"{""min_length"":100,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie Ihre integrierte Entscheidung und die Gründe dafür:""}",6,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Integration and Decision"",""instructions"":""Integrate all the information - values, consequences, and intuition. Make your decision based on this comprehensive understanding.""}}"
+413f915d-015f-4dfc-9814-59fd2ce26471,19e3c13e-110f-4b42-bfed-981d2c59df86,Umsetzungsplanung,"Eine Entscheidung ist nur so gut wie ihre Umsetzung. Planen Sie nun die konkreten nächsten Schritte, um Ihre Entscheidung in die Tat umzusetzen.
+
+Definieren Sie:
+1. Welche konkreten Maßnahmen werden Sie ergreifen?
+2. Bis wann werden Sie diese Maßnahmen umsetzen?
+3. Welche möglichen Hindernisse könnten auftreten und wie werden Sie damit umgehen?
+4. Wer kann Sie bei der Umsetzung unterstützen?
+5. Wie werden Sie den Fortschritt überprüfen?
+
+Je spezifischer Ihr Plan ist, desto wahrscheinlicher ist es, dass Sie Ihre Entscheidung erfolgreich umsetzen werden.",reflection,"{""min_length"":100,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie Ihren Umsetzungsplan:""}",7,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Action Planning"",""instructions"":""Create a concrete action plan for implementing your decision. What are the first steps? When will you take them?""}}"
+7bc6c95a-5aa9-43ea-8eb8-16d49e766d4c,19e3c13e-110f-4b42-bfed-981d2c59df86,Reflexion und Abschluss,"Herzlichen Glückwunsch! Sie haben den Entscheidungskompass erfolgreich angewendet und eine kongruente Entscheidung getroffen.
+
+Nehmen Sie sich einen Moment Zeit, um über den Prozess zu reflektieren:
+
+- Was hat Sie überrascht am Entscheidungskompass-Prozess?
+- Welcher Aspekt (Werte, Vision, Körperweisheit) war am einflussreichsten für Ihre Entscheidung?
+- Wie fühlt sich diese Entscheidung im Vergleich zu früheren Entscheidungen an?
+- Wie werden Sie den Entscheidungskompass in Zukunft nutzen?
+
+Der Entscheidungskompass ist ein Werkzeug, das mit der Übung immer intuitiver wird. Mit der Zeit werden Sie in der Lage sein, diesen Prozess schneller und müheloser durchzuführen, was zu einem Leben führt, das durchgängig mit Ihren tiefsten Werten und Ihrer Vision übereinstimmt.",reflection,"{""min_length"":50,""next_button_text"":""Abschließen"",""reflection_prompt"":""Teilen Sie Ihre abschließenden Gedanken zu dieser Übung:""}",8,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Decision Compass Step"",""instructions"":""Continue with the decision compass process. Use the systematic approach to make aligned choices.""}}"
+c3e1b8ed-4164-4873-8df5-3b26035d385f,1a8c268a-6990-4978-8552-ff671f0c6435,Einführung zum Lebensrad,"Das Lebensrad ist ein leistungsstarkes Werkzeug zur Selbstreflexion. Es hilft Ihnen, einen klaren Überblick über verschiedene Lebensbereiche zu gewinnen und Ungleichgewichte zu identifizieren.
+
+In dieser Übung werden Sie acht zentrale Lebensbereiche auf einer Skala von 1 (sehr unzufrieden) bis 10 (vollkommen zufrieden) bewerten. Nehmen Sie sich Zeit für diese Bewertung und seien Sie ehrlich zu sich selbst. Es gibt keine richtigen oder falschen Antworten - es geht nur um Ihre persönliche Einschätzung Ihrer aktuellen Situation.
+
+Ihre Bewertungen werden automatisch in Ihr Lebensrad übertragen, das Sie später jederzeit in der App einsehen und aktualisieren können.",reflection,{},1,2025-04-10 09:44:01.085887+00,2025-04-10 09:44:01.085887+00,"{""en"":{""title"":""Life Wheel Step"",""instructions"":""Continue with your life wheel analysis. Follow the guidance to gain clarity about your current life situation.""}}"
+431e2612-b347-4c0b-9b2e-7c9a72144abe,1a8c268a-6990-4978-8552-ff671f0c6435,Gesundheit bewerten,"Wie zufrieden sind Sie mit Ihrem körperlichen und mentalen Wohlbefinden? Berücksichtigen Sie dabei:
+
+- Ernährung und Essgewohnheiten
+- Bewegung und Sport
+- Schlafqualität und -dauer
+- Stresslevel und Stressbewältigung
+- Energielevel im Alltag
+- Umgang mit Gesundheitsproblemen
+
+Bewerten Sie Ihren aktuellen Zustand auf einer Skala von 1-10.",input,"{""step"":1,""max_value"":10,""min_value"":1,""input_type"":""slider"",""default_value"":5,""lifewheel_area"":""health"",""target_question"":""Welchen Wert würden Sie gerne erreichen?""}",2,2025-04-10 09:44:01.085887+00,2025-04-10 09:44:01.085887+00,"{""en"":{""title"":""Life Wheel Step"",""instructions"":""Continue with your life wheel analysis. Follow the guidance to gain clarity about your current life situation.""}}"
+08ed3afe-e658-42be-8e9f-f086a01d6256,1a8c268a-6990-4978-8552-ff671f0c6435,Finanzen bewerten,"Wie zufrieden sind Sie mit Ihrer finanziellen Situation? Berücksichtigen Sie dabei:
+
+- Einkommen und finanzielle Sicherheit
+- Schulden und Verbindlichkeiten
+- Sparmöglichkeiten und Rücklagen
+- Altersvorsorge
+- Ausgaben und Budget
+- Finanzielles Wissen und Kompetenz
+
+Bewerten Sie Ihren aktuellen Zustand auf einer Skala von 1-10.",input,"{""step"":1,""max_value"":10,""min_value"":1,""input_type"":""slider"",""default_value"":5,""lifewheel_area"":""career"",""target_question"":""Welchen Wert würden Sie gerne erreichen?""}",3,2025-05-12 08:41:09.351672+00,2025-05-12 08:41:09.351672+00,"{""en"":{""title"":""Life Wheel Step"",""instructions"":""Continue with your life wheel analysis. Follow the guidance to gain clarity about your current life situation.""}}"
+a8c7e8b2-e255-41b4-84d3-3ea747b83696,1a8c268a-6990-4978-8552-ff671f0c6435,Beziehungen bewerten,"Wie zufrieden sind Sie mit Ihren Beziehungen und Ihrem sozialen Leben? Berücksichtigen Sie dabei:
+
+- Partnerschaft oder Ehe
+- Dating-Leben (falls zutreffend)
+- Qualität und Tiefe Ihrer Freundschaften
+- Kommunikation und emotionale Verbindung
+- Unterstützung und Vertrauen
+- Balance zwischen Geben und Nehmen
+
+Bewerten Sie Ihren aktuellen Zustand auf einer Skala von 1-10.",input,"{""step"":1,""max_value"":10,""min_value"":1,""input_type"":""slider"",""default_value"":5,""lifewheel_area"":""relationships"",""target_question"":""Welchen Wert würden Sie gerne erreichen?""}",4,2025-05-12 08:41:09.351672+00,2025-05-12 08:41:09.351672+00,"{""en"":{""title"":""Life Wheel Step"",""instructions"":""Continue with your life wheel analysis. Follow the guidance to gain clarity about your current life situation.""}}"
+3054ca34-4218-45f7-9dcc-28acd875314c,1a8c268a-6990-4978-8552-ff671f0c6435,Familie bewerten,"Wie zufrieden sind Sie mit Ihren Familienbeziehungen? Berücksichtigen Sie dabei:
+
+- Verhältnis zu Eltern und Geschwistern
+- Beziehung zu Kindern (falls vorhanden)
+- Verhältnis zur erweiterten Familie
+- Familiäre Atmosphäre und Kommunikation
+- Gemeinsame Zeit und Aktivitäten
+- Unterstützung innerhalb der Familie
+
+Bewerten Sie Ihren aktuellen Zustand auf einer Skala von 1-10.",input,"{""step"":1,""max_value"":10,""min_value"":1,""input_type"":""slider"",""default_value"":5,""lifewheel_area"":""family"",""target_question"":""Welchen Wert würden Sie gerne erreichen?""}",5,2025-05-12 08:41:09.351672+00,2025-05-12 08:41:09.351672+00,"{""en"":{""title"":""Life Wheel Step"",""instructions"":""Continue with your life wheel analysis. Follow the guidance to gain clarity about your current life situation.""}}"
+641c8172-ad64-4db8-bb0a-5cbb6ae9921e,1a8c268a-6990-4978-8552-ff671f0c6435,Persönliches Wachstum bewerten,"Wie zufrieden sind Sie mit Ihrer persönlichen Entwicklung? Berücksichtigen Sie dabei:
+
+- Weiterbildung und Lernen
+- Persönliche Ziele und deren Verwirklichung
+- Entwicklung neuer Fähigkeiten
+- Selbstreflexion und Selbsterkenntnis
+- Überwindung von Herausforderungen
+- Engagement für kontinuierliche Verbesserung
+
+Bewerten Sie Ihren aktuellen Zustand auf einer Skala von 1-10.",input,"{""step"":1,""max_value"":10,""min_value"":1,""input_type"":""slider"",""default_value"":5,""lifewheel_area"":""personalGrowth"",""target_question"":""Welchen Wert würden Sie gerne erreichen?""}",6,2025-05-12 08:41:09.351672+00,2025-05-12 08:41:09.351672+00,"{""en"":{""title"":""Life Wheel Step"",""instructions"":""Continue with your life wheel analysis. Follow the guidance to gain clarity about your current life situation.""}}"
+ae83036a-9ddf-4d6c-aa8f-3f42e6046234,1a8c268a-6990-4978-8552-ff671f0c6435,Freizeit bewerten,"Wie zufrieden sind Sie mit Ihrer Freizeit und Erholung? Berücksichtigen Sie dabei:
+
+- Ausreichend Zeit für Hobbys und Interessen
+- Balance zwischen Aktivität und Entspannung
+- Qualität der Freizeitaktivitäten
+- Urlaub und Reisen
+- Kreative Ausdrucksmöglichkeiten
+- Zufriedenheit mit der Freizeitgestaltung
+
+Bewerten Sie Ihren aktuellen Zustand auf einer Skala von 1-10.",input,"{""step"":1,""max_value"":10,""min_value"":1,""input_type"":""slider"",""default_value"":5,""lifewheel_area"":""leisure"",""target_question"":""Welchen Wert würden Sie gerne erreichen?""}",7,2025-05-12 08:41:09.351672+00,2025-05-12 08:41:09.351672+00,"{""en"":{""title"":""Life Wheel Step"",""instructions"":""Continue with your life wheel analysis. Follow the guidance to gain clarity about your current life situation.""}}"
+20af1916-a92c-442d-86a2-a8f0bb032cd2,1a8c268a-6990-4978-8552-ff671f0c6435,Spiritualität bewerten,"Wie zufrieden sind Sie mit Ihrer spirituellen oder inneren Entwicklung? Berücksichtigen Sie dabei:
+
+- Verbindung zu höheren Werten oder Zielen
+- Gefühl von Sinn und Zweck im Leben
+- Spirituelle oder religiöse Praktiken (falls zutreffend)
+- Innere Ruhe und Ausgeglichenheit
+- Dankbarkeit und Wertschätzung
+- Verbundenheit mit etwas Größerem
+
+Bewerten Sie Ihren aktuellen Zustand auf einer Skala von 1-10.",input,"{""step"":1,""max_value"":10,""min_value"":1,""input_type"":""slider"",""default_value"":5,""lifewheel_area"":""spirituality"",""target_question"":""Welchen Wert würden Sie gerne erreichen?""}",8,2025-05-12 08:41:09.351672+00,2025-05-12 08:41:09.351672+00,"{""en"":{""title"":""Life Wheel Step"",""instructions"":""Continue with your life wheel analysis. Follow the guidance to gain clarity about your current life situation.""}}"
+72cc44a0-7e13-40a9-b6ec-8759b29338e5,1a8c268a-6990-4978-8552-ff671f0c6435,Ihr Lebensrad verstehen,"Betrachten Sie Ihr Lebensrad und reflektieren Sie:
+
+1. **Ungleichgewichte**: Welche Bereiche sind besonders niedrig bewertet? Welche überraschend hoch?
+
+2. **Zusammenhänge**: Wie beeinflussen sich die verschiedenen Bereiche gegenseitig? Zum Beispiel: Wie wirkt sich Ihre Gesundheit auf Ihre Karriere aus?
+
+3. **Prioritäten**: Welche 1-2 Bereiche würden, wenn verbessert, den größten positiven Einfluss auf Ihr gesamtes Leben haben?
+
+4. **Potenzial**: In welchen Bereichen sehen Sie das größte Verbesserungspotenzial?
+
+Notieren Sie Ihre Erkenntnisse:",journal,"{""min_length"":50,""placeholder"":""Meine Erkenntnisse aus dem Lebensrad...""}",9,2025-05-12 08:41:09.351672+00,2025-05-12 08:41:09.351672+00,"{""en"":{""title"":""Life Wheel Step"",""instructions"":""Continue with your life wheel analysis. Follow the guidance to gain clarity about your current life situation.""}}"
+7a358c12-358a-4985-a472-04a405343eb4,1a8c268a-6990-4978-8552-ff671f0c6435,Nächste Schritte,"Basierend auf Ihrer Lebensrad-Analyse, welche konkreten Schritte könnten Sie unternehmen, um mehr Ausgewogenheit in Ihr Leben zu bringen?
+
+Wählen Sie 1-2 Prioritätsbereiche und definieren Sie jeweils eine kleine, umsetzbare Maßnahme, die Sie in der kommenden Woche ergreifen können:",journal,"{""min_length"":30,""placeholder"":""In den nächsten 7 Tagen werde ich...""}",10,2025-05-12 08:41:09.351672+00,2025-05-12 08:41:09.351672+00,"{""en"":{""title"":""Life Wheel Step"",""instructions"":""Continue with your life wheel analysis. Follow the guidance to gain clarity about your current life situation.""}}"
+4a16d438-f4f2-4013-9970-e94f926e63be,3ec8be3d-a30c-4268-a187-b5b08d2cba27,Einführung in Inkongruenzen,"Inkongruenz bedeutet mangelnde Übereinstimmung oder Widersprüchlichkeit. In Bezug auf unsere persönliche Entwicklung können wir Inkongruenzen auf vier Ebenen erfahren:
+
+1. **Ebene der Aussagen**: Was wir sagen vs. was wir tun
+   Beispiel: ""Gesundheit ist mir wichtig"" während wir ungesund leben
+
+2. **Ebene der Werte**: Konkurrierende Werte in uns
+   Beispiel: Wunsch nach Sicherheit vs. Wunsch nach Abenteuern
+
+3. **Ebene der Identität**: Wer wir glauben zu sein vs. wer wir sein wollen
+   Beispiel: ""Ich bin ein geduldiger Mensch"" vs. ständige Ungeduld im Alltag
+
+4. **Ebene der Wahrnehmung**: Wie wir uns selbst sehen vs. wie andere uns sehen
+   Beispiel: Wir halten uns für hilfsbereit, andere erleben uns als kontrollierend
+
+Inkongruenzen verursachen innere Konflikte, kosten Energie und verhindern authentisches Handeln. Sie zu erkennen ist der erste Schritt zur Kongruenz - einem Zustand der inneren Harmonie, in dem all unsere Teile im Einklang sind.",reflection,{},1,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Incongruence Mapping Step"",""instructions"":""Continue mapping your inner conflicts to gain clarity about areas that need alignment.""}}"
+fcecc106-f7ec-4bad-9bdf-2961371de3de,3ec8be3d-a30c-4268-a187-b5b08d2cba27,Inkongruenzen auf der Aussage-Ebene,"Betrachten Sie Ihr Lebensrad und die Bereiche, die Sie als wichtig bewertet haben.
+
+Identifizieren Sie nun 1-2 Bereiche, in denen es eine Diskrepanz gibt zwischen:
+- Was Sie sagen, dass es Ihnen wichtig ist
+- Wie viel Zeit, Energie oder Aufmerksamkeit Sie tatsächlich investieren
+
+Beispiele:
+- ""Familie ist mir am wichtigsten"" vs. 60+ Stunden Arbeitswoche
+- ""Gesundheit hat Priorität"" vs. kaum Bewegung im Alltag
+- ""Persönliches Wachstum ist essenziell"" vs. keine Zeit für Lernen
+
+Beschreiben Sie Ihre identifizierten Inkongruenzen:",journal,"{""min_length"":30,""placeholder"":""Eine Inkongruenz zwischen meinen Aussagen und meinem Handeln ist...""}",2,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Incongruence Mapping Step"",""instructions"":""Continue mapping your inner conflicts to gain clarity about areas that need alignment.""}}"
+14877058-1238-42fd-9382-bd3bd17cb641,3ec8be3d-a30c-4268-a187-b5b08d2cba27,Inkongruenzen auf der Werte-Ebene,"Oft erleben wir innere Konflikte, weil verschiedene Werte in uns konkurrieren.
+
+Überlegen Sie:
+- Welche Ihrer Werte stehen manchmal im Konflikt?
+- In welchen Situationen erleben Sie ein inneres Hin und Her?
+
+Beispiele:
+- Freiheit vs. Sicherheit
+- Familie vs. Karriere
+- Ehrlichkeit vs. Harmonie
+- Selbstfürsorge vs. Fürsorge für andere
+
+Beschreiben Sie einen Werte-Konflikt, den Sie in sich tragen:",journal,"{""min_length"":30,""placeholder"":""Ein Werte-Konflikt, den ich in mir trage, ist...""}",3,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Incongruence Mapping Step"",""instructions"":""Continue mapping your inner conflicts to gain clarity about areas that need alignment.""}}"
+0118d4d0-7c50-4d66-a8ea-55f84ad2a925,3ec8be3d-a30c-4268-a187-b5b08d2cba27,Inkongruenzen auf der Identitäts-Ebene,"Manchmal gibt es eine Diskrepanz zwischen:
+- Wer wir glauben zu sein (Selbstbild)
+- Wie wir tatsächlich handeln
+- Wer wir sein wollen (ideales Selbst)
+
+Reflektieren Sie:
+- Gibt es Eigenschaften, die Sie sich zuschreiben, die aber nicht zu Ihrem tatsächlichen Verhalten passen?
+- Gibt es eine Kluft zwischen Ihrem aktuellen Selbst und Ihrem idealen Selbst?
+
+Beispiele:
+- ""Ich bin ein geduldiger Mensch"" vs. häufige Ungeduld im Alltag
+- ""Ich bin kreativ"" vs. kaum kreative Aktivitäten
+- ""Ich bin jemand, der Risiken eingeht"" vs. Vermeidung von Risiken
+
+Beschreiben Sie eine Identitäts-Inkongruenz, die Sie erkennen:",journal,"{""min_length"":30,""placeholder"":""Eine Inkongruenz in meinem Selbstbild ist...""}",4,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Incongruence Mapping Step"",""instructions"":""Continue mapping your inner conflicts to gain clarity about areas that need alignment.""}}"
+858f8293-c3f7-4280-bcd7-6365223ab17d,3ec8be3d-a30c-4268-a187-b5b08d2cba27,Inkongruenzen auf der Wahrnehmungs-Ebene,"Diese Ebene betrifft die Unterschiede zwischen:
+- Wie wir uns selbst sehen
+- Wie andere uns wahrnehmen
+
+Dies ist oft schwer zu erkennen, da wir blind für unsere blinden Flecken sind.
+
+Überlegen Sie:
+- Haben Sie schon Feedback erhalten, das nicht zu Ihrem Selbstbild passte?
+- Gibt es Verhaltensweisen, bei denen andere überrascht waren, als Sie sagten, dass Sie sich damit unwohl fühlen oder unsicher sind?
+
+Beispiele:
+- Sie halten sich für zurückhaltend, andere sehen Sie als bestimmt
+- Sie denken, Sie kommunizieren klar, andere finden Sie vage
+- Sie sehen sich als hilfsbereit, andere erleben Sie als kontrollierend
+
+Beschreiben Sie eine mögliche Wahrnehmungs-Inkongruenz:",journal,"{""min_length"":30,""placeholder"":""Eine mögliche Diskrepanz zwischen meiner Selbstwahrnehmung und der Wahrnehmung anderer könnte sein...""}",5,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Incongruence Mapping Step"",""instructions"":""Continue mapping your inner conflicts to gain clarity about areas that need alignment.""}}"
+3b2e1c32-be5c-486b-8cbf-8f997098c0b1,3ec8be3d-a30c-4268-a187-b5b08d2cba27,Deine Inkongruenz-Karte,"Betrachten Sie nun alle Inkongruenzen, die Sie identifiziert haben:
+
+1. Welche erscheint Ihnen am bedeutsamsten oder energieraubendsten?
+2. Gibt es Verbindungen oder Muster zwischen den verschiedenen Inkongruenzen?
+3. Welche würde, wenn aufgelöst, den größten positiven Einfluss auf Ihr Leben haben?
+
+Wählen Sie eine Prioritäts-Inkongruenz aus und beschreiben Sie sie im Detail:",journal,"{""min_length"":50,""placeholder"":""Die wichtigste Inkongruenz, an der ich arbeiten möchte, ist...""}",6,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Incongruence Mapping Step"",""instructions"":""Continue mapping your inner conflicts to gain clarity about areas that need alignment.""}}"
+2fbbe85c-1044-4d75-8dd8-d8daa847ddc2,3ec8be3d-a30c-4268-a187-b5b08d2cba27,Lösungsansätze entwickeln,"Für Ihre Prioritäts-Inkongruenz werden wir nun erste Lösungsansätze entwickeln.
+
+Überlegen Sie:
+1. Was ist der erste kleine Schritt, den Sie unternehmen könnten, um diese Inkongruenz zu verringern?
+2. Welche Ressourcen (Fähigkeiten, Unterstützung, Werkzeuge) könnten Ihnen dabei helfen?
+3. Welche Hindernisse könnten auftreten und wie könnten Sie diese überwinden?
+
+Notieren Sie Ihren Aktionsplan:",journal,"{""min_length"":50,""placeholder"":""Mein Aktionsplan zur Verringerung dieser Inkongruenz ist...""}",7,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Incongruence Mapping Step"",""instructions"":""Continue mapping your inner conflicts to gain clarity about areas that need alignment.""}}"
+6194377c-3918-4acb-adfd-452d66f4ac0d,4a5c228f-79c6-4e24-ae24-6d2625ec5123,Die Psychologie der Selbsttäuschung,"Selbsttäuschung ist ein universell menschliches Phänomen. Unser Gehirn ist darauf programmiert, kognitive Dissonanz zu vermeiden und ein kohärentes Selbstbild zu erhalten - manchmal auf Kosten der Realität.
+
+Häufige Formen der Selbsttäuschung:
+
+1. **Bestätigungsfehler**: Wir nehmen bevorzugt Informationen wahr, die unsere bestehenden Überzeugungen bestätigen.
+
+2. **Selbstdienliche Verzerrung**: Erfolge schreiben wir uns selbst zu, Misserfolge äußeren Umständen.
+
+3. **Überoptimismus**: Wir überschätzen unsere Fähigkeiten und unterschätzen Risiken.
+
+4. **Vermeidung unangenehmer Wahrheiten**: Wir blenden Informationen aus, die unser Selbstbild bedrohen.
+
+5. **Rückschaufehler**: ""Das habe ich schon immer gewusst"" - die Illusion, Ereignisse im Nachhinein vorhergesehen zu haben.
+
+Die gute Nachricht: Durch bewusste Selbstreflexion und gezielte Reality-Checks können wir diese Verzerrungen erkennen und überwinden.",reflection,{},1,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Reality Check Step"",""instructions"":""Examine your assumptions and overcome self-deceptions for greater clarity.""}}"
+8c3e4986-9c97-4cf4-95ed-57653d26a10b,4a5c228f-79c6-4e24-ae24-6d2625ec5123,Eigene Selbsttäuschungen erkennen,"Denken Sie an eine Situation aus der jüngeren Vergangenheit, in der Sie überrascht waren, dass Ihre Wahrnehmung nicht mit der Realität oder der Wahrnehmung anderer übereinstimmte.
+
+Dies könnte sein:
+- Feedback, das Sie überrascht hat
+- Eine Situation, die anders verlief als erwartet
+- Ein Moment, in dem Sie realisierten, dass Ihre Selbsteinschätzung nicht stimmte
+
+Beschreiben Sie diese Situation kurz:",journal,"{""min_length"":50,""placeholder"":""Eine Situation, in der meine Wahrnehmung nicht mit der Realität übereinstimmte, war...""}",2,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Reality Check Step"",""instructions"":""Examine your assumptions and overcome self-deceptions for greater clarity.""}}"
+41336e3e-99da-4fb3-b9f0-37f0c89e0a21,4a5c228f-79c6-4e24-ae24-6d2625ec5123,Die vier Säulen des Reality-Checks,"Der Reality-Check basiert auf vier Säulen, die Ihnen helfen, Ihre Wahrnehmung zu überprüfen:
+
+1. **Evidenz sammeln**: Welche konkreten Fakten und Beobachtungen (nicht Interpretationen) gibt es?
+
+2. **Perspektivenwechsel**: Wie würde die Situation aus anderen Blickwinkeln aussehen?
+
+3. **Feedback einholen**: Was sagen vertraute Personen, die ehrlich mit Ihnen sind?
+
+4. **Kognitive Verzerrungen identifizieren**: Welche typischen Denkfehler könnten hier wirksam sein?
+
+Wenden Sie diese vier Säulen auf die zuvor beschriebene Situation an:",journal,"{""min_length"":100,""placeholder"":""Wenn ich die vier Säulen des Reality-Checks auf diese Situation anwende...""}",3,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Reality Check Step"",""instructions"":""Examine your assumptions and overcome self-deceptions for greater clarity.""}}"
+46fdad12-b483-4749-a6da-109dc242ddcc,4a5c228f-79c6-4e24-ae24-6d2625ec5123,Feedback als Geschenk annehmen,"Feedback - besonders kritisches - kann unangenehm sein, ist aber eines der wertvollsten Werkzeuge für persönliches Wachstum.
+
+Drei Schritte zum konstruktiven Umgang mit Feedback:
+
+1. **Trennen Sie Beobachtung von Bewertung**:
+   - Beobachtung: ""Du hast in drei Meetings nicht gesprochen""
+   - Bewertung: ""Du bist zu schüchtern in Meetings""
+
+2. **Isolieren Sie den nützlichen Kern**:
+   Selbst in schlecht formuliertem Feedback steckt oft ein wertvoller Kern.
+
+3. **Vermeiden Sie reflexive Abwehr**:
+   Der erste Impuls ist oft, Feedback abzuwehren. Atmen Sie durch und nehmen Sie es zunächst einfach an - Sie müssen nicht sofort reagieren.
+
+Denken Sie an das letzte kritische Feedback, das Sie erhalten haben. Beschreiben Sie, wie Sie es damals aufgenommen haben und wie Sie es heute mit diesen drei Schritten aufnehmen würden:",journal,"{""min_length"":100,""placeholder"":""Das letzte kritische Feedback, das ich erhielt, war... Damals reagierte ich... Heute würde ich...""}",4,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Reality Check Step"",""instructions"":""Examine your assumptions and overcome self-deceptions for greater clarity.""}}"
+2b09614e-e68b-4f6f-bbb8-be6377d35501,4a5c228f-79c6-4e24-ae24-6d2625ec5123,Ihr persönlicher Reality-Check-Plan,"Basierend auf Ihren Erkenntnissen aus diesem Modul, entwickeln Sie nun Ihren persönlichen Reality-Check-Plan:
+
+1. In welchen Lebensbereichen könnte es besonders nützlich sein, Ihre Annahmen regelmäßig zu überprüfen?
+
+2. Welche 2-3 vertrauten Personen könnten Sie um ehrliches Feedback bitten?
+
+3. Welche konkreten Maßnahmen werden Sie ergreifen, um regelmäßige Reality-Checks in Ihren Alltag zu integrieren?
+
+4. Wie werden Sie mit unangenehmen Erkenntnissen umgehen?
+
+Ihr Reality-Check-Plan:",journal,"{""min_length"":100,""placeholder"":""Mein persönlicher Plan für regelmäßige Reality-Checks ist...""}",5,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Reality Check Step"",""instructions"":""Examine your assumptions and overcome self-deceptions for greater clarity.""}}"
+250e8581-abcf-45d2-8374-783b57ece69f,4f95c8a5-10db-4be4-9a55-d547ce5faed4,Einführung,"In dieser Übung werden Sie Ihre persönlichen Kernwerte identifizieren und priorisieren. 
+
+Werte sind fundamentale Überzeugungen, die bestimmen, was uns im Leben wichtig ist. Sie sind wie ein innerer Kompass, der uns bei Entscheidungen leitet und definiert, was für uns ein erfülltes Leben ausmacht.
+
+Wenn wir unsere wichtigsten Werte kennen und in eine Hierarchie bringen, können wir Entscheidungen treffen, die mit unserem authentischen Selbst übereinstimmen.
+
+Nehmen Sie sich etwa 25 Minuten ungestörte Zeit für diese Übung.",introduction,"{""next_button_text"":""Beginnen""}",1,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Introduction to Values"",""instructions"":""Discover and prioritize your core values. Values are the foundation of authentic living and aligned decision-making.""}}"
+4b44ef3e-c32e-40d2-b80a-970cced368de,4f95c8a5-10db-4be4-9a55-d547ce5faed4,Werte entdecken,"Denken Sie an Momente in Ihrem Leben, in denen Sie sich besonders erfüllt, lebendig und im Einklang mit sich selbst gefühlt haben. Diese Momente geben wichtige Hinweise auf Ihre Kernwerte.
+
+Betrachten Sie die folgende Liste von Werten und wählen Sie alle aus, die für Sie besonders wichtig sind. Es gibt keine richtigen oder falschen Antworten - es geht nur darum, was für SIE persönlich bedeutsam ist.",selection,"{""options"":[""Abenteuer"",""Anerkennung"",""Authentizität"",""Autonomie"",""Balance"",""Bildung"",""Dankbarkeit"",""Ehrlichkeit"",""Erfolg"",""Familie"",""Freiheit"",""Freundschaft"",""Fürsorge"",""Gesundheit"",""Glaube"",""Gerechtigkeit"",""Harmonie"",""Herausforderung"",""Humor"",""Kreativität"",""Leidenschaft"",""Loyalität"",""Macht"",""Mitgefühl"",""Mut"",""Nachhaltigkeit"",""Offenheit"",""Ordnung"",""Respekt"",""Ruhe"",""Selbstentwicklung"",""Sicherheit"",""Spaß"",""Spiritualität"",""Tradition"",""Unabhängigkeit"",""Verbundenheit"",""Vertrauen"",""Weisheit"",""Wohlstand""],""custom_option"":true,""max_selections"":15,""min_selections"":5,""selection_type"":""multiple"",""next_button_text"":""Weiter""}",2,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Values Hierarchy Step"",""instructions"":""Continue developing your personal values hierarchy for authentic living and decision-making.""}}"
+259048a4-f363-4371-a20f-35a1f649f33a,4f95c8a5-10db-4be4-9a55-d547ce5faed4,Werte priorisieren,"Ausgezeichnet! Sie haben Ihre wichtigsten Werte identifiziert. Nun geht es darum, diese in eine Hierarchie zu bringen.
+
+Wählen Sie aus Ihren ausgewählten Werten die 5 wichtigsten aus. Diese repräsentieren Ihre Kernwerte - jene fundamentalen Prinzipien, die Sie in Ihrem Leben am stärksten leiten und motivieren.",selection,"{""instructions"":""Ziehen Sie die Werte in die Reihenfolge ihrer Wichtigkeit für Sie, beginnend mit dem wichtigsten."",""options_source"":""previous_step"",""selection_type"":""ranking"",""next_button_text"":""Weiter"",""selections_count"":5}",3,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Values Hierarchy Step"",""instructions"":""Continue developing your personal values hierarchy for authentic living and decision-making.""}}"
+263d11a9-dcf2-4d2e-8df6-1bd7d233ec16,4f95c8a5-10db-4be4-9a55-d547ce5faed4,Werte definieren,"Nun werden Sie Ihre Top-5-Werte persönlich definieren. Jeder Mensch versteht unter dem gleichen Wort etwas anderes. 
+
+Für diese Übung ist es wichtig, dass Sie Ihre eigene Definition für jeden Ihrer Kernwerte formulieren. Was bedeutet dieser Wert speziell für Sie? Wie drückt er sich in Ihrem Leben aus?
+
+Nehmen Sie sich Zeit, um über jeden Wert nachzudenken und ihn in Ihren eigenen Worten zu beschreiben.",reflection,"{""min_length"":100,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie für jeden Ihrer Top-5-Werte, was dieser Wert für Sie persönlich bedeutet:""}",4,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Values Hierarchy Step"",""instructions"":""Continue developing your personal values hierarchy for authentic living and decision-making.""}}"
+f2df3f76-4623-406a-8908-9cabbda9bcc0,4f95c8a5-10db-4be4-9a55-d547ce5faed4,Wertekonflikte untersuchen,"Wertekonflikte treten auf, wenn zwei oder mehr unserer Werte in einer bestimmten Situation nicht gleichzeitig erfüllt werden können.
+
+Denken Sie über potenzielle Konflikte zwischen Ihren Top-5-Werten nach. Zum Beispiel könnte ein Wert wie ""Abenteuer"" manchmal mit ""Sicherheit"" in Konflikt geraten, oder ""Familie"" mit ""Karriere"".
+
+Für jeden möglichen Konflikt, überlegen Sie:
+1. In welchen Situationen könnten diese Werte in Konflikt geraten?
+2. Welcher Wert hat in solchen Situationen Vorrang?
+3. Gibt es Möglichkeiten, beide Werte zu integrieren oder einen Kompromiss zu finden?",reflection,"{""min_length"":100,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie potenzielle Konflikte zwischen Ihren Werten und wie Sie damit umgehen würden:""}",5,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Values Hierarchy Step"",""instructions"":""Continue developing your personal values hierarchy for authentic living and decision-making.""}}"
+56e48dfd-1b3b-45e3-8b9e-37586c1209ed,4f95c8a5-10db-4be4-9a55-d547ce5faed4,Werte im Alltag leben,"Der letzte Schritt besteht darin, konkrete Wege zu finden, wie Sie Ihre Kernwerte bewusster in Ihrem Alltag leben können.
+
+Für jeden Ihrer Top-5-Werte, definieren Sie:
+1. Eine konkrete Handlung, die Sie in der kommenden Woche umsetzen können, um diesen Wert stärker zu leben
+2. Eine langfristige Veränderung, die Sie vornehmen könnten, um Ihr Leben mehr mit diesem Wert in Einklang zu bringen
+3. Wie Sie andere Menschen in Ihrem Leben in Bezug auf diesen Wert einbeziehen können",reflection,"{""min_length"":100,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie, wie Sie Ihre Werte konkret in Ihrem Alltag umsetzen werden:""}",6,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Values Hierarchy Step"",""instructions"":""Continue developing your personal values hierarchy for authentic living and decision-making.""}}"
+4f7d2df2-0880-4759-977f-a76cce39da34,4f95c8a5-10db-4be4-9a55-d547ce5faed4,Reflexion und Abschluss,"Herzlichen Glückwunsch! Sie haben Ihre persönliche Werte-Hierarchie entwickelt. Dies ist ein wesentlicher Schritt zur Schaffung von mehr Ausrichtung und Kongruenz in Ihrem Leben.
+
+Nehmen Sie sich einen Moment Zeit, um über die Erkenntnisse dieser Übung zu reflektieren:
+
+- Was hat Sie überrascht an Ihren Top-5-Werten?
+- Inwiefern leben Sie diese Werte bereits in Ihrem Alltag?
+- Wo gibt es noch Diskrepanzen zwischen Ihren Werten und Ihrem aktuellen Leben?
+- Wie wird sich Ihr Leben verändern, wenn Sie Ihre Entscheidungen stärker an Ihren Kernwerten ausrichten?
+
+Ihre Werte-Hierarchie ist kein statisches Konstrukt, sondern kann sich im Laufe Ihres Lebens entwickeln. Es ist hilfreich, diesen Prozess regelmäßig zu wiederholen und Ihre Werte-Hierarchie anzupassen, wenn sich Ihre Lebenssituation oder Ihre Prioritäten ändern.",reflection,"{""min_length"":50,""next_button_text"":""Abschließen"",""reflection_prompt"":""Teilen Sie Ihre abschließenden Gedanken zu dieser Übung:""}",7,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Values Hierarchy Step"",""instructions"":""Continue developing your personal values hierarchy for authentic living and decision-making.""}}"
+6175e259-f6db-4072-b50a-64df91e6449b,6e5efcb9-b7eb-43df-9a62-bcb349973711,Einführung zum Vision Board,"Ein Vision Board ist eine kraftvolle visuelle Darstellung Ihrer Ziele, Träume und Wünsche. Anders als To-Do-Listen oder Zielplanungen spricht ein Vision Board Ihr Unterbewusstsein auf einer tieferen, emotionalen Ebene an.
+
+Die Kraft eines Vision Boards liegt in der Verbindung von visueller Darstellung, emotionaler Resonanz und regelmäßiger Erinnerung. Es programmiert Ihr Gehirn darauf, Möglichkeiten zu erkennen und Handlungen zu initiieren, die Sie Ihrer Vision näher bringen.
+
+In dieser Übung erstellen Sie ein digitales Vision Board, das Sie jederzeit auf Ihrem Mobilgerät bei sich tragen können.",introduction,"{""next_button_text"":""Beginnen""}",1,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Vision Board Step"",""instructions"":""Create and refine your digital vision board for life direction.""}}"
+454e6efc-b683-4d16-99f9-115d10849077,6e5efcb9-b7eb-43df-9a62-bcb349973711,Lebensbereiche definieren,"Bevor Sie mit der visuellen Gestaltung beginnen, definieren Sie die wichtigsten Lebensbereiche, die Sie in Ihrem Vision Board darstellen möchten.
+
+Basierend auf Ihrem Lebensrad und Ihren Kernwerten, wählen Sie 4-8 Lebensbereiche aus, für die Sie eine Vision entwickeln möchten. Beispiele könnten sein:
+
+- Karriere/Berufung
+- Beziehungen/Familie
+- Gesundheit/Wohlbefinden
+- Persönliches Wachstum
+- Finanzen/Wohlstand
+- Spiritualität/Sinn
+- Wohnumfeld/Lebensraum
+- Freizeit/Hobbies
+
+Wählen Sie die Bereiche, die für Sie persönlich am wichtigsten sind:",selection,"{""options"":[""Karriere/Berufung"",""Beziehungen/Familie"",""Gesundheit/Wohlbefinden"",""Persönliches Wachstum"",""Finanzen/Wohlstand"",""Spiritualität/Sinn"",""Wohnumfeld/Lebensraum"",""Freizeit/Hobbies"",""Gemeinschaft/Soziales"",""Kreativität/Selbstausdruck""],""custom_option"":true,""max_selections"":8,""min_selections"":4,""selection_type"":""multiple"",""next_button_text"":""Weiter""}",2,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Vision Board Step"",""instructions"":""Create and refine your digital vision board for life direction.""}}"
+bbcb17b0-11d3-46f7-ba3c-239482413cde,6e5efcb9-b7eb-43df-9a62-bcb349973711,Vision für jeden Bereich,"Für jeden ausgewählten Lebensbereich werden Sie nun Ihre Vision formulieren. 
+
+Eine kraftvolle Vision ist:
+- In der Gegenwart formuliert (als ob sie bereits wahr ist)
+- Positiv formuliert (was Sie wollen, nicht was Sie nicht wollen)
+- Emotional ansprechend (sie berührt Sie und erzeugt positive Gefühle)
+- Spezifisch genug, um klar zu sein, aber offen genug für kreative Entwicklung
+
+Für jeden Bereich, beantworten Sie:
+1. Wie sieht dieser Lebensbereich in Ihrer idealen Zukunft aus?
+2. Wie fühlt es sich an?
+3. Welche Schlüsselelemente sind enthalten?
+4. Welches Bild oder Symbol repräsentiert diese Vision am besten?",reflection,"{""min_length"":150,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie Ihre Vision für jeden Lebensbereich:""}",3,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Vision Board Step"",""instructions"":""Create and refine your digital vision board for life direction.""}}"
+f96494cb-ac4e-44f7-bbf2-a8f76b44beab,6e5efcb9-b7eb-43df-9a62-bcb349973711,Vision Board erstellen,"Jetzt ist es Zeit, Ihr digitales Vision Board zu erstellen! 
+
+Sie können für jeden Lebensbereich ein Symbol, ein Bild oder ein Icon auswählen und diesem eine kurze Beschreibung oder ein Motto hinzufügen.
+
+Wählen Sie Bilder und Symbole, die eine starke emotionale Resonanz für Sie haben. Es geht nicht darum, was für andere sinnvoll erscheint, sondern was in Ihnen ein tiefes Gefühl der Begeisterung, des Verlangens oder der Inspiration auslöst.",vision_board_editor,"{""export_options"":[""app_only"",""image"",""wallpaper""],""layout_options"":[""grid"",""freeform"",""circle"",""spiral"",""flow""],""next_button_text"":""Weiter"",""background_options"":[""gradient_blue"",""gradient_purple"",""mountains"",""ocean"",""forest"",""sunrise"",""stars"",""abstract"",""minimal"",""custom""]}",4,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Vision Board Step"",""instructions"":""Create and refine your digital vision board for life direction.""}}"
+e092dc62-1bb9-4da2-bbc9-6affd18026c0,6e5efcb9-b7eb-43df-9a62-bcb349973711,Integration in den Alltag,"Ihr Vision Board ist nur so wirksam, wie Sie es in Ihren Alltag integrieren. Hier sind einige Möglichkeiten, wie Sie Ihr digitales Vision Board regelmäßig nutzen können:
+
+1. **Tägliche Betrachtung**: Nehmen Sie sich 1-2 Minuten am Morgen oder Abend Zeit, um Ihr Vision Board zu betrachten und die Gefühle zu spüren, die es in Ihnen auslöst.
+
+2. **Hintergrundbild**: Setzen Sie Ihr Vision Board als Hintergrundbild auf Ihrem Smartphone oder Tablet.
+
+3. **Regelmäßige Reflexion**: Planen Sie einmal pro Woche oder Monat Zeit ein, um über Ihr Vision Board nachzudenken und zu reflektieren, wie Ihre aktuellen Handlungen mit Ihrer Vision übereinstimmen.
+
+4. **Kontinuierliche Weiterentwicklung**: Ihr Vision Board ist ein lebendiges Dokument. Aktualisieren Sie es, wenn sich Ihre Vision weiterentwickelt oder verändert.
+
+Planen Sie jetzt, wie Sie Ihr Vision Board in Ihren Alltag integrieren werden:",reflection,"{""min_length"":50,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie, wie Sie Ihr Vision Board in Ihren Alltag integrieren werden:""}",5,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Vision Board Step"",""instructions"":""Create and refine your digital vision board for life direction.""}}"
+35c192e4-5d08-4e4a-bb99-8c3a404337ed,6e5efcb9-b7eb-43df-9a62-bcb349973711,Reflexion und Abschluss,"Herzlichen Glückwunsch zum Erstellen Ihres persönlichen Vision Boards! Sie haben einen wichtigen Schritt zur Ausrichtung Ihres Lebens unternommen.
+
+Nehmen Sie sich einen Moment Zeit, um über den Prozess und Ihre Erkenntnisse zu reflektieren:
+
+- Welche Emotionen hat das Erstellen des Vision Boards in Ihnen ausgelöst?
+- Gab es überraschende Einsichten während des Prozesses?
+- Welcher Teil Ihres Vision Boards resoniert am stärksten mit Ihnen?
+- Wie fühlt es sich an, eine visuelle Repräsentation Ihrer Lebensvision zu haben?
+
+Denken Sie daran: Ein Vision Board ist kein magisches Werkzeug, das Ihre Träume automatisch wahr werden lässt, sondern ein Kompass, der Ihre Wahrnehmung, Entscheidungen und Handlungen subtil in Richtung Ihrer Vision lenkt.",reflection,"{""min_length"":50,""next_button_text"":""Abschließen"",""reflection_prompt"":""Teilen Sie Ihre abschließenden Gedanken zu dieser Übung:""}",6,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,"{""en"":{""title"":""Vision Board Step"",""instructions"":""Create and refine your digital vision board for life direction.""}}"
+f396de96-0f06-4980-aae0-337a3286ec0b,708b3dc7-ee21-4517-a514-d4e4ab24279e,Einführung,"In dieser Übung lernen Sie, Momente natürlicher Lebendigkeit bewusst wahrzunehmen und zu verstärken.
+
+Lebendigkeit zeigt sich oft in kleinen, alltäglichen Momenten - ein Lächeln, das von Herzen kommt, der Genuss einer Tasse Tee, oder die Freude beim Hören eines Lieblingssongs. Diese Momente sind Hinweise auf Ihren natürlichen, authentischen Zustand.
+
+Nehmen Sie sich etwa 15 Minuten Zeit für diese Übung. Finden Sie einen ruhigen Ort, wo Sie ungestört sein können.",introduction,"{""next_button_text"":""Beginnen""}",1,2025-05-19 12:19:57.321619+00,2025-05-19 12:19:57.321619+00,"{""en"":{""title"":""Introduction"",""instructions"":""In this exercise, you will learn to consciously perceive and strengthen moments of natural liveliness.\n\nLiveliness often shows itself in small, everyday moments - a smile that comes from the heart, enjoying a cup of tea, or the joy of hearing a favorite song. These moments are clues to your natural, authentic state.\n\nTake about 15 minutes for this exercise. Find a quiet place where you can be undisturbed.""}}"
+092b189c-1b50-465d-bc2d-196db57cebef,708b3dc7-ee21-4517-a514-d4e4ab24279e,Lebendigkeits-Tagebuch,"Denken Sie an die vergangenen drei Tage zurück.
+
+Versuchen Sie, mindestens fünf Momente zu identifizieren, in denen Sie sich besonders lebendig, energetisiert oder in Ihrem Element gefühlt haben. Diese Momente können sehr kurz gewesen sein - auch ein flüchtiger Moment des Wohlbefindens zählt.
+
+Notieren Sie für jeden Moment:
+- Was genau ist passiert?
+- Wie haben Sie sich körperlich gefühlt? (z.B. warm, entspannt, energiegeladen)
+- Welche Emotionen waren präsent?
+- Was hat diesen Moment besonders gemacht?",reflection,"{""min_length"":50,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie Ihre Lebendigkeits-Momente der letzten drei Tage""}",2,2025-05-19 12:19:57.321619+00,2025-05-19 12:19:57.321619+00,"{""en"":{""title"":""Exercise Step"",""instructions"":""Continue with this exercise step to develop your skills and awareness.""}}"
+5ca87f71-8d94-4a1e-b2ca-1fd85c46bf1d,708b3dc7-ee21-4517-a514-d4e4ab24279e,Körperliche Signale,"Betrachten Sie nun die Momente, die Sie aufgeschrieben haben.
+
+Konzentrieren Sie sich besonders auf die körperlichen Empfindungen während dieser Momente der Lebendigkeit.
+- Wo in Ihrem Körper haben Sie die Lebendigkeit am stärksten gespürt?
+- Gab es bestimmte Körperbereiche, die sich besonders entspannt oder energetisiert anfühlten?
+- Welche Veränderungen in Ihrer Atmung, Körperhaltung oder Muskelspannung haben Sie bemerkt?
+
+Diese körperlichen Signale sind wichtige Hinweise auf Ihren natürlichen Zustand der Lebendigkeit. Sie können als ""Anker"" dienen, um diesen Zustand bewusst zu aktivieren.",reflection,"{""min_length"":30,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie die körperlichen Signale Ihrer Lebendigkeit""}",3,2025-05-19 12:19:57.321619+00,2025-05-19 12:19:57.321619+00,"{""en"":{""title"":""Exercise Step"",""instructions"":""Continue with this exercise step to develop your skills and awareness.""}}"
+136abbc0-be34-4ef5-95f3-0b97c5164435,708b3dc7-ee21-4517-a514-d4e4ab24279e,Bewusste Aktivierung,"Wählen Sie nun einen dieser Lebendigkeits-Momente aus, der für Sie besonders zugänglich erscheint.
+
+Nehmen Sie sich einen Moment Zeit, um diesen Zustand der Lebendigkeit jetzt bewusst zu aktivieren:
+
+1. Schließen Sie die Augen und atmen Sie tief durch
+2. Rufen Sie die Erinnerung an diesen Moment in allen Details wach
+3. Spüren Sie die körperlichen Empfindungen, die mit diesem Moment verbunden waren
+4. Erlauben Sie sich, die positiven Emotionen wieder zu erleben
+5. Verstärken Sie diese Empfindungen mit jedem Atemzug
+
+Bleiben Sie für etwa 1-2 Minuten in diesem Zustand.",practice,"{""timer_duration"":120,""timer_optional"":true,""next_button_text"":""Weiter""}",4,2025-05-19 12:19:57.321619+00,2025-05-19 12:19:57.321619+00,"{""en"":{""title"":""Body Signals of Liveliness"",""instructions"":""Now focus on the physical sensations during your liveliness moments.\n\nHow did your body feel during these moments?\n- Was your breathing deeper or lighter?\n- Did you feel warmth, tingling, or expansion?\n- How was your posture or movement?\n- Did you feel energy flowing through specific parts of your body?\n\nThese physical signals are important indicators of your authentic state. Write down what you noticed about your body during these moments.""}}"
+f8a23a83-3c99-473a-97fb-a3b3a4491af4,708b3dc7-ee21-4517-a514-d4e4ab24279e,Muster erkennen,"Betrachten Sie nun alle Ihre notierten Lebendigkeits-Momente und suchen Sie nach Mustern:
+
+- In welchen Kontexten erleben Sie am häufigsten Lebendigkeit? (z.B. Natur, kreative Tätigkeiten, Gespräche)
+- Gibt es bestimmte Menschen, in deren Gegenwart Sie sich lebendiger fühlen?
+- Zu welchen Tageszeiten sind Sie am empfänglichsten für Lebendigkeits-Erfahrungen?
+- Welche Stimmungen oder Gedanken begleiten Ihre Lebendigkeits-Momente?
+
+Fassen Sie Ihre wichtigsten Erkenntnisse über Ihre persönlichen Lebendigkeits-Muster zusammen.",reflection,"{""min_length"":30,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie die Muster Ihrer Lebendigkeits-Momente""}",5,2025-05-19 12:19:57.321619+00,2025-05-19 12:19:57.321619+00,"{""en"":{""title"":""Exercise Step"",""instructions"":""Continue with this exercise step to develop your skills and awareness.""}}"
+bc068505-1258-4206-8c9d-50d34eac3eb0,708b3dc7-ee21-4517-a514-d4e4ab24279e,Verstärkungs-Plan,"Erstellen Sie nun einen konkreten Plan, wie Sie mehr Lebendigkeits-Momente in Ihren Alltag integrieren können.
+
+Basierend auf den Mustern, die Sie identifiziert haben:
+- Welche 2-3 spezifischen Aktivitäten könnten Sie in Ihren Wochenplan einbauen?
+- Wie könnten Sie bestehende Routinen modifizieren, um mehr Lebendigkeit zu ermöglichen?
+- Welche ""Lebendigkeits-Anker"" könnten Sie im Alltag einsetzen? (z.B. ein bestimmtes Musikstück, eine Körperhaltung, eine kurze Atemübung)
+
+Setzen Sie sich für die kommende Woche ein konkretes Ziel, wie viele bewusste Lebendigkeits-Momente Sie erleben möchten.",reflection,"{""min_length"":50,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie Ihren Plan zur Verstärkung von Lebendigkeits-Momenten""}",6,2025-05-19 12:19:57.321619+00,2025-05-19 12:19:57.321619+00,"{""en"":{""title"":""Exercise Step"",""instructions"":""Continue with this exercise step to develop your skills and awareness.""}}"
+0f972f3e-2bbb-4236-b1df-75ce3e41f470,708b3dc7-ee21-4517-a514-d4e4ab24279e,Reflexion und Abschluss,"Nehmen Sie sich einen Moment Zeit, um über die Erkenntnisse dieser Übung zu reflektieren:
+
+- Was haben Sie über Ihre natürliche Lebendigkeit gelernt?
+- Inwiefern unterscheidet sich Ihr bewusster Fokus auf Lebendigkeits-Momente von Ihrer üblichen Alltagswahrnehmung?
+- Wie könnte eine regelmäßige Lebendigkeits-Praxis Ihr Wohlbefinden und Ihre Kongruenz stärken?
+
+Abschließend: Setzen Sie eine konkrete Absicht, wie Sie regelmäßig auf Ihre Lebendigkeits-Momente achten werden. Überlegen Sie auch, ob Sie vielleicht ein tägliches ""Lebendigkeits-Tagebuch"" führen möchten.",reflection,"{""min_length"":30,""next_button_text"":""Abschließen"",""reflection_prompt"":""Teilen Sie Ihre Reflexionen und Absicht""}",7,2025-05-19 12:19:57.321619+00,2025-05-19 12:19:57.321619+00,"{""en"":{""title"":""Exercise Step"",""instructions"":""Continue with this exercise step to develop your skills and awareness.""}}"
+d6de2ca8-b022-44e1-a432-4d38c87494b8,9bf7a223-8c2d-46d4-8b0b-f0b8eade8ed0,Einführung,"In dieser Übung werden Sie Ihre persönlichen Energie-Blocker identifizieren und Strategien zu ihrer Transformation entwickeln.
+
+Energie-Blocker sind Situationen, Gedanken, Emotionen oder Verhaltensweisen, die unsere natürliche Lebendigkeit unterdrücken oder behindern. Sie können bewusst oder unbewusst wirken und haben oft tiefe Wurzeln in unserer Vergangenheit.
+
+Nehmen Sie sich etwa 25 Minuten ungestörte Zeit für diese Übung. Bereiten Sie ein Notizbuch vor, um Ihre Erkenntnisse festzuhalten.",introduction,"{""next_button_text"":""Beginnen""}",1,2025-05-19 12:19:57.421125+00,2025-05-19 12:19:57.421125+00,"{""en"":{""title"":""Energy Blockers Analysis Step"",""instructions"":""Continue analyzing and transforming your energy blockers to increase natural liveliness.""}}"
+9d7c43c2-ad99-41d1-a006-a6d9896ceb11,9bf7a223-8c2d-46d4-8b0b-f0b8eade8ed0,Energie-Inventar,"Denken Sie an Ihre typische Woche. 
+
+Erstellen Sie zwei Listen:
+
+**Liste 1: Energie-Räuber**
+Welche Aktivitäten, Situationen, Menschen oder inneren Zustände rauben Ihnen regelmäßig Energie? Achten Sie auf alle Bereiche: Arbeit, Beziehungen, Freizeit, tägliche Routinen, digitale Gewohnheiten, etc.
+
+**Liste 2: Energie-Spender**
+Welche Aktivitäten, Situationen, Menschen oder inneren Zustände geben Ihnen regelmäßig Energie? Was belebt Sie und stärkt Ihr Wohlbefinden?
+
+Notieren Sie für jede Liste mindestens 7-10 Einträge.",reflection,"{""min_length"":100,""next_button_text"":""Weiter"",""reflection_prompt"":""Notieren Sie Ihre Energie-Räuber und Energie-Spender""}",2,2025-05-19 12:19:57.421125+00,2025-05-19 12:19:57.421125+00,"{""en"":{""title"":""Energy Blockers Analysis Step"",""instructions"":""Continue analyzing and transforming your energy blockers to increase natural liveliness.""}}"
+9258bc95-53ac-4180-8855-beadcb765772,9bf7a223-8c2d-46d4-8b0b-f0b8eade8ed0,Tiefere Blocker-Analyse,"Wählen Sie aus Ihrer Liste der Energie-Räuber die drei stärksten oder hartnäckigsten aus.
+
+Für jeden dieser drei Hauptblocker, beantworten Sie folgende Fragen:
+
+1. **Symptome**: Wie fühlt sich dieser Blocker körperlich und emotional an?
+2. **Trigger**: Was löst diesen Blocker typischerweise aus?
+3. **Geschichte**: Wann haben Sie diesen Blocker zum ersten Mal erlebt? Hat er Wurzeln in Ihrer Vergangenheit?
+4. **Überzeugungen**: Welche Grundüberzeugungen oder Glaubenssätze könnten mit diesem Blocker verbunden sein?
+5. **Funktion**: Könnte dieser Blocker ursprünglich einem Schutzzweck gedient haben? Wenn ja, welchem?",reflection,"{""min_length"":150,""next_button_text"":""Weiter"",""reflection_prompt"":""Analysieren Sie Ihre drei Hauptblocker im Detail""}",3,2025-05-19 12:19:57.421125+00,2025-05-19 12:19:57.421125+00,"{""en"":{""title"":""Energy Blockers Analysis Step"",""instructions"":""Continue analyzing and transforming your energy blockers to increase natural liveliness.""}}"
+db2129a4-b02b-4d76-9df8-cab8c863ffb7,9bf7a223-8c2d-46d4-8b0b-f0b8eade8ed0,Transformations-Strategien,"Nun entwickeln Sie Strategien, um Ihre Energieblocker zu transformieren.
+
+Für jeden Ihrer drei Hauptblocker:
+
+1. **Äußere Veränderungen**: Wie könnten Sie die Situation oder Umgebung verändern, um den Blocker zu reduzieren? (z.B. Grenzen setzen, Gewohnheiten ändern)
+
+2. **Innere Veränderungen**: Wie könnten Sie Ihre Wahrnehmung oder Einstellung verändern? Welche neuen Überzeugungen würden helfen?
+
+3. **Energetische Ressourcen**: Welche Energie-Spender aus Ihrer Liste könnten Sie aktivieren, um diesem Blocker entgegenzuwirken?
+
+Seien Sie so konkret und praktisch wie möglich bei Ihren Lösungsansätzen.",reflection,"{""min_length"":150,""next_button_text"":""Weiter"",""reflection_prompt"":""Entwickeln Sie Transformations-Strategien für Ihre Hauptblocker""}",4,2025-05-19 12:19:57.421125+00,2025-05-19 12:19:57.421125+00,"{""en"":{""title"":""Energy Blockers Analysis Step"",""instructions"":""Continue analyzing and transforming your energy blockers to increase natural liveliness.""}}"
+4f9145aa-aa04-457e-b60e-d0900e06911d,9bf7a223-8c2d-46d4-8b0b-f0b8eade8ed0,Visualisierungs-Übung,"Wählen Sie einen Ihrer drei Hauptblocker aus, den Sie jetzt transformieren möchten.
+
+Diese geführte Visualisierung wird Ihnen helfen, diesen Blocker auf einer tieferen Ebene zu lösen:
+
+1. Schließen Sie die Augen und atmen Sie tief durch
+2. Stellen Sie sich vor, wie dieser Energieblocker eine Form annimmt - ein Bild, eine Farbe, eine Form oder ein Symbol
+3. Beobachten Sie dieses Bild ohne Urteil und nehmen Sie alle Details wahr
+4. Fragen Sie diesen Blocker: ""Was möchtest du mir mitteilen? Welches Bedürfnis versuchst du zu erfüllen?""
+5. Hören Sie auf die Antwort, die aus Ihrem Inneren kommt
+6. Stellen Sie sich nun vor, wie dieses Bild sich verwandelt - in etwas Positives, Unterstützendes
+7. Spüren Sie die neue Energie, die dabei freigesetzt wird
+8. Atmen Sie diese Energie ein und lassen Sie sie durch Ihren Körper fließen
+
+Nehmen Sie sich 3-5 Minuten Zeit für diese Visualisierung.",practice,"{""timer_duration"":300,""timer_optional"":true,""next_button_text"":""Weiter""}",5,2025-05-19 12:19:57.421125+00,2025-05-19 12:19:57.421125+00,"{""en"":{""title"":""Energy Blockers Analysis Step"",""instructions"":""Continue analyzing and transforming your energy blockers to increase natural liveliness.""}}"
+13fc96a3-dadb-4cb8-a8ea-cfd8a71ad717,9bf7a223-8c2d-46d4-8b0b-f0b8eade8ed0,Aktionsplan erstellen,"Erstellen Sie nun einen konkreten 7-Tage-Aktionsplan zur Transformation Ihrer Energieblocker.
+
+Wählen Sie für die kommende Woche:
+- 1-2 spezifische Blocker, an denen Sie arbeiten werden
+- 2-3 konkrete Maßnahmen für jeden Blocker
+- Tage und Zeiten, wann Sie diese Maßnahmen umsetzen werden
+- Wie Sie sich an die Umsetzung erinnern werden
+- Wie Sie Ihren Fortschritt messen oder beobachten werden
+
+Planen Sie auch bewusst, mehr Zeit mit Energie-Spendern zu verbringen. Welche 2-3 Energie-Spender werden Sie in der kommenden Woche bewusst in Ihren Alltag integrieren?",reflection,"{""min_length"":100,""next_button_text"":""Weiter"",""reflection_prompt"":""Erstellen Sie Ihren 7-Tage-Aktionsplan""}",6,2025-05-19 12:19:57.421125+00,2025-05-19 12:19:57.421125+00,"{""en"":{""title"":""Energy Blockers Analysis Step"",""instructions"":""Continue analyzing and transforming your energy blockers to increase natural liveliness.""}}"
+9a42fc59-37b8-465a-a155-6a9552c1148c,9bf7a223-8c2d-46d4-8b0b-f0b8eade8ed0,Reflexion und Abschluss,"Nehmen Sie sich einen Moment Zeit, um über die Erkenntnisse dieser Übung zu reflektieren:
+
+- Was haben Sie über Ihre Energiemuster und Blocker gelernt?
+- Welche Zusammenhänge erkennen Sie zwischen Ihren Blockern und Ihrer Lebensgeschichte?
+- Wie könnten Sie eine regelmäßige ""Energie-Inventur"" in Ihren Alltag integrieren?
+- Welche Folgen könnte es haben, wenn Sie Ihre Hauptblocker erfolgreich transformieren?
+
+Abschließend: Setzen Sie eine klare Intention für den Umgang mit Ihren Energieblockern in den kommenden Tagen. Was ist Ihr wichtigster Vorsatz aus dieser Übung?",reflection,"{""min_length"":50,""next_button_text"":""Abschließen"",""reflection_prompt"":""Teilen Sie Ihre Reflexionen und Intention""}",7,2025-05-19 12:19:57.421125+00,2025-05-19 12:19:57.421125+00,"{""en"":{""title"":""Energy Blockers Analysis Step"",""instructions"":""Continue analyzing and transforming your energy blockers to increase natural liveliness.""}}"
+8f8e1258-7cfc-42e9-a6e8-a79870954724,af170333-2007-4203-a16c-df1fee452491,Einführung,"In dieser Übung werden Sie körperliche Praktiken nutzen, um Ihre natürliche Lebendigkeit zu aktivieren und zu verankern.
+
+Unser Körper ist nicht nur ein Transportmittel für unseren Geist - er ist ein intelligentes System mit eigener Weisheit. Körperliche Übungen können uns direkt mit unserer Lebendigkeit verbinden, oft schneller und tiefer als rein gedankliche Prozesse.
+
+Diese Übung dauert etwa 10 Minuten. Tragen Sie bequeme Kleidung und sorgen Sie für ausreichend Platz zum Bewegen. Optional können Sie sanfte Hintergrundmusik abspielen.",introduction,"{""next_button_text"":""Beginnen""}",1,2025-05-19 12:19:57.466846+00,2025-05-19 12:19:57.466846+00,"{""en"":{""title"":""Embodiment Exercise Step"",""instructions"":""Use physical practices to activate and anchor your natural liveliness.""}}"
+0b8395f9-8997-46a5-ac06-cdc6c1d4e6a2,af170333-2007-4203-a16c-df1fee452491,Körperliche Bestandsaufnahme,"Beginnen Sie im Stehen oder Sitzen mit geschlossenen Augen. 
+
+Richten Sie Ihre Aufmerksamkeit auf Ihren Körper und beobachten Sie ohne Urteil:
+- Wie fühlen sich Ihre Füße an? Sind sie fest mit dem Boden verbunden?
+- Wie ist Ihre Körperhaltung? Gibt es Spannungen oder Blockaden?
+- Wie ist Ihre Atmung? Flach oder tief? Schnell oder langsam?
+- Wo fühlen Sie Energie oder Lebendigkeit in Ihrem Körper?
+- Wo fühlen Sie Schwere oder Blockaden?
+
+Nehmen Sie sich 1-2 Minuten Zeit für diese Bestandsaufnahme.",practice,"{""timer_duration"":120,""timer_optional"":true,""next_button_text"":""Weiter""}",2,2025-05-19 12:19:57.466846+00,2025-05-19 12:19:57.466846+00,"{""en"":{""title"":""Embodiment Exercise Step"",""instructions"":""Use physical practices to activate and anchor your natural liveliness.""}}"
+e6a31635-ca8e-45aa-8f43-da7df73625d5,af170333-2007-4203-a16c-df1fee452491,Belebende Atmung,"Bleiben Sie in Ihrer bequemen Position und konzentrieren Sie sich nun auf Ihre Atmung.
+
+Führen Sie folgende Atemübung durch:
+1. Atmen Sie tief durch die Nase ein und zählen Sie dabei bis 4
+2. Halten Sie den Atem für einen Moment (Zählen bis 2)
+3. Atmen Sie durch den Mund aus und zählen Sie bis 6
+4. Wiederholen Sie diesen Zyklus 5-7 Mal
+
+Mit jedem Einatmen stellen Sie sich vor, wie frische Energie in Ihren Körper strömt. Mit jedem Ausatmen lassen Sie Anspannung und Blockaden los.
+
+Diese Atemübung aktiviert Ihr parasympathisches Nervensystem und schafft eine Grundlage für Lebendigkeit.",practice,"{""timer_duration"":90,""timer_optional"":true,""next_button_text"":""Weiter""}",3,2025-05-19 12:19:57.466846+00,2025-05-19 12:19:57.466846+00,"{""en"":{""title"":""Embodiment Exercise Step"",""instructions"":""Use physical practices to activate and anchor your natural liveliness.""}}"
+b9146220-1b58-4d32-a75f-0ca1c2596977,af170333-2007-4203-a16c-df1fee452491,Energie-Bewegung,"Stehen Sie nun auf (wenn Sie es nicht bereits tun) und beginnen Sie, sich frei zu bewegen.
+
+Folgen Sie diesen Anweisungen:
+1. Beginnen Sie mit sanften Bewegungen der Hände und Arme
+2. Lassen Sie die Bewegung größer werden und beziehen Sie den ganzen Körper ein
+3. Bewegen Sie sich intuitiv, wie es sich für Sie gut anfühlt
+4. Experimentieren Sie mit verschiedenen Qualitäten: fließend, rhythmisch, energetisch, verspielt
+5. Achten Sie darauf, wo in Ihrem Körper Sie Lebendigkeit spüren
+
+Es geht nicht darum, ""richtig"" zu tanzen, sondern authentische Bewegung zu entdecken. Lassen Sie Ihren Körper führen, nicht Ihren Kopf.
+
+Nehmen Sie sich 1-2 Minuten Zeit für diese freie Bewegung.",practice,"{""timer_duration"":120,""timer_optional"":true,""next_button_text"":""Weiter""}",4,2025-05-19 12:19:57.466846+00,2025-05-19 12:19:57.466846+00,"{""en"":{""title"":""Embodiment Exercise Step"",""instructions"":""Use physical practices to activate and anchor your natural liveliness.""}}"
+109cf0e8-5fde-44db-842b-9324cd623155,af170333-2007-4203-a16c-df1fee452491,Haltungen der Lebendigkeit,"Experimentieren Sie nun mit verschiedenen Körperhaltungen und beobachten Sie deren Wirkung.
+
+Versuchen Sie nacheinander folgende Haltungen einzunehmen und halten Sie jede für etwa 15-20 Sekunden:
+
+1. ""Macht-Pose"": Stehen Sie aufrecht, Füße hüftbreit, Hände an den Hüften oder über dem Kopf ausgestreckt
+2. ""Offenheits-Pose"": Stehen Sie mit offenen Armen, als würden Sie jemanden willkommen heißen
+3. ""Verwurzelung"": Stehen Sie fest auf beiden Beinen, leicht gebeugt, und spüren Sie den Kontakt zum Boden
+4. ""Ihre eigene Lebendigkeit"": Nehmen Sie intuitiv eine Haltung ein, die für Sie persönlich Lebendigkeit ausdrückt
+
+Achten Sie darauf, wie sich Ihre Stimmung und Energie mit jeder Haltung verändert.",practice,"{""timer_duration"":90,""timer_optional"":true,""next_button_text"":""Weiter""}",5,2025-05-19 12:19:57.466846+00,2025-05-19 12:19:57.466846+00,"{""en"":{""title"":""Embodiment Exercise Step"",""instructions"":""Use physical practices to activate and anchor your natural liveliness.""}}"
+f7918b7b-8503-457a-9484-c36eb1c6c9ed,af170333-2007-4203-a16c-df1fee452491,Lebendigkeit verankern,"Nehmen Sie zum Abschluss dieser Übung nochmals Ihre ""Lebendigkeit-Haltung"" ein - diejenige, die für Sie am stärksten Lebendigkeit ausdrückt.
+
+Während Sie in dieser Haltung verweilen:
+1. Atmen Sie tief und bewusst
+2. Spüren Sie die Energie in Ihrem Körper
+3. Schaffen Sie eine mentale ""Anker""-Verbindung: Berühren Sie z.B. Daumen und Mittelfinger oder drücken Sie einen bestimmten Punkt an Ihrem Handgelenk
+4. Prägen Sie sich dieses Gefühl der Lebendigkeit ein - visuell, körperlich und emotional
+
+Dieser ""Anker"" kann in Zukunft genutzt werden, um schnell wieder mit Ihrer natürlichen Lebendigkeit in Kontakt zu kommen.",practice,"{""timer_duration"":60,""timer_optional"":true,""next_button_text"":""Weiter""}",6,2025-05-19 12:19:57.466846+00,2025-05-19 12:19:57.466846+00,"{""en"":{""title"":""Embodiment Exercise Step"",""instructions"":""Use physical practices to activate and anchor your natural liveliness.""}}"
+813fda10-769a-4377-b1fa-2c6a766deb9b,af170333-2007-4203-a16c-df1fee452491,Reflexion und Integration,"Nehmen Sie sich nun einen Moment Zeit, um über Ihre Erfahrungen mit dieser Verkörperungsübung zu reflektieren:
+
+- Wie hat sich die Übung auf Ihr Energieniveau und Ihre Stimmung ausgewirkt?
+- Welche Körperbereiche fühlen sich jetzt lebendiger an als zuvor?
+- Welche spezifischen Bewegungen oder Haltungen hatten die stärkste positive Wirkung?
+- Wie könnten Sie ähnliche körperliche Praktiken in Ihren Alltag integrieren?
+
+Planen Sie konkret, wie Sie Ihren körperlichen ""Lebendigkeit-Anker"" im Alltag nutzen könnten. In welchen Situationen würde es besonders hilfreich sein, schnell zu Ihrer natürlichen Lebendigkeit zurückzufinden?",reflection,"{""min_length"":30,""next_button_text"":""Abschließen"",""reflection_prompt"":""Teilen Sie Ihre Erfahrungen und Ihren Integrationsplan""}",7,2025-05-19 12:19:57.466846+00,2025-05-19 12:19:57.466846+00,"{""en"":{""title"":""Embodiment Exercise Step"",""instructions"":""Use physical practices to activate and anchor your natural liveliness.""}}"
+9d98bdb5-82af-4b5a-9e23-ba0d425c5f58,c2ec9513-5ce3-4a9d-9b4e-71a268220d9b,Metamodell-Verletzungen erkennen,"Im Folgenden sehen Sie verschiedene Aussagen, die typische Metamodell-Verletzungen enthalten. Versuchen Sie, die Art der Verletzung zu identifizieren.
+
+Wählen Sie für jede Aussage die passende Metamodell-Kategorie:",selection,"{""options"":[{""type"":""Universalquantor (Generalisierung)"",""statement"":""Niemand nimmt mich ernst.""},{""type"":""Ursache-Wirkung (Verzerrung)"",""statement"":""Sie macht mich traurig.""},{""type"":""Vergleichstilgung (Tilgung)"",""statement"":""Das ist zu schwierig.""},{""type"":""Modaloperator der Möglichkeit (Generalisierung)"",""statement"":""Ich kann mich nicht ändern.""},{""type"":""Nominalisierung (Tilgung)"",""statement"":""Die Entscheidung belastet mich.""}],""matching"":true}",1,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Metamodel Practice Step"",""instructions"":""Apply precise language techniques for greater clarity in daily communication.""}}"
+fec90851-b1cd-4377-9d27-bad194b29d26,c2ec9513-5ce3-4a9d-9b4e-71a268220d9b,Präzisionsfragen formulieren,"Für jede Art von Metamodell-Verletzung gibt es spezifische Fragen, die helfen, das getilgte, verzerrte oder generalisierte Material wiederherzustellen.
+
+Hier sind die wichtigsten Fragetypen:
+
+1. **Für Universalquantoren**: ""Wirklich alle/immer/nie? Ohne Ausnahme?""
+2. **Für Modaloperatoren**: ""Was würde passieren, wenn du es tätest/nicht tätest?""
+3. **Für Ursache-Wirkung**: ""Wie genau bewirkt X, dass du Y fühlst?""
+4. **Für Nominalisierungen**: ""Wie genau (nominalisierter Prozess) du?""
+5. **Für Vergleichstilgungen**: ""Verglichen womit?""
+
+Üben Sie nun, passende Präzisionsfragen zu formulieren:",selection,"{""options"":[{""question"":""Was würde passieren, wenn du nicht perfekt wärst?"",""statement"":""Ich muss perfekt sein.""},{""question"":""Wirklich nie? Unter keinen Umständen?"",""statement"":""Das wird nie funktionieren.""},{""question"":""Wie genau bewirkt das, was dein Chef tut, dass du frustriert bist?"",""statement"":""Mein Chef frustriert mich.""},{""question"":""Wie genau ängstigst du dich, sodass du dich gelähmt fühlst?"",""statement"":""Die Angst lähmt mich.""},{""question"":""Verglichen womit ist es zu teuer?"",""statement"":""Das ist zu teuer.""}],""matching"":true}",2,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Metamodel Practice Step"",""instructions"":""Apply precise language techniques for greater clarity in daily communication.""}}"
+af8c9e7e-c913-426a-9ecb-f6650c044d52,c2ec9513-5ce3-4a9d-9b4e-71a268220d9b,Eigene Metamodell-Verletzungen identifizieren,"Denken Sie an eine aktuelle Herausforderung oder ein Problem, mit dem Sie konfrontiert sind.
+
+Beschreiben Sie diese Situation in 3-5 Sätzen:",journal,"{""min_length"":50,""placeholder"":""Die Situation, mit der ich konfrontiert bin...""}",3,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Metamodel Practice Step"",""instructions"":""Apply precise language techniques for greater clarity in daily communication.""}}"
+54fe23c9-94f0-483c-8276-6602daccf387,c2ec9513-5ce3-4a9d-9b4e-71a268220d9b,Eigene Beschreibung analysieren,"Lesen Sie Ihre Beschreibung noch einmal durch und identifizieren Sie mögliche Metamodell-Verletzungen in Ihrem Text:
+
+- Haben Sie absolute Begriffe verwendet (alle, immer, nie, keiner)?
+- Haben Sie jemanden oder etwas für Ihre Gefühle verantwortlich gemacht?
+- Haben Sie Prozesse in Substantive verwandelt (Nominalisierungen)?
+- Haben Sie unspezifische Verben oder Vergleiche verwendet?
+- Haben Sie Modaloperatoren benutzt (""Ich muss"", ""Ich kann nicht"")?
+
+Notieren Sie die Metamodell-Verletzungen, die Sie in Ihrer eigenen Beschreibung gefunden haben:",journal,"{""min_length"":30,""placeholder"":""Die Metamodell-Verletzungen in meiner Beschreibung sind...""}",4,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Metamodel Practice Step"",""instructions"":""Apply precise language techniques for greater clarity in daily communication.""}}"
+e9736297-e0ec-407a-afa6-18910461da9b,c2ec9513-5ce3-4a9d-9b4e-71a268220d9b,Präzisere Beschreibung formulieren,"Basierend auf Ihrer Analyse, formulieren Sie nun eine präzisere, klarere Beschreibung derselben Situation. Vermeiden Sie dabei Metamodell-Verletzungen und seien Sie so spezifisch wie möglich.
+
+Ihre überarbeitete Beschreibung:",journal,"{""min_length"":50,""placeholder"":""Eine präzisere Beschreibung meiner Situation ist...""}",5,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Metamodel Practice Step"",""instructions"":""Apply precise language techniques for greater clarity in daily communication.""}}"
+ff5aa850-80d1-427b-89e9-0164020c8d4c,c2ec9513-5ce3-4a9d-9b4e-71a268220d9b,Reflexion,"Reflektieren Sie über diesen Prozess:
+
+1. Wie hat sich Ihr Verständnis der Situation durch die präzisere Formulierung verändert?
+2. Welche neuen Möglichkeiten oder Einsichten haben sich durch die klarere Beschreibung ergeben?
+3. Wie könnten Sie das Meta-Modell in Ihrem Alltag nutzen, um zu mehr Klarheit zu gelangen?",journal,"{""min_length"":50,""placeholder"":""Meine Reflexion zu diesem Prozess...""}",6,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Metamodel Practice Step"",""instructions"":""Apply precise language techniques for greater clarity in daily communication.""}}"
+1c3d9ed5-bdd8-4aff-9096-4de861809b8a,cacab4bf-807d-4fc4-894a-fea946d80590,Einführung zum Klarheits-Tagebuch,"Das Klarheits-Tagebuch ist eine strukturierte Methode, um täglich Ihre Gedanken, Emotionen und Handlungen zu reflektieren und so mehr Klarheit zu gewinnen. 
+
+Durch regelmäßiges Schreiben können Sie:
+- Muster in Ihrem Denken und Verhalten erkennen
+- Inkongruenzen zwischen Ihren Werten und Handlungen aufdecken
+- Fortschritte in Ihrer persönlichen Entwicklung dokumentieren
+- Emotionale Klarheit gewinnen
+- Entscheidungen bewusster treffen
+
+Das Klarheits-Tagebuch ist keine weitere To-Do-Liste oder ein Kalender. Es ist ein Raum für ehrliche Selbstreflexion, für das Hinterfragen von Annahmen und für die Entwicklung eines tieferen Verständnisses Ihrer selbst.",reflection,{},1,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Clarity Journal Step"",""instructions"":""Develop daily practices for sustained clarity and self-awareness.""}}"
+144e9b14-8cc4-48ad-a3e1-4bd34df4badc,cacab4bf-807d-4fc4-894a-fea946d80590,Struktur des Klarheits-Tagebuchs,"Ein effektives Klarheits-Tagebuch enthält die folgenden Komponenten:
+
+1. **Tägliche Check-ins**: Kurze Reflexionen über Ihren aktuellen emotionalen und mentalen Zustand
+
+2. **Muster-Erkennung**: Beobachtungen zu wiederkehrenden Gedanken, Gefühlen oder Verhaltensweisen
+
+3. **Inkongruenz-Awareness**: Bewusstheit über Diskrepanzen zwischen Werten und Handlungen
+
+4. **Klarheits-Momente**: Dokumentation von Momenten besonderer Klarheit oder Einsicht
+
+5. **Wachstumsbereiche**: Reflexion über Bereiche, in denen Sie mehr Klarheit gewinnen möchten
+
+Das Tagebuch sollte einfach genug sein, um es täglich führen zu können, aber tiefgehend genug, um echte Einsichten zu ermöglichen. Sie können es an Ihre Bedürfnisse anpassen.",reflection,{},2,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Clarity Journal Step"",""instructions"":""Develop daily practices for sustained clarity and self-awareness.""}}"
+b70dfd5a-5bd3-4012-9edf-8b811a189346,cacab4bf-807d-4fc4-894a-fea946d80590,Tägliche Leitfragen,"Hier sind einige Leitfragen, die Sie in Ihrem Klarheits-Tagebuch verwenden können:
+
+**Morgen-Reflexion (5 Minuten)**
+1. Wie fühle ich mich heute? (Körperlich, emotional, mental)
+2. Welche Gedanken dominieren meinen Geist?
+3. Was ist heute wirklich wichtig für mich?
+
+**Abend-Reflexion (10 Minuten)**
+1. Was waren heute meine klarsten Momente?
+2. Wo habe ich Inkongruenzen zwischen meinen Werten und Handlungen bemerkt?
+3. Welche wiederkehrenden Gedanken oder Emotionen habe ich erlebt?
+4. Welche Metamodell-Verletzungen habe ich in meinem Denken bemerkt?
+5. Was habe ich heute über mich gelernt?
+
+Es ist wichtig, dass Sie diese Fragen anpassen, sodass sie für Sie persönlich relevant sind. Die Konsistenz ist dabei wichtiger als die Perfektion. Selbst 5 Minuten tägliche Reflexion können einen großen Unterschied machen.",reflection,{},3,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Clarity Journal Step"",""instructions"":""Develop daily practices for sustained clarity and self-awareness.""}}"
+ef0baaef-15e8-4522-9151-86077bd80c3e,cacab4bf-807d-4fc4-894a-fea946d80590,Erstellen Sie Ihren ersten Tagebucheintrag,"Nehmen Sie sich Zeit, um einen ersten Eintrag in Ihr Klarheits-Tagebuch zu schreiben. 
+
+Reflektieren Sie über:
+1. Ihre aktuellen Gedanken und Gefühle
+2. Einen Moment der Klarheit, den Sie kürzlich erlebt haben
+3. Eine Inkongruenz, die Sie in Ihrem Leben bemerkt haben
+4. Einen Bereich, in dem Sie mehr Klarheit suchen
+
+Ihr erster Tagebucheintrag:",journal,"{""min_length"":100,""placeholder"":""Mein erster Eintrag in mein Klarheits-Tagebuch...""}",4,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Clarity Journal Step"",""instructions"":""Develop daily practices for sustained clarity and self-awareness.""}}"
+529fcace-a964-449c-bde7-d1f1fa2c2424,cacab4bf-807d-4fc4-894a-fea946d80590,Ihre Tagebuch-Routine planen,"Um das Klarheits-Tagebuch zu einer festen Gewohnheit zu machen, ist es hilfreich, einen klaren Plan zu haben:
+
+1. **Wann** werden Sie schreiben? (Morgens, abends, beides?)
+2. **Wo** werden Sie schreiben? (In der App, in einem physischen Notizbuch?)
+3. **Wie lange** werden Sie schreiben? (5 Minuten, 10 Minuten?)
+4. **Wie werden Sie sich erinnern?** (Erinnerung in der App, Verknüpfung mit einer bestehenden Gewohnheit?)
+
+Beschreiben Sie Ihren Plan für die Integration des Klarheits-Tagebuchs in Ihren Alltag:",journal,"{""min_length"":50,""placeholder"":""Mein Plan für mein Klarheits-Tagebuch ist...""}",5,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Clarity Journal Step"",""instructions"":""Develop daily practices for sustained clarity and self-awareness.""}}"
+b5e8fdfd-4020-4890-b962-47c8d9aa2643,d396ee19-94c0-49eb-9e8f-1b9fb5a9455a,Identifiziere einschränkende Gedanken,"Denken Sie an eine aktuelle Situation, in der Sie sich blockiert, unwohl oder unsicher fühlen. Notieren Sie Ihre Gedanken zu dieser Situation so ehrlich wie möglich.
+
+Beispiele könnten sein:
+- ""Ich kann diese Aufgabe nicht bewältigen.""
+- ""Alle erwarten, dass ich perfekt bin.""
+- ""Diese Situation macht mich wütend.""
+- ""Es ist zu schwierig, jetzt noch etwas zu ändern.""
+
+Notieren Sie nun Ihren einschränkenden Gedanken:",journal,"{""min_length"":10,""placeholder"":""Mein einschränkender Gedanke ist...""}",1,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Genius Gate Practice Step"",""instructions"":""Apply Genius Gate questioning techniques to gain deeper insights.""}}"
+4bc4d1f2-e97b-48fa-849f-ed69e123f902,d396ee19-94c0-49eb-9e8f-1b9fb5a9455a,Identifiziere den Modellierungsprozess,"Analysieren Sie Ihren notierten Gedanken. Welcher der drei universalen Modellierungsprozesse ist hier am stärksten wirksam?
+
+- **Verzerrung**: Interpretieren Sie die Situation auf eine verzerrte Weise?
+- **Generalisierung**: Verallgemeinern Sie eine einzelne Erfahrung?
+- **Tilgung**: Lassen Sie wichtige Informationen weg?
+
+Wählen Sie den dominanten Prozess:",selection,"{""options"":[""Verzerrung (z.B. \""Er macht mich wütend\"", \""Sie ignoriert mich absichtlich\"")"",""Generalisierung (z.B. \""Ich kann das nie\"", \""Immer passiert mir das\"")"",""Tilgung (z.B. \""Das ist zu schwer\"", \""Sie ist besser\"")""],""allow_multiple"":false}",2,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Genius Gate Practice Step"",""instructions"":""Apply Genius Gate questioning techniques to gain deeper insights.""}}"
+3e4cb9dc-28df-4409-a91a-59c8301a3288,d396ee19-94c0-49eb-9e8f-1b9fb5a9455a,Wähle eine passende Genius Gate-Frage,"Basierend auf dem identifizierten Modellierungsprozess, welche Genius Gate-Frage wäre am hilfreichsten, um mehr Klarheit zu gewinnen?
+
+Wählen Sie eine Frage, die Sie an sich selbst stellen möchten:",selection,"{""options"":[""Woher weiß ich das?"",""Wirklich immer/nie? Ohne Ausnahme?"",""Was genau meine ich mit...?"",""Verglichen womit?"",""Wie genau bewirkt X, dass Y passiert?"",""Was würde geschehen, wenn...?"",""Was hindert mich daran...?""],""allow_multiple"":false}",3,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Genius Gate Practice Step"",""instructions"":""Apply Genius Gate questioning techniques to gain deeper insights.""}}"
+6cff17fd-4a35-4a4e-8c63-8ecbdb9c05e0,d396ee19-94c0-49eb-9e8f-1b9fb5a9455a,Beantworte die Genius Gate-Frage,"Nehmen Sie sich nun Zeit, um die von Ihnen gewählte Frage ehrlich und gründlich zu beantworten. Erlauben Sie sich, tiefer zu graben als üblich.
+
+Ihre Antwort könnte neue Einsichten, versteckte Annahmen oder alternative Perspektiven offenbaren.",journal,"{""min_length"":50,""placeholder"":""Meine Antwort auf diese Frage ist...""}",4,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Genius Gate Practice Step"",""instructions"":""Apply Genius Gate questioning techniques to gain deeper insights.""}}"
+ede47e4c-6ad3-49f8-89e4-562ba4fefbe5,d396ee19-94c0-49eb-9e8f-1b9fb5a9455a,Formuliere einen klareren Gedanken,"Basierend auf Ihren neuen Einsichten, formulieren Sie nun einen klareren, präziseren Gedanken zur gleichen Situation. Dieser sollte weniger Verzerrungen, Generalisierungen oder Tilgungen enthalten.
+
+Beispiele:
+- Statt ""Ich kann diese Aufgabe nicht bewältigen"" → ""Ich fühle mich unsicher bei zwei spezifischen Aspekten dieser Aufgabe""
+- Statt ""Alle erwarten, dass ich perfekt bin"" → ""Ich vermute, dass mein Chef hohe Erwartungen an dieses Projekt hat""
+- Statt ""Diese Situation macht mich wütend"" → ""Ich reagiere mit Wut, wenn ich mich übergangen fühle""",journal,"{""min_length"":10,""placeholder"":""Mein klarerer Gedanke ist...""}",5,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Genius Gate Practice Step"",""instructions"":""Apply Genius Gate questioning techniques to gain deeper insights.""}}"
+4819f814-1e4d-48db-b961-e4e9f0526d18,d396ee19-94c0-49eb-9e8f-1b9fb5a9455a,Reflexion,"Reflektieren Sie über diesen Prozess:
+
+1. Wie hat sich Ihr Verständnis der Situation durch die Genius Gate-Frage verändert?
+2. Welche neuen Möglichkeiten sehen Sie jetzt, die vorher nicht sichtbar waren?
+3. Was nehmen Sie sich vor, um diese Art des Hinterfragens in Ihren Alltag zu integrieren?",journal,"{""min_length"":50,""placeholder"":""Meine Reflexion zu diesem Prozess...""}",6,2025-04-12 15:53:05.763458+00,2025-04-12 15:53:05.763458+00,"{""en"":{""title"":""Genius Gate Practice Step"",""instructions"":""Apply Genius Gate questioning techniques to gain deeper insights.""}}"
+887f4f0b-e5f3-4f89-9c22-71f5a84b2605,e73eed23-fabc-4a23-967b-9693aa850135,Einführung,"In dieser Übung werden Sie Ihre natürlichen Energiequellen und Ressourcen identifizieren und aktivieren. 
+
+Wir alle haben Momente erlebt, in denen wir uns besonders lebendig und energiegeladen fühlen. Diese Momente sind wertvolle Hinweise auf unsere natürlichen Ressourcenquellen.
+
+Nehmen Sie sich etwa 20 Minuten ungestörte Zeit für diese Übung. Bereiten Sie ein Notizbuch oder Blätter vor, um Ihre Erkenntnisse festzuhalten.",reflection,"{""next_button_text"":""Beginnen""}",1,2025-04-15 09:20:52.032315+00,2025-04-15 09:20:52.032315+00,"{""en"":{""title"":""Resource Finder Step"",""instructions"":""Discover and activate your natural energy and resource sources.""}}"
+a76ac4ee-fc9d-4c23-af5e-38b5193ad3dc,e73eed23-fabc-4a23-967b-9693aa850135,Momentaufnahmen der Lebendigkeit,"Denken Sie an die letzte Woche zurück. 
+
+Welche Momente fallen Ihnen ein, in denen Sie sich besonders lebendig gefühlt haben? Dies können kleine Augenblicke oder längere Phasen gewesen sein.
+
+Notieren Sie mindestens 3-5 solcher Momente. Beschreiben Sie für jeden Moment:
+- Was haben Sie getan?
+- Wo waren Sie?
+- Mit wem waren Sie zusammen?
+- Wie haben Sie sich gefühlt?
+- Was hat diesen Moment besonders gemacht?",reflection,"{""min_length"":50,""next_button_text"":""Weiter"",""reflection_prompt"":""Notieren Sie Ihre Lebendigkeits-Momente""}",2,2025-04-15 09:20:52.032315+00,2025-04-15 09:20:52.032315+00,"{""en"":{""title"":""Resource Finder Step"",""instructions"":""Discover and activate your natural energy and resource sources.""}}"
+cc8cd401-502e-4eeb-8725-6954fb49ee0c,e73eed23-fabc-4a23-967b-9693aa850135,Lebendige Erinnerungen,"Denken Sie nun weiter zurück. Welche Momente in Ihrem Leben fallen Ihnen ein, in denen Sie sich besonders in Ihrem Element gefühlt haben?
+
+Diese Momente können aus jeder Lebensphase stammen - Kindheit, Jugend oder Erwachsenenalter.
+
+Notieren Sie mindestens 3-5 solcher Erinnerungen. Beschreiben Sie wieder für jede Erinnerung:
+- Was haben Sie getan?
+- Wo waren Sie?
+- Mit wem waren Sie zusammen?
+- Wie haben Sie sich gefühlt?
+- Was hat diesen Moment besonders gemacht?",reflection,"{""min_length"":50,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie Ihre lebendigen Erinnerungen""}",3,2025-04-15 09:20:52.032315+00,2025-04-15 09:20:52.032315+00,"{""en"":{""title"":""Resource Finder Step"",""instructions"":""Discover and activate your natural energy and resource sources.""}}"
+8253c269-1661-402b-9632-5de6d48aaf89,e73eed23-fabc-4a23-967b-9693aa850135,Identifikation von Ressourcenquellen,"Betrachten Sie nun alle Momente und Erinnerungen, die Sie notiert haben.
+
+Welche gemeinsamen Elemente können Sie identifizieren? Markieren oder unterstreichen Sie wiederkehrende Aspekte wie:
+- Bestimmte Tätigkeiten oder Aktivitäten
+- Umgebungen oder Orte
+- Menschen oder Beziehungsqualitäten
+- Körperliche Zustände oder Bewegungen
+- Mentale oder emotionale Zustände
+
+Fassen Sie diese gemeinsamen Elemente zu Kategorien zusammen. Dies sind Ihre persönlichen Ressourcenquellen.",reflection,"{""min_length"":30,""next_button_text"":""Weiter"",""reflection_prompt"":""Notieren Sie Ihre identifizierten Ressourcenquellen""}",4,2025-04-15 09:20:52.032315+00,2025-04-15 09:20:52.032315+00,"{""en"":{""title"":""Resource Finder Step"",""instructions"":""Discover and activate your natural energy and resource sources.""}}"
+27fb2f56-fd8c-4cd7-9234-ebe64077d689,e73eed23-fabc-4a23-967b-9693aa850135,Top-5-Ressourcenquellen,"Wählen Sie aus Ihren identifizierten Ressourcenquellen die fünf wichtigsten aus.
+
+Für jede dieser Top-5-Ressourcenquellen, beantworten Sie folgende Fragen:
+
+1. Wie oft haben Sie aktuell Zugang zu dieser Ressource? (Auf einer Skala von 1-10)
+2. Wie könnten Sie mehr Zugang zu dieser Ressource schaffen?
+3. Was hält Sie möglicherweise davon ab, diese Ressource öfter zu nutzen?
+4. Welche kleine, konkrete Veränderung könnten Sie in der kommenden Woche umsetzen, um mehr Zugang zu dieser Ressource zu haben?",reflection,"{""min_length"":100,""next_button_text"":""Weiter"",""reflection_prompt"":""Beschreiben Sie Ihre Top-5-Ressourcenquellen und beantworten Sie die Fragen""}",5,2025-04-15 09:20:52.032315+00,2025-04-15 09:20:52.032315+00,"{""en"":{""title"":""Resource Finder Step"",""instructions"":""Discover and activate your natural energy and resource sources.""}}"
+f6517451-144e-4213-8ac1-8d0835a98454,e73eed23-fabc-4a23-967b-9693aa850135,Integrationsplanung,"Erstellen Sie nun einen konkreten Plan, wie Sie in der kommenden Woche mehr Zugang zu Ihren Ressourcenquellen schaffen können.
+
+Wählen Sie mindestens zwei Ihrer Top-5-Ressourcen aus und planen Sie spezifisch:
+- Was genau werden Sie tun?
+- Wann werden Sie es tun? (Tag und Uhrzeit)
+- Wie lange wird es dauern?
+- Was könnten Hindernisse sein, und wie werden Sie damit umgehen?
+- Wie werden Sie sich an die Umsetzung erinnern?
+
+Je konkreter Ihr Plan ist, desto wahrscheinlicher werden Sie ihn umsetzen.",reflection,"{""min_length"":50,""next_button_text"":""Weiter"",""reflection_prompt"":""Notieren Sie Ihren Integrationsplan""}",6,2025-04-15 09:20:52.032315+00,2025-04-15 09:20:52.032315+00,"{""en"":{""title"":""Resource Finder Step"",""instructions"":""Discover and activate your natural energy and resource sources.""}}"
+f5ea7998-798d-40de-b4ef-9ff683e12957,e73eed23-fabc-4a23-967b-9693aa850135,Reflexion und Abschluss,"Nehmen Sie sich einen Moment Zeit, um über die Erkenntnisse dieser Übung zu reflektieren:
+
+- Was haben Sie über Ihre Ressourcenquellen gelernt?
+- Gibt es Überraschungen oder Muster, die Sie entdeckt haben?
+- Inwiefern unterscheiden sich Ihre Ressourcenquellen von dem, was Sie im Alltag priorisieren?
+- Wie würde sich Ihr Leben verändern, wenn Sie regelmäßiger Zugang zu Ihren Ressourcenquellen hätten?
+
+Abschließend: Formulieren Sie eine konkrete Absicht, wie Sie Ihre natürliche Lebendigkeit in den kommenden Tagen stärker in Ihren Alltag integrieren werden.",reflection,"{""min_length"":50,""next_button_text"":""Abschließen"",""reflection_prompt"":""Teilen Sie Ihre Reflexionen und Ihre Absicht""}",7,2025-04-15 09:20:52.032315+00,2025-04-15 09:20:52.032315+00,"{""en"":{""title"":""Resource Finder Step"",""instructions"":""Discover and activate your natural energy and resource sources.""}}"

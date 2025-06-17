@@ -282,8 +282,13 @@ export const useProgressionStore = create<ProgressionState>()(
       },
 
       isModuleAvailable: (moduleId) => {
-        //
-        // Für Testzwecke: Alle "K" (Klarheit) Module sind verfügbar
+        // Safety check: Return false if moduleId is undefined/null
+        if (!moduleId || typeof moduleId !== 'string') {
+          console.warn('isModuleAvailable called with invalid moduleId:', moduleId);
+          return false;
+        }
+
+        // Für Testzwecke: Alle KLARE Module sind verfügbar
         // TODO: Diese Zeile entfernen, wenn die Testphase vorbei ist
         if (
           moduleId.startsWith("k-") ||

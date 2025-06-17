@@ -58,8 +58,8 @@ const baseConfig = {
     const storeName = state.name || "unnamed store";
     if (error) {
       console.error(`Error rehydrating ${storeName}:`, error);
-    } else {
-      console.log(`Successfully rehydrated ${storeName}`);
+    } else if (__DEV__ && false) { // Disabled by default - enable only when debugging store hydration
+      console.log(`💧 Store rehydrated: ${storeName}`);
     }
   },
 };

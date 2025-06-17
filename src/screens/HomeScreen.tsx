@@ -75,9 +75,9 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    // actions.startSession();
+    // Removed: actions.startSession() - causing infinite loop
     console.log("Session started");
-  }, [actions]);
+  }, []); // FIXED: Empty dependency array - only run once
 
   const translatedKlareSteps = useMemo(() => getKlareSteps(), [i18n.language]);
   // Animation für Stage-Fortschritt

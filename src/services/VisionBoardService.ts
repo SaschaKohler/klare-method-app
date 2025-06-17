@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
 import { Alert, Platform } from "react-native";
 import * as FileSystem from "expo-file-system";
-import { Tables, TablesInsert } from "../types/supabase";
+import { Tables, TablesInsert } from "../types/supabase-klare-app";
 
 type VisionBoardRow = Tables<"vision_boards">;
 type VisionBoardInsert = TablesInsert<"vision_boards">;
@@ -351,32 +351,39 @@ class VisionBoardService {
 
     try {
       // Verbesserte Dateierweiterungsbehandlung
-      let fileExt = fileUri.split('.').pop()?.toLowerCase();
-      
+      let fileExt = fileUri.split(".").pop()?.toLowerCase();
+
       // Wenn die URI ein Datenschema enthält, extrahiere den Dateinamen richtig
-      if (fileUri.includes('/')) {
-        const fileName = fileUri.split('/').pop() || '';
-        if (fileName.includes('.')) {
-          fileExt = fileName.split('.').pop()?.toLowerCase();
+      if (fileUri.includes("/")) {
+        const fileName = fileUri.split("/").pop() || "";
+        if (fileName.includes(".")) {
+          fileExt = fileName.split(".").pop()?.toLowerCase();
         }
       }
-      
+
       // Auf Standard-Erweiterung zurückfallen, falls keine erkannt wurde
-      if (!fileExt || !['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
-        console.warn(`Unsupported or undetected image format: ${fileExt}, defaulting to jpg`);
-        fileExt = 'jpg';
+      if (
+        !fileExt ||
+        !["jpg", "jpeg", "png", "gif", "webp"].includes(fileExt)
+      ) {
+        console.warn(
+          `Unsupported or undetected image format: ${fileExt}, defaulting to jpg`,
+        );
+        fileExt = "jpg";
       }
 
       // Eindeutigen Dateinamen erstellen
       const timestamp = Date.now();
       const randomId = Math.floor(Math.random() * 10000);
       const fileName = `${userId}/${timestamp}_${randomId}.${fileExt}`;
-      
-      console.log(`Uploading image to ${fileName} from ${fileUri.substring(0, 50)}...`);
-      
+
+      console.log(
+        `Uploading image to ${fileName} from ${fileUri.substring(0, 50)}...`,
+      );
+
       // Behandlung verschiedener Plattformen
       let fileData;
-      if (Platform.OS === 'web') {
+      if (Platform.OS === "web") {
         // Für Web: Fetch-Request verwenden
         const response = await fetch(fileUri);
         fileData = await response.blob();
@@ -384,38 +391,38 @@ class VisionBoardService {
         // Für native: URI als Objekt übergeben
         fileData = { uri: fileUri };
       }
-      
+
       // Optimierte Inhaltstypbestimmung
       let contentType;
-      switch(fileExt) {
-        case 'jpg':
-        case 'jpeg':
-          contentType = 'image/jpeg';
+      switch (fileExt) {
+        case "jpg":
+        case "jpeg":
+          contentType = "image/jpeg";
           break;
-        case 'png':
-          contentType = 'image/png';
+        case "png":
+          contentType = "image/png";
           break;
-        case 'gif':
-          contentType = 'image/gif';
+        case "gif":
+          contentType = "image/gif";
           break;
-        case 'webp':
-          contentType = 'image/webp';
+        case "webp":
+          contentType = "image/webp";
           break;
         default:
-          contentType = 'image/jpeg';
+          contentType = "image/jpeg";
       }
-      
+
       // Upload mit verbesserten Fehlerprüfungen
       const { data, error } = await supabase.storage
-        .from('vision-board-images')
+        .from("vision-board-images")
         .upload(fileName, fileData, {
           contentType,
           upsert: true,
-          cacheControl: 'no-cache', // Verhindert Caching-Probleme
+          cacheControl: "no-cache", // Verhindert Caching-Probleme
         });
 
       if (error) {
-        console.error('Supabase upload error:', error);
+        console.error("Supabase upload error:", error);
         throw error;
       }
 
@@ -423,18 +430,20 @@ class VisionBoardService {
 
       // URL mit Cache-Busting
       const { data: urlData } = supabase.storage
-        .from('vision-board-images')
+        .from("vision-board-images")
         .getPublicUrl(fileName);
 
       if (!urlData || !urlData.publicUrl) {
-        throw new Error('Failed to get public URL');
+        throw new Error("Failed to get public URL");
       }
 
       // Cache-Busting für zuverlässigere Bildanzeige
       return `${urlData.publicUrl}?t=${timestamp}`;
     } catch (error) {
-      console.error('Upload error:', error);
-      throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : String(error)}`);
+      console.error("Upload error:", error);
+      throw new Error(
+        `Failed to upload image: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -444,13 +453,13 @@ class VisionBoardService {
   async getImageUrl(imagePath: string): Promise<string> {
     try {
       const { data } = supabase.storage
-        .from('vision-board-images')
+        .from("vision-board-images")
         .getPublicUrl(imagePath);
 
       return `${data.publicUrl}?t=${Date.now()}`;
     } catch (error) {
-      console.error('Download error:', error);
-      throw new Error('Failed to get image URL');
+      console.error("Download error:", error);
+      throw new Error("Failed to get image URL");
     }
   }
 

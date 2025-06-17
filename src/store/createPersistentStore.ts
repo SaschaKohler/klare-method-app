@@ -51,7 +51,9 @@ export function createPersistentStore<T extends object>(
           console.log(`No data to rehydrate for ${storeName}`);
           return state as T;
         } else {
-          console.log(`Successfully rehydrated ${storeName}`);
+          if (__DEV__ && false) { // Disabled by default - enable only when debugging store hydration
+            console.log(`💧 Store rehydrated: ${storeName}`);
+          }
           return hydrated as T;
         }
       };

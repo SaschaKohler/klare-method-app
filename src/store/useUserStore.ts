@@ -484,26 +484,20 @@ export const useUserStore = createBaseStore<UserState>(
 
     signInWithGoogle: async () => {
       try {
-        console.log("Starting Google auth flow...");
+        console.log("🚀 Starting simplified Google OAuth from store...");
 
-        // Import required helper function from lib/auth.ts
-        const { performOAuth } = await import("../lib/auth");
+        // Import the simplified OAuth function
+        const { performSimpleOAuth } = await import("../lib/simpleOAuth");
 
-        // Starte den OAuth-Prozess
-        const result = await performOAuth("google");
+        // Start the OAuth process
+        const result = await performSimpleOAuth("google");
 
         if (!result.success) {
           console.error("OAuth process error:", result.error);
           throw result.error;
         }
 
-        // In diesem Punkt warten wir NICHT auf ein Ergebnis, da die App erst nach Redirect
-        // wieder aufgerufen wird. Der aktuelle Flow kehrt nicht sofort zur App zurück.
-        console.log(
-          "Auth process started, app will be reopened after authentication.",
-        );
-
-        // Wir geben ein erfolgreiches Ergebnis zurück, obwohl der Prozess asynchron weiterläuft
+        console.log("✅ OAuth successful, user authenticated");
         return { error: null };
       } catch (error) {
         console.error("Google login error:", error);

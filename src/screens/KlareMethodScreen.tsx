@@ -411,16 +411,18 @@ export default function KlareMethodScreen() {
           </View>
         ) : (
           availableModules.map((module) => {
-            const isAvailable = progression.isModuleAvailable(module.module_id);
+            // Use module.id instead of module.module_id for new HybridContentService structure
+            const moduleId = module.id || module.module_id;
+            const isAvailable = progression.isModuleAvailable(moduleId);
             return (
               <Card
                 key={module.id}
                 style={[styles.moduleCard, !isAvailable && styles.lockedModule]}
                 onPress={() => {
                   if (activeStepId === "L" && isAvailable) {
-                    handleLModuleNavigation(module.module_id);
+                    handleLModuleNavigation(moduleId);
                   } else if (isAvailable) {
-                    navigateToModules(module.module_id);
+                    navigateToModules(moduleId);
                   }
                 }}
               >
@@ -445,7 +447,7 @@ export default function KlareMethodScreen() {
                           !isAvailable && styles.lockedText,
                         ]}
                       >
-                        {module.title}
+                        {module.title_localized || module.title}
                       </Title>
                     </View>
 

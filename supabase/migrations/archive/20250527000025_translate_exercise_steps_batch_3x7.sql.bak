@@ -1,0 +1,105 @@
+-- Migration: Exercise Steps Übersetzungen - 3x7 Module (21 Steps)
+-- a-values-hierarchy, k-incongruence-mapping, l-energy-blockers
+
+-- A-VALUES-HIERARCHY (7 Steps) - Evolvement: Values Hierarchy
+UPDATE exercise_steps SET translations = jsonb_set(
+  COALESCE(translations, '{}'::jsonb),
+  '{en}',
+  jsonb_build_object(
+    'title', 'Introduction to Values',
+    'instructions', 'Discover and prioritize your core values. Values are the foundation of authentic living and aligned decision-making.'
+  )
+) WHERE module_content_id IN (
+  SELECT id FROM module_contents WHERE module_id = 'a-values-hierarchy'
+) AND title = 'Einführung';
+
+UPDATE exercise_steps SET translations = jsonb_set(
+  COALESCE(translations, '{}'::jsonb),
+  '{en}',
+  jsonb_build_object(
+    'title', 'Values Identification',
+    'instructions', 'From the provided list, select 10-15 values that resonate strongly with you. Choose those that feel most essential to who you are.'
+  )
+) WHERE module_content_id IN (
+  SELECT id FROM module_contents WHERE module_id = 'a-values-hierarchy'
+) AND (title LIKE '%Identifik%' OR title LIKE '%Auswahl%' OR title LIKE '%Werte%finden%');
+
+UPDATE exercise_steps SET translations = jsonb_set(
+  COALESCE(translations, '{}'::jsonb),
+  '{en}',
+  jsonb_build_object(
+    'title', 'Values Ranking',
+    'instructions', 'Narrow down your selection to your top 5-7 core values. Rank them in order of importance. This creates clarity about your priorities.'
+  )
+) WHERE module_content_id IN (
+  SELECT id FROM module_contents WHERE module_id = 'a-values-hierarchy'
+) AND (title LIKE '%Ranking%' OR title LIKE '%Hierarchie%' OR title LIKE '%Priorisierung%');
+
+UPDATE exercise_steps SET translations = jsonb_set(
+  COALESCE(translations, '{}'::jsonb),
+  '{en}',
+  jsonb_build_object(
+    'title', 'Values Definition',
+    'instructions', 'Define what each of your core values means to you personally. How do you recognize when this value is being honored or violated?'
+  )
+) WHERE module_content_id IN (
+  SELECT id FROM module_contents WHERE module_id = 'a-values-hierarchy'
+) AND (title LIKE '%Definition%' OR title LIKE '%Bedeutung%' OR title LIKE '%beschreiben%');
+
+-- Fallback für verbleibende a-values-hierarchy Steps
+UPDATE exercise_steps SET translations = jsonb_set(
+  COALESCE(translations, '{}'::jsonb),
+  '{en}',
+  jsonb_build_object(
+    'title', 'Values Hierarchy Step',
+    'instructions', 'Continue developing your personal values hierarchy for authentic living and decision-making.'
+  )
+) WHERE module_content_id IN (
+  SELECT id FROM module_contents WHERE module_id = 'a-values-hierarchy'
+) AND (translations IS NULL OR NOT (translations ? 'en'));
+
+-- K-INCONGRUENCE-MAPPING (7 Steps) - Clarity: Mapping Incongruences  
+UPDATE exercise_steps SET translations = jsonb_set(
+  COALESCE(translations, '{}'::jsonb),
+  '{en}',
+  jsonb_build_object(
+    'title', 'Introduction to Incongruences',
+    'instructions', 'Learn to identify and visualize inner conflicts and contradictions. Awareness is the first step to resolution.'
+  )
+) WHERE module_content_id IN (
+  SELECT id FROM module_contents WHERE module_id = 'k-incongruence-mapping'
+) AND title = 'Einführung';
+
+UPDATE exercise_steps SET translations = jsonb_set(
+  COALESCE(translations, '{}'::jsonb),
+  '{en}',
+  jsonb_build_object(
+    'title', 'Identify Conflicts',
+    'instructions', 'Think about areas in your life where you feel torn or conflicted. Where do your actions not match your values or desires?'
+  )
+) WHERE module_content_id IN (
+  SELECT id FROM module_contents WHERE module_id = 'k-incongruence-mapping'
+) AND (title LIKE '%Konflikte%' OR title LIKE '%Widersprüche%' OR title LIKE '%identifizieren%');
+
+UPDATE exercise_steps SET translations = jsonb_set(
+  COALESCE(translations, '{}'::jsonb),
+  '{en}',
+  jsonb_build_object(
+    'title', 'Map Incongruences',
+    'instructions', 'Visually map your incongruences. What conflicts with what? Create a clear picture of your internal contradictions.'
+  )
+) WHERE module_content_id IN (
+  SELECT id FROM module_contents WHERE module_id = 'k-incongruence-mapping'
+) AND (title LIKE '%kartieren%' OR title LIKE '%Mapping%' OR title LIKE '%visualisieren%');
+
+-- Fallback für verbleibende k-incongruence-mapping Steps
+UPDATE exercise_steps SET translations = jsonb_set(
+  COALESCE(translations, '{}'::jsonb),
+  '{en}',
+  jsonb_build_object(
+    'title', 'Incongruence Mapping Step',
+    'instructions', 'Continue mapping your inner conflicts to gain clarity about areas that need alignment.'
+  )
+) WHERE module_content_id IN (
+  SELECT id FROM module_contents WHERE module_id = 'k-incongruence-mapping'
+) AND (translations IS NULL OR NOT (translations ? 'en'));

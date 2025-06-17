@@ -3,6 +3,7 @@ import { unifiedStorage, StorageKeys } from "../storage/unifiedStorage";
 import uuid from "react-native-uuid";
 import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
+import { debugLog } from "../utils/debugConfig";
 import i18n from "../utils/i18n";
 
 // Types
@@ -36,6 +37,7 @@ export interface JournalTemplateCategory {
   description?: string;
   icon?: string;
   orderIndex: number;
+  translations?: any; // JSONB data from database
 }
 
 // Storage keys
@@ -45,7 +47,7 @@ class JournalService {
   // Cache entries in memory for faster access
   private entriesCache: Record<string, JournalEntry[]> = {};
   private templatesCache: Record<string, JournalTemplate[]> = {}; // Language-specific cache
-  private categoriesCache: JournalTemplateCategory[] | null = null;
+  private categoriesCache: Record<string, JournalTemplateCategory[]> = {}; // Language-specific cache
 
   // Get all journal entries for a user
   async getUserEntries(userId: string): Promise<JournalEntry[]> {
@@ -491,15 +493,12 @@ class JournalService {
                 const translations = item.translations || {};
                 const languageData = translations[currentLanguage] || {};
                 
-                // Debug log for translations
-                if (__DEV__) {
-                  console.log(`Template ${item.id} (${item.title}): `, {
-                    hasTranslations: !!translations,
-                    availableLanguages: translations ? Object.keys(translations) : [],
-                    currentLanguage,
-                    usingTranslation: !!languageData.title,
-                  });
-                }
+                // Clean translation debug log
+                debugLog('I18N_DEBUG', `Template ${item.title}`, {
+                  lang: currentLanguage,
+                  available: translations ? Object.keys(translations).filter(k => /^[a-z]{2}$/.test(k)) : [],
+                  translated: !!languageData.title,
+                });
                 
                 return {
                   id: item.id,
@@ -538,9 +537,9 @@ class JournalService {
       // Get the current language or use default
       const currentLanguage = language || 'de';
       
-      // Check cache first
-      if (this.categoriesCache) {
-        return this.categoriesCache;
+      // Check language-specific cache first
+      if (this.categoriesCache[currentLanguage]) {
+        return this.categoriesCache[currentLanguage];
       }
 
       // If online, get from server
@@ -560,15 +559,12 @@ class JournalService {
                 const translations = item.translations || {};
                 const languageData = translations[currentLanguage] || {};
                 
-                // Debug log for translations
-                if (__DEV__) {
-                  console.log(`Category ${item.id} (${item.name}): `, {
-                    hasTranslations: !!translations,
-                    availableLanguages: translations ? Object.keys(translations) : [],
-                    currentLanguage,
-                    usingTranslation: !!languageData.name,
-                  });
-                }
+                // Clean translation debug log
+                debugLog('I18N_DEBUG', `Category ${item.name}`, {
+                  lang: currentLanguage,
+                  available: translations ? Object.keys(translations).filter(k => /^[a-z]{2}$/.test(k)) : [],
+                  translated: !!languageData.name,
+                });
                 
                 return {
                   id: item.id,
@@ -576,12 +572,13 @@ class JournalService {
                   description: languageData.description || item.description,
                   icon: item.icon,
                   orderIndex: item.order_index,
+                  translations: item.translations // Keep original translations for filtering
                 };
               }
             );
 
-            // Update cache
-            this.categoriesCache = categories;
+            // Update language-specific cache
+            this.categoriesCache[currentLanguage] = categories;
 
             return categories;
           }
@@ -786,7 +783,7 @@ class JournalService {
     
     // Always clear template and category caches to ensure fresh translations
     this.templatesCache = {}; // Clear all language caches
-    this.categoriesCache = null;
+    this.categoriesCache = {}; // Clear all language caches
   }
 }
 

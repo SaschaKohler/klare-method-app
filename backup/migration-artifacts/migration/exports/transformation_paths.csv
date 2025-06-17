@@ -1,0 +1,21 @@
+id,step_id,from_text,to_text,sort_order,created_at,updated_at,translations
+d09f2848-db70-4799-b083-007b2f0ff96f,A,Widersprüchliche Ziele,Kongruente Zielausrichtung,1,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}
+3d5f56c8-3efb-4bdf-b5b1-b7166a9eacbd,A,Getrennte Lebensbereiche,Ganzheitliche Integration,2,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}
+11dc87b2-0bf8-45f5-b7ea-7fce4444a4b9,A,Wertekonflikt,Innere Werte-Harmonie,3,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}
+a13ffea1-d832-460e-bdc1-814ac4facf69,A,Fragmentiertes Leben mit widersprüchlichen Zielen,Integriertes Leben mit kohärenter Ausrichtung,9,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,{}
+5ef2f9ba-c6c2-430e-8234-bc1646d59461,A,Unklare Werte und ständige Wertekonflikte,Klare Werte-Hierarchie als innerer Kompass,10,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,{}
+bdafbd69-dd9c-482f-98a6-42341e0189df,A,Entscheidungen basierend auf externen Erwartungen,Entscheidungen im Einklang mit inneren Werten,11,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,{}
+49d33317-57c6-47ca-9518-7c3c91904f19,A,Vage oder widersprüchliche Lebensvision,"Klare, inspirierende und kohärente Lebensvision",12,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,{}
+76847d36-988f-4a51-bef0-9ce79db0312c,A,"Leben in vielen unverbundenen ""Abteilungen""",Ganzheitliches Leben mit synergetischen Lebensbereichen,13,2025-04-17 14:11:50.79689+00,2025-04-17 14:11:50.79689+00,{}
+10c60f76-86fd-4fb1-bfdc-2c65d544e272,E,Stagnierende Entwicklung,Kontinuierliches Wachstum,1,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}
+357c8913-30c5-4687-82af-3acca92646a7,E,Anstrengende Zielerreichung,Mühelose Manifestation,2,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}
+000cf129-b077-43da-8b44-52060a51f9a1,E,Fragmentierte Lebensbereiche,Vollständige Kongruenz in allen Dimensionen,3,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}
+265d04c0-6979-423a-8ce1-1f65e3e6044f,K,Vermeidung und Verdrängung,Ehrliche Selbstreflexion,1,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}
+76247ee8-f46a-4562-b2d6-64509e57d177,K,Unklarheit über Ist-Zustand,Präzise Standortbestimmung,2,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}
+7982f644-3cd3-44aa-9f47-6c539b7ce152,K,Selbsttäuschung,Authentische Selbsterkenntnis,3,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}
+88bc1ef6-0831-4f04-958b-aa6b6dba977e,L,Energielosigkeit und Blockaden,Natürliche Lebensenergie,1,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}
+fd7cce42-db8d-4222-9054-0cee320758be,L,Verschüttete Ressourcen,Wiederentdeckte Kraftquellen,2,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}
+0b15cb28-c0cf-4ecc-bca4-24455ede5678,L,Stagnation im Alltag,Spontane Leichtigkeit,3,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}
+8d3ede0e-519d-428b-849c-b27b474e9da8,R,Ideen ohne Umsetzung,Konsequente Realisierung,1,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}
+0ee22daf-9a58-4e85-afd9-ab144da7bba3,R,Sporadische Bemühungen,Nachhaltige Integration im Alltag,2,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}
+3767d507-c871-454e-bd37-5b6737f7dfd2,R,Rückfall in alte Muster,Selbstverstärkende neue Gewohnheiten,3,2025-04-13 15:06:22.035917+00,2025-04-13 15:06:22.035917+00,{}

@@ -1,0 +1,126 @@
+{
+  "ai": {
+    "coach": "AI Coach",
+    "enableRequired": "AI Erforderlich",
+    "enableRequiredMessage": "Um den AI Coach zu nutzen, aktivieren Sie bitte die AI-Funktionen in den Datenschutzeinstellungen.",
+    "enableNow": "AI Aktivieren",
+    "enabled": "AI Aktiviert",
+    "enabledMessage": "AI-Coaching-Funktionen sind jetzt aktiv. Ihre Datenschutzeinstellungen wurden gespeichert.",
+    "disable": "AI Deaktivieren",
+    "disableConfirm": "Sind Sie sicher, dass Sie die AI-Funktionen deaktivieren möchten? Dadurch wird Ihre aktuelle Unterhaltung gelöscht.",
+    "error": "Fehler",
+    "connectionError": "Verbindung zum AI Coach fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "errorMessage": "Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+    "initialGreeting": "Hallo! Ich möchte gerne meine persönliche Entwicklung mit dir erkunden.",
+    "insights": "Erkenntnisse",
+    "privacySettings": "AI Datenschutzeinstellungen",
+    "privacyDescription": "Wählen Sie, wie Sie AI-Funktionen in Ihrer KLARE-Reise nutzen möchten. Sie können diese Einstellungen jederzeit ändern.",
+    "disableAI": "Keine AI-Funktionen",
+    "disableDescription": "Nur statische Inhalte verwenden. Alle Daten bleiben lokal.",
+    "basicAI": "Basis AI-Coaching",
+    "basicDescription": "AI-Coaching mit datenschutzsicherer Personalisierung.",
+    "advancedAI": "Erweiterte AI-Coaching",
+    "advancedDescription": "Vollständige AI-Personalisierung mit Erkenntnissen und Inhaltsgenerierung.",
+    "serviceStatus": "Service-Status",
+    "capabilities": "Verfügbare Funktionen",
+    "notEnabled": "AI Coach Nicht Aktiviert",
+    "enableToStart": "Aktivieren Sie AI-Funktionen, um ein Coaching-Gespräch zu beginnen.",
+    "enableFeatures": "AI-Funktionen Aktivieren",
+    "readyToChat": "Bereit für Coaching",
+    "coachingDescription": "Ihr AI Coach ist bereit, Ihnen bei der Erkundung Ihrer KLARE-Reise mit personalisierten Fragen und Erkenntnissen zu helfen.",
+    "startCoaching": "Coaching-Session Starten",
+    "typeMessage": "Nachricht eingeben...",
+    "status": {
+      "healthy": "Gesund",
+      "degraded": "Beeinträchtigt",
+      "down": "Ausgefallen"
+    },
+    "conversation": {
+      "newSession": "Neue Session",
+      "endSession": "Session Beenden",
+      "clearHistory": "Verlauf Löschen",
+      "exportChat": "Chat Exportieren"
+    },
+    "personalization": {
+      "title": "Personalisierungseinstellungen",
+      "level": "Personalisierungsgrad",
+      "dataSharing": "Datenfreigabe",
+      "localOnly": "Nur Lokal",
+      "cloudSafe": "Cloud-Sicher",
+      "aiEnabled": "AI Aktiviert"
+    },
+    "insights": {
+      "title": "AI-Erkenntnisse",
+      "generated": "Generierte Erkenntnisse",
+      "patterns": "Erkannte Muster",
+      "recommendations": "Empfehlungen",
+      "confidence": "Vertrauen",
+      "source": "Quelle"
+    },
+    "content": {
+      "generating": "Personalisierte Inhalte werden erstellt...",
+      "generated": "Von AI erstellter Inhalt",
+      "fallback": "Standard-Inhalt wird verwendet",
+      "cached": "Zwischengespeicherter Inhalt wird verwendet",
+      "personalized": "Für Sie personalisiert"
+    },
+    "journal": {
+      "aiPrompt": "AI-Generierte Frage",
+      "generatePrompt": "Neue Frage Generieren",
+      "promptLoading": "Personalisierte Frage wird erstellt...",
+      "sensitivity": "Inhaltssensitivität",
+      "analysisAllowed": "AI-Analyse Erlauben",
+      "localStorage": "Nur Lokal Speichern"
+    },
+    "exercises": {
+      "personalized": "Personalisierte Übung",
+      "adapted": "An Ihr Niveau angepasst",
+      "difficulty": "Schwierigkeitsgrad",
+      "suggestions": "AI-Vorschläge"
+    },
+    "progress": {
+      "analysis": "Fortschrittsanalyse",
+      "analyzing": "Ihr Fortschritt wird analysiert...",
+      "nextSteps": "Vorgeschlagene Nächste Schritte",
+      "strengths": "Ihre Stärken",
+      "growthAreas": "Entwicklungsbereiche",
+      "recommendations": "Empfehlungen"
+    }
+  },
+  "privacy": {
+    "title": "Datenschutzeinstellungen",
+    "description": "Kontrollieren Sie, wie Ihre Daten verwendet und gespeichert werden",
+    "consentRequired": "Einverständnis Erforderlich",
+    "dataProcessing": "Datenverarbeitung",
+    "aiAnalysis": "AI-Analyse",
+    "localStorage": "Lokale Speicherung",
+    "cloudStorage": "Cloud-Speicherung",
+    "sensitive": {
+      "title": "Sensible Daten",
+      "description": "Inhalte, die besonderen Datenschutz benötigen",
+      "localOnly": "Nur auf Gerät behalten",
+      "encrypted": "Verschlüsselte Speicherung"
+    },
+    "intimate": {
+      "title": "Intime Daten",
+      "description": "Sehr persönliche Inhalte mit maximalem Datenschutz",
+      "alwaysLocal": "Immer lokal gespeichert",
+      "noAI": "Keine AI-Analyse"
+    }
+  },
+  "common": {
+    "enable": "Aktivieren",
+    "disable": "Deaktivieren",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "continue": "Weiter",
+    "back": "Zurück", 
+    "next": "Weiter",
+    "done": "Fertig",
+    "loading": "Lädt...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "warning": "Warnung",
+    "info": "Information"
+  }
+}

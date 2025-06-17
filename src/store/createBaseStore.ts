@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { persist, PersistOptions } from "zustand/middleware";
 import { storePersistConfigs } from "./persistConfig";
+import { debugLog } from "../utils/debugConfig";
 
 // Basisstruktur für Metadaten
 export interface BaseMetadata {
@@ -94,7 +95,7 @@ export function createBaseStore<T extends BaseState>(
 
           return state as T;
         } else {
-          console.log(`Successfully rehydrated ${storeName}`);
+          debugLog('STORE_HYDRATION', `Rehydrated ${storeName}`);
 
           return {
             ...hydrated,

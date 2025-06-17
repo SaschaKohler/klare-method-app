@@ -153,6 +153,25 @@ export default function JournalScreen() {
               loadCategories(),
             ]);
 
+            // Debug log for loaded data
+            if (__DEV__) {
+              console.log('JournalScreen loaded data:', {
+                templatesCount: templates.length,
+                categoriesCount: categories.length,
+                currentLanguage: i18n.language,
+                templateTitles: templates.map(t => t.title),
+                categoryNames: categories.map(c => c.name)
+              });
+              
+              // Warning if no data loaded
+              if (templates.length === 0) {
+                console.warn('⚠️ No journal templates loaded. Check network connection or clear cache.');
+              }
+              if (categories.length === 0) {
+                console.warn('⚠️ No journal categories loaded. Check network connection or clear cache.');
+              }
+            }
+
             // Get entries for the selected date
             const dateEntries = await getEntriesByDate(user.id, selectedDate);
             setEntriesForSelectedDate(dateEntries);
@@ -166,7 +185,7 @@ export default function JournalScreen() {
       };
 
       loadJournalData();
-    }, [user?.id, selectedDate]), // Re-run when user ID or selected date changes
+    }, [user?.id, selectedDate, i18n.language]), // Re-run when user ID, selected date, or language changes
   );
 
   // Refresh function
@@ -300,11 +319,145 @@ export default function JournalScreen() {
     );
   };
 
-  // Filter templates by category
+  // Helper function to check if a category is valid for current language
+  const isCategoryValidForLanguage = (categoryName: string, language: string) => {
+    // Categories that don't exist in CLEAR method (English version)
+    // Only filter out categories that are purely KLARE-specific method steps
+    const germanOnlyCategories = [
+      'Ausrichtung',     // KLARE-specific step with no CLEAR equivalent
+      'Entfaltung',      // KLARE-specific step with no CLEAR equivalent
+      // English translations that should also be filtered
+      'Alignment',       // KLARE-specific
+      'Unfolding'        // KLARE-specific
+    ];
+
+    // Note: 'Abend Reflexion'/'Evening Reflection' and 'Werte Reflexion'/'Values Reflection' 
+    // are universal reflection concepts, not KLARE-specific, so they should be available in both languages
+
+    // If we're in English mode, filter out only KLARE-specific categories
+    if (language === 'en') {
+      // Check both original name and potential translations
+      const isGermanOnly = germanOnlyCategories.some(germanCat => {
+        if (categoryName === germanCat) return true;
+        
+        // Check if this is a translation of a German-only category
+        const category = categories.find(cat => cat.name === categoryName);
+        if (category?.translations?.de?.name && 
+            germanOnlyCategories.includes(category.translations.de.name)) {
+          return true;
+        }
+        
+        return false;
+      });
+      
+      return !isGermanOnly;
+    }
+    
+    // In German mode, all categories are valid
+    return true;
+  };
+
+  // Filter categories by language appropriateness
+  const filteredCategories = useMemo(() => {
+    const currentLanguage = i18n.language || 'de';
+    
+    return categories.filter(category => 
+      isCategoryValidForLanguage(category.name, currentLanguage)
+    );
+  }, [categories, i18n.language]);
+
+  // Helper function to get category names for filtering (updated to use filtered categories)
+  const getCategoryNamesForFiltering = (displayedCategoryName: string) => {
+    // Get all possible names for this category (original German name + English translation)
+    const category = filteredCategories.find(cat => cat.name === displayedCategoryName);
+    if (!category) return [displayedCategoryName];
+    
+    // Extract both the original name and any translations
+    const names = [category.name]; // Original name from DB
+    
+    // Add translated names if they exist
+    if (category.translations) {
+      const englishName = category.translations?.en?.name;
+      if (englishName && englishName !== category.name) {
+        names.push(englishName);
+      }
+    }
+    
+    // Manual mapping for known categories that might not be in translations yet
+    const categoryMapping = {
+      // English -> German (for templates that might use German categories)
+      'Alignment': 'Ausrichtung',
+      'Unfolding': 'Entfaltung',
+      'Clarity': 'Klarheit',
+      'Liveliness': 'Lebendigkeit',
+      'Expression': 'Ausdruck',
+      'Resonance': 'Resonanz',
+      'Development': 'Entwicklung',
+      'Daily Reflection': 'Tägliche Reflexion',
+      'Evening Reflection': 'Abend Reflexion',
+      'Values Reflection': 'Werte Reflexion',
+      // German -> English (for UI display)
+      'Ausrichtung': 'Alignment',
+      'Entfaltung': 'Unfolding', 
+      'Klarheit': 'Clarity',
+      'Lebendigkeit': 'Liveliness',
+      'Ausdruck': 'Expression',
+      'Resonanz': 'Resonance',
+      'Entwicklung': 'Development',
+      'Tägliche Reflexion': 'Daily Reflection',
+      'Abend Reflexion': 'Evening Reflection',
+      'Werte Reflexion': 'Values Reflection'
+    };
+    
+    // Add mapped name if it exists
+    if (categoryMapping[displayedCategoryName]) {
+      names.push(categoryMapping[displayedCategoryName]);
+    }
+    
+    return names;
+  };
+
+  // Filter templates by category (updated to work with language-filtered categories)
   const filteredTemplates = useMemo(() => {
-    if (!activeCategory) return templates;
-    return templates.filter((template) => template.category === activeCategory);
-  }, [templates, activeCategory]);
+    if (!activeCategory) {
+      // When no category is selected, still filter templates by language appropriateness
+      const currentLanguage = i18n.language || 'de';
+      
+      return templates.filter(template => {
+        if (!template.category) return true; // Include templates without category
+        return isCategoryValidForLanguage(template.category, currentLanguage);
+      });
+    }
+    
+    // Get all possible names for this category
+    const categoryNames = getCategoryNamesForFiltering(activeCategory);
+    
+    const filtered = templates.filter((template) => 
+      categoryNames.includes(template.category)
+    );
+    
+    // Debug log
+    if (__DEV__) {
+      console.log('Template filtering:', {
+        activeCategory,
+        categoryNames,
+        totalTemplates: templates.length,
+        filteredCount: filtered.length,
+        templateCategories: templates.map(t => t.category),
+        availableCategories: filteredCategories.map(c => ({ name: c.name, translations: c.translations })),
+        language: i18n.language
+      });
+      
+      // Check for empty filter results
+      if (filtered.length === 0 && templates.length > 0) {
+        console.warn('⚠️ No templates found for category:', activeCategory);
+        console.log('Available template categories:', [...new Set(templates.map(t => t.category))]);
+        console.log('Searching for category names:', categoryNames);
+      }
+    }
+    
+    return filtered;
+  }, [templates, activeCategory, filteredCategories, i18n.language]);
 
   // Render a tag chip
   const renderTagChip = (tag: string, index: number) => (
@@ -454,7 +607,7 @@ export default function JournalScreen() {
           </Text>
         </TouchableOpacity>
 
-        {categories.map((category) => (
+        {filteredCategories.map((category) => (
           <TouchableOpacity
             key={category.id}
             style={[
@@ -555,13 +708,16 @@ export default function JournalScreen() {
               {t("templateSelector.back", { ns: "journal" })}
             </Button>
           </View>
-          {renderCategoryTabs()}
+          <View style={styles.stickyHeaderContainer}>
+            {renderCategoryTabs()}
+          </View>
           <FlatList
             data={filteredTemplates}
             renderItem={renderTemplate}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.templatesList}
             showsVerticalScrollIndicator={false}
+            style={styles.templatesListContainer}
           />
         </>
       );

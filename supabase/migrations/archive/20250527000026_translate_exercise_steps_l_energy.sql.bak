@@ -1,0 +1,61 @@
+-- Migration: Exercise Steps Übersetzungen - l-energy-blockers (7 Steps)
+
+-- L-ENERGY-BLOCKERS (7 Steps) - Liveliness: Energy Blockers Analysis
+UPDATE exercise_steps SET translations = jsonb_set(
+  COALESCE(translations, '{}'::jsonb),
+  '{en}',
+  jsonb_build_object(
+    'title', 'Introduction to Energy Blockers',
+    'instructions', 'Identify and transform the factors that drain your natural energy and vitality. Understanding your energy blockers is key to reclaiming your liveliness.'
+  )
+) WHERE module_content_id IN (
+  SELECT id FROM module_contents WHERE module_id = 'l-energy-blockers'
+) AND title = 'Einführung';
+
+UPDATE exercise_steps SET translations = jsonb_set(
+  COALESCE(translations, '{}'::jsonb),
+  '{en}',
+  jsonb_build_object(
+    'title', 'Identify Energy Drains',
+    'instructions', 'List the people, situations, activities, or thoughts that consistently deplete your energy. Be honest and specific.'
+  )
+) WHERE module_content_id IN (
+  SELECT id FROM module_contents WHERE module_id = 'l-energy-blockers'
+) AND (title LIKE '%Energie-Räuber%' OR title LIKE '%identifizieren%' OR title LIKE '%Blocker%finden%');
+
+UPDATE exercise_steps SET translations = jsonb_set(
+  COALESCE(translations, '{}'::jsonb),
+  '{en}',
+  jsonb_build_object(
+    'title', 'Categorize Blockers',
+    'instructions', 'Organize your energy blockers into categories: internal (thoughts, beliefs) and external (people, situations). This helps you understand what you can influence directly.'
+  )
+) WHERE module_content_id IN (
+  SELECT id FROM module_contents WHERE module_id = 'l-energy-blockers'
+) AND (title LIKE '%Kategorisierung%' OR title LIKE '%sortieren%' OR title LIKE '%Gruppen%');
+
+UPDATE exercise_steps SET translations = jsonb_set(
+  COALESCE(translations, '{}'::jsonb),
+  '{en}',
+  jsonb_build_object(
+    'title', 'Transformation Strategies',
+    'instructions', 'Develop specific strategies to transform or minimize each energy blocker. Focus on what you can control and influence.'
+  )
+) WHERE module_content_id IN (
+  SELECT id FROM module_contents WHERE module_id = 'l-energy-blockers'
+) AND (title LIKE '%Transformation%' OR title LIKE '%Strategien%' OR title LIKE '%Lösungen%');
+
+-- Fallback für verbleibende l-energy-blockers Steps
+UPDATE exercise_steps SET translations = jsonb_set(
+  COALESCE(translations, '{}'::jsonb),
+  '{en}',
+  jsonb_build_object(
+    'title', 'Energy Blockers Analysis Step',
+    'instructions', 'Continue analyzing and transforming your energy blockers to increase your natural liveliness.'
+  )
+) WHERE module_content_id IN (
+  SELECT id FROM module_contents WHERE module_id = 'l-energy-blockers'
+) AND (translations IS NULL OR NOT (translations ? 'en'));
+
+-- Kommentar für Entwickler
+COMMENT ON COLUMN exercise_steps.translations IS '3x7 Module übersetzt: a-values-hierarchy, k-incongruence-mapping, l-energy-blockers';

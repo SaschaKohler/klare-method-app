@@ -1,4 +1,5 @@
 // src/storage/unifiedStorage.ts
+import { debugLog } from "../utils/debugConfig";
 import { MMKV } from "react-native-mmkv";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createJSONStorage } from "zustand/middleware";
@@ -182,7 +183,10 @@ class UnifiedStorage {
           );
           return;
         }
-        console.log("Setting item in storage:", name, value);
+        // Clean storage debug logging
+        debugLog('STORAGE_LOGS', `Set ${name}`, {
+          size: value.length > 100 ? `${value.length} chars` : value.substring(0, 50)
+        });
         this.set(name, value);
       },
       getItem: (name: string) => {

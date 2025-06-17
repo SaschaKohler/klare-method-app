@@ -113,7 +113,10 @@ export const useJournalStore = createBaseStore<JournalStoreState>(
     loadCategories: async () => {
       try {
         set({ isLoading: true });
-        const categories = await journalService.getTemplateCategories();
+        // Get current language from i18n
+        const { default: i18n } = await import("../utils/i18n");
+        const currentLanguage = i18n.language || "de";
+        const categories = await journalService.getTemplateCategories(currentLanguage);
         set({ categories, isLoading: false });
       } catch (error) {
         console.error("Error loading template categories:", error);

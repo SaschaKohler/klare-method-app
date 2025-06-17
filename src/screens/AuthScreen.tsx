@@ -29,13 +29,8 @@ import { MotiPressable } from "moti/interactions";
 import { supabase } from "../lib/supabase";
 import * as Linking from "expo-linking";
 import { useTranslation } from "react-i18next";
-// Importiere die vereinheitlichten Auth-Funktionen
-import {
-  redirectTo,
-  performOAuth,
-  sendMagicLink,
-  resendConfirmationEmail,
-} from "../lib/auth";
+// Importiere die vereinfachte OAuth-Implementierung
+import { performSimpleOAuth } from "../lib/simpleOAuth";
 
 // Auth states
 type AuthViewState = "welcome" | "signin" | "signup" | "forgot";
@@ -223,93 +218,30 @@ export default function AuthScreen() {
   useEffect(() => {
     console.log("Setting up auth state listener");
 
-    // Check if user is already authenticated
+    // Check if user is already authenticated - ONE-TIME CHECK ONLY
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        console.log("Found existing session, loading user data");
-        setLoading(true);
-        try {
-          // Hier ist wichtig: Wir müssen warten, bis die Daten geladen sind
-          useUserStore
-            .getState()
-            .loadUserData()
-            .then(() => {
-              console.log(
-                "User data loaded successfully from existing session",
-              );
-              // Clear any errors that might be displayed
-              setError(null);
-            })
-            .catch((loadError) => {
-              console.error(
-                "Error loading user data from existing session:",
-                loadError,
-              );
-            })
-            .finally(() => {
-              setLoading(false);
-            });
-        } catch (loadError) {
-          console.error(
-            "Error loading user data from existing session:",
-            loadError,
-          );
-          setLoading(false);
-        }
+        console.log("Found existing session in AuthScreen - letting MainNavigator handle it");
+        // Don't call loadUserData here - MainNavigator will handle it
       }
     });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log(
-          `Supabase auth event: ${event}`,
-          session ? "Session available" : "No session",
-        );
+    // DISABLED: Auth listener causes infinite loops with MainNavigator
+    // const { data: authListener } = supabase.auth.onAuthStateChange(
+    //   async (event, session) => {
+    //     console.log(
+    //       `Supabase auth event: ${event}`,
+    //       session ? "Session available" : "No session",
+    //     );
+    //     // All auth handling moved to MainNavigator
+    //   },
+    // );
 
-        if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
-          console.log("User signed in or token refreshed, loading user data");
-          // User signed in, load user data
-          setLoading(true);
-          try {
-            await useUserStore.getState().loadUserData();
-            console.log("User data loaded successfully");
-            // Clear any errors that might be displayed
-            setError(null);
-          } catch (loadError) {
-            console.error("Error loading user data:", loadError);
-          } finally {
-            setLoading(false);
-          }
-        } else if (event === "SIGNED_OUT") {
-          console.log("User signed out");
-        } else if (event === "USER_UPDATED") {
-          console.log("User updated");
-        } else if (event === "INITIAL_SESSION") {
-          console.log("Initial session loaded");
-          if (session) {
-            console.log("User already has a session, loading user data");
-            setLoading(true);
-            try {
-              await useUserStore.getState().loadUserData();
-              console.log("User data loaded successfully from initial session");
-              // Clear any errors that might be displayed
-              setError(null);
-            } catch (loadError) {
-              console.error(
-                "Error loading user data from initial session:",
-                loadError,
-              );
-            } finally {
-              setLoading(false);
-            }
-          }
-        }
-      },
-    );
+    console.log("AuthScreen: Auth listener disabled - handled by MainNavigator");
 
     return () => {
-      console.log("Cleaning up auth listener");
-      authListener.subscription.unsubscribe();
+      console.log("Cleaning up auth listener in AuthScreen");
+      // authListener.subscription.unsubscribe(); // Disabled
     };
   }, []);
 
@@ -337,43 +269,24 @@ export default function AuthScreen() {
 
     try {
       if (provider === "google") {
-        console.log("Starting Google auth...");
+        console.log("🚀 Starting simplified Google OAuth...");
 
-        try {
-          // Einheitliche performOAuth-Funktion aus lib/auth.ts verwenden
-          const result = await performOAuth("google");
+        const result = await performSimpleOAuth("google");
 
-          if (result.success) {
-            console.log("OAuth successful, session should be established");
-            // Die Session wird automatisch vom URL-Handler in supabase.ts verarbeitet
-            // Wir müssen hier nichts weiter tun
-          } else {
-            console.log("OAuth flow unsuccessful:", result.error);
-            if (result.error) {
-              setError(
-                `Die Anmeldung mit Google ist fehlgeschlagen: ${result.error.message || "Unbekannter Fehler"}`,
-              );
-            }
-          }
-        } catch (oauthError) {
-          console.error("OAuth process error:", oauthError);
-
-          // Fehlermeldung anzeigen
-          if (oauthError instanceof Error) {
-            if (
-              oauthError.message.includes("dismissed") ||
-              oauthError.message.includes("cancel")
-            ) {
+        if (result.success) {
+          console.log("✅ OAuth successful, user should be logged in");
+          // Die Session wurde bereits automatisch verarbeitet
+          // Der User wird automatisch zur HomeScreen weitergeleitet
+        } else {
+          console.log("❌ OAuth unsuccessful:", result.error);
+          if (result.error) {
+            if (result.error.message.includes("cancelled") || result.error.message.includes("cancel")) {
               setError("Die Anmeldung wurde abgebrochen.");
             } else {
-              setError(
-                `Die Anmeldung mit Google ist fehlgeschlagen: ${oauthError.message}`,
-              );
+              setError(`Die Anmeldung mit Google ist fehlgeschlagen: ${result.error.message}`);
             }
           } else {
-            setError(
-              "Die Anmeldung mit Google ist fehlgeschlagen. Bitte versuche es später erneut.",
-            );
+            setError("Die Anmeldung mit Google ist fehlgeschlagen. Bitte versuche es erneut.");
           }
         }
       } else {
@@ -403,9 +316,9 @@ export default function AuthScreen() {
     setError(null);
 
     try {
-      // Benutze Supabase direkt mit der korrekten redirectTo URL
+      // Verwende nur Passwort-Reset ohne Magic Link
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectTo,
+        redirectTo: "klare-app://auth/reset-password",
       });
 
       if (error) {

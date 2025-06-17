@@ -200,6 +200,20 @@ export const createJournalStyles = (
       fontWeight: "600",
       color: theme.colors.text,
     },
+    stickyHeaderContainer: {
+      backgroundColor: theme.colors.background,
+      borderBottomWidth: 1,
+      borderBottomColor: isDarkMode ? `${theme.colors.surfaceVariant}40` : `${theme.colors.surfaceVariant}20`,
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      zIndex: 5,
+    },
+    templatesListContainer: {
+      flex: 1,
+    },
     categoriesContainer: {
       paddingHorizontal: 16,
       paddingVertical: 8,

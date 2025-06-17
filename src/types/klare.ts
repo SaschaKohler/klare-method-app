@@ -1,5 +1,5 @@
 // src/types/klare.ts
-import { Tables, TablesInsert, TablesUpdate } from "../types/supabase";
+import { Tables, TablesInsert, TablesUpdate } from "./supabase-klare-app";
 import { AuthError, User } from "@supabase/supabase-js";
 import {
   JournalTemplate,

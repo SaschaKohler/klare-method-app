@@ -1,0 +1,151 @@
+{
+  "privacy": {
+    "title": "Privacy & Data Protection",
+    "subtitle": "Control how your data is used",
+    "loading": "Loading...",
+    "updateFailed": "Settings could not be saved",
+    
+    "ai": {
+      "title": "AI Integration",
+      "enabled": "Enable AI Support",
+      "enabledDescription": "Enables personalized questions and intelligent analysis of your responses",
+      "personalization": "AI Personalization",
+      "personalizationDescription": "AI adapts questions to your needs and progress",
+      "questions": "AI-generated questions",
+      "questionsDescription": "In addition to static questions, AI-generated questions can be displayed"
+    },
+    
+    "aiConsent": {
+      "title": "AI Consent Required",
+      "message": "By enabling AI support, you agree that anonymized data may be used to improve your experience. Sensitive and intimate data remains stored locally.",
+      "accept": "Accept",
+      "decline": "Decline"
+    },
+    
+    "data": {
+      "title": "Data Storage",
+      "sensitiveLocal": "Sensitive data local only",
+      "sensitiveLocalDescription": "Personal data is stored only on your device",
+      "intimateLocal": "Intimate data local only",
+      "intimateLocalDescription": "Very personal content never leaves your device"
+    },
+    
+    "dataLevels": {
+      "title": "Choose Privacy Level",
+      "localOnly": {
+        "title": "Local only",
+        "description": "All data stays on your device"
+      },
+      "cloudSafe": {
+        "title": "Cloud-safe",
+        "description": "Non-sensitive data is stored encrypted"
+      },
+      "aiEnabled": {
+        "title": "AI-optimized",
+        "description": "Anonymized data for AI improvements"
+      }
+    },
+    
+    "content": {
+      "title": "Content Preferences",
+      "staticPreferred": "Prefer static questions",
+      "staticPreferredDescription": "Proven, predefined questions are preferred"
+    },
+    
+    "language": {
+      "title": "Language & Translation",
+      "selector": "Preferred Language",
+      "autoTranslate": "Automatic Translation",
+      "autoTranslateDescription": "Automatically translate content to your language"
+    },
+    
+    "actions": {
+      "exportData": "Export Data",
+      "deleteData": "Delete All Data"
+    },
+    
+    "hints": {
+      "intimate": {
+        "title": "Intimate Content Detected",
+        "message": "This response will only be stored locally on your device and never shared with AI services."
+      },
+      "sensitive": {
+        "title": "Sensitive Content",
+        "message": "Personal data will be handled according to your privacy settings."
+      },
+      "general": {
+        "title": "General Content",
+        "message": "This data can be safely stored and optionally used for AI improvements."
+      }
+    }
+  },
+  
+  "journal": {
+    "input": {
+      "placeholder": "Share your thoughts..."
+    },
+    "save": "Save",
+    "saving": "Saving...",
+    "saveFailed": "Failed to save",
+    
+    "saved": {
+      "title": "Response Saved",
+      "general": "Your response has been safely saved.",
+      "sensitive": "Your personal response has been saved according to your privacy settings.",
+      "intimate": "Your intimate response has been stored locally on your device only."
+    },
+    
+    "sensitivity": {
+      "public": "Public",
+      "sensitive": "Sensitive",
+      "intimate": "Intimate"
+    }
+  },
+  
+  "content": {
+    "modes": {
+      "title": "Choose Content Mode",
+      "static": {
+        "title": "Static",
+        "description": "Proven, predefined questions and exercises"
+      },
+      "hybrid": {
+        "title": "Hybrid",
+        "description": "Combination of static and AI-generated content"
+      },
+      "ai": {
+        "title": "AI-Enhanced",
+        "description": "Fully personalized AI-generated content"
+      }
+    }
+  },
+  
+  "storage": {
+    "localOnly": {
+      "title": "Local Only",
+      "description": "Stored on device"
+    },
+    "cloudSafe": {
+      "title": "Cloud Safe",
+      "description": "Encrypted storage"
+    },
+    "aiEnabled": {
+      "title": "AI Optimized",
+      "description": "For AI improvement"
+    }
+  },
+  
+  "sensitivity": {
+    "public": "Public",
+    "sensitive": "Sensitive",
+    "intimate": "Intimate"
+  },
+  
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "save": "Save",
+    "loading": "Loading...",
+    "error": "Error"
+  }
+}

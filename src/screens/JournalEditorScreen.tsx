@@ -132,7 +132,7 @@ export default function JournalEditorScreen() {
       } else if (templateId) {
         // Lade eine Vorlage
         try {
-          const templates = await journalService.getTemplates();
+          const templates = await journalService.getTemplates(i18n.language);
           const template = templates.find(t => t.id === templateId);
           
           if (template) {

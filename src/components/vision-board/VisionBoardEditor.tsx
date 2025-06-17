@@ -32,7 +32,7 @@ import { supabase } from "../../lib/supabase";
 import { useThemeStore, useUserStore } from "../../store";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Tables, TablesInsert } from "../../types/supabase";
+import { Tables, TablesInsert } from "../../types/supabase-klare-app";
 import { Theme } from "react-native-paper/lib/typescript/types";
 import { darkKlareColors, lightKlareColors } from "../../constants/theme";
 import { visionBoardService } from "../../services/VisionBoardService";
