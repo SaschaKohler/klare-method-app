@@ -19,7 +19,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import KlareLogo from "../components/KlareLogo";
 import DeepLinkInfo from "../components/DeepLinkInfo";
-import CompactLanguageSelector from "../components/CompactLanguageSelector";
+import { CompactLanguageSelector } from "../components/CompactLanguageSelector";
 import createAuthScreenStyles from "../constants/authScreenStyle";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { useUserStore } from "../store/useUserStore";

@@ -55,6 +55,8 @@ import { setTopLevelNavigator } from "./src/utils/navigationUtils";
 // import { prepare } from "@react-three/fiber/dist/declarations/src/core/renderer";
 import React from "react";
 import { OnboardingWrapper } from "./src/components/OnboardingWrapper";
+import { MMKV } from "react-native-mmkv";
+import supabase from "./src/lib/supabase";
 
 // Splash Screen während des Ladens anzeigen
 SplashScreen.preventAutoHideAsync();
@@ -68,13 +70,13 @@ export default function App() {
   const loadUserData = useUserStore((state) => state.loadUserData);
   const user = useUserStore((state) => state.user);
   const { loadResources } = useResourceStore();
-
+  
   // Debug store hydration status (only when enabled)
   useEffect(() => {
     if (!DEBUG_CONFIG.STORE_HYDRATION) return;
-    
-    debugLog('STORE_HYDRATION', '🔍 Store hydration check - one time only');
-    
+
+    debugLog("STORE_HYDRATION", "🔍 Store hydration check - one time only");
+
     const stores = [
       { name: "user", store: useUserStore },
       { name: "theme", store: useThemeStore },
@@ -88,12 +90,16 @@ export default function App() {
     stores.forEach(({ name, store }) => {
       try {
         if (store.persist && store.persist.hasHydrated) {
-          store.persist.hasHydrated().then(hydrated => {
-            debugLog('STORE_HYDRATION', `${name} store hydrated:`, hydrated);
+          store.persist.hasHydrated().then((hydrated) => {
+            debugLog("STORE_HYDRATION", `${name} store hydrated:`, hydrated);
           });
         }
       } catch (error) {
-        debugLog('STORE_HYDRATION', `${name} store hydration check failed:`, error);
+        debugLog(
+          "STORE_HYDRATION",
+          `${name} store hydration check failed:`,
+          error,
+        );
       }
     });
   }, []); // Empty dependency array - run only once
@@ -106,7 +112,7 @@ export default function App() {
   // Load resources when user is available - FIXED: Only when user changes
   useEffect(() => {
     if (user?.id) {
-      debugLog('APP_LIFECYCLE', `Loading resources for user: ${user.id}`);
+      debugLog("APP_LIFECYCLE", `Loading resources for user: ${user.id}`);
       loadResources(user.id);
     }
   }, [user?.id]); // FIXED: Only depend on user.id, not the loadResources function
@@ -114,7 +120,7 @@ export default function App() {
   // Debug internationalization (only when enabled)
   useEffect(() => {
     if (!DEBUG_CONFIG.I18N_DEBUG) return;
-    
+
     // Delay to ensure all stores are loaded
     setTimeout(() => {
       debugInternationalization();
@@ -148,15 +154,15 @@ export default function App() {
     async function prepare() {
       // Prevent multiple executions
       if (dataLoaded) {
-        debugLog('APP_LIFECYCLE', '⏭️ Data already loaded, skipping...');
+        debugLog("APP_LIFECYCLE", "⏭️ Data already loaded, skipping...");
         return;
       }
 
       try {
-        debugLog('APP_LIFECYCLE', '🚀 Initializing app...');
+        debugLog("APP_LIFECYCLE", "🚀 Initializing app...");
         setDataLoaded(true); // Set flag before calling loadUserData
         await loadUserData();
-        debugLog('APP_LIFECYCLE', '✅ User data loaded');
+        debugLog("APP_LIFECYCLE", "✅ User data loaded");
       } catch (e) {
         console.warn("❌ App initialization failed:", e);
         setDataLoaded(false); // Reset flag on error so it can be retried
@@ -166,7 +172,7 @@ export default function App() {
       } finally {
         setAppReady(true);
         SplashScreen.hideAsync();
-        debugLog('APP_LIFECYCLE', '✅ App ready');
+        debugLog("APP_LIFECYCLE", "✅ App ready");
       }
     }
 
@@ -178,10 +184,10 @@ export default function App() {
   // Check storage availability (only when debugging enabled)
   useEffect(() => {
     if (!DEBUG_CONFIG.STORAGE_DIAGNOSTICS) return;
-    
+
     const testStorage = async () => {
       try {
-        debugLog('STORAGE_DIAGNOSTICS', "🔧 Running storage diagnostics...");
+        debugLog("STORAGE_DIAGNOSTICS", "🔧 Running storage diagnostics...");
 
         // Test Storage-Schlüssel auf Funktionalität
         testStorageKeys();
@@ -189,7 +195,10 @@ export default function App() {
         // Try unified storage first (which handles fallbacks internally)
         unifiedStorage.set("__test__", "test");
         unifiedStorage.delete("__test__");
-        debugLog('STORAGE_DIAGNOSTICS', `✅ Storage check passed using ${unifiedStorage.getStorageType()}`);
+        debugLog(
+          "STORAGE_DIAGNOSTICS",
+          `✅ Storage check passed using ${unifiedStorage.getStorageType()}`,
+        );
       } catch (e) {
         console.error("❌ Storage initialization failed:", e);
         setStorageFailed(true);

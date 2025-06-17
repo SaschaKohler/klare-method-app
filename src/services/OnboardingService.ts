@@ -78,40 +78,34 @@ export class OnboardingService {
    */
   static async createLifeWheelSnapshot(userId: string, areas: LifeWheelArea[]): Promise<void> {
     try {
-      // Create a new life wheel snapshot
-      const { data: snapshotData, error: snapshotError } = await supabase
+      // Prepare snapshot data for the JSON field
+      const snapshotData = {
+        title: 'Initial Assessment',
+        areas: areas.map(area => ({
+          id: area.id,
+          name: area.name,
+          currentValue: area.currentValue,
+          targetValue: area.targetValue,
+          color: area.color
+        })),
+        averageScore: areas.reduce((sum, area) => sum + area.currentValue, 0) / areas.length,
+        createdDuringOnboarding: true
+      };
+
+      // Create a new life wheel snapshot with correct schema
+      const { data: insertedSnapshot, error: snapshotError } = await supabase
         .from('life_wheel_snapshots')
         .insert({
           user_id: userId,
-          title: 'Initial Assessment',
-          description: 'Life Wheel setup during onboarding',
+          snapshot_data: snapshotData,
+          context: 'Life Wheel setup during onboarding',
           created_at: new Date().toISOString(),
         })
         .select('id')
         .single();
 
-      if (snapshotError || !snapshotData) {
+      if (snapshotError || !insertedSnapshot) {
         throw new Error(`Failed to create life wheel snapshot: ${snapshotError?.message}`);
-      }
-
-      // Save each life wheel area with current and target values
-      const areaInserts = areas.map(area => ({
-        user_id: userId,
-        snapshot_id: snapshotData.id,
-        area_id: area.id,
-        area_name: area.name,
-        current_value: area.currentValue,
-        target_value: area.targetValue,
-        color: area.color,
-        created_at: new Date().toISOString(),
-      }));
-
-      const { error: areasError } = await supabase
-        .from('life_wheel_area_values')
-        .insert(areaInserts);
-
-      if (areasError) {
-        throw new Error(`Failed to save life wheel areas: ${areasError.message}`);
       }
 
       console.log('✅ Life Wheel snapshot created successfully');

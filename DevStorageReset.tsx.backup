@@ -1,0 +1,65 @@
+// Temporäre Komponente für Development - Storage komplett leeren
+import React from 'react';
+import { View, Text, Button, Alert } from 'react-native';
+import { unifiedStorage } from '../storage/unifiedStorage';
+import { MMKV } from 'react-native-mmkv';
+
+export const DevStorageReset: React.FC = () => {
+  const resetAllStorage = () => {
+    Alert.alert(
+      'Storage Reset',
+      'Alle lokalen Daten werden gelöscht. Bist du sicher?',
+      [
+        { text: 'Abbrechen', style: 'cancel' },
+        {
+          text: 'Alles löschen',
+          style: 'destructive',
+          onPress: () => {
+            try {
+              // Alle MMKV Storage Keys löschen
+              const storageKeys = [
+                'klare-user-storage',
+                'klare-lifeWheel-storage', 
+                'klare-progression-storage',
+                'klare-theme-storage',
+                'klare-resources-storage',
+                'klare-journal-storage',
+                'klare-visionBoard-storage',
+                'onboarding-storage', // Onboarding Store
+                'klare-app-storage',   // Main Storage
+                'klare-general',       // Privacy Storage
+                'klare-sensitive',
+                'klare-privacy'
+              ];
+
+              // Jeden MMKV Storage löschen
+              storageKeys.forEach(key => {
+                try {
+                  const storage = new MMKV({ id: key });
+                  storage.clearAll();
+                  console.log(`✅ Cleared storage: ${key}`);
+                } catch (error) {
+                  console.log(`⚠️ Could not clear ${key}:`, error);
+                }
+              });
+
+              Alert.alert('Erfolg', 'Alle lokalen Daten wurden gelöscht. App neu starten!');
+            } catch (error) {
+              console.error('Reset Error:', error);
+              Alert.alert('Fehler', 'Fehler beim Storage-Reset');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  return (
+    <View style={{ padding: 20, backgroundColor: '#ff6b6b', margin: 10, borderRadius: 8 }}>
+      <Text style={{ color: 'white', fontWeight: 'bold', marginBottom: 10 }}>
+        🚨 Development Only - Storage Reset
+      </Text>
+      <Button title="Alle lokalen Daten löschen" onPress={resetAllStorage} color="#fff" />
+    </View>
+  );
+};

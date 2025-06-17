@@ -15,7 +15,8 @@ export const OnboardingWrapper: React.FC<OnboardingWrapperProps> = ({ children }
   const { status, isLoading: onboardingLoading } = useOnboarding();
 
   // Show loading state while checking user and onboarding status
-  if (userLoading || onboardingLoading || status.completionProgress === 0) {
+  // BUT: Don't block on completionProgress when user is not authenticated
+  if (userLoading || onboardingLoading || (user && status.completionProgress === 0)) {
     return (
       <View style={styles.loadingContainer}>
         <Text variant="body" style={styles.loadingText}>

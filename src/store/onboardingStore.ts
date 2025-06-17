@@ -170,8 +170,22 @@ export const useOnboardingStore = create<OnboardingState>()(
     {
       name: 'onboarding-storage',
       storage: {
-        getItem: (name) => unifiedStorage.getString(name) ?? null,
-        setItem: (name, value) => unifiedStorage.set(name, value),
+        getItem: (name) => {
+          const value = unifiedStorage.getString(name);
+          if (value) {
+            try {
+              return JSON.parse(value);
+            } catch (error) {
+              console.error('Failed to parse stored onboarding data:', error);
+              return null;
+            }
+          }
+          return null;
+        },
+        setItem: (name, value) => {
+          // Convert object to string before storing
+          unifiedStorage.set(name, JSON.stringify(value));
+        },
         removeItem: (name) => unifiedStorage.delete(name),
       },
     }

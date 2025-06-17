@@ -325,7 +325,12 @@ const MainNavigator = () => {
           }
         } else {
           // Kein Benutzer, daher keine Verifizierung
+          console.log("No session - clearing user and stopping loading");
           setIsEmailVerified(null);
+          
+          // WICHTIG: User-Store leeren wenn keine Session vorhanden
+          useUserStore.getState().clearUser();
+          useUserStore.setState({ isLoading: false });
         }
       },
     );
