@@ -32,7 +32,7 @@ private getLocalizedTemplate(template: any, language: string): JournalTemplate {
       id: template.id,
       title: template.title,
       description: template.description,
-      promptQuestions: template.prompt_questions,
+      promptQuestions: Array.isArray(template.prompt_questions) ? template.prompt_questions : [],
       category: template.category,
       orderIndex: template.order_index,
     };

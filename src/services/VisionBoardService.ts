@@ -9,6 +9,7 @@ import { Tables, TablesInsert } from "../types/supabase-klare-app";
 type VisionBoardRow = Tables<"vision_boards">;
 type VisionBoardInsert = TablesInsert<"vision_boards">;
 type VisionBoardItemTable = Tables<"vision_board_items">;
+type VisionBoardItemInsert = TablesInsert<"vision_board_items">;
 
 export interface VisionBoard extends VisionBoardRow {
   items?: VisionBoardItem[];
@@ -152,124 +153,61 @@ class VisionBoardService {
     userId?: string,
   ): Promise<VisionBoard> {
     try {
-      // Check authentication
       const { data: session } = await supabase.auth.getSession();
-      if (!session?.session) {
-        throw new Error("User not authenticated");
+      const boardUserId = userId || board.user_id || session.session?.user?.id;
+
+      if (!boardUserId) {
+        throw new Error("User ID is required to save a vision board.");
       }
 
-      // Extract items for separate handling
       const { items, ...boardData } = board;
       let updatedBoard: VisionBoard;
 
-      // Update or insert the board
       if (board.id) {
-        // Update existing board
         const { data, error } = await supabase
           .from("vision_boards")
-          .update(boardData)
+          .update({ ...boardData, user_id: boardUserId })
           .eq("id", board.id)
           .select()
           .single();
-
-        if (error) {
-          throw new Error(`Failed to update vision board: ${error.message}`);
-        }
-
+        if (error) throw error;
         updatedBoard = data;
       } else {
-        // Create new board
         const { data, error } = await supabase
           .from("vision_boards")
-          .insert({
-            user_id: userId,
-            title: boardData.title,
-            description: boardData.description,
-            background_type: boardData.background_type,
-            background_value: boardData.background_value,
-            layout_type: boardData.layout_type,
-            is_active: boardData.is_active,
-          })
+          .insert({ ...boardData, user_id: boardUserId })
           .select()
           .single();
-
-        if (error) {
-          throw new Error(`Failed to create vision board: ${error.message}`);
-        }
-
+        if (error) throw error;
         updatedBoard = data;
       }
 
-      // Process items if board was created/updated successfully
-      if (updatedBoard.id && items && items.length > 0) {
-        // Optimize item updates using upsert instead of delete-then-insert
-        const itemsToUpsert = items.map((item) => {
-          const id = item.id || uuid.v4().toString();
-          return {
-            id: id,
-            user_id: userId,
-            vision_board_id: updatedBoard.id,
-            life_area: item.life_area,
-            title: item.title,
-            description: item.description || "",
-            image_url: item.image_url || null,
-            position_x: Number(item.position_x.toFixed(2)),
-            position_y: Number(item.position_y.toFixed(2)),
-            width: Number(item.width.toFixed(2)),
-            height: Number(item.height.toFixed(2)),
-            scale: Number(item.scale.toFixed(2)),
-            rotation: Number(item.rotation.toFixed(2)),
-            color: item.color || null,
-          };
-        });
+      if (items && items.length > 0) {
+        const itemsToUpsert: VisionBoardItemInsert[] = items.map((item) => ({
+          ...item,
+          id: item.id || uuid.v4().toString(),
+          user_id: boardUserId,
+          vision_board_id: updatedBoard.id,
+        }));
 
-        // Get current items to detect deletions
-        const { data: existingItems } = await supabase
-          .from("vision_board_items")
-          .select("id")
-          .eq("vision_board_id", updatedBoard.id);
-
-        // Find items to delete (exist in database but not in the updated items list)
-        if (existingItems && existingItems.length > 0) {
-          const currentIds = existingItems.map((item) => item.id);
-          const updatedIds = itemsToUpsert.map((item) => item.id);
-          const idsToDelete = currentIds.filter(
-            (id) => !updatedIds.includes(id),
-          );
-
-          // Delete removed items
-          if (idsToDelete.length > 0) {
-            const { error: deleteError } = await supabase
-              .from("vision_board_items")
-              .delete()
-              .in("id", idsToDelete);
-
-            if (deleteError) {
-              console.warn("Error deleting removed items:", deleteError);
-            }
-          }
-        }
-
-        // Upsert items (create new ones, update existing ones)
         const { error: upsertError } = await supabase
           .from("vision_board_items")
           .upsert(itemsToUpsert, { onConflict: "id" });
 
-        if (upsertError) {
-          throw new Error(
-            `Failed to save vision board items: ${upsertError.message}`,
-          );
-        }
+        if (upsertError) throw upsertError;
 
-        // Add items to the updated board
-        updatedBoard.items = itemsToUpsert;
+        const { data: currentItems, error: currentItemsError } = await supabase
+          .from("vision_board_items")
+          .select("*")
+          .eq("vision_board_id", updatedBoard.id);
+
+        if (currentItemsError) throw currentItemsError;
+        updatedBoard.items = currentItems;
       } else {
         updatedBoard.items = [];
       }
 
-      // Update cache
-      this.updateCache(userId || session.session.user.id, updatedBoard);
-
+      this.updateCache(boardUserId, updatedBoard);
       return updatedBoard;
     } catch (error) {
       console.error("Error saving vision board:", error);
@@ -381,16 +319,9 @@ class VisionBoardService {
         `Uploading image to ${fileName} from ${fileUri.substring(0, 50)}...`,
       );
 
-      // Behandlung verschiedener Plattformen
-      let fileData;
-      if (Platform.OS === "web") {
-        // Für Web: Fetch-Request verwenden
-        const response = await fetch(fileUri);
-        fileData = await response.blob();
-      } else {
-        // Für native: URI als Objekt übergeben
-        fileData = { uri: fileUri };
-      }
+      // Einheitliche Behandlung für Web und Native durch fetch
+      const response = await fetch(fileUri);
+      const fileData = await response.blob();
 
       // Optimierte Inhaltstypbestimmung
       let contentType;
@@ -466,11 +397,11 @@ class VisionBoardService {
   /**
    * Create a new vision board with default values
    */
-  async createNewVisionBoard(
+  createNewVisionBoard(
     title: string,
     description: string,
     userId: string,
-  ): Promise<VisionBoard> {
+  ): Omit<VisionBoard, "id" | "created_at" | "updated_at"> {
     return {
       title: title || "Neues Vision Board",
       description: description || "",
@@ -512,4 +443,4 @@ class VisionBoardService {
   }
 }
 
-export const visionBoardService = new VisionBoardService();
+export default new VisionBoardService();

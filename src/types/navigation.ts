@@ -7,6 +7,7 @@ export type RootStackParamList = {
     step: KlareMethodStep; // Make step required
   };
   ModuleScreen: {
+    moduleId: string;
     stepId: KlareMethodStep; // Consistent naming and type
   };
   LifeWheel: undefined;
@@ -22,19 +23,20 @@ export type RootStackParamList = {
     boardId?: string;
     lifeAreas?: string[];
   };
+
 };
 
 export type RootTabParamList = {
   Home: undefined;
   Learn: undefined;
   Profile: undefined;
-  Journal: undefined; // Add Journal to tab navigation if needed
+  Journal: undefined; 
   ResourceLibrary: undefined;
   ResourceFinder: undefined;
-  EditResource: { resource: any }; // Define the resource type if possible
+  EditResource: { resource: any }; 
   ResourceLibraryScreen: undefined;
   ResourceFinderScreen: undefined;
-  EditResourceScreen: { resource: any }; // Define the resource type if possible
+  EditResourceScreen: { resource: any }; 
   ResourceLibraryComponent: undefined;
   ResourceFinderComponent: undefined;
   LResourceManagerComponent: undefined;

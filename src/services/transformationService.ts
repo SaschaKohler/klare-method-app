@@ -158,3 +158,11 @@ const getFallbackSupportingQuestions = (
     sort_order: index + 1,
   }));
 };
+
+const transformationService = {
+  getTransformationPaths,
+  getPracticalExercises,
+  getSupportingQuestions,
+};
+
+export default transformationService;

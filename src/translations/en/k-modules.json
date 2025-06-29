@@ -1,0 +1,53 @@
+{
+  "k": {
+    "title": "Clarity",
+    "description": "Conscious awareness and orientation",
+    "intro": {
+      "title": "Clarity - Introduction", 
+      "welcome": "Welcome to Clarity!",
+      "description": "The first step of the CLEAR Method focuses on conscious awareness and orientation.",
+      "objectives": {
+        "title": "Your goals:",
+        "awareness": "Develop conscious awareness",
+        "communication": "Improve communication precision",
+        "metamodel": "Learn the Meta-Model of language"
+      },
+      "steps": {
+        "introduction": "Introduction",
+        "assessment": "Assessment", 
+        "preparation": "Preparation"
+      }
+    },
+    "metamodel": {
+      "title": "Meta-Model of Language",
+      "description": "Precise communication for more clarity",
+      "coach": {
+        "title": "Your Clarity Coach",
+        "analysis": "Meta-Model Analysis"
+      },
+      "input": {
+        "label": "Enter a statement you want to analyze with the Meta-Model:",
+        "placeholder": "e.g. 'All people are selfish'",
+        "button": "Analyze"
+      },
+      "history": {
+        "title": "Analyzed statements:"
+      },
+      "levels": {
+        "1": "Recognize universal quantifiers like \"all\", \"never\", \"always\"",
+        "2": "Identify cause-effect distortions",
+        "3": "Uncover complex deletions (missing references)",
+        "4": "Recognize presuppositions and implicit messages", 
+        "5": "Apply Meta-Model in emotional conversations"
+      }
+    }
+  },
+  "navigation": {
+    "back": "Back",
+    "next": "Next",
+    "complete": "Complete"
+  },
+  "progress": {
+    "step": "Step {{current}} of {{total}}: {{title}}"
+  }
+}

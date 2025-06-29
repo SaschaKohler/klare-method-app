@@ -1,5 +1,7 @@
 // src/services/index.ts
 // AI-Ready Services Export
+import AIService from './AIService';
+import HybridContentService from './HybridContentService';
 
 // Core AI Services
 export { default as AIService } from './AIService';
@@ -8,8 +10,7 @@ export type {
   AIPromptTemplateCreate,
   PersonalInsightCreate,
   ChatContext,
-  AIResponse,
-  GeneratedContentCreate
+  AIResponse
 } from './AIService';
 
 // Hybrid Content Service
@@ -18,23 +19,19 @@ export type {
   UserPrivacyPreferences,
   ContentSensitivity,
   JournalResponse,
-  ContentDeliveryOptions,
   ModuleContent,
   ExerciseStep
 } from './HybridContentService';
 
 // Legacy Services (maintaining compatibility)
-export { default as JournalService } from './JournalService';
+export { default as JournalService } from './JournalServiceUpdate';
 export { default as PersonalInsightsService } from './PersonalInsightsService';
 export { default as UserProfileService } from './UserProfileService';
 export { default as VisionBoardService } from './VisionBoardService';
 export { default as ResourceLibraryService } from './ResourceLibraryService';
 export { default as transformationService } from './transformationService';
 
-// Service Extensions
-export * from './JournalServiceExtension';
-export * from './JournalServiceTranslationExtension';
-export * from './JournalServiceUpdate';
+
 
 /**
  * Service Health Check
@@ -75,9 +72,9 @@ export const initializeAIServices = async (userId: string) => {
     console.log('Initializing AI services for user:', userId);
     
     // Initialize privacy preferences if not set
-    const privacy = HybridContentService.getUserPrivacyPreferences(userId);
-    if (!privacy.consentVersion) {
-      HybridContentService.setUserPrivacyPreferences(userId, {
+    const privacy = await HybridContentService.getUserPrivacyPreferences(userId);
+    if (!privacy?.consentVersion) {
+      await HybridContentService.setUserPrivacyPreferences(userId, {
         consentVersion: '1.0',
         lastUpdated: new Date().toISOString()
       });

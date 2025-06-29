@@ -131,7 +131,18 @@ export default function HomeScreen() {
   const getNextActivities = useMemo(() => {
     const activities = [];
     const daysInProgram = progression.getDaysInProgram();
-    const availableModules = progression.getAvailableModules();
+    
+    // TEMPORÄRER FIX: K-Module direkt verfügbar machen
+    const availableModules = ['k-intro', 'k-meta-model']; // progression.getAvailableModules();
+
+    // K-Module als nächste Aktivität hinzufügen (IMMER verfügbar für Testing)
+    activities.push({
+      id: "activity-module-K",
+      title: "K-Schritt: Klarheit beginnen",
+      description: "Starte mit dem Meta-Modell der Sprache und entwickle bewusste Wahrnehmung",
+      type: "module",
+      step: "K",
+    });
 
     // Tägliche Aktivität hinzufügen
     activities.push({
@@ -157,27 +168,8 @@ export default function HomeScreen() {
       });
     }
 
-    // Nächstes verfügbares Modul finden
-    for (const step of translatedKlareSteps) {
-      const moduleIds = availableModules.filter((id) =>
-        id.startsWith(step.id.toLowerCase()),
-      );
-      if (moduleIds.length > 0) {
-        activities.push({
-          id: `activity-module-${step.id}`,
-          title: t("sections.nextActivities.activities.continueModule.title", {
-            step: step.id,
-            title: step.title,
-          }),
-          description: t(
-            "sections.nextActivities.activities.continueModule.description",
-          ),
-          type: "module",
-          step: step.id,
-        });
-        break;
-      }
-    }
+    // Backup: Falls progression system nicht funktioniert, K-Module immer verfügbar
+    // TODO: Später durch echtes progression.getAvailableModules() ersetzen
 
     return activities.slice(0, 3); // Maximal 3 Aktivitäten anzeigen
   }, [progression, t]);
@@ -720,10 +712,10 @@ export default function HomeScreen() {
                   onPress={() => {
                     console.log('Button pressed for activity:', activity.type, activity.id);
                     if (activity.type === "module") {
-                      // Navigate to modules screen with specific step
-                      navigation.navigate("Modules" as never, { 
-                        step: activity.step,
-                        autoOpen: true 
+                      // Navigate to ModuleScreen with specific step and module
+                      navigation.navigate("ModuleScreen" as never, { 
+                        stepId: activity.step,
+                        moduleId: `${activity.step.toLowerCase()}-intro`
                       } as never);
                     } else if (activity.type === "daily") {
                       // Navigate to journal for daily reflection

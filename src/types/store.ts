@@ -77,15 +77,15 @@ export interface Resource {
 
 export interface RawResourceData {
   id: string;
-  userId: string;
+  user_id: string;
   name: string;
   description?: string;
   rating: number;
   category: ResourceCategory;
-  activationTips?: string;
-  lastActivated?: string;
-  createdAt: string;
-  updatedAt: string;
+  activation_tips?: string;
+  last_activated?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface SessionData {

@@ -63,53 +63,6 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
     [theme, themeColors],
   );
 
-  // **ELEGANTE TRANSLATION HELPER FUNCTION**
-  const getTranslatedAreaName = useCallback((area: any) => {
-    // 1. Zuerst versuchen direkten Translation Key zu finden
-    const directKey = `areas.${area.name}`;
-    const directTranslation = t(directKey, { defaultValue: null });
-    
-    // Falls Translation gefunden wurde, verwenden
-    if (directTranslation && directTranslation !== directKey) {
-      return directTranslation;
-    }
-    
-    // 2. Fallback: Snake_case zu camelCase konvertieren
-    const camelCaseKey = area.name
-      .split('_')
-      .map((word: string, index: number) => 
-        index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
-      )
-      .join('');
-    
-    const camelTranslation = t(`areas.${camelCaseKey}`, { defaultValue: null });
-    if (camelTranslation && camelTranslation !== `areas.${camelCaseKey}`) {
-      return camelTranslation;
-    }
-    
-    // 3. Fallback für bekannte Mappings
-    const knownMappings: Record<string, string> = {
-      'personal_development': 'personalGrowth',
-      'fun_recreation': 'fun',
-      'money': 'finances',
-      'physical_environment': 'environment'
-    };
-    
-    const mappedKey = knownMappings[area.name];
-    if (mappedKey) {
-      const mappedTranslation = t(`areas.${mappedKey}`, { defaultValue: null });
-      if (mappedTranslation && mappedTranslation !== `areas.${mappedKey}`) {
-        return mappedTranslation;
-      }
-    }
-    
-    // 4. Letzter Fallback: Original Name mit besserer Formatierung
-    return area.name
-      .split('_')
-      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  }, [t]);
-
   // Animierte Styles für den Container
   const animatedContainerStyle = {
     transform: [
@@ -271,7 +224,7 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
       >
         <Card.Content>
           <View style={styles.cardHeader}>
-            <Text style={styles.areaName}>{getTranslatedAreaName(area)}</Text>
+            <Text style={styles.areaName}>{area.name}</Text>
             <View style={styles.cardActions}>
               <Text style={styles.areaValue}>{currentValue}/10</Text>
               {/* <IconButton */}

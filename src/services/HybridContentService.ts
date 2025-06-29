@@ -5,7 +5,7 @@
 
 import { supabase } from '../lib/supabase';
 import { storage, sensitiveStorage, privacyStorage } from '../lib/storage';
-import { AIService } from './AIService';
+import AIService from './AIService';
 
 export interface UserPrivacyPreferences {
   aiEnabled: boolean;
@@ -17,6 +17,8 @@ export interface UserPrivacyPreferences {
   allowsAiQuestions: boolean;
   preferredLanguage: 'de' | 'en';
   autoTranslate: boolean;
+  consentVersion?: string;
+  lastUpdated?: string;
 }
 
 export interface ContentSensitivity {
@@ -68,11 +70,18 @@ export interface QuizQuestion {
 export interface ModuleContent {
   id: string;
   title: string;
+  description?: string;
   content: any;
   klare_step: string;
   order_index: number;
   difficulty_level: number;
-  estimated_duration: number;
+  duration?: number;
+  estimated_duration?: number; // Legacy
+  content_type?: 'video' | 'theory' | 'intro' | 'exercise' | 'quiz' | string;
+  title_localized?: string;
+  module_id?: string; // Legacy
+  // Additional properties for flexibility
+  [key: string]: any;
 }
 
 // =======================================
@@ -222,7 +231,17 @@ export class PrivacyService {
 
 export class HybridContentService {
   private privacyService = PrivacyService.getInstance();
-  
+  private aiServiceWrapper = new AIServiceWrapper();
+  private localResponses = new Map<string, JournalResponse>();
+  private static instance: HybridContentService;
+
+  static getInstance(): HybridContentService {
+    if (!HybridContentService.instance) {
+      HybridContentService.instance = new HybridContentService();
+    }
+    return HybridContentService.instance;
+  }
+
   /**
    * Get questions for user - static first, AI enhancement optional
    */
@@ -253,7 +272,12 @@ export class HybridContentService {
     if (canUseAi) {
       // 4. Generate AI-enhanced questions
       try {
-        aiQuestions = await this.generateAiQuestions(userId, templateId, staticQuestions);
+        aiQuestions = await this.aiServiceWrapper.generatePersonalizedQuestions(
+          staticQuestions,
+          await this.getUserContextForAi(userId),
+          templateId,
+          userId
+        );
       } catch (error) {
         console.warn('AI question generation failed, using static fallback:', error);
       }
@@ -338,11 +362,11 @@ export class HybridContentService {
     const userContext = await this.getUserContextForAi(userId);
     
     // Generate AI-enhanced questions based on static baseline
-    const aiService = new AIService();
-    return await aiService.generatePersonalizedQuestions(
+    return await this.aiServiceWrapper.generatePersonalizedQuestions(
       staticQuestions,
       userContext,
-      templateId
+      templateId,
+      userId
     );
   }
 
@@ -354,8 +378,8 @@ export class HybridContentService {
     cloudResponses: JournalResponse[];
     totalCount: number;
   }> {
-    // Get local responses
-    const localResponses = this.getLocalResponses(userId);
+    // Get local responses from storage
+    const localResponses = await this.getLocalResponses(userId);
     
     // Get cloud responses
     const { data: cloudResponses, error } = await supabase
@@ -393,10 +417,10 @@ export class HybridContentService {
     };
     
     // Store in local storage
-    const existingResponses = this.getLocalResponses(userId);
+    const existingResponses = await this.getLocalResponses(userId);
     existingResponses.push(fullResponse);
     
-    storage.set(`journal_responses_${userId}`, JSON.stringify(existingResponses));
+    await storage.setString(`journal_responses_${userId}`, JSON.stringify(existingResponses));
     
     console.log('💾 Saved sensitive response locally');
   }
@@ -424,16 +448,17 @@ export class HybridContentService {
     console.log('☁️ Saved response to cloud with privacy controls');
   }
 
-  private getLocalResponses(userId: string): JournalResponse[] {
-    const stored = storage.getString(`journal_responses_${userId}`);
+  private async getLocalResponses(userId: string): Promise<JournalResponse[]> {
+    const stored = await storage.getString(`journal_responses_${userId}`);
     
     if (!stored) return [];
     
     try {
-      return JSON.parse(stored).map((response: any) => ({
+      const responses = JSON.parse(stored);
+      return Array.isArray(responses) ? responses.map((response: any) => ({
         ...response,
         createdAt: new Date(response.createdAt)
-      }));
+      })) : [];
     } catch {
       return [];
     }
@@ -453,6 +478,24 @@ export class HybridContentService {
       progressLevel: 'intermediate', // Calculate based on usage
       preferredComplexity: 'medium'
     };
+  }
+
+  public async getServiceHealth(): Promise<{ status: "healthy" | "degraded" | "down"; components: object }> {
+    try {
+      const { error } = await supabase.from("modules").select("id").limit(1);
+      if (error) throw error;
+      return { status: "healthy", components: { database: "ok" } };
+    } catch (error) {
+      return { status: "down", components: { database: "failed" } };
+    }
+  }
+
+  public async getUserPrivacyPreferences(userId: string): Promise<UserPrivacyPreferences | null> {
+    return this.privacyService.getPrivacyPreferences(userId);
+  }
+
+  public async setUserPrivacyPreferences(userId: string, preferences: Partial<UserPrivacyPreferences>): Promise<void> {
+    return this.privacyService.updatePrivacyPreferences(userId, preferences);
   }
 }
 
@@ -604,17 +647,7 @@ export async function loadUserModuleProgress(userId: string): Promise<any[]> {
   }
 }
 
-// =======================================
-// EXPORTS
-// =======================================
 
-export { PrivacyService, HybridContentService, AIServiceWrapper };
 
-// Default export with legacy functions for backward compatibility
-export default {
-  loadModuleContent,
-  loadModulesByStep,
-  saveExerciseResult,
-  saveQuizAnswer,
-  loadUserModuleProgress,
-};
+// Export a singleton instance as the default
+export default HybridContentService.getInstance();

@@ -26,6 +26,77 @@ export interface UserSummary extends UserSummaryRow {
   streak: number | null;
 }
 
+export interface UserProfile extends Tables<"users"> {
+  display_name?: string | null;
+  preferred_language?: string | null;
+  timezone?: string | null;
+  interaction_style?: string | null;
+  onboarding_completed?: boolean;
+  personality_traits?: PersonalityTraits | null;
+  learning_style?: LearningStyle | null;
+  motivation_drivers?: MotivationDrivers | null;
+  stress_indicators?: StressIndicators | null;
+  content_preferences?: ContentPreferences | null;
+  profile_completeness?: ProfileCompleteness | null;
+}
+
+export interface PersonalityTraits {
+  openness: number; // 1-10
+  conscientiousness: number; // 1-10
+  extraversion: number; // 1-10
+  agreeableness: number; // 1-10
+  neuroticism: number; // 1-10
+  resilience: number; // 1-10
+  selfReflection: number; // 1-10
+  goalOrientation: number; // 1-10
+  creativity: number; // 1-10
+}
+
+export interface LearningStyle {
+  visual: number; // 1-10
+  auditory: number; // 1-10
+  kinesthetic: number; // 1-10
+  reading: number; // 1-10
+  preferredPace: "slow" | "medium" | "fast";
+  preferredInteraction: "individual" | "guided" | "collaborative";
+}
+
+export interface MotivationDrivers {
+  achievement: number; // 1-10
+  autonomy: number; // 1-10
+  connection: number; // 1-10
+  purpose: number; // 1-10
+  growth: number; // 1-10
+  security: number; // 1-10
+  recognition: number; // 1-10
+  balance: number; // 1-10
+}
+
+export interface StressIndicators {
+  workOverload: number; // 1-10
+  relationshipConflicts: number; // 1-10
+  financialConcerns: number; // 1-10
+  healthIssues: number; // 1-10
+  uncertaintyAnxiety: number; // 1-10
+  perfectionism: number; // 1-10
+}
+
+export interface ContentPreferences {
+  preferredFormat: "text" | "video" | "audio" | "interactive" | "mixed";
+  preferredLength: "short" | "medium" | "long";
+  preferredComplexity: "simple" | "moderate" | "complex";
+}
+
+export interface ProfileCompleteness {
+  total: number; // 0-100
+  basicInfo: number; // 0-100
+  personalityTraits: number; // 0-100
+  learningStyle: number; // 0-100
+  motivationDrivers: number; // 0-100
+  stressIndicators: number; // 0-100
+  contentPreferences: number; // 0-100
+}
+
 // Lebensrad-bezogene Typen
 export interface LifeWheelSummary {
   areas: any[]; // Sollte mit entsprechendem Typ ersetzt werden

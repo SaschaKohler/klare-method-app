@@ -23,6 +23,7 @@ import { useUserStore } from "../store/useUserStore";
 
 // Import module-specific components
 import { LModuleComponent, AModuleComponent } from "../components/modules";
+import KModuleComponent from "../components/modules/KModuleComponent";
 import ModuleContentComponent from "../components/modules/ModuleContent";
 import ModuleExercise from "../components/modules/ModuleExercise";
 import ModuleQuiz from "../components/modules/ModuleQuiz";
@@ -132,6 +133,22 @@ const ModuleScreen = () => {
   // Render module content based on type
   const renderModuleContent = () => {
     if (!moduleData) return null;
+
+    // Prüfe, ob es ein K-Modul ist (Klarheit)
+    if (
+      moduleData.module_id.startsWith("k-") &&
+      (moduleData.content_type === "exercise" ||
+        moduleData.module_id === "k-intro" ||
+        moduleData.module_id === "k-meta-model" ||
+        moduleData.module_id === "k-clarity")
+    ) {
+      return (
+        <KModuleComponent
+          module={moduleData}
+          onComplete={handleModuleComplete}
+        />
+      );
+    }
 
     // Prüfe, ob es ein L-Modul ist
     if (

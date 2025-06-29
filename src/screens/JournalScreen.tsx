@@ -504,7 +504,7 @@ export default function JournalScreen() {
             <Title style={styles.templateTitle}>{item.title}</Title>
             <Text style={styles.templateDescription}>{item.description}</Text>
             <View style={styles.templateQuestionsPreview}>
-              {item.promptQuestions.slice(0, 2).map((question, index) => (
+              {(item.promptQuestions && Array.isArray(item.promptQuestions) ? item.promptQuestions : []).slice(0, 2).map((question, index) => (
                 <Text
                   key={index}
                   style={styles.templateQuestion}
@@ -513,7 +513,7 @@ export default function JournalScreen() {
                   • {question}
                 </Text>
               ))}
-              {item.promptQuestions.length > 2 && (
+              {(item.promptQuestions && Array.isArray(item.promptQuestions) && item.promptQuestions.length > 2) && (
                 <Text style={styles.templateQuestionMore}>
                   {t("templateSelector.moreQuestions", { 
                     count: item.promptQuestions.length - 2, 

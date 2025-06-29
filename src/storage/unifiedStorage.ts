@@ -14,6 +14,8 @@ export enum StorageKeys {
   THEME = "klare-theme-storage",
   RESOURCES = "klare-resources-storage",
   JOURNAL = "klare-journal-storage",
+  JOURNAL_TEMPLATES = "klare-journal-templates-storage",
+  JOURNAL_TEMPLATE_CATEGORIES = "klare-journal-template-categories-storage",
   VISION_BOARD = "klare-visionBoard-storage",
   COMPLETED_MODULES = "klare-completed-modules",
   JOIN_DATE = "klare-join-date",

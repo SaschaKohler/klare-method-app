@@ -202,5 +202,11 @@
       "name": "Woche 8: Gesamte Entfaltung",
       "description": "Erlebe mühelose Manifestation und vollende den KLARE-Prozess zur ganzheitlichen Entfaltung."
     }
+  },
+  "k-module": {
+    "meta-model": {
+      "resultsTitle": "Analyse-Ergebnisse",
+      "keyword": "Schlüsselwort"
+    }
   }
 }

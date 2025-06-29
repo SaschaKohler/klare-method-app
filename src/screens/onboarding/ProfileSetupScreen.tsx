@@ -15,6 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../constants/Colors";
 import { Text, Button } from "../../components/ui";
+import { useUserStore } from "../../store";
 import { OnboardingProgress } from "../../components/onboarding";
 import { OnboardingStackParamList } from "./OnboardingNavigator";
 
@@ -66,9 +67,41 @@ export const ProfileSetupScreen: React.FC = () => {
     }));
   };
 
-  const handleContinue = () => {
-    // TODO: Save user profile to database
-    navigation.navigate("LifeWheelSetup");
+  const { user, setUser, saveUserData } = useUserStore();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleContinue = async () => {
+    if (!user) return;
+    setIsSaving(true);
+
+    const updatedProfile = {
+      display_name: profile.preferredName || profile.firstName,
+      age_range: profile.ageRange,
+      primary_goals: profile.primaryGoals,
+      current_challenges: profile.currentChallenges,
+      experience_level: profile.experienceLevel,
+      time_commitment: profile.timeCommitment,
+      // Set onboarding as partially completed
+      onboarding_status: 'profile_completed',
+    };
+
+    // 1. Update user state locally
+    setUser({
+      ...user,
+      ...updatedProfile,
+    });
+
+    // 2. Persist changes to the database
+    const success = await saveUserData();
+
+    setIsSaving(false);
+
+    if (success) {
+      navigation.navigate("LifeWheelSetup");
+    } else {
+      // Optionally, show an error message to the user
+      alert("Fehler beim Speichern des Profils. Bitte versuchen Sie es erneut.");
+    }
   };
 
   const handleBack = () => {

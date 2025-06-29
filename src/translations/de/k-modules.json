@@ -1,0 +1,53 @@
+{
+  "k": {
+    "title": "Klarheit",
+    "description": "Bewusste Wahrnehmung und Standortbestimmung",
+    "intro": {
+      "title": "Klarheit - Einführung",
+      "welcome": "Willkommen zur Klarheit!",
+      "description": "Im ersten Schritt der KLARE-Methode geht es um bewusste Wahrnehmung und Standortbestimmung.",
+      "objectives": {
+        "title": "Deine Ziele:",
+        "awareness": "Bewusste Wahrnehmung entwickeln",
+        "communication": "Kommunikation präzisieren", 
+        "metamodel": "Meta-Modell der Sprache erlernen"
+      },
+      "steps": {
+        "introduction": "Einführung",
+        "assessment": "Standortbestimmung",
+        "preparation": "Vorbereitung"
+      }
+    },
+    "metamodel": {
+      "title": "Meta-Modell der Sprache",
+      "description": "Präzise Kommunikation für mehr Klarheit",
+      "coach": {
+        "title": "Dein Klarheits-Coach",
+        "analysis": "Meta-Modell Analyse"
+      },
+      "input": {
+        "label": "Gib eine Aussage ein, die du mit dem Meta-Modell analysieren möchtest:",
+        "placeholder": "z.B. 'Alle Menschen sind egoistisch'",
+        "button": "Analysieren"
+      },
+      "history": {
+        "title": "Analysierte Aussagen:"
+      },
+      "levels": {
+        "1": "Erkenne Universalquantoren wie \"alle\", \"nie\", \"immer\"",
+        "2": "Identifiziere Ursache-Wirkung-Verzerrungen",
+        "3": "Decke komplexe Tilgungen auf (fehlende Referenzen)",
+        "4": "Erkenne Vorannahmen und implizite Botschaften",
+        "5": "Wende Meta-Modell in emotionalen Gesprächen an"
+      }
+    }
+  },
+  "navigation": {
+    "back": "Zurück",
+    "next": "Weiter", 
+    "complete": "Abschließen"
+  },
+  "progress": {
+    "step": "Schritt {{current}} von {{total}}: {{title}}"
+  }
+}

@@ -27,7 +27,14 @@
     "environment": "Umgebung",
     "spirituality": "Spiritualität",
     "family": "Familie",
-    "leisure": "Freizeit"
+    "leisure": "Freizeit",
+    "personal_development": "Persönliche Entwicklung",
+    "fun_recreation": "Spaß & Freizeit",
+    "money": "Finanzen",
+    "physical_environment": "Umgebung",
+    "personalDevelopment": "Persönliche Entwicklung",
+    "funRecreation": "Spaß & Freizeit",
+    "physicalEnvironment": "Umgebung"
   },
   "rating": {
     "title": "Bewertung",

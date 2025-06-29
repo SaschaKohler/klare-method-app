@@ -14,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../constants/Colors";
 import { Text, Button } from "../../components/ui";
+import { useUserStore } from "../../store";
 import { OnboardingProgress } from "../../components/onboarding";
 import { OnboardingStackParamList } from "./OnboardingNavigator";
 
@@ -66,9 +67,44 @@ export const PrivacyPreferencesScreen: React.FC = () => {
     ]);
   };
 
-  const handleContinue = () => {
-    // TODO: Save privacy preferences to secure storage
-    navigation.navigate("ProfileSetup");
+  const { user, setUser, saveUserData } = useUserStore();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleContinue = async () => {
+    if (!user) return;
+    setIsSaving(true);
+
+    const updatedPreferences = {
+      privacy_settings: {
+        data_processing_level: privacySettings.dataProcessing,
+        allow_analytics: privacySettings.analytics,
+        allow_crash_reporting: privacySettings.crashReporting,
+        allow_marketing: privacySettings.marketing,
+        allow_ai_features: privacySettings.aiFeatures,
+        allow_personal_insights: privacySettings.personalInsights,
+      },
+      onboarding_status: 'privacy_completed',
+    };
+
+    // 1. Update user state locally
+    setUser({
+      ...user,
+      ...updatedPreferences,
+    });
+
+    // 2. Persist changes to the database
+    const success = await saveUserData();
+
+    setIsSaving(false);
+
+    if (success) {
+      navigation.navigate("ProfileSetup");
+    } else {
+      Alert.alert(
+        t("common:errors.error_title"),
+        t("common:errors.privacy_save_error"),
+      );
+    }
   };
 
   const handleBack = () => {

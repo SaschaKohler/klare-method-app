@@ -358,4 +358,4 @@ class ResourceLibraryService {
 }
 
 // Singleton instance
-export const resourceLibraryService = new ResourceLibraryService();
+export default new ResourceLibraryService();

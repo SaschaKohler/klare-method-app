@@ -3,6 +3,9 @@ export { default as ModuleContent } from "./ModuleContent";
 export { default as ModuleExercise } from "./ModuleExercise";
 export { default as ModuleQuiz } from "./ModuleQuiz";
 
+// Export aller K-Modul-Komponenten (Klarheit)
+export { default as KModuleComponent } from "./KModuleComponent";
+
 // Export aller L-Modul-Komponenten
 export { default as ResourceVisualizerComponent } from "./ResourceVisualizerComponent";
 export { default as ResourceFormComponent } from "./ResourceFormComponent";

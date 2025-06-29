@@ -9,7 +9,6 @@ import { useEffect, useState } from "react";
 import {
   AppState,
   AppStateStatus,
-  Button,
   Text,
   View,
   useColorScheme,
@@ -36,7 +35,9 @@ import debugInternationalization from "./src/utils/debugInternationalization";
 import { KlareLogo } from "./src/components";
 // import { OnboardingWrapper } from "./src/components/OnboardingWrapper";
 import { darkTheme, lightTheme } from "./src/constants/theme";
+import { Button } from "./src/components/ui";
 import MainNavigator from "./src/navigation/MainNavigator";
+import { initializeAIServices } from "./src/services";
 
 // MMKV is now initialized in src/store/mmkvStorage.ts
 import {
@@ -89,10 +90,9 @@ export default function App() {
 
     stores.forEach(({ name, store }) => {
       try {
-        if (store.persist && store.persist.hasHydrated) {
-          store.persist.hasHydrated().then((hydrated) => {
-            debugLog("STORE_HYDRATION", `${name} store hydrated:`, hydrated);
-          });
+        if (store.persist?.hasHydrated) {
+          const hydrated = store.persist.hasHydrated();
+          debugLog("STORE_HYDRATION", `${name} store hydrated:`, hydrated);
         }
       } catch (error) {
         debugLog(
@@ -109,13 +109,27 @@ export default function App() {
   const isDarkMode = getActiveTheme();
   const theme = isDarkMode ? darkTheme : lightTheme;
 
-  // Load resources when user is available - FIXED: Only when user changes
+  // Load resources and initialize services when user is available
   useEffect(() => {
     if (user?.id) {
-      debugLog("APP_LIFECYCLE", `Loading resources for user: ${user.id}`);
+      debugLog(
+        "APP_LIFECYCLE",
+        "👤 User found, loading resources and initializing services...",
+      );
       loadResources(user.id);
+      initializeAIServices(user.id).then((result) => {
+        if (result.success) {
+          debugLog("APP_LIFECYCLE", "✅ AI services initialized successfully.");
+        } else {
+          debugLog(
+            "APP_LIFECYCLE",
+            "⚠️ AI services initialization failed:",
+            result.error,
+          );
+        }
+      });
     }
-  }, [user?.id]); // FIXED: Only depend on user.id, not the loadResources function
+  }, [user]); // Re-run when user object changes
 
   // Debug internationalization (only when enabled)
   useEffect(() => {
@@ -166,7 +180,7 @@ export default function App() {
       } catch (e) {
         console.warn("❌ App initialization failed:", e);
         setDataLoaded(false); // Reset flag on error so it can be retried
-        if (e.message.includes("Storage")) {
+        if (e instanceof Error && e.message.includes("Storage")) {
           setStorageFailed(true);
         }
       } finally {
@@ -216,6 +230,7 @@ export default function App() {
         >
           <Text>App konnte nicht gestartet werden. Bitte neu starten.</Text>
           <Button
+            title="Erneut versuchen"
             onPress={() => {
               // For dev: import resetAppStorage dynamically
               if (__DEV__) {
@@ -226,11 +241,9 @@ export default function App() {
                 });
               }
             }}
-            mode="contained"
+            variant="primary"
             style={{ marginTop: 20 }}
-          >
-            Erneut versuchen
-          </Button>
+          />
         </View>
       );
     }

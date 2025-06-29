@@ -35,6 +35,7 @@ interface ProgressionState {
   loadProgressionData: (userId?: string) => Promise<void>;
   saveProgressionData: (userId?: string) => Promise<boolean>;
   resetJoinDate: () => Promise<void>;
+  clearProgressionData: () => void;
 }
 
 // Konstante für Modul-IDs pro Schritt
@@ -106,6 +107,7 @@ const initialState: ProgressionState = {
   loadProgressionData: async () => {},
   saveProgressionData: async () => false,
   resetJoinDate: async () => {},
+  clearProgressionData: () => {},
 };
 
 // Robust Store mit verbesserter Fehlerbehandlung
@@ -453,6 +455,14 @@ export const useProgressionStore = create<ProgressionState>()(
         // Aktuelles Datum als Startdatum setzen
         const newJoinDate = new Date().toISOString();
         set({ joinDate: newJoinDate });
+      },
+
+      clearProgressionData: () => {
+        set({
+          completedModules: [],
+          moduleProgressCache: {},
+          joinDate: null,
+        });
       },
     }),
     {

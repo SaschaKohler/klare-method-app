@@ -43,7 +43,7 @@ export interface JournalTemplateCategory {
 // Storage keys
 // Storage keys now come from StorageKeys enum
 
-class JournalService {
+export class JournalService {
   // Cache entries in memory for faster access
   private entriesCache: Record<string, JournalEntry[]> = {};
   private templatesCache: Record<string, JournalTemplate[]> = {}; // Language-specific cache
@@ -465,65 +465,140 @@ class JournalService {
     }
   }
 
+  // 1. Hilfsfunktionen für die Übersetzung
+
+  /**
+   * Gibt ein übersetztes Template basierend auf der aktuellen Sprache zurück
+   */
+  private getLocalizedTemplate(template: any, language: string): JournalTemplate | null {
+    if (!template) return null;
+
+    try {
+      const translations = template.translations || {};
+      const languageData = translations[language] || {};
+
+      return {
+        id: template.id,
+        title: languageData.title || template.title,
+        description: languageData.description || template.description,
+        promptQuestions: Array.isArray(languageData.promptQuestions)
+          ? languageData.promptQuestions
+          : template.prompt_questions,
+        category: template.category,
+        orderIndex: template.order_index,
+      };
+    } catch (error) {
+      console.error("Error localizing template:", error);
+      // Fallback auf Original-Template
+      return {
+        id: template.id,
+        title: template.title,
+        description: template.description,
+        promptQuestions: Array.isArray(template.prompt_questions) ? template.prompt_questions : [],
+        category: template.category,
+        orderIndex: template.order_index,
+      };
+    }
+  }
+
+  /**
+   * Gibt eine übersetzte Kategorie basierend auf der aktuellen Sprache zurück
+   */
+  private getLocalizedCategory(category: any, language: string): JournalTemplateCategory | null {
+    if (!category) return null;
+
+    try {
+      const translations = category.translations || {};
+      const languageData = translations[language] || {};
+
+      return {
+        id: category.id,
+        name: languageData.name || category.name,
+        description: languageData.description || category.description,
+        icon: category.icon,
+        orderIndex: category.order_index,
+        translations: category.translations, // Behalten für Debugging oder weitere Logik
+      };
+    } catch (error) {
+      console.error("Error localizing category:", error);
+      // Fallback auf Original-Kategorie
+      return {
+        id: category.id,
+        name: category.name,
+        description: category.description,
+        icon: category.icon,
+        orderIndex: category.order_index,
+        translations: category.translations,
+      };
+    }
+  }
+
   // Get journal templates
   async getTemplates(language?: string): Promise<JournalTemplate[]> {
     try {
-      // Get the current language or use default
-      const currentLanguage = language || 'de';
-      
-      // Check language-specific cache first
+      // Verwende die aktuelle Sprache aus i18n, wenn keine angegeben wurde
+      const currentLanguage = language || i18n.language.split("-")[0] || "de";
+
+      // Prüfe Cache
       if (this.templatesCache[currentLanguage]) {
+        debugLog('STORAGE_LOGS', `Returning cached templates for language: ${currentLanguage}`);
         return this.templatesCache[currentLanguage];
       }
 
-      // If online, get from server
+      // Wenn online, hole vom Server
       const { data: session } = await supabase.auth.getSession();
       if (session?.session) {
         try {
+          debugLog('STORAGE_LOGS', `Fetching templates from server for language: ${currentLanguage}`);
           const { data, error } = await supabase
             .from("journal_templates")
             .select("*")
             .order("order_index", { ascending: true });
 
           if (!error && data) {
-            // Transform server data to match our interface
-            const templates: JournalTemplate[] = data.map(
-              (item: any): JournalTemplate => {
-                // Get translations for current language
-                const translations = item.translations || {};
-                const languageData = translations[currentLanguage] || {};
-                
-                // Clean translation debug log
-                debugLog('I18N_DEBUG', `Template ${item.title}`, {
-                  lang: currentLanguage,
-                  available: translations ? Object.keys(translations).filter(k => /^[a-z]{2}$/.test(k)) : [],
-                  translated: !!languageData.title,
-                });
-                
-                return {
-                  id: item.id,
-                  title: languageData.title || item.title,
-                  description: languageData.description || item.description,
-                  promptQuestions: Array.isArray(languageData.promptQuestions) 
-                    ? languageData.promptQuestions 
-                    : item.prompt_questions,
-                  category: item.category,
-                  orderIndex: item.order_index,
-                };
-              }
-            );
+            // Transformiere Server-Daten und wende Übersetzungen an
+            const templates: JournalTemplate[] = data
+              .map(item => this.getLocalizedTemplate(item, currentLanguage))
+              .filter((t): t is JournalTemplate => t !== null); // Entferne null-Werte und sorge für korrekten Typ
 
             // Update language-specific cache
             this.templatesCache[currentLanguage] = templates;
+            debugLog('STORAGE_LOGS', `Cached ${templates.length} templates for language: ${currentLanguage}`);
+
+            // Save to local storage for offline access
+            try {
+              const storageKey = StorageKeys.JOURNAL_TEMPLATES;
+              await unifiedStorage.set(storageKey, JSON.stringify(templates));
+            } catch(e) {
+              console.error("Failed to save templates to local storage", e);
+            }
 
             return templates;
+          }
+          if(error) {
+             console.error("Error fetching journal templates:", error);
           }
         } catch (error) {
           console.error("Error fetching journal templates:", error);
         }
       }
+      
+      // Fallback to local data if offline or server fails
+      try {
+        debugLog('STORAGE_LOGS', `Falling back to local storage for templates.`);
+        const storageKey = StorageKeys.JOURNAL_TEMPLATES;
+        const localData = await unifiedStorage.getStringAsync(storageKey);
+        if (localData) {
+          const templates: JournalTemplate[] = JSON.parse(localData);
+          // Update cache with local data
+          this.templatesCache[currentLanguage] = templates;
+          return templates;
+        }
+      } catch (e) {
+        console.error("Error reading templates from local storage", e);
+      }
 
-      // Return empty array if failed
+      // Leeres Array zurückgeben, wenn fehlgeschlagen
       return [];
     } catch (error) {
       console.error("Error loading journal templates:", error);
@@ -534,60 +609,69 @@ class JournalService {
   // Get template categories
   async getTemplateCategories(language?: string): Promise<JournalTemplateCategory[]> {
     try {
-      // Get the current language or use default
-      const currentLanguage = language || 'de';
-      
-      // Check language-specific cache first
+      // Verwende die aktuelle Sprache aus i18n, wenn keine angegeben wurde
+      const currentLanguage = language || i18n.language.split("-")[0] || "de";
+
+      // Prüfe Cache
       if (this.categoriesCache[currentLanguage]) {
+        debugLog('STORAGE_LOGS', `Returning cached categories for language: ${currentLanguage}`);
         return this.categoriesCache[currentLanguage];
       }
 
-      // If online, get from server
+      // Wenn online, hole vom Server
       const { data: session } = await supabase.auth.getSession();
       if (session?.session) {
         try {
+          debugLog('STORAGE_LOGS', `Fetching categories from server for language: ${currentLanguage}`);
           const { data, error } = await supabase
             .from("journal_template_categories")
             .select("*")
             .order("order_index", { ascending: true });
 
           if (!error && data) {
-            // Transform server data to match our interface
-            const categories: JournalTemplateCategory[] = data.map(
-              (item: any): JournalTemplateCategory => {
-                // Get translations for current language
-                const translations = item.translations || {};
-                const languageData = translations[currentLanguage] || {};
-                
-                // Clean translation debug log
-                debugLog('I18N_DEBUG', `Category ${item.name}`, {
-                  lang: currentLanguage,
-                  available: translations ? Object.keys(translations).filter(k => /^[a-z]{2}$/.test(k)) : [],
-                  translated: !!languageData.name,
-                });
-                
-                return {
-                  id: item.id,
-                  name: languageData.name || item.name,
-                  description: languageData.description || item.description,
-                  icon: item.icon,
-                  orderIndex: item.order_index,
-                  translations: item.translations // Keep original translations for filtering
-                };
-              }
-            );
+            // Transformiere Server-Daten und wende Übersetzungen an
+            const categories: JournalTemplateCategory[] = data
+              .map(item => this.getLocalizedCategory(item, currentLanguage))
+              .filter((c): c is JournalTemplateCategory => c !== null); // Entferne null-Werte
 
-            // Update language-specific cache
+            // Update Cache
             this.categoriesCache[currentLanguage] = categories;
+            debugLog('STORAGE_LOGS', `Cached ${categories.length} categories for language: ${currentLanguage}`);
+            
+            // Save to local storage for offline access
+            try {
+              const storageKey = StorageKeys.JOURNAL_TEMPLATE_CATEGORIES;
+              await unifiedStorage.set(storageKey, JSON.stringify(categories));
+            } catch(e) {
+              console.error("Failed to save categories to local storage", e);
+            }
 
             return categories;
+          }
+          if(error) {
+            console.error("Error fetching template categories:", error);
           }
         } catch (error) {
           console.error("Error fetching template categories:", error);
         }
       }
+      
+      // Fallback to local data if offline or server fails
+      try {
+        debugLog('STORAGE_LOGS', `Falling back to local storage for categories.`);
+        const storageKey = StorageKeys.JOURNAL_TEMPLATE_CATEGORIES;
+        const localData = await unifiedStorage.getStringAsync(storageKey);
+        if (localData) {
+          const categories: JournalTemplateCategory[] = JSON.parse(localData);
+          // Update cache with local data
+          this.categoriesCache[currentLanguage] = categories;
+          return categories;
+        }
+      } catch (e) {
+        console.error("Error reading categories from local storage", e);
+      }
 
-      // Return empty array if failed
+      // Leeres Array zurückgeben, wenn fehlgeschlagen
       return [];
     } catch (error) {
       console.error("Error loading template categories:", error);
@@ -702,7 +786,7 @@ class JournalService {
       
       console.log("Journal storage appears to be healthy, no repair needed");
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error during journal storage repair:", error);
       return false;
     }
@@ -733,7 +817,7 @@ class JournalService {
           const parsed = JSON.parse(localData);
           report.localDataParseCheck = Array.isArray(parsed) ? 'valid array' : `invalid (${typeof parsed})`;
           report.localEntryCount = Array.isArray(parsed) ? parsed.length : 0;
-        } catch (error) {
+        } catch (error: any) {
           report.localDataParseCheck = `parse error: ${error.message}`;
         }
       }
@@ -749,7 +833,7 @@ class JournalService {
             
           report.serverStatus = error ? `error: ${error.message}` : 'available';
           report.serverEntryCount = data ? data.length : 0;
-        } catch (error) {
+        } catch (error: any) {
           report.serverStatus = `fetch error: ${error.message}`;
         }
       } else {
@@ -761,13 +845,13 @@ class JournalService {
         report.keysMatch = StorageKeys.JOURNAL === storageKey
           ? 'match'
           : `mismatch (enum: ${StorageKeys.JOURNAL}, used: ${storageKey})`;
-      } catch (error) {
+      } catch (error: any) {
         report.keysMatch = `check error: ${error.message}`;
       }
       
       console.log('Journal Storage Diagnostic Report:', report);
       return report;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error during journal storage diagnostics:", error);
       return { error: error.message };
     }
@@ -788,4 +872,6 @@ class JournalService {
 }
 
 // Singleton instance
-export const journalService = new JournalService();
+const journalService = new JournalService();
+export { journalService };
+export default journalService;
