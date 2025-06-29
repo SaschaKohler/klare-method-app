@@ -29,7 +29,7 @@ import { MotiPressable } from "moti/interactions";
 import { supabase } from "../lib/supabase";
 import { useTranslation } from "react-i18next";
 // Importiere die vereinfachte OAuth-Implementierung
-import { performSimpleOAuth } from "../lib/simpleOAuth";
+import { performGoogleSignIn } from "../lib/auth";
 
 // Auth states
 type AuthViewState = "welcome" | "signin" | "signup" | "forgot";
@@ -274,7 +274,7 @@ export default function AuthScreen() {
       if (provider === "google") {
         console.log("🚀 Starting simplified Google OAuth...");
 
-        const result = await performSimpleOAuth("google");
+        const result = await performGoogleSignIn();
 
         if (result.success) {
           console.log("✅ OAuth successful, user should be logged in");

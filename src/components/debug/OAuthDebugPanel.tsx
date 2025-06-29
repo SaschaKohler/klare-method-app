@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { performSimpleOAuth, checkOAuthSession } from '../lib/simpleOAuth';
-import { supabase } from '../lib/supabase';
+import { performGoogleSignIn } from '../../lib/auth';
+import { supabase } from '../../lib/supabase';
 
 /**
  * Debug-Komponente für OAuth-Testing
@@ -15,8 +15,8 @@ export default function OAuthDebugPanel() {
     setLoading(true);
     try {
       console.log('🧪 Testing simplified OAuth...');
-      const result = await performSimpleOAuth('google');
-      
+      const result = await performGoogleSignIn();
+
       if (result.success) {
         Alert.alert('✅ OAuth Erfolgreich!', 'Browser sollte sich automatisch geschlossen haben');
         await updateSessionInfo();
@@ -50,9 +50,7 @@ export default function OAuthDebugPanel() {
     }
   };
 
-  const handleCheckSession = async () => {
-    await updateSessionInfo();
-  };
+  
 
   const handleSignOut = async () => {
     try {
@@ -83,9 +81,7 @@ export default function OAuthDebugPanel() {
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleCheckSession}>
-        <Text style={styles.buttonText}>🔍 Session prüfen</Text>
-      </TouchableOpacity>
+      
 
       <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleSignOut}>
         <Text style={styles.buttonText}>🚪 Abmelden</Text>

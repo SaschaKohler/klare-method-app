@@ -1,31 +1,11 @@
 // src/lib/contentService.ts
-// Legacy contentService - now bridged to AI-ready HybridContentService
-// This file maintains backward compatibility while migrating to the new structure
+/**
+ * @file This file serves as a facade for the content service, re-exporting functionalities
+ * from the `HybridContentService`. It ensures backward compatibility for older components
+ * that import from `src/lib/contentService`.
+ *
+ * All new development should directly use `HybridContentService` from `src/services/`.
+ */
 
-import { 
-  loadModuleContent,
-  loadModulesByStep,
-  saveExerciseResult,
-  saveQuizAnswer,
-  loadUserModuleProgress,
-} from './contentServiceBridge';
-
-export type {
-  ContentSection,
-  ExerciseStep,
-  QuizQuestion,
-  ModuleContent,
-} from './contentServiceBridge';
-
-// Re-export all functions to maintain existing import patterns
-export {
-  loadModuleContent,
-  loadModulesByStep,
-  saveExerciseResult,
-  saveQuizAnswer,
-  loadUserModuleProgress,
-};
-
-// Note: This file bridges the old contentService to the new AI-ready HybridContentService
-// All new development should use HybridContentService directly from src/services/
-// This bridge allows for gradual migration of existing components
+// Re-export all functions and types from the new HybridContentService
+export * from '../services/HybridContentService';
