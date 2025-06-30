@@ -1,5 +1,83 @@
 // src/types/store.ts
 
+// =============================================
+// Base Store Types
+// =============================================
+
+/**
+ * Basis-Status für alle Stores
+ */
+export interface BaseState {
+  /**
+   * Zeigt an, ob Daten geladen werden
+   */
+  isLoading: boolean;
+  
+  /**
+   * Enthält Fehler, falls ein Fehler aufgetreten ist
+   */
+  error: Error | null;
+  
+  /**
+   * Zeitpunkt der letzten Synchronisation mit dem Server
+   */
+  lastSyncTime: Date | null;
+  
+  /**
+   * Version des Store-Schemas für Migrations
+   */
+  _version?: number;
+}
+
+/**
+ * Basis-Aktionen, die jeder Store implementieren sollte
+ */
+export interface BaseActions {
+  /**
+   * Setzt den Lade-Status
+   */
+  setLoading: (isLoading: boolean) => void;
+  
+  /**
+   * Setzt einen Fehler
+   */
+  setError: (error: Error | null) => void;
+  
+  /**
+   * Aktualisiert den Zeitpunkt der letzten Synchronisation
+   */
+  updateLastSync: () => void;
+  
+  /**
+   * Setzt den Store auf den Ausgangszustand zurück
+   */
+  reset: () => void;
+}
+
+/**
+ * Basis-Konfiguration für Persistenz
+ */
+export interface PersistConfig<T> {
+  /**
+   * Name für die Persistenz (wird als Schlüssel im Speicher verwendet)
+   */
+  name: string;
+  
+  /**
+   * Version für die Migration
+   */
+  version?: number;
+  
+  /**
+   * Migrationsfunktion für Version-Updates
+   */
+  migrate?: (persistedState: any, version: number) => T;
+}
+
+// =============================================
+// Application Specific Types
+// =============================================
+
 // LifeWheel related types
 export interface LifeWheelArea {
   id: string;
