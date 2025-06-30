@@ -149,7 +149,7 @@ class VisionBoardService {
    * Save or update a vision board with optimized database operations
    */
   async saveUserVisionBoard(
-    board: VisionBoard & { items?: VisionBoardItem[] },
+    board: (Partial<VisionBoard> & { user_id: string }) & { items?: VisionBoardItem[] },
     userId?: string,
   ): Promise<VisionBoard> {
     try {

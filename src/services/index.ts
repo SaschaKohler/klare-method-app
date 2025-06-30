@@ -73,10 +73,21 @@ export const initializeAIServices = async (userId: string) => {
     
     // Initialize privacy preferences if not set
     const privacy = await HybridContentService.getUserPrivacyPreferences(userId);
-    if (!privacy?.consentVersion) {
+
+    // If no preferences exist, create a default entry.
+    if (!privacy) {
       await HybridContentService.setUserPrivacyPreferences(userId, {
-        consentVersion: '1.0',
-        lastUpdated: new Date().toISOString()
+        aiEnabled: false,
+        aiPersonalizationLevel: 'basic',
+        dataSharingLevel: 'cloud_safe',
+        consentVersion: '1.0.0', // Set initial consent version
+        sensitiveDataLocalOnly: true,
+        intimateDataLocalOnly: true,
+        prefersStaticQuestions: false,
+        allowsAiQuestions: true,
+        preferredLanguage: 'de',
+        autoTranslate: false,
+        last_consent_update: new Date().toISOString(),
       });
     }
     

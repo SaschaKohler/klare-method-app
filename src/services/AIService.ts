@@ -758,8 +758,8 @@ export class AIService {
       
       // Check insights functionality
       try {
-        const insights = await this.getUserInsights("test");
-        checks.insights = Array.isArray(insights);
+        const { error } = await supabase.from("personal_insights").select("id").limit(1);
+        checks.insights = !error;
       } catch {
         checks.insights = false;
       }

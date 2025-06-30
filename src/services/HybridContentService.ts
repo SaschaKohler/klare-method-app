@@ -18,7 +18,8 @@ export interface UserPrivacyPreferences {
   preferredLanguage: 'de' | 'en';
   autoTranslate: boolean;
   consentVersion?: string;
-  lastUpdated?: string;
+  last_consent_update?: string;
+  updated_at?: string;
 }
 
 export interface ContentSensitivity {
@@ -107,7 +108,7 @@ export class PrivacyService {
   ): Promise<boolean> {
     try {
       const { data, error } = await supabase.rpc('user_allows_ai_for_content', {
-        p_user_id: userId,
+        p_id: userId,
         p_sensitivity_level: sensitivityLevel
       });
       
@@ -132,7 +133,7 @@ export class PrivacyService {
   ): Promise<'local_only' | 'cloud_safe' | 'ai_enabled'> {
     try {
       const { data, error } = await supabase.rpc('get_storage_location_for_user', {
-        p_user_id: userId,
+        p_id: userId,
         p_sensitivity_level: sensitivityLevel
       });
       
@@ -158,7 +159,7 @@ export class PrivacyService {
     const { error } = await supabase
       .from('user_privacy_preferences')
       .upsert({
-        user_id: userId,
+        id: userId,
         ...preferences,
         last_consent_update: new Date().toISOString()
       });
@@ -173,7 +174,7 @@ export class PrivacyService {
     const { data, error } = await supabase
       .from('user_privacy_preferences')
       .select('*')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .single();
     
     if (error && error.code !== 'PGRST116') throw error;
@@ -385,7 +386,7 @@ export class HybridContentService {
     const { data: cloudResponses, error } = await supabase
       .from('journal_responses')
       .select('*')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .order('created_at', { ascending: false });
     
     if (error) {
@@ -433,7 +434,7 @@ export class HybridContentService {
     const { error } = await supabase
       .from('journal_responses')
       .insert({
-        user_id: userId,
+        id: userId,
         template_id: templateId,
         question_text: response.questionText,
         response_text: response.responseText,
@@ -469,7 +470,7 @@ export class HybridContentService {
     const { data } = await supabase
       .from('life_wheel_snapshots')
       .select('scores, created_at')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .order('created_at', { ascending: false })
       .limit(1);
     
@@ -586,7 +587,7 @@ export async function saveExerciseResult(
     const { error } = await supabase
       .from('user_answers')
       .insert({
-        user_id: userId,
+        id: userId,
         exercise_id: exerciseId,
         answer_data: result,
         answered_at: new Date().toISOString()
@@ -613,7 +614,7 @@ export async function saveQuizAnswer(
     const { error } = await supabase
       .from('user_answers')
       .insert({
-        user_id: userId,
+        id: userId,
         quiz_id: quizId,
         question_id: questionId,
         answer_data: answer,
@@ -636,7 +637,7 @@ export async function loadUserModuleProgress(userId: string): Promise<any[]> {
     const { data, error } = await supabase
       .from('completed_modules')
       .select('*')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .order('completed_at', { ascending: false });
     
     if (error) throw error;

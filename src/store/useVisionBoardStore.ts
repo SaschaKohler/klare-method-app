@@ -1,12 +1,10 @@
 import { createBaseStore, BaseState } from "./createBaseStore";
-import {
-  visionBoardService,
+import visionBoardService, {
   VisionBoard,
   VisionBoardItem,
 } from "../services/VisionBoardService";
-import { StorageKeys } from "../storage/unifiedStorage";
 
-interface VisionBoardStoreState extends BaseState {
+export interface VisionBoardStoreState extends BaseState {
   // State
   visionBoard: VisionBoard | null;
   items: VisionBoardItem[];
@@ -21,16 +19,16 @@ interface VisionBoardStoreState extends BaseState {
   saveVisionBoard: (
     userId: string,
     board: VisionBoard & { items?: VisionBoardItem[] },
-  ) => Promise<VisionBoard>;
+  ) => Promise<VisionBoard | undefined>;
   addItem: (
     userId: string,
     item: Partial<VisionBoardItem>,
-  ) => Promise<VisionBoardItem>;
+  ) => Promise<VisionBoardItem | undefined>;
   updateItem: (
     userId: string,
     itemId: string,
     updates: Partial<VisionBoardItem>,
-  ) => Promise<VisionBoardItem>;
+  ) => Promise<VisionBoardItem | undefined>;
   deleteItem: (userId: string, itemId: string) => Promise<void>;
   synchronize: (userId: string) => Promise<boolean>;
 
@@ -39,22 +37,17 @@ interface VisionBoardStoreState extends BaseState {
 }
 
 export const useVisionBoardStore = createBaseStore<VisionBoardStoreState>(
-  {
+  {},
+  (set, get) => ({
     // State
     visionBoard: null,
     items: [],
-    metadata: {
-      isLoading: false,
-      lastSync: null,
-      error: null,
-    },
-  },
-  (set, get) => ({
-    // Actions
-    loadVisionBoard: async (userId) => {
-      try {
-        get().setLoading(true);
 
+    // Actions
+    loadVisionBoard: async (userId: string) => {
+      const { setLoading, setError, updateLastSync } = get();
+      setLoading(true);
+      try {
         const visionBoards =
           await visionBoardService.getUserVisionBoard(userId);
         const activeBoard =
@@ -67,54 +60,58 @@ export const useVisionBoardStore = createBaseStore<VisionBoardStoreState>(
           visionBoard: activeBoard,
           items: activeBoard?.items || [],
         }));
-
-        get().updateLastSync();
-        get().setLoading(false);
+        updateLastSync();
       } catch (error) {
-        console.error("Error loading vision board:", error);
-        get().setError(
-          error instanceof Error ? error : new Error(String(error)),
-        );
-        get().setLoading(false);
+        setError(error as Error);
+      } finally {
+        setLoading(false);
       }
     },
 
     createVisionBoard: async (
-      userId,
+      userId: string,
       title = "Neues Vision Board",
       description = "",
     ) => {
+      const { setLoading, setError, updateLastSync } = get();
+      setLoading(true);
       try {
-        get().setLoading(true);
-
-        const newVisionBoard = await visionBoardService.createNewVisionBoard(
+        const newBoardData = {
           title,
           description,
+          user_id: userId,
+          background_type: "gradient",
+          background_value: "gradient_primary",
+          layout_type: "grid",
+          is_active: true,
+          items: [],
+        };
+
+        const savedBoard = await visionBoardService.saveUserVisionBoard(
+          newBoardData,
           userId,
         );
 
         set((state) => ({
           ...state,
-          visionBoard: newVisionBoard,
-          items: newVisionBoard.items || [],
+          visionBoard: savedBoard,
+          items: savedBoard.items || [],
         }));
-
-        get().updateLastSync();
-        get().setLoading(false);
+        updateLastSync();
       } catch (error) {
-        console.error("Error creating vision board:", error);
-        get().setError(
-          error instanceof Error ? error : new Error(String(error)),
-        );
-        get().setLoading(false);
+        setError(error as Error);
+      } finally {
+        setLoading(false);
       }
     },
 
-    saveVisionBoard: async (userId, board) => {
+    saveVisionBoard: async (
+      userId: string,
+      board: VisionBoard & { items?: VisionBoardItem[] },
+    ) => {
+      const { setLoading, setError, updateLastSync } = get();
+      setLoading(true);
       try {
-        get().setLoading(true);
-
-        // Stelle sicher, dass items nie undefined ist
         const boardToSave = {
           ...board,
           items: board.items || [],
@@ -128,29 +125,22 @@ export const useVisionBoardStore = createBaseStore<VisionBoardStoreState>(
         set((state) => ({
           ...state,
           visionBoard: savedBoard,
-          // Wenn das Board Items enthält, aktualisiere sie im Store
           items: board.items || state.items,
         }));
-
-        get().updateLastSync();
-        get().setLoading(false);
-
+        updateLastSync();
         return savedBoard;
       } catch (error) {
-        console.error("Error saving vision board:", error);
-        get().setError(
-          error instanceof Error ? error : new Error(String(error)),
-        );
-        get().setLoading(false);
-        throw error;
+        setError(error as Error);
+        return undefined;
+      } finally {
+        setLoading(false);
       }
     },
 
-    addItem: async (userId, item) => {
+    addItem: async (userId: string, item: Partial<VisionBoardItem>) => {
+      const { setLoading, setError } = get();
+      setLoading(true);
       try {
-        get().setLoading(true);
-
-        // Wenn ein Bild vorhanden ist, hochladen
         if (item.image_url && item.image_url.startsWith("file:")) {
           const publicUrl = await visionBoardService.uploadImage(
             item.image_url,
@@ -166,7 +156,6 @@ export const useVisionBoardStore = createBaseStore<VisionBoardStoreState>(
           vision_board_id: get().visionBoard?.id || "",
         } as VisionBoardItem;
 
-        // Speichern in der Datenbank
         const savedBoard = await visionBoardService.saveUserVisionBoard(
           {
             ...get().visionBoard!,
@@ -180,24 +169,23 @@ export const useVisionBoardStore = createBaseStore<VisionBoardStoreState>(
           visionBoard: savedBoard,
           items: savedBoard.items || [...state.items, newItem],
         }));
-
-        get().setLoading(false);
         return newItem;
       } catch (error) {
-        console.error("Error adding vision board item:", error);
-        get().setError(
-          error instanceof Error ? error : new Error(String(error)),
-        );
-        throw error;
+        setError(error as Error);
+        return undefined;
+      } finally {
+        setLoading(false);
       }
     },
 
-    updateItem: async (userId, itemId, updates) => {
+    updateItem: async (
+      userId: string,
+      itemId: string,
+      updates: Partial<VisionBoardItem>,
+    ) => {
+      const { setLoading, setError } = get();
+      setLoading(true);
       try {
-        // Dies ist eine Platzhalterimplementierung
-        // Sie müssen den tatsächlichen API-Aufruf in VisionBoardService implementieren
-
-        // Für jetzt aktualisieren wir einfach den lokalen State
         let updatedItem: VisionBoardItem | undefined;
 
         set((state) => {
@@ -208,51 +196,47 @@ export const useVisionBoardStore = createBaseStore<VisionBoardStoreState>(
             }
             return item;
           });
-
-          return {
-            ...state,
-            items: updatedItems,
-          };
+          return { ...state, items: updatedItems };
         });
 
         if (!updatedItem) {
           throw new Error(`Item with ID ${itemId} not found`);
         }
 
+        // Hier sollte der API-Aufruf zum Speichern erfolgen
+        // await visionBoardService.updateItem(userId, updatedItem);
+
         return updatedItem;
       } catch (error) {
-        console.error("Error updating vision board item:", error);
-        get().setError(
-          error instanceof Error ? error : new Error(String(error)),
-        );
-        throw error;
+        setError(error as Error);
+        return undefined;
+      } finally {
+        setLoading(false);
       }
     },
 
-    deleteItem: async (userId, itemId) => {
+    deleteItem: async (userId: string, itemId: string) => {
+      const { setLoading, setError } = get();
+      setLoading(true);
       try {
-        // Dies ist eine Platzhalterimplementierung
-        // Sie müssen den tatsächlichen API-Aufruf in VisionBoardService implementieren
+        // Hier sollte der API-Aufruf zum Löschen erfolgen
+        // await visionBoardService.deleteItem(userId, itemId);
 
-        // Für jetzt aktualisieren wir einfach den lokalen State
         set((state) => ({
           ...state,
           items: state.items.filter((item) => item.id !== itemId),
         }));
       } catch (error) {
-        console.error("Error deleting vision board item:", error);
-        get().setError(
-          error instanceof Error ? error : new Error(String(error)),
-        );
-        throw error;
+        setError(error as Error);
+      } finally {
+        setLoading(false);
       }
     },
 
-    synchronize: async (userId) => {
+    synchronize: async (userId: string) => {
+      const { setLoading, setError, updateLastSync } = get();
+      setLoading(true);
       try {
-        get().setLoading(true);
-
-        // Lade frische Daten vom Server
         const visionBoards =
           await visionBoardService.getUserVisionBoard(userId);
         const activeBoard =
@@ -265,28 +249,21 @@ export const useVisionBoardStore = createBaseStore<VisionBoardStoreState>(
           visionBoard: activeBoard,
           items: activeBoard?.items || [],
         }));
-
-        get().updateLastSync();
-        get().setLoading(false);
-
+        updateLastSync();
         return true;
       } catch (error) {
-        console.error("Error synchronizing vision board data:", error);
-        get().setError(
-          error instanceof Error ? error : new Error(String(error)),
-        );
-        get().setLoading(false);
+        setError(error as Error);
         return false;
+      } finally {
+        setLoading(false);
       }
     },
 
-    getItemsByCategory: (categoryName) => {
+    getItemsByCategory: (categoryName: string | null) => {
       const items = get().items;
-
       if (!categoryName) {
         return items;
       }
-
       return items.filter((item) => item.life_area === categoryName);
     },
   }),

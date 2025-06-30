@@ -1,17 +1,16 @@
 // src/store/useResourceStore.ts
-import { create } from "zustand";
-import {
+import ResourceLibraryService, {
   Resource,
   ResourceCategory,
-  resourceLibraryService,
 } from "../services/ResourceLibraryService";
 import { createBaseStore, BaseState } from "./createBaseStore";
-import { StorageKeys } from "../storage/unifiedStorage";
 
-interface ResourceStoreState extends BaseState {
+export type { Resource };
+export { ResourceCategory };
+
+export interface ResourceStoreState extends BaseState {
   // State
   resources: Resource[];
-  isLoading: boolean;
   currentUserResources: Resource[];
 
   // Actions
@@ -19,101 +18,115 @@ interface ResourceStoreState extends BaseState {
   addResource: (
     userId: string,
     resource: Omit<Resource, "id" | "userId" | "createdAt" | "updatedAt">,
-  ) => Promise<Resource>;
+  ) => Promise<Resource | undefined>;
   updateResource: (
     userId: string,
     resourceId: string,
     updates: Partial<Resource>,
-  ) => Promise<Resource>;
+  ) => Promise<Resource | undefined>;
   deleteResource: (userId: string, resourceId: string) => Promise<void>;
-  activateResource: (userId: string, resourceId: string) => Promise<Resource>;
+  activateResource: (userId: string, resourceId: string) => Promise<Resource | undefined>;
 
-  // Filtering and sorting
+  // Selectors
   getResourcesByCategory: (category: ResourceCategory) => Resource[];
-  getTopResources: (limit?: number) => Resource[];
-  getRecentlyActivatedResources: (limit?: number) => Resource[];
-  searchResources: (searchTerm: string) => Resource[];
+  getTopResources: (limit: number) => Resource[];
+  searchResources: (query: string) => Resource[];
+  getRecentlyActivatedResources: (limit: number) => Resource[];
+  getCurrentUserResources: () => Resource[];
 
   // Current user handling
   setCurrentUserResources: (userId: string) => Promise<void>;
-  getCurrentUserResources: () => Resource[];
 }
 
 export const useResourceStore = createBaseStore<ResourceStoreState>(
-  {
-    // initial state
-    resources: [],
-    currentUserResources: [] as Resource[],
-    metadata: {
-      isLoading: false,
-      lastSync: null,
-      error: null,
-    },
-  },
+  {},
   (set, get) => ({
+    // Initial state
+    resources: [],
+    currentUserResources: [],
+
     // Actions
     loadResources: async (userId: string) => {
+      const { setLoading, setError, updateLastSync } = get();
+      setLoading(true);
       try {
         console.log("Loading resources for user:", userId);
-        set({ isLoading: true });
-        const resources = await resourceLibraryService.getUserResources(userId);
-        set({
+        const resources = await ResourceLibraryService.getUserResources(userId);
+        set((state) => ({
+          ...state,
           resources,
-          isLoading: false,
           currentUserResources: resources,
-        });
+        }));
+        updateLastSync();
       } catch (error) {
         console.error("Error loading resources:", error);
-        set({ isLoading: false });
+        setError(error as Error);
+      } finally {
+        setLoading(false);
       }
     },
 
     addResource: async (userId: string, resource) => {
+      const { setLoading, setError } = get();
+      setLoading(true);
       try {
-        const newResource = await resourceLibraryService.addResource(
+        const newResource = await ResourceLibraryService.addResource(
           userId,
           resource,
         );
         set((state) => ({
-          resources: [...state.resources, { ...newResource }],
+          ...state,
+          resources: [...state.resources, newResource],
           currentUserResources:
             userId === state.currentUserResources[0]?.userId
-              ? [...state.currentUserResources, { ...newResource }]
+              ? [...state.currentUserResources, newResource]
               : state.currentUserResources,
         }));
         return newResource;
       } catch (error) {
         console.error("Error adding resource:", error);
-        throw error;
+        setError(error as Error);
+        return undefined;
+      } finally {
+        setLoading(false);
       }
     },
 
     updateResource: async (userId: string, resourceId: string, updates) => {
+      const { setLoading, setError } = get();
+      setLoading(true);
       try {
-        const updatedResource = await resourceLibraryService.updateResource(
+        const updatedResource = await ResourceLibraryService.updateResource(
           userId,
           resourceId,
           updates,
         );
         set((state) => ({
+          ...state,
           resources: state.resources.map((r) =>
-            r.id === resourceId ? { ...updatedResource } : r,
+            r.id === resourceId ? updatedResource : r,
           ),
           currentUserResources: state.currentUserResources.map((r) =>
-            r.id === resourceId ? { ...updatedResource } : r,
+            r.id === resourceId ? updatedResource : r,
           ),
         }));
         return updatedResource;
       } catch (error) {
         console.error("Error updating resource:", error);
-        throw error;
+        setError(error as Error);
+        return undefined;
+      } finally {
+        setLoading(false);
       }
     },
 
     deleteResource: async (userId: string, resourceId: string) => {
+      const { setLoading, setError } = get();
+      setLoading(true);
       try {
-        await resourceLibraryService.deleteResource(userId, resourceId);
+        await ResourceLibraryService.deleteResource(userId, resourceId);
         set((state) => ({
+          ...state,
           resources: state.resources.filter((r) => r.id !== resourceId),
           currentUserResources: state.currentUserResources.filter(
             (r) => r.id !== resourceId,
@@ -121,30 +134,38 @@ export const useResourceStore = createBaseStore<ResourceStoreState>(
         }));
       } catch (error) {
         console.error("Error deleting resource:", error);
-        throw error;
+        setError(error as Error);
+      } finally {
+        setLoading(false);
       }
     },
 
     activateResource: async (userId: string, resourceId: string) => {
+      const { setLoading, setError } = get();
+      setLoading(true);
       try {
         const now = new Date().toISOString();
-        const updatedResource = await resourceLibraryService.updateResource(
+        const updatedResource = await ResourceLibraryService.updateResource(
           userId,
           resourceId,
           { lastActivated: now },
         );
         set((state) => ({
+          ...state,
           resources: state.resources.map((r) =>
-            r.id === resourceId ? { ...updatedResource } : r,
+            r.id === resourceId ? updatedResource : r,
           ),
           currentUserResources: state.currentUserResources.map((r) =>
-            r.id === resourceId ? { ...updatedResource } : r,
+            r.id === resourceId ? updatedResource : r,
           ),
         }));
         return updatedResource;
       } catch (error) {
         console.error("Error activating resource:", error);
-        throw error;
+        setError(error as Error);
+        return undefined;
+      } finally {
+        setLoading(false);
       }
     },
 
@@ -193,17 +214,20 @@ export const useResourceStore = createBaseStore<ResourceStoreState>(
     },
 
     setCurrentUserResources: async (userId: string) => {
+      const { setLoading, setError } = get();
+      setLoading(true);
       try {
-        set({ isLoading: true });
         const userResources =
-          await resourceLibraryService.getUserResources(userId);
-        set({
+          await ResourceLibraryService.getUserResources(userId);
+        set((state) => ({
+          ...state,
           currentUserResources: userResources,
-          isLoading: false,
-        });
+        }));
       } catch (error) {
         console.error("Error setting current user resources:", error);
-        set({ isLoading: false });
+        setError(error as Error);
+      } finally {
+        setLoading(false);
       }
     },
 

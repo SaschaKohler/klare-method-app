@@ -1,5 +1,13 @@
 // src/store/useUserStore.ts
-import { AuthError, User } from "@supabase/supabase-js";
+import { AuthError, Session, User } from "@supabase/supabase-js";
+
+// Erweitert den Supabase User-Typ um anwendungsspezifische Profil-Eigenschaften
+export type AppUser = User & {
+  name?: string;
+  join_date?: string;
+  last_active?: string;
+  streak?: number;
+};
 import { supabase } from "../lib/supabase";
 import { createBaseStore, BaseState } from "./createBaseStore";
 import { useLifeWheelStore } from "./useLifeWheelStore";
@@ -8,6 +16,7 @@ import { LifeWheelArea, Stage } from "../types/store";
 import { unifiedStorage, StorageKeys } from "../storage/unifiedStorage";
 import { ProgressionStage } from "../data/progression";
 import i18n from "../utils/i18n";
+import { debugLog } from "../utils/debugConfig";
 
 /**
  * Konvertiert ein ProgressionStage-Objekt in ein Stage-Objekt.
@@ -33,19 +42,22 @@ const mapProgressionStageToStage = (
  * Erweitert den BaseState für generische Eigenschaften wie Ladezustand und Fehler.
  */
 export interface UserState extends BaseState {
-  user: User | null;
+  user: AppUser | null;
   isOnline: boolean;
   lifeWheelAreas: LifeWheelArea[];
   completedModules: string[];
   moduleProgressCache: Record<string, number>;
 
   // Actions
-  loadUserData: () => Promise<void>;
+  loadUserData: (sessionParam?: Session | null) => Promise<void>;
   saveUserData: () => Promise<boolean>;
-  setUser: (user: User | null) => void;
+  setUser: (user: AppUser | null) => void;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: AuthError | null }>;
+  updateLastActive: (userId: string) => Promise<void>;
+  updateStreak: (userId: string, newStreak: number) => Promise<void>;
+  clearUser: () => void;
   signOut: () => Promise<void>;
   createUserProfileIfNeeded: (user: User) => Promise<boolean>;
 
@@ -61,6 +73,8 @@ const userInitialState = {
   lifeWheelAreas: [],
   completedModules: [],
   moduleProgressCache: {},
+  streak: 0,
+  last_active: null,
 };
 
 export const useUserStore = createBaseStore<UserState>(
@@ -68,27 +82,28 @@ export const useUserStore = createBaseStore<UserState>(
   (set, get) => ({
     ...userInitialState,
 
-    loadUserData: async () => {
-      const { setLoading, setError, setStorageStatus, updateLastSync, saveUserData } = get();
-      setLoading(true);
+    loadUserData: async (sessionParam: Session | null = null) => {
+      const { setError, setStorageStatus, updateLastSync, saveUserData } = get();
       setError(null);
       setStorageStatus("initializing");
 
       try {
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError || !sessionData.session) {
-          set(state => ({ ...state, ...userInitialState, isOnline: false }));
-          setStorageStatus("ready");
+        // This function should only run when a session is explicitly provided.
+        // This prevents a race condition on startup with the onAuthStateChange listener.
+        const sessionToUse = sessionParam;
+        if (!sessionToUse) {
+          debugLog("AUTH_LOGS", "loadUserData skipped: No session provided.");
           return;
         }
 
-        const user = sessionData.session.user;
-        set(state => ({ ...state, isOnline: true, user }));
+        const user = sessionToUse.user;
+        set((state) => ({ ...state, isOnline: true, user }));
 
-        const localData = await unifiedStorage.getItem(StorageKeys.USER);
-        if (localData) {
+        const jsonLocalData = await unifiedStorage.getStringAsync(StorageKeys.USER);
+        if (jsonLocalData) {
+          const localData = JSON.parse(jsonLocalData);
           const { user, lifeWheelAreas, completedModules, moduleProgressCache } = localData;
-          set(state => ({ ...state, user, lifeWheelAreas, completedModules, moduleProgressCache }));
+          set((state) => ({ ...state, user, lifeWheelAreas, completedModules, moduleProgressCache }));
         }
         setStorageStatus("ready");
 
@@ -103,7 +118,7 @@ export const useUserStore = createBaseStore<UserState>(
           if (typeof navigator !== 'undefined' && !navigator.onLine) setError(null);
           else throw profileError;
         } else if (profileData) {
-          set(state => ({ ...state, user: { ...state.user, ...profileData } as User }));
+          set((state) => ({ ...state, user: { ...state.user, ...profileData, streak: profileData.streak, last_active: profileData.last_active } as AppUser }));
           updateLastSync();
         }
 
@@ -112,35 +127,30 @@ export const useUserStore = createBaseStore<UserState>(
         
         await saveUserData();
       } catch (error) {
+        debugLog("AUTH_LOGS", "Failed to load user data:", error);
         setError(error as Error);
-        set(state => ({ ...state, isOnline: false }));
-      } finally {
-        setLoading(false);
+        set((state) => ({ ...state, isOnline: false }));
       }
     },
 
     saveUserData: async () => {
-      const { setLoading, setError } = get();
-      setLoading(true);
+      const { setError } = get();
       try {
         const { user, lifeWheelAreas, completedModules, moduleProgressCache } = get();
-        await unifiedStorage.setItem(StorageKeys.USER, { user, lifeWheelAreas, completedModules, moduleProgressCache });
-        setLoading(false);
+        unifiedStorage.set(StorageKeys.USER, JSON.stringify({ user, lifeWheelAreas, completedModules, moduleProgressCache }));
         return true;
       } catch (error) {
         setError(error as Error);
-        setLoading(false);
         return false;
       }
     },
 
-    setUser: (user: User | null) => {
-      set(state => ({ ...state, user }));
+    setUser: (user: AppUser | null) => {
+      set((state) => ({ ...state, user }));
     },
 
     signIn: async (email, password) => {
-      const { setLoading, setError, loadUserData } = get();
-      setLoading(true);
+      const { setError, loadUserData } = get();
       setError(null);
       try {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -150,14 +160,11 @@ export const useUserStore = createBaseStore<UserState>(
       } catch (error) {
         setError(error as AuthError);
         return { error: error as AuthError };
-      } finally {
-        setLoading(false);
       }
     },
     
     signInWithGoogle: async () => {
-      const { setLoading, setError } = get();
-      setLoading(true);
+      const { setError } = get();
       setError(null);
       try {
         const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
@@ -166,14 +173,11 @@ export const useUserStore = createBaseStore<UserState>(
       } catch (error) {
         setError(error as AuthError);
         return { error: error as AuthError };
-      } finally {
-        setLoading(false);
       }
     },
 
     createUserProfileIfNeeded: async (user: User) => {
-      const { setLoading, setError } = get();
-      setLoading(true);
+      const { setError } = get();
       try {
         const { data, error } = await supabase.from("users").select("id").eq("id", user.id).maybeSingle();
         if (error && error.code !== 'PGRST116') throw error;
@@ -190,14 +194,11 @@ export const useUserStore = createBaseStore<UserState>(
       } catch (error) {
         setError(error as Error);
         return false;
-      } finally {
-        setLoading(false);
       }
     },
 
     signUp: async (email, password, name) => {
-      const { setLoading, setError, createUserProfileIfNeeded, loadUserData } = get();
-      setLoading(true);
+      const { setError, createUserProfileIfNeeded, loadUserData } = get();
       setError(null);
       try {
         const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { name } } });
@@ -210,26 +211,64 @@ export const useUserStore = createBaseStore<UserState>(
       } catch (error) {
         setError(error as AuthError);
         return { error: error as AuthError };
-      } finally {
-        setLoading(false);
       }
     },
 
+    clearUser: () => {
+      set((state) => ({
+        ...state,
+        ...userInitialState,
+        isOnline: false,
+      }));
+      useLifeWheelStore.getState().reset();
+      useProgressionStore.getState().clearProgressionData();
+    },
+
     signOut: async () => {
-      const { setLoading, setError, updateLastSync } = get();
-      setLoading(true);
+      const { setError, updateLastSync } = get();
       try {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
-        set(state => ({ ...state, ...userInitialState, isOnline: false }));
+        get().clearUser();
         updateLastSync();
-        await unifiedStorage.delete(StorageKeys.USER);
-        useLifeWheelStore.getState().reset();
-        useProgressionStore.getState().clearProgressionData();
+        unifiedStorage.delete(StorageKeys.USER);
       } catch (error) {
         setError(error as Error);
-      } finally {
-        setLoading(false);
+      }
+    },
+
+    updateLastActive: async (userId: string) => {
+      const { setError } = get();
+      const now = new Date().toISOString();
+      try {
+        const { error } = await supabase
+          .from("users")
+          .update({ last_active: now })
+          .eq("id", userId);
+        if (error) throw error;
+        set((state) => ({
+          ...state,
+          user: state.user ? { ...state.user, last_active: now } : null,
+        }));
+      } catch (error) {
+        setError(error as Error);
+      }
+    },
+
+    updateStreak: async (userId: string, newStreak: number) => {
+      const { setError } = get();
+      try {
+        const { error } = await supabase
+          .from("users")
+          .update({ streak: newStreak })
+          .eq("id", userId);
+        if (error) throw error;
+        set((state) => ({
+          ...state,
+          user: state.user ? { ...state.user, streak: newStreak } : null,
+        }));
+      } catch (error) {
+        setError(error as Error);
       }
     },
 

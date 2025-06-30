@@ -3,19 +3,8 @@
 import { supabase } from "../lib/supabase";
 import { createBaseStore, BaseState } from "./createBaseStore";
 
-// Simple debounce implementation to avoid lodash dependency
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-}
 // Types for AI-ready database schema (ACTUAL schema from migrations)
-interface LifeWheelSnapshot {
+export interface LifeWheelSnapshot {
   id: string;
   user_id: string;
   snapshot_data: any; // JSONB containing the actual snapshot
@@ -26,359 +15,271 @@ interface LifeWheelSnapshot {
   created_at: string;
 }
 
-interface LifeWheelArea {
-  id: string;
-  name: string;
+export interface LifeWheelArea {
+  id: string; // Unique name of the area, e.g. 'health_fitness'
+  name: string; // Localized display name
   currentValue: number;
   targetValue: number;
   notes?: string;
   improvementActions?: string[];
 }
 
-
-interface LifeWheelState extends BaseState {
+// Defines the state and actions for the Life Wheel Store
+export interface LifeWheelStoreState extends BaseState {
   // State
   lifeWheelAreas: LifeWheelArea[];
   currentSnapshot: LifeWheelSnapshot | null;
-  loading: boolean;
-  error: Error | null;
-  lastSync: string | null;
-  isDirty: boolean;
+  isDirty: boolean; // Indicates if there are unsaved changes
 
   // Actions
-  loadLifeWheelData: (userId?: string) => Promise<void>;
-  loadLatestSnapshot: (userId: string) => Promise<void>;
-  updateLifeWheelArea: (areaId: string, updates: Partial<LifeWheelArea>) => Promise<void>;
-  createSnapshot: (userId: string, title: string, description?: string) => Promise<string>;
-  saveCurrentState: (userId: string) => Promise<void>;
+  loadLifeWheelData: (userId: string) => Promise<void>;
+  updateLifeWheelArea: (
+    userId: string,
+    areaId: string,
+    updates: Partial<LifeWheelArea>,
+  ) => Promise<void>;
+  createSnapshot: (
+    userId: string,
+    title: string,
+    description?: string,
+  ) => Promise<string | undefined>;
   createDefaultAreas: (userId: string) => Promise<void>;
   reset: () => void;
 
-  // Computed values
+  // Computed/Queries
   calculateAverage: () => number;
   findLowestAreas: (count?: number) => LifeWheelArea[];
-  saveLifeWheelData: (userId: string) => Promise<void>;
 }
-
-
-const initialState: Omit<LifeWheelState, keyof BaseState> = {
-  lifeWheelAreas: [],
-  currentSnapshot: null,
-  loading: false,
-  error: null,
-  lastSync: null,
-  isDirty: false,
-};
-
-// Simple debugLog replacement to avoid require cycle
-const debugLog = (category: string, message: string, data?: any) => {
-  if (__DEV__) {
-    console.log(`[${category}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
-  }
-};
 
 // Helper function to get localized name;
 const getLocalizedName = (name: string, translations?: any): string => {
   if (!translations) return name;
-  
-  const currentLang = 'de'; // Default fallback
-  
+  const currentLang = "de"; // Default fallback
   try {
-    if (translations && typeof translations === 'object') {
-      return translations[currentLang] || translations['de'] || translations['en'] || name;
+    if (translations && typeof translations === "object") {
+      return (
+        translations[currentLang] ||
+        translations["de"] ||
+        translations["en"] ||
+        name
+      );
     }
   } catch (error) {
-    console.warn('Error parsing translations:', error);
+    console.warn("Error parsing translations:", error);
   }
-  
   return name;
 };
 
-export const useLifeWheelStore = createBaseStore<LifeWheelState>(
-  {
+export const useLifeWheelStore = createBaseStore<LifeWheelStoreState>(
+  {},
+  (set, get) => ({
     // Initial State
-    ...initialState,
-    metadata: {
-      isLoading: false,
-      lastSync: null,
-      error: null,
-      storageStatus: "initializing",
+    lifeWheelAreas: [],
+    currentSnapshot: null,
+    isDirty: false,
+
+    // Actions
+    loadLifeWheelData: async (userId: string) => {
+      const { setLoading, setError, updateLastSync } = get();
+      setLoading(true);
+      try {
+        const { data: snapshot, error: snapshotError } = await supabase
+          .from("life_wheel_snapshots")
+          .select("*")
+          .eq("user_id", userId)
+          .order("snapshot_date", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (snapshotError && snapshotError.code !== "PGRST116") {
+          throw snapshotError;
+        }
+
+        if (snapshot) {
+          const areas = snapshot.snapshot_data.areas.map((area: any) => ({
+            id: area.name,
+            name: getLocalizedName(area.name, area.translations),
+            currentValue: area.current_value,
+            targetValue: area.target_value,
+            notes: area.notes,
+            improvementActions: area.improvement_actions,
+          }));
+
+          set((state) => ({
+            ...state,
+            currentSnapshot: snapshot,
+            lifeWheelAreas: areas,
+            isDirty: false,
+          }));
+        } else {
+          // If no snapshot exists, create default areas
+          await get().createDefaultAreas(userId);
+        }
+        updateLastSync();
+      } catch (error) {
+        setError(error as Error);
+        console.error("Error loading life wheel data:", error);
+      } finally {
+        setLoading(false);
+      }
     },
-  },
-  (set, get) => {        // Debounced database sync - corrected for actual AI-ready schema
-        const syncToDatabase = async () => {
-          try {
-            const state = get();
-            if (!state.isDirty || state.lifeWheelAreas.length === 0) return;
 
-            debugLog('LIFE_WHEEL', 'Syncing to database', { 
-              areasCount: state.lifeWheelAreas.length 
-            });
+    createDefaultAreas: async (userId: string) => {
+      const { setLoading, setError } = get();
+      setLoading(true);
+      try {
+        const defaultAreas = [
+          { name: "health_fitness", currentValue: 5, targetValue: 8 },
+          { name: "career", currentValue: 5, targetValue: 8 },
+          { name: "finances", currentValue: 5, targetValue: 8 },
+          { name: "relationships", currentValue: 5, targetValue: 8 },
+          { name: "personal_development", currentValue: 5, targetValue: 8 },
+          { name: "spirituality", currentValue: 5, targetValue: 8 },
+          { name: "fun_recreation", currentValue: 5, targetValue: 8 },
+          { name: "physical_environment", currentValue: 5, targetValue: 8 },
+        ];
 
-            // Update each area in the life_wheel_areas table
-            for (const area of state.lifeWheelAreas) {
-              const { error } = await supabase
-                .from('life_wheel_areas')
-                .update({
-                  current_value: area.currentValue,
-                  target_value: area.targetValue,
-                  notes: area.notes || '',
-                  improvement_actions: area.improvementActions || [],
-                  updated_at: new Date().toISOString(),
-                })
-                .eq('name', area.id); // Use name as identifier
+        const areaInserts = defaultAreas.map((area) => ({
+          user_id: userId,
+          name: area.name,
+          current_value: area.currentValue,
+          target_value: area.targetValue,
+          notes: "",
+          improvement_actions: [],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }));
 
-              if (error) {
-                console.error(`Error updating area ${area.id}:`, error);
-              }
-            }
+        const { error: areasError } = await supabase
+          .from("life_wheel_areas")
+          .insert(areaInserts);
 
-            // Reset dirty flag and update sync time
-            set(state => ({ 
-              ...state, 
-              isDirty: false,
-              metadata: {
-                ...state.metadata,
-                lastSync: new Date().toISOString(),
-              },
-            }));
+        if (areasError) throw areasError;
 
-            debugLog('LIFE_WHEEL', 'Database sync completed successfully');
-          } catch (error) {
-            console.error('Database sync error:', error);
-          }
+        const formattedAreas: LifeWheelArea[] = defaultAreas.map((area) => ({
+          id: area.name,
+          name: area.name,
+          currentValue: area.currentValue,
+          targetValue: area.targetValue,
+          notes: "",
+          improvementActions: [],
+        }));
+
+        set((state) => ({
+          ...state,
+          lifeWheelAreas: formattedAreas,
+          isDirty: false,
+        }));
+      } catch (error) {
+        setError(error as Error);
+        console.error("Error creating default areas:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+
+    updateLifeWheelArea: async (userId, areaId, updates) => {
+      const { setLoading, setError } = get();
+      setLoading(true);
+
+      // Optimistic update of local state
+      const originalAreas = get().lifeWheelAreas;
+      const updatedAreas = originalAreas.map((area) =>
+        area.id === areaId ? { ...area, ...updates } : area,
+      );
+      set((state) => ({ ...state, lifeWheelAreas: updatedAreas, isDirty: true }));
+
+      try {
+        const areaToUpdate = updatedAreas.find((a) => a.id === areaId);
+        if (!areaToUpdate) throw new Error("Area not found");
+
+        const { error } = await supabase
+          .from("life_wheel_areas")
+          .update({
+            current_value: areaToUpdate.currentValue,
+            target_value: areaToUpdate.targetValue,
+            notes: areaToUpdate.notes || "",
+            improvement_actions: areaToUpdate.improvementActions || [],
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", userId)
+          .eq("name", areaId);
+
+        if (error) throw error;
+
+        set((state) => ({ ...state, isDirty: false }));
+      } catch (error) {
+        setError(error as Error);
+        // Revert to original state on error
+        set((state) => ({ ...state, lifeWheelAreas: originalAreas }));
+        console.error(`Error updating area ${areaId}:`, error);
+      } finally {
+        setLoading(false);
+      }
+    },
+
+    createSnapshot: async (userId, title, description) => {
+      const { setLoading, setError, updateLastSync } = get();
+      setLoading(true);
+      try {
+        const snapshotData = {
+          areas: get().lifeWheelAreas.map((area) => ({
+            name: area.id,
+            current_value: area.currentValue,
+            target_value: area.targetValue,
+            notes: area.notes,
+          })),
+          created_at: new Date().toISOString(),
         };
 
-        const debouncedSyncToDatabase = debounce(syncToDatabase, 1000);
+        const { data, error } = await supabase
+          .from("life_wheel_snapshots")
+          .insert({
+            user_id: userId,
+            snapshot_data: snapshotData,
+            notes: description,
+            trigger_event: "manual",
+            snapshot_date: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
 
-        return {
+        if (error || !data) {
+          throw new Error(`Failed to create snapshot: ${error?.message}`);
+        }
 
-          // Load life wheel data - updated for AI-ready schema
-          loadLifeWheelData: async (userId?: string) => {
-            try {
-              set(state => ({ ...state, loading: true, error: null }));
+        updateLastSync();
+        set((state) => ({ ...state, isDirty: false }));
+        return data.id;
+      } catch (error) {
+        setError(error as Error);
+        return undefined;
+      } finally {
+        setLoading(false);
+      }
+    },
 
-              if (userId) {
-                await get().loadLatestSnapshot(userId);
-              } else {
-                // No user ID, load from local storage only
-                debugLog('LIFE_WHEEL', 'No userId provided, using local data only');
-              }
-            } catch (error) {
-              console.error('Error loading life wheel data:', error);
-              set(state => ({ 
-                ...state, 
-                error: error instanceof Error ? error : new Error(String(error))
-              }));
-            } finally {
-              set(state => ({ ...state, loading: false }));
-            }
-          },
-          // Load latest snapshot for user - CORRECTED for actual AI-ready schema
-          loadLatestSnapshot: async (userId: string) => {
-            try {
-              // Timeout for network requests
-              const timeout = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("Network timeout")), 5000)
-              );
+    reset: () => {
+      set((state) => ({
+        ...state,
+        lifeWheelAreas: [],
+        currentSnapshot: null,
+        isDirty: false,
+      }));
+    },
 
-              // First, try to load current life wheel areas directly
-              const areasPromise = supabase
-                .from('life_wheel_areas')
-                .select('*')
-                .eq('user_id', userId);
+    calculateAverage: () => {
+      const areas = get().lifeWheelAreas;
+      if (areas.length === 0) return 0;
+      const sum = areas.reduce((total, area) => total + area.currentValue, 0);
+      return Math.round((sum / areas.length) * 10) / 10; // Round to 1 decimal
+    },
 
-              const areasResult = await Promise.race([areasPromise, timeout]);
-              const { data: areas, error: areasError } = areasResult;
-
-              if (areasError) throw areasError;
-
-              if (!areas || areas.length === 0) {
-                // No areas exist, create default areas
-                debugLog('LIFE_WHEEL', 'No areas found, creating default areas');
-                await get().createDefaultAreas(userId);
-                return;
-              }
-
-              // Format data for store
-              const formattedAreas: LifeWheelArea[] = areas.map(area => ({
-                id: area.name, // Using name as ID for consistency
-                name: getLocalizedName(area.name, area.translations),
-                currentValue: area.current_value || 0,
-                targetValue: area.target_value || 0,
-                notes: area.notes,
-                improvementActions: area.improvement_actions || [],
-              }));
-
-              set(state => ({
-                ...state,
-                lifeWheelAreas: formattedAreas,
-                isDirty: false,
-                metadata: {
-                  ...state.metadata,
-                  lastSync: new Date().toISOString(),
-                },
-              }));
-              debugLog('LIFE_WHEEL', 'Areas loaded successfully', { 
-                areasCount: formattedAreas.length 
-              });
-
-            } catch (error) {
-              console.error('Error loading latest snapshot:', error);
-              throw error;
-            }
-          },
-          // Create default areas directly in life_wheel_areas table
-          createDefaultAreas: async (userId: string) => {
-            const defaultAreas = [
-              { name: 'career', currentValue: 5, targetValue: 8 },
-              { name: 'relationships', currentValue: 6, targetValue: 9 },
-              { name: 'health', currentValue: 7, targetValue: 9 },
-              { name: 'personal_development', currentValue: 6, targetValue: 8 },
-              { name: 'fun_recreation', currentValue: 5, targetValue: 8 },
-              { name: 'money', currentValue: 6, targetValue: 8 },
-              { name: 'physical_environment', currentValue: 7, targetValue: 8 },
-              { name: 'contribution', currentValue: 5, targetValue: 7 },
-            ];
-
-            // Insert directly into life_wheel_areas
-            const areaInserts = defaultAreas.map(area => ({
-              user_id: userId,
-              name: area.name,
-              current_value: area.currentValue,
-              target_value: area.targetValue,
-              notes: '',
-              improvement_actions: [],
-              // Remove barriers, strengths, translations - they don't exist in the schema
-            }));
-
-            const { error: areasError } = await supabase
-              .from('life_wheel_areas')
-              .insert(areaInserts);
-
-            if (areasError) throw areasError;
-
-            // Update store with new data
-            const formattedAreas: LifeWheelArea[] = defaultAreas.map(area => ({
-              id: area.name,
-              name: area.name,
-              currentValue: area.currentValue,
-              targetValue: area.targetValue,
-              notes: '',
-              improvementActions: [],
-            }));
-
-            set(state => ({
-              ...state,
-              lifeWheelAreas: formattedAreas,
-              isDirty: false,
-            }));
-
-            debugLog('LIFE_WHEEL', 'Default areas created', { 
-              areasCount: defaultAreas.length 
-            });
-          },
-          
-          // Update life wheel area - corrected for actual schema
-          updateLifeWheelArea: async (areaId: string, updates: Partial<LifeWheelArea>) => {
-            // Update local state immediately
-            set(state => ({
-              ...state,
-              lifeWheelAreas: state.lifeWheelAreas.map(area =>
-                area.id === areaId ? { ...area, ...updates } : area
-              ),
-              isDirty: true,
-            }));
-
-            // Trigger debounced sync to database
-            debouncedSyncToDatabase();
-          },
-
-          // Create new snapshot - simplified for actual schema
-          createSnapshot: async (userId: string, title: string, description?: string) => {
-            const state = get();
-            
-            const snapshotData = {
-              areas: state.lifeWheelAreas.map(area => ({
-                name: area.id,
-                current_value: area.currentValue,
-                target_value: area.targetValue,
-                notes: area.notes,
-              })),
-              created_at: new Date().toISOString(),
-            };
-
-            const { data, error } = await supabase
-              .from('life_wheel_snapshots')
-              .insert({
-                user_id: userId,
-                snapshot_data: snapshotData,
-                notes: description,
-                trigger_event: 'manual',
-                snapshot_date: new Date().toISOString(),
-              })
-              .select('id')
-              .single();
-
-            if (error || !data) {
-              throw new Error(`Failed to create snapshot: ${error?.message}`);
-            }
-
-            return data.id;
-          },
-
-          
-          // Save current state to database
-          saveCurrentState: async (userId: string) => {
-            try {
-              await get().createSnapshot(
-                userId,
-                `Life Wheel - ${new Date().toLocaleDateString()}`,
-                'Manual save'
-              );
-
-              await syncToDatabase();
-              debugLog('LIFE_WHEEL', 'State saved successfully');
-            } catch (error) {
-              console.error('Error saving state:', error);
-              throw error;
-            }
-          },
-
-          // Reset
-          reset: () => {
-            set(state => ({
-              ...state,
-              ...initialState,
-            }));
-          },
-
-          // Computed values
-          calculateAverage: () => {
-            const state = get();
-            if (state.lifeWheelAreas.length === 0) return 0;
-            
-            const sum = state.lifeWheelAreas.reduce((total, area) => total + area.currentValue, 0);
-            return Math.round((sum / state.lifeWheelAreas.length) * 10) / 10; // Round to 1 decimal
-          },
-
-          findLowestAreas: (count = 3) => {
-            const state = get();
-            return [...state.lifeWheelAreas]
-              .sort((a, b) => a.currentValue - b.currentValue)
-              .slice(0, count);
-          },
-
-          saveLifeWheelData: async (userId: string) => {
-            try {
-              await get().saveCurrentState(userId);
-              return true;
-            } catch (error) {
-              console.error('Error saving life wheel data:', error);
-              return false;
-            }
-          },
-        };
-      },
-      "lifeWheel",
-    );
+    findLowestAreas: (count = 3) => {
+      return [...get().lifeWheelAreas]
+        .sort((a, b) => a.currentValue - b.currentValue)
+        .slice(0, count);
+    },
+  }),
+  "lifeWheel",
+);

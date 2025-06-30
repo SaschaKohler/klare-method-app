@@ -1034,6 +1034,57 @@ export type Database = {
         }
         Relationships: []
       }
+      user_privacy_preferences: {
+        Row: {
+          ai_enabled: boolean | null
+          ai_personalization_level: string | null
+          allows_ai_questions: boolean | null
+          auto_translate: boolean | null
+          consent_version: string | null
+          created_at: string | null
+          data_sharing_level: string | null
+          id: string
+          intimate_data_local_only: boolean | null
+          last_consent_update: string | null
+          preferred_language: string | null
+          prefers_static_questions: boolean | null
+          sensitive_data_local_only: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_enabled?: boolean | null
+          ai_personalization_level?: string | null
+          allows_ai_questions?: boolean | null
+          auto_translate?: boolean | null
+          consent_version?: string | null
+          created_at?: string | null
+          data_sharing_level?: string | null
+          id: string
+          intimate_data_local_only?: boolean | null
+          last_consent_update?: string | null
+          preferred_language?: string | null
+          prefers_static_questions?: boolean | null
+          sensitive_data_local_only?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_enabled?: boolean | null
+          ai_personalization_level?: string | null
+          allows_ai_questions?: boolean | null
+          auto_translate?: boolean | null
+          consent_version?: string | null
+          created_at?: string | null
+          data_sharing_level?: string | null
+          id?: string
+          intimate_data_local_only?: boolean | null
+          last_consent_update?: string | null
+          preferred_language?: string | null
+          prefers_static_questions?: boolean | null
+          sensitive_data_local_only?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           age: number | null

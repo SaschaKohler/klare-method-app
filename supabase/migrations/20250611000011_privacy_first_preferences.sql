@@ -9,21 +9,20 @@
 
 -- Enhanced user preferences for privacy and AI control
 CREATE TABLE IF NOT EXISTS user_privacy_preferences (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   
   -- AI Integration Preferences
   ai_enabled BOOLEAN DEFAULT false,
-  ai_personalization_level TEXT DEFAULT 'none' CHECK (ai_personalization_level IN ('none', 'basic', 'advanced')),
+  ai_personalization_level TEXT DEFAULT 'basic' CHECK (ai_personalization_level IN ('none', 'basic', 'advanced')),
   
   -- Data Sharing Preferences  
-  data_sharing_level TEXT DEFAULT 'local_only' CHECK (data_sharing_level IN ('local_only', 'cloud_safe', 'ai_enabled')),
+  data_sharing_level TEXT DEFAULT 'cloud_safe' CHECK (data_sharing_level IN ('local_only', 'cloud_safe', 'ai_enabled')),
   sensitive_data_local_only BOOLEAN DEFAULT true,
   intimate_data_local_only BOOLEAN DEFAULT true,
   
   -- Content Preferences
-  prefers_static_questions BOOLEAN DEFAULT true,
-  allows_ai_questions BOOLEAN DEFAULT false,
+  prefers_static_questions BOOLEAN DEFAULT false,
+  allows_ai_questions BOOLEAN DEFAULT true,
   
   -- Language & Localization
   preferred_language TEXT DEFAULT 'de' CHECK (preferred_language IN ('de', 'en')),
@@ -40,9 +39,7 @@ CREATE TABLE IF NOT EXISTS user_privacy_preferences (
   last_consent_update TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  
-  UNIQUE(user_id)
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- =======================================
@@ -147,7 +144,7 @@ ADD COLUMN IF NOT EXISTS ai_analysis_safe BOOLEAN DEFAULT false;
 -- PRIVACY-AWARE INDEXES
 -- =======================================
 
-CREATE INDEX IF NOT EXISTS idx_user_privacy_preferences_user ON user_privacy_preferences(user_id);
+-- No separate index needed for PK/FK 'id' on user_privacy_preferences
 CREATE INDEX IF NOT EXISTS idx_user_privacy_preferences_ai_enabled ON user_privacy_preferences(ai_enabled);
 
 CREATE INDEX IF NOT EXISTS idx_content_sensitivity_type_id ON content_sensitivity(content_type, content_id);
@@ -175,8 +172,8 @@ ALTER TABLE ai_interaction_log ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can manage their own privacy preferences" ON user_privacy_preferences;
 CREATE POLICY "Users can manage their own privacy preferences" 
 ON user_privacy_preferences FOR ALL 
-USING (auth.uid() = user_id) 
-WITH CHECK (auth.uid() = user_id);
+USING (auth.uid() = id) 
+WITH CHECK (auth.uid() = id);
 
 -- Content sensitivity is readable by all authenticated users (for proper classification)
 DROP POLICY IF EXISTS "Authenticated users can read content sensitivity" ON content_sensitivity;
@@ -209,11 +206,11 @@ CREATE OR REPLACE FUNCTION user_allows_ai_for_content(
 )
 RETURNS BOOLEAN AS $$
 DECLARE
-  user_prefs RECORD;
+  user_prefs user_privacy_preferences%ROWTYPE;
 BEGIN
   SELECT * INTO user_prefs 
   FROM user_privacy_preferences 
-  WHERE user_id = p_user_id;
+  WHERE id = p_user_id;
   
   -- If no preferences set, default to most restrictive
   IF user_prefs IS NULL THEN
@@ -246,11 +243,11 @@ CREATE OR REPLACE FUNCTION get_storage_location_for_user(
 )
 RETURNS TEXT AS $$
 DECLARE
-  user_prefs RECORD;
+  user_prefs user_privacy_preferences%ROWTYPE;
 BEGIN
   SELECT * INTO user_prefs 
   FROM user_privacy_preferences 
-  WHERE user_id = p_user_id;
+  WHERE id = p_user_id;
   
   -- Default to most restrictive
   IF user_prefs IS NULL THEN

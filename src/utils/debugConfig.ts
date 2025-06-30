@@ -7,6 +7,9 @@ export const DEBUG_CONFIG = {
   // Store debugging  
   STORE_HYDRATION: false, // Set to true only when debugging stores
   STORE_METADATA: false,
+
+  // Auth debugging
+  AUTH_LOGS: true, // Set to true for auth flow debugging
   
   // Internationalization debugging
   I18N_DEBUG: false, // Set to true only when debugging translations

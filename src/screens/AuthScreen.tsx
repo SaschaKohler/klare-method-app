@@ -23,6 +23,7 @@ import { CompactLanguageSelector } from "../components/CompactLanguageSelector";
 import createAuthScreenStyles from "../constants/authScreenStyle";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { useUserStore } from "../store/useUserStore";
+import * as Linking from "expo-linking";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiText, MotiView } from "moti";
 import { MotiPressable } from "moti/interactions";
@@ -36,6 +37,8 @@ type AuthViewState = "welcome" | "signin" | "signup" | "forgot";
 
 // Social auth providers
 type SocialProvider = "google" | "facebook" | "apple" | "twitter";
+
+const redirectTo = Linking.createURL("auth/callback");
 
 export default function AuthScreen() {
   // i18n und Übersetzung
@@ -100,12 +103,11 @@ export default function AuthScreen() {
               text: "Neue E-Mail senden",
               onPress: async () => {
                 try {
-                  const redirectUrl = `klare-app://auth/callback`;
                   const { error: resendError } = await supabase.auth.resend({
                     type: "signup",
                     email,
                     options: {
-                      emailRedirectTo: redirectUrl,
+                      emailRedirectTo: redirectTo,
                     },
                   });
 
@@ -328,7 +330,7 @@ export default function AuthScreen() {
     try {
       // Verwende nur Passwort-Reset ohne Magic Link
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: "klare-app://auth/reset-password",
+        redirectTo: `${redirectTo}?type=reset`,
       });
 
       if (error) {
