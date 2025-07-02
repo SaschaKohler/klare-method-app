@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useUserStore } from "../store/useUserStore";
+import { Session } from "@supabase/supabase-js";
 import {
   ActivityIndicator,
   View,
@@ -38,29 +39,10 @@ import DebugScreen from "../screens/DebugScreen";
 import { supabase } from "../lib/supabase";
 import { debugLog } from "../utils/debugConfig";
 
-// Stack-Parameter
-export const KlareMethodSteps = ["K", "L", "A", "R", "E"] as const;
-export type KlareMethodStep = (typeof KlareMethodSteps)[number];
-
-export type RootStackParamList = {
-  Main: undefined;
-  Auth: undefined;
-  EmailConfirmation: { email: string };
-  Debug: undefined;
-  KlareMethod: { step: KlareMethodStep };
-  LifeWheel: undefined;
-  Journal: undefined;
-  JournalEditor: { templateId?: string; date?: string };
-  JournalViewer: { entryId: string };
-  VisionBoard: { boardId?: string; lifeAreas?: string[] };
-  ResourceLibrary: undefined;
-  ResourceFinder: undefined;
-  EditResource: { resource: any };
-  ModuleScreen: { module: any };
-};
+import { MainTabParamList, RootStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const TabNavigator = () => {
   const { t } = useTranslation("lifeWheel");
@@ -106,7 +88,7 @@ const TabNavigator = () => {
       <Tab.Screen
         name="Journal"
         component={JournalScreen}
-        options={{ title: "Journal" }}
+        options={{ title: t("journal:title") }}
       />
       <Tab.Screen
         name="Profile"
@@ -121,48 +103,53 @@ const MainNavigator = () => {
   const theme = useTheme();
   const themeColors = theme.dark ? darkKlareColors : lightKlareColors;
 
+  // Select state and actions from the store individually to prevent re-renders.
   const user = useUserStore((state) => state.user);
+  const setUser = useUserStore((state) => state.setUser);
   const loadUserData = useUserStore((state) => state.loadUserData);
   const createUserProfileIfNeeded = useUserStore((state) => state.createUserProfileIfNeeded);
   const clearUser = useUserStore((state) => state.clearUser);
 
+  // Local state for this navigator's auth flow
   const [isLoading, setIsLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
   const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(null);
   const [userEmail, setUserEmail] = useState<string>("");
 
   useEffect(() => {
-    console.log("MainNavigator: Auth state listener enabled");
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        try {
-          debugLog("AUTH_LOGS", `Event: ${event}`);
-          const currentUser = session?.user;
+    debugLog("AUTH_LOGS", "MainNavigator: Auth state listener enabled");
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      debugLog("AUTH_LOGS", `Auth event: ${event}`, session);
+      // Do not set isLoading to true here; it causes an infinite re-render loop.
+      // The initial state from useState(true) handles the initial app load.
+      try {
+        const currentUser = session?.user || null;
+        const isVerified = !!currentUser?.email_confirmed_at;
 
-          if (currentUser) {
-            const isVerified = !!(currentUser.email_confirmed_at || currentUser.phone_confirmed_at);
-            setIsEmailVerified(isVerified);
-            setUserEmail(currentUser.email || "");
+        setSession(session);
+        setUser(currentUser); // Set user in the global store
+        setIsEmailVerified(isVerified);
+        setUserEmail(currentUser?.email || "");
 
-            if (isVerified) {
-              // Fire-and-forget: Don't block the auth flow.
-              // The root cause of the hang is likely in one of these functions.
-              createUserProfileIfNeeded(currentUser);
-              loadUserData(session);
-            } else {
-              useUserStore.setState({ user: currentUser });
-            }
-          } else {
-            clearUser();
-            setIsEmailVerified(null);
-            setUserEmail("");
-          }
-        } catch (error) {
-          debugLog("AUTH_LOGS", "Error during auth state change processing:", error);
-        } finally {
-          setIsLoading(false);
+        if (currentUser && isVerified) {
+          // Wait for profile creation and data loading to complete
+          await createUserProfileIfNeeded(currentUser);
+          await loadUserData(session);
+        } else if (currentUser) {
+          // User exists but is not verified, user is already set in store
+        } else {
+          // No user session, clear all user data
+          clearUser();
         }
-      },
-    );
+      } catch (error) {
+        debugLog("AUTH_LOGS", "Error during auth state change processing:", error);
+        clearUser(); // Ensure state is clean on error
+      } finally {
+        setIsLoading(false);
+      }
+    });
 
     const handleDeepLink = (url: string | null) => {
       if (!url) return;
@@ -193,7 +180,7 @@ const MainNavigator = () => {
       linkingSubscription.remove();
       appStateSubscription.remove();
     };
-  }, [loadUserData, createUserProfileIfNeeded, clearUser]);
+  }, [loadUserData, createUserProfileIfNeeded, clearUser, setUser]);
 
   const resendConfirmationEmail = useCallback(async () => {
     if (!userEmail) return;

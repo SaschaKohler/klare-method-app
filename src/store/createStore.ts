@@ -1,43 +1,56 @@
-import { StateCreator, create as createStore } from 'zustand';
-import { persist, PersistOptions } from 'zustand/middleware';
+import { StateCreator, create as createZustandStore } from 'zustand';
+import { persist, PersistOptions, StateStorage } from 'zustand/middleware';
 import { BaseState, BaseActions, PersistConfig } from '../types/store';
 import { unifiedStorage } from '../storage/unifiedStorage';
 
+// Wrapper für unifiedStorage, um die StateStorage-Schnittstelle zu erfüllen
+const storageWrapper: StateStorage = {
+  getItem: (name) => {
+    const str = unifiedStorage.getString(name);
+    if (!str) {
+      return null;
+    }
+    return JSON.parse(str);
+  },
+  setItem: (name, newValue) => {
+    unifiedStorage.set(name, JSON.stringify(newValue));
+  },
+  removeItem: (name) => {
+    unifiedStorage.delete(name);
+  },
+};
+
 /**
- * Erstellt einen neuen Store mit Standard-Aktionen und Persistenz
- * @param name Name des Stores (wird für die Persistenz verwendet)
- * @param initialState Initialer Zustand des Stores
- * @param config Zusätzliche Konfiguration für den Store
- * @returns Ein neuer Store
+ * Erstellt einen neuen Store mit Typsicherheit, Standard-Aktionen und Persistenz.
+ * @param name Name des Stores (wird für die Persistenz verwendet).
+ * @param initialState Der initiale Zustand des Stores (muss BaseState erweitern).
+ * @param actions Eine Funktion, die die Aktionen des Stores zurückgibt.
+ * @param config Optionale Konfiguration für Persistenz und Middleware.
+ * @returns Ein neuer Zustand-Store.
  */
-export function createStoreWithPersist<T extends BaseState>(
+export function createStore<
+  State extends BaseState,
+  Actions extends object
+>(
   name: string,
-  initialState: T,
+  initialState: State,
+  actions: (set: any, get: any, api: any) => Actions,
   config?: {
-    persistConfig?: Partial<PersistConfig<T>>;
-    middleware?: Array<(config: StateCreator<T>) => StateCreator<T>>;
+    persistConfig?: Partial<PersistConfig<State & Actions & BaseActions>>;
+    middleware?: Array<
+      (config: StateCreator<State & Actions & BaseActions>) => StateCreator<State & Actions & BaseActions>
+    >;
   }
 ) {
   // Standard-Persistenz-Konfiguration
-  const defaultPersistConfig: PersistOptions<T> = {
+  const defaultPersistConfig: PersistOptions<State & Actions & BaseActions, State> = {
     name,
     version: 1,
-    storage: {
-      getItem: (name) => {
-        const str = unifiedStorage.getString(name);
-        return str ? JSON.parse(str) : null;
-      },
-      setItem: (name, value) => {
-        unifiedStorage.set(name, JSON.stringify(value));
-      },
-      removeItem: (name) => {
-        unifiedStorage.delete(name);
-      },
-    },
-    // @ts-ignore - Typen-Konflikt mit Zustand
+    storage: storageWrapper,
     partialize: (state) => {
-      const { setLoading, setError, updateLastSync, ...persistedState } = state as any;
-      return persistedState;
+      return Object.fromEntries(
+        Object.entries(state).filter(([key]) => key in initialState)
+      ) as State;
     },
   };
 
@@ -47,55 +60,29 @@ export function createStoreWithPersist<T extends BaseState>(
     ...config?.persistConfig,
   };
 
-  // Erstelle den Store mit Middleware
-  const createFn = (set: any, get: any, api: any) => ({
+  // Der StateCreator, der den initialen Zustand, die benutzerdefinierten Aktionen und die Basisaktionen kombiniert
+  const stateCreator: StateCreator<State & Actions & BaseActions> = (set, get, api) => ({
     ...initialState,
-    
-    // Standard-Aktionen
-    setLoading: (isLoading: boolean) => set({ isLoading }),
-    setError: (error: Error | null) => set({ error }),
-    updateLastSync: () => set({ lastSyncTime: new Date() }),
-    reset: () => set({ ...initialState, lastSyncTime: null }),
+    ...actions(set, get, api),
+    // Basisaktionen
+    setLoading: (isLoading: boolean) => set({ isLoading } as any),
+    setError: (error: Error | null) => set({ error } as any),
+    updateLastSync: () => set({ lastSyncTime: new Date() } as any),
+    reset: () => set({ ...initialState, lastSyncTime: null } as any),
   });
 
   // Wende zusätzliche Middleware an, falls vorhanden
-  let storeCreator = createFn;
+  let finalCreator = stateCreator;
   if (config?.middleware) {
-    storeCreator = config.middleware.reduce(
-      (acc, middleware) => middleware(acc as any) as any,
-      storeCreator
+    finalCreator = config.middleware.reduce(
+      (acc, middleware) => middleware(acc),
+      finalCreator
     );
   }
 
   // Erstelle den Store mit Persistenz-Middleware
-  return createStore<T>()(
-    persist(storeCreator as any, persistConfig as any)
+  return createZustandStore<State & Actions & BaseActions>()(
+    persist(finalCreator, persistConfig)
   );
 }
 
-/**
- * Hilfsfunktion zum Erstellen eines Stores mit Typsicherheit
- */
-export function createStore<State extends BaseState, Actions extends object>(
-  name: string,
-  initialState: State,
-  actions: (set: any, get: any, api: any) => Actions,
-  config?: {
-    persistConfig?: Partial<PersistConfig<State>>;
-    middleware?: Array<(config: StateCreator<State>) => StateCreator<State>>;
-  }
-) {
-  return createStoreWithPersist<State & Actions>(
-    name,
-    { ...initialState } as State & Actions,
-    {
-      ...config,
-      middleware: [
-        (set: any, get: any, api: any) => ({
-          ...actions(set, get, api),
-        }),
-        ...(config?.middleware || []),
-      ],
-    }
-  );
-}

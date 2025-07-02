@@ -1,5 +1,6 @@
 // src/store/useUserStore.ts
 import { AuthError, Session, User } from "@supabase/supabase-js";
+import { differenceInCalendarDays, isToday, parseISO } from "date-fns";
 
 // Erweitert den Supabase User-Typ um anwendungsspezifische Profil-Eigenschaften
 export type AppUser = User & {
@@ -57,6 +58,7 @@ export interface UserState extends BaseState {
   signUp: (email: string, password: string, name: string) => Promise<{ error: AuthError | null }>;
   updateLastActive: (userId: string) => Promise<void>;
   updateStreak: (userId: string, newStreak: number) => Promise<void>;
+  checkUserActivity: () => Promise<void>;
   clearUser: () => void;
   signOut: () => Promise<void>;
   createUserProfileIfNeeded: (user: User) => Promise<boolean>;
@@ -83,7 +85,8 @@ export const useUserStore = createBaseStore<UserState>(
     ...userInitialState,
 
     loadUserData: async (sessionParam: Session | null = null) => {
-      const { setError, setStorageStatus, updateLastSync, saveUserData } = get();
+      const { setLoading, setError, setStorageStatus, updateLastSync, saveUserData } = get();
+      setLoading(true);
       setError(null);
       setStorageStatus("initializing");
 
@@ -130,6 +133,8 @@ export const useUserStore = createBaseStore<UserState>(
         debugLog("AUTH_LOGS", "Failed to load user data:", error);
         setError(error as Error);
         set((state) => ({ ...state, isOnline: false }));
+      } finally {
+        setLoading(false);
       }
     },
 
@@ -253,6 +258,37 @@ export const useUserStore = createBaseStore<UserState>(
       } catch (error) {
         setError(error as Error);
       }
+    },
+
+    checkUserActivity: async () => {
+      const { user, updateLastActive, updateStreak } = get();
+      if (!user?.id) return;
+
+      const lastActiveString = user.last_active;
+      if (lastActiveString) {
+        const lastActiveDate = parseISO(lastActiveString);
+        if (isToday(lastActiveDate)) {
+          // Already active today, do nothing.
+          return;
+        }
+
+        const daysDifference = differenceInCalendarDays(new Date(), lastActiveDate);
+        const currentStreak = user.streak || 0;
+
+        if (daysDifference === 1) {
+          // Active on consecutive days, increase streak.
+          await updateStreak(user.id, currentStreak + 1);
+        } else if (daysDifference > 1) {
+          // Missed a day, reset streak.
+          await updateStreak(user.id, 1);
+        }
+      } else {
+        // First time activity, start streak at 1.
+        await updateStreak(user.id, 1);
+      }
+
+      // Always update last active date.
+      await updateLastActive(user.id);
     },
 
     updateStreak: async (userId: string, newStreak: number) => {

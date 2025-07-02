@@ -1,6 +1,6 @@
 // src/screens/JournalScreen.tsx - Updated to use JournalStore and i18n
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { NavigationProp, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { format, isToday, isYesterday, parseISO, subDays } from "date-fns";
 import { de, enUS } from "date-fns/locale";
 import { MotiView } from "moti";
@@ -41,6 +41,7 @@ import { useTranslation } from "react-i18next";
 
 // Import useKlareStores instead of individual stores
 import { useKlareStores } from "../hooks";
+import { RootStackParamList } from "../navigation/types";
 import {
   JournalEntry,
   JournalTemplate,
@@ -49,7 +50,7 @@ import {
 
 export default function JournalScreen() {
   const { t, i18n } = useTranslation(["journal"]);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const klareStore = useKlareStores();
   const { user } = klareStore;
   const {
@@ -83,8 +84,7 @@ export default function JournalScreen() {
 
   // Theme handling
   const theme = useTheme();
-  const { getActiveTheme } = klareStore.theme;
-  const isDarkMode = getActiveTheme();
+  const { isDarkMode } = klareStore.theme;
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const styles = useMemo(
     () => createJournalStyles(theme, klareColors, isDarkMode),
@@ -289,34 +289,15 @@ export default function JournalScreen() {
 
   // Create a new entry
   const createNewEntry = (template?: JournalTemplate) => {
-    try {
-      // If a template is selected, open the editor with the template
-      if (template) {
-        navigation.navigate(
-          "JournalEditor" as never,
-          {
-            templateId: template.id,
-            date: selectedDate.toISOString(),
-          } as never,
-        );
-      } else {
-        // Otherwise open an empty editor
-        navigation.navigate(
-          "JournalEditor" as never,
-          { date: selectedDate.toISOString() } as never,
-        );
-      }
-    } catch (error) {
-      console.error("Error navigating to editor:", error);
-    }
+    navigation.navigate("JournalEditor", {
+      templateId: template?.id,
+      date: selectedDate.toISOString(),
+    });
   };
 
   // Open an existing entry
   const openEntry = (entry: JournalEntry) => {
-    navigation.navigate(
-      "JournalViewer" as never,
-      { entryId: entry.id } as never,
-    );
+    navigation.navigate("JournalViewer", { entryId: entry.id });
   };
 
   // Helper function to check if a category is valid for current language
@@ -367,54 +348,30 @@ export default function JournalScreen() {
   }, [categories, i18n.language]);
 
   // Helper function to get category names for filtering (updated to use filtered categories)
-  const getCategoryNamesForFiltering = (displayedCategoryName: string) => {
-    // Get all possible names for this category (original German name + English translation)
-    const category = filteredCategories.find(cat => cat.name === displayedCategoryName);
-    if (!category) return [displayedCategoryName];
-    
-    // Extract both the original name and any translations
-    const names = [category.name]; // Original name from DB
-    
-    // Add translated names if they exist
-    if (category.translations) {
-      const englishName = category.translations?.en?.name;
-      if (englishName && englishName !== category.name) {
-        names.push(englishName);
-      }
+  const getCategoryNamesForFiltering = (displayedCategoryName: string): string[] => {
+    // Create a mapping from any display name (DE or EN) to the internal category name
+    const categoryMapping: Record<string, string> = categories.reduce(
+      (acc, category) => {
+        if (category.translations) {
+          acc[category.translations.de.name] = category.name;
+          acc[category.translations.en.name] = category.name;
+        }
+        acc[category.name] = category.name; // Also map the internal name to itself
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
+    // Find the internal category name from the provided display name
+    const internalName = categoryMapping[displayedCategoryName];
+    if (!internalName) {
+      return [displayedCategoryName]; // Fallback if no mapping is found
     }
-    
-    // Manual mapping for known categories that might not be in translations yet
-    const categoryMapping = {
-      // English -> German (for templates that might use German categories)
-      'Alignment': 'Ausrichtung',
-      'Unfolding': 'Entfaltung',
-      'Clarity': 'Klarheit',
-      'Liveliness': 'Lebendigkeit',
-      'Expression': 'Ausdruck',
-      'Resonance': 'Resonanz',
-      'Development': 'Entwicklung',
-      'Daily Reflection': 'Tägliche Reflexion',
-      'Evening Reflection': 'Abend Reflexion',
-      'Values Reflection': 'Werte Reflexion',
-      // German -> English (for UI display)
-      'Ausrichtung': 'Alignment',
-      'Entfaltung': 'Unfolding', 
-      'Klarheit': 'Clarity',
-      'Lebendigkeit': 'Liveliness',
-      'Ausdruck': 'Expression',
-      'Resonanz': 'Resonance',
-      'Entwicklung': 'Development',
-      'Tägliche Reflexion': 'Daily Reflection',
-      'Abend Reflexion': 'Evening Reflection',
-      'Werte Reflexion': 'Values Reflection'
-    };
-    
-    // Add mapped name if it exists
-    if (categoryMapping[displayedCategoryName]) {
-      names.push(categoryMapping[displayedCategoryName]);
-    }
-    
-    return names;
+
+    // Find all display names that map to the same internal name
+    return Object.keys(categoryMapping).filter(
+      (key) => categoryMapping[key] === internalName,
+    );
   };
 
   // Filter templates by category (updated to work with language-filtered categories)
@@ -432,8 +389,9 @@ export default function JournalScreen() {
     // Get all possible names for this category
     const categoryNames = getCategoryNamesForFiltering(activeCategory);
     
-    const filtered = templates.filter((template) => 
-      categoryNames.includes(template.category)
+    const filtered = templates.filter(
+      (template) =>
+        template.category && categoryNames.includes(template.category),
     );
     
     // Debug log
@@ -607,35 +565,40 @@ export default function JournalScreen() {
           </Text>
         </TouchableOpacity>
 
-        {filteredCategories.map((category) => (
-          <TouchableOpacity
-            key={category.id}
-            style={[
-              styles.categoryTab,
-              activeCategory === category.name && styles.activeCategoryTab,
-            ]}
-            onPress={() => setActiveCategory(category.name)}
-          >
-            <Ionicons
-              name={category.icon as any}
-              size={16}
-              color={
-                activeCategory === category.name
-                  ? klareColors.k
-                  : klareColors.textSecondary
-              }
-              style={{ marginRight: 4 }}
-            />
-            <Text
+        {filteredCategories.map((category) => {
+          const currentLanguage = i18n.language as 'de' | 'en';
+          const displayName = category.translations?.[currentLanguage]?.name || category.name;
+
+          return (
+            <TouchableOpacity
+              key={category.id}
               style={[
-                styles.categoryText,
-                activeCategory === category.name && { color: klareColors.k },
+                styles.categoryTab,
+                activeCategory === category.name && styles.activeCategoryTab,
               ]}
+              onPress={() => setActiveCategory(category.name)}
             >
-              {category.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Ionicons
+                name={category.icon as any}
+                size={16}
+                color={
+                  activeCategory === category.name
+                    ? klareColors.k
+                    : klareColors.textSecondary
+                }
+                style={{ marginRight: 4 }}
+              />
+              <Text
+                style={[
+                  styles.categoryText,
+                  activeCategory === category.name && { color: klareColors.k },
+                ]}
+              >
+                {displayName}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </ScrollView>
   );
@@ -809,7 +772,7 @@ export default function JournalScreen() {
 
   return (
     <SafeAreaView
-      edges={["left", "right"]} // Only apply safe area to left and right edges
+      edges={["left", "right"]}
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       {/* Streamlined header */}
@@ -820,15 +783,19 @@ export default function JournalScreen() {
               {t("title", { ns: "journal" })}
             </Animated.Text>
           </View>
-          
+
           <View style={styles.headerActions}>
             <TouchableOpacity
               style={styles.searchToggle}
               onPress={() => setShowSearch(!showSearch)}
             >
-              <Ionicons name="search-outline" size={22} color={theme.colors.text} />
+              <Ionicons
+                name="search-outline"
+                size={22}
+                color={klareColors.text}
+              />
             </TouchableOpacity>
-            
+
             <Menu
               visible={menuVisible}
               onDismiss={() => setMenuVisible(false)}
@@ -837,10 +804,34 @@ export default function JournalScreen() {
                   icon="dots-vertical"
                   size={22}
                   onPress={() => setMenuVisible(true)}
-                  iconColor={theme.colors.text}
+                  iconColor={klareColors.text}
                 />
               }
+              contentStyle={{ backgroundColor: klareColors.surface }}
             >
+              <Menu.Item
+                onPress={() => {
+                  console.log("Sort by date pressed");
+                  setMenuVisible(false);
+                }}
+                title={t("menu.sortByDate", {
+                  ns: "journal",
+                  defaultValue: "Sort by Date",
+                })}
+                leadingIcon="sort-calendar-ascending"
+              />
+              <Menu.Item
+                onPress={() => {
+                  console.log("Filter pressed");
+                  setFilterMenuVisible(true);
+                  setMenuVisible(false);
+                }}
+                title={t("menu.filter", {
+                  ns: "journal",
+                  defaultValue: "Filter",
+                })}
+                leadingIcon="filter-variant"
+              />
               <Menu.Item
                 onPress={() => {
                   setMenuVisible(false);
@@ -858,9 +849,7 @@ export default function JournalScreen() {
               <Menu.Item
                 onPress={() => {
                   setMenuVisible(false);
-
                   if (user?.id) {
-                    // Start diagnostic tool for developers
                     Alert.alert(
                       t("diagnose.startTitle", { ns: "journal" }),
                       t("diagnose.startDescription", { ns: "journal" }),
@@ -873,7 +862,6 @@ export default function JournalScreen() {
                           text: t("diagnose.start", { ns: "journal" }),
                           onPress: async () => {
                             try {
-                              // Perform diagnosis
                               const result =
                                 await journalService.diagnoseJournalStorage(
                                   user.id,
@@ -885,14 +873,13 @@ export default function JournalScreen() {
                                 result.localStorageStatus === "empty" ||
                                 result.keysMatch !== "match"
                               ) {
-                                // Problems found, offer repair
                                 Alert.alert(
                                   t("diagnose.problemsFound", { ns: "journal" }),
-                                  t("diagnose.problemsDetails", { 
+                                  t("diagnose.problemsDetails", {
                                     ns: "journal",
                                     storageStatus: result.localStorageStatus,
                                     formatStatus: result.localDataParseCheck,
-                                    keyStatus: result.keysMatch
+                                    keyStatus: result.keysMatch,
                                   }),
                                   [
                                     {
@@ -906,7 +893,6 @@ export default function JournalScreen() {
                                           await journalService.repairJournalStorage(
                                             user.id,
                                           );
-
                                         if (repaired) {
                                           Alert.alert(
                                             t("diagnose.successTitle", { ns: "journal" }),
@@ -929,26 +915,26 @@ export default function JournalScreen() {
                                   ],
                                 );
                               } else {
-                                // No problem found
                                 Alert.alert(
                                   t("diagnose.noProblemTitle", { ns: "journal" }),
-                                  t("diagnose.noProblemDescription", { 
+                                  t("diagnose.noProblemDescription", {
                                     ns: "journal",
                                     storageType: result.storageType,
                                     localCount: result.localEntryCount,
                                     serverStatus: result.serverStatus,
-                                    serverCount: result.serverEntryCount
+                                    serverCount: result.serverEntryCount,
                                   }),
                                   [{ text: t("diagnose.ok", { ns: "journal" }) }],
                                 );
                               }
                             } catch (error) {
                               console.error("Diagnose-Fehler:", error);
+                              const errorMessage = error instanceof Error ? error.message : String(error);
                               Alert.alert(
                                 t("diagnose.errorTitle", { ns: "journal" }),
-                                t("diagnose.errorDescription", { 
-                                  ns: "journal", 
-                                  errorMessage: error.message 
+                                t("diagnose.errorDescription", {
+                                  ns: "journal",
+                                  errorMessage,
                                 }),
                               );
                             }
@@ -971,32 +957,41 @@ export default function JournalScreen() {
             </Menu>
           </View>
         </View>
-        
-        {/* Search bar - conditionally rendered */}
+
         {showSearch && (
-          <Searchbar
-            placeholder={t("search.placeholder", { ns: "journal" })}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            style={styles.searchBar}
-            inputStyle={styles.searchInput}
-            iconColor={klareColors.textSecondary}
-          />
+          <MotiView
+            from={{ opacity: 0, translateY: -10 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            style={styles.searchContainer}
+          >
+            <Searchbar
+              placeholder={t("search.placeholder", { ns: "journal" })}
+              onChangeText={setSearchQuery}
+              value={searchQuery}
+              style={styles.searchbar}
+              iconColor={klareColors.k}
+              onIconPress={() => setShowSearch(false)}
+              onClearIconPress={() => setSearchQuery("")}
+              elevation={1}
+            />
+          </MotiView>
         )}
       </Animated.View>
 
       {/* Main Content */}
-      <View style={styles.contentContainer}>
-        {renderContent()}
-      </View>
+      <View style={styles.contentContainer}>{renderContent()}</View>
 
       {/* FAB for new entry */}
-      <FAB
-        style={[styles.fab, { backgroundColor: klareColors.k }]}
-        icon="pencil-plus"
-        color="white"
-        onPress={() => createNewEntry()}
-      />
+      {!showTemplateSelector && (
+        <FAB
+          style={[styles.fab, { backgroundColor: klareColors.k }]}
+          icon="plus"
+          color="white"
+          onPress={() => setShowTemplateSelector(true)}
+          visible={!showSearch}
+          animated
+        />
+      )}
     </SafeAreaView>
   );
 }

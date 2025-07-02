@@ -1,8 +1,8 @@
 // src/constants/createStyles.ts
 import { StyleSheet, Platform, Dimensions } from "react-native";
-import { Theme } from "react-native-paper/lib/typescript/types";
+import { MD3Theme } from "react-native-paper";
 
-const createStyles = (theme: Theme, klareColors: any) =>
+const createStyles = (theme: MD3Theme, klareColors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -22,12 +22,12 @@ const createStyles = (theme: Theme, klareColors: any) =>
     },
     greeting: {
       fontSize: 16,
-      color: theme.colors.text,
+      color: theme.colors.onSurface,
     },
     userName: {
       fontSize: 24,
       fontWeight: "bold",
-      color: theme.colors.text,
+      color: theme.colors.onSurface,
     },
     progressionCard: {
       borderRadius: 12,
@@ -50,7 +50,7 @@ const createStyles = (theme: Theme, klareColors: any) =>
       fontSize: 15,
       fontWeight: "bold",
       marginLeft: 8,
-      color: theme.colors.text,
+      color: theme.colors.onSurface,
     },
     progressChip: {
       position: "absolute",
@@ -61,33 +61,33 @@ const createStyles = (theme: Theme, klareColors: any) =>
       fontSize: 16,
       fontWeight: "600",
       marginBottom: 4,
-      color: theme.colors.text,
+      color: theme.colors.onSurface,
     },
     stageDescription: {
       fontSize: 14,
       marginBottom: 12,
-      color: theme.colors.text,
+      color: theme.colors.onSurface,
     },
     nextStagePreview: {
       marginTop: 8,
       paddingTop: 8,
       borderTopWidth: 1,
-      borderTopColor: theme.colors.disabled,
+      borderTopColor: theme.colors.onSurfaceVariant,
     },
     nextStageLabel: {
       fontSize: 12,
-      color: theme.colors.text,
+      color: theme.colors.onSurface,
     },
     nextStageName: {
       fontSize: 14,
       fontWeight: "500",
       marginVertical: 2,
-      color: theme.colors.text,
+      color: theme.colors.onSurface,
     },
     daysUntilText: {
       fontSize: 12,
       fontStyle: "italic",
-      color: theme.colors.disabled,
+      color: theme.colors.onSurfaceVariant,
     },
     progressCard: {
       marginBottom: 24,
@@ -103,7 +103,7 @@ const createStyles = (theme: Theme, klareColors: any) =>
     progressLabel: {
       fontSize: 14,
       marginBottom: 4,
-      color: theme.colors.disabled,
+      color: theme.colors.onSurfaceVariant,
     },
     progressBarContainer: {
       flexDirection: "row",
@@ -118,7 +118,7 @@ const createStyles = (theme: Theme, klareColors: any) =>
       marginLeft: 8,
       fontSize: 14,
       fontWeight: "bold",
-      color: theme.colors.text,
+      color: theme.colors.onSurface,
     },
     statsContainer: {
       flexDirection: "row",
@@ -126,7 +126,7 @@ const createStyles = (theme: Theme, klareColors: any) =>
       marginTop: 16,
       paddingTop: 16,
       borderTopWidth: 1,
-      borderTopColor: theme.colors.disabled,
+      borderTopColor: theme.colors.onSurfaceVariant,
     },
     statItem: {
       alignItems: "center",
@@ -134,16 +134,16 @@ const createStyles = (theme: Theme, klareColors: any) =>
     statValue: {
       fontSize: 18,
       fontWeight: "bold",
-      color: theme.colors.text,
+      color: theme.colors.onSurface,
     },
     statLabel: {
       fontSize: 12,
-      color: theme.colors.disabled,
+      color: theme.colors.onSurfaceVariant,
     },
     statDivider: {
       width: 1,
       height: "80%",
-      backgroundColor: theme.colors.disabled,
+      backgroundColor: theme.colors.onSurfaceVariant,
     },
     streakContainer: {
       flexDirection: "row",
@@ -154,7 +154,7 @@ const createStyles = (theme: Theme, klareColors: any) =>
       fontWeight: "bold",
       marginBottom: 16,
       marginTop: 8,
-      color: theme.colors.text,
+      color: theme.colors.onSurface,
     },
     klareContainer: {
       flexDirection: "row",
@@ -189,7 +189,7 @@ const createStyles = (theme: Theme, klareColors: any) =>
     klareStepName: {
       fontSize: 14,
       marginBottom: 8,
-      color: theme.colors.text,
+      color: theme.colors.onSurface,
     },
     klareStepProgress: {
       marginTop: 4,
@@ -219,7 +219,7 @@ const createStyles = (theme: Theme, klareColors: any) =>
     activityType: {
       fontSize: 12,
       marginLeft: 4,
-      color: theme.colors.disabled,
+      color: theme.colors.onSurfaceVariant,
     },
     activityStepBadge: {
       paddingHorizontal: 8,
@@ -228,10 +228,10 @@ const createStyles = (theme: Theme, klareColors: any) =>
     },
     activityTitle: {
       fontSize: 16,
-      color: theme.colors.text,
+      color: theme.colors.onSurface,
     },
     activityDescription: {
-      color: theme.colors.disabled,
+      color: theme.colors.onSurfaceVariant,
     },
     tipCard: {
       marginBottom: 24,
@@ -262,6 +262,11 @@ const createStyles = (theme: Theme, klareColors: any) =>
       color: "white",
       fontSize: 14,
       lineHeight: 22,
+    },
+    noDataText: {
+      textAlign: 'center',
+      marginVertical: 16,
+      color: theme.colors.onSurfaceVariant,
     },
   });
 

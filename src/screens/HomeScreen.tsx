@@ -26,15 +26,39 @@ import createStyles from "../constants/createStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { getKlareSteps } from "../data/klareMethodData";
 import { useKlareStores } from "../hooks";
+import { getModuleById } from "../data/klareMethodModules";
 // i18n
 import { useTranslation } from "react-i18next";
+import { ActivityIndicator } from "react-native-paper";
+import { StackScreenProps } from "@react-navigation/stack";
 
-export default function HomeScreen() {
-  const navigation = useNavigation();
+// Define the types for the navigation stack
+export type RootStackParamList = {
+  Home: undefined;
+  ModuleScreen: { stepId: string; moduleId: string };
+  LifeWheel: undefined;
+  Journal: undefined;
+  VisionBoard: undefined;
+  // Add other screens here
+};
+
+type HomeScreenProps = StackScreenProps<RootStackParamList, 'Home'>;
+
+type Activity = {
+  id: string;
+  type: "module" | "exercise" | "journal" | "daily" | "weekly";
+  step: string;
+  title: string;
+  description: string;
+  duration?: number;
+  completed: boolean;
+};
+
+export default function HomeScreen({ navigation }: HomeScreenProps) {
   const { t, i18n } = useTranslation(["home", "common", "modules"]);
 
   // Use our custom hook instead of multiple useStore calls
-  const { summary, theme, progression, actions, analytics } = useKlareStores();
+  const { summary, theme, progression, actions, analytics, isLoading, user } = useKlareStores();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [todayTip, setTodayTip] = useState("");
 
@@ -45,18 +69,12 @@ export default function HomeScreen() {
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const styles = useMemo(
     () => createStyles(paperTheme, klareColors),
-    [paperTheme, klareColors],
+    [paperTheme, klareColors]
   );
 
   // Animation für Stage-Fortschritt
   const translateY = React.useRef(new Animated.Value(50)).current;
   const opacity = React.useRef(new Animated.Value(0)).current;
-
-  // Aktuelle Stage und Fortschritt
-  // const currentStage = getCurrentStage();
-  // const nextStage = getNextStage();
-  // const daysInProgram = getDaysInProgram();
-  // const availableModules = getAvailableModules();
 
   // Tipps des Tages
   const dailyTips = useMemo(() => {
@@ -100,7 +118,7 @@ export default function HomeScreen() {
   useEffect(() => {
     const date = new Date();
     const dayOfYear = Math.floor(
-      (date - new Date(date.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24),
+      (date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24),
     );
     const tipIndex = dayOfYear % dailyTips.length;
     setTodayTip(dailyTips[tipIndex]);
@@ -110,61 +128,49 @@ export default function HomeScreen() {
     }
   }, [analytics]);
 
-  // Formatiert die Uhrzeit als Grußtext
-  const getGreeting = () => {
-    const hour = currentTime.getHours();
-
-    if (hour < 12) {
-      return t("greeting.morning");
-    } else if (hour < 18) {
-      return t("greeting.day");
-    } else {
-      return t("greeting.evening");
-    }
-  };
-  const {
-    user: userSummary,
-    modules: modulesSummary,
-    lifeWheel: lifeWheelSummary,
-  } = summary;
   // Bestimme die nächsten Aktivitäten basierend auf verfügbaren Modulen
   const getNextActivities = useMemo(() => {
-    const activities = [];
+    if (!progression) return [];
+
+    const activities: Activity[] = [];
     const daysInProgram = progression.getDaysInProgram();
-    
+
     // TEMPORÄRER FIX: K-Module direkt verfügbar machen
     const availableModules = ['k-intro', 'k-meta-model']; // progression.getAvailableModules();
 
-    // K-Module als nächste Aktivität hinzufügen (IMMER verfügbar für Testing)
-    activities.push({
-      id: "activity-module-K",
-      title: "K-Schritt: Klarheit beginnen",
-      description: "Starte mit dem Meta-Modell der Sprache und entwickle bewusste Wahrnehmung",
-      type: "module",
-      step: "K",
+    availableModules.forEach(moduleId => {
+      const mod = getModuleById(moduleId);
+      if (mod) {
+        activities.push({
+          id: `module-${mod.id}`,
+          title: mod.title,
+          description: mod.description,
+          type: "module",
+          step: mod.stepId,
+          completed: false,
+        });
+      }
     });
 
-    // Tägliche Aktivität hinzufügen
-    activities.push({
-      id: "activity-daily",
-      title: t("sections.nextActivities.activities.dailyPractice.title"),
-      description: t(
-        "sections.nextActivities.activities.dailyPractice.description",
-      ),
-      type: "daily",
-      step: "R",
-    });
-
-    // Wöchentliche Aktivität hinzufügen
-    if (daysInProgram % 7 === 0 || daysInProgram % 7 === 6) {
+    if (daysInProgram % 1 === 0) { // Täglich
       activities.push({
-        id: "activity-weekly",
-        title: t("sections.nextActivities.activities.updateLifeWheel.title"),
-        description: t(
-          "sections.nextActivities.activities.updateLifeWheel.description",
-        ),
+        id: "daily-reflection",
+        type: "daily",
+        title: t("activities.dailyReflection.title"),
+        description: t("activities.dailyReflection.description"),
+        step: "R",
+        completed: false,
+      });
+    }
+
+    if (daysInProgram % 7 === 0) { // Wöchentlich
+      activities.push({
+        id: "weekly-review",
         type: "weekly",
-        step: "K",
+        title: t("activities.weeklyReview.title"),
+        description: t("activities.weeklyReview.description"),
+        step: "R",
+        completed: false,
       });
     }
 
@@ -176,15 +182,69 @@ export default function HomeScreen() {
 
   // Berechne den Fortschritt für jeden KLARE-Schritt
   const stepProgress = useMemo(
-    () => ({
-      K: modulesSummary.k / 100,
-      L: modulesSummary.l / 100,
-      A: modulesSummary.a / 100,
-      R: modulesSummary.r / 100,
-      E: modulesSummary.e / 100,
-    }),
-    [modulesSummary],
+    () => {
+      if (!summary?.modules) {
+        return { K: 0, L: 0, A: 0, R: 0, E: 0 };
+      }
+      return {
+        K: summary.modules.k / 100,
+        L: summary.modules.l / 100,
+        A: summary.modules.a / 100,
+        R: summary.modules.r / 100,
+        E: summary.modules.e / 100,
+      };
+    },
+    [summary],
   );
+
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: paperTheme.colors.background,
+        }}
+      >
+        <ActivityIndicator animating={true} size="large" />
+        <Text style={{ marginTop: 10, color: paperTheme.colors.onSurface }}>
+          {t("loading")}
+        </Text>
+      </View>
+    );
+  }
+
+  if (!summary || !summary.user) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: paperTheme.colors.background,
+        }}
+      >
+        <Text style={{ color: paperTheme.colors.onSurface }}>
+          {t("errors.summaryNotAvailable")}
+        </Text>
+      </View>
+    );
+  }
+
+  const { user: userSummary, modules: modulesSummary, lifeWheel: lifeWheelSummary } = summary;
+
+  const getGreeting = () => {
+    const hour = currentTime.getHours();
+
+    if (hour < 12) {
+      return t("greeting.morning");
+    } else if (hour < 18) {
+      return t("greeting.day");
+    } else {
+      return t("greeting.evening");
+    }
+  };
 
   return (
     <SafeAreaView
@@ -202,20 +262,21 @@ export default function HomeScreen() {
         {/* Header mit Begrüßung und KLARE Logo */}
         <View style={styles.headerContainer}>
           <View>
-            <Text style={[styles.greeting, { color: paperTheme.colors.text }]}>
+            <Text style={[styles.greeting, { color: paperTheme.colors.onSurface }]}>
               {getGreeting()}
             </Text>
-            <Text style={[styles.userName, { color: paperTheme.colors.text }]}>
-              {userSummary?.name || "Sascha"}
-            </Text>
+            <Title style={{ color: paperTheme.colors.onSurface }}>
+              {getGreeting()}, {userSummary.name || t("anonymousUser")}
+            </Title>
           </View>
-          <TouchableOpacity>
-            <Avatar.Text
-              size={50}
-              label={userSummary?.name?.charAt(0) || "S"}
-              style={{ backgroundColor: klareColors.k }}
+          {user?.user_metadata?.avatar_url ? (
+            <Avatar.Image
+              size={40}
+              source={{ uri: user?.user_metadata.avatar_url }}
             />
-          </TouchableOpacity>
+          ) : (
+            <Avatar.Icon size={40} icon="account" />
+          )}
         </View>
 
         {/* Zeitliche Progression Card */}
@@ -240,11 +301,11 @@ export default function HomeScreen() {
                   <Text
                     style={[
                       styles.progressionTitle,
-                      { color: paperTheme.colors.text },
+                      { color: paperTheme.colors.onSurface },
                     ]}
                   >
                     {t("progression.program", {
-                      days: userSummary?.daysInProgram,
+                      days: userSummary.daysInProgram,
                     })}
                   </Text>
                 </View>
@@ -277,7 +338,7 @@ export default function HomeScreen() {
                   <Text
                     style={[
                       styles.stageDescription,
-                      { color: paperTheme.colors.text },
+                      { color: paperTheme.colors.onSurface },
                     ]}
                   >
                     {/* Hier verwenden wir einen vollständigen Übersetzungsschlüssel für die Beschreibung */}
@@ -303,7 +364,7 @@ export default function HomeScreen() {
                       <Text
                         style={[
                           styles.nextStageLabel,
-                          { color: paperTheme.colors.text },
+                          { color: paperTheme.colors.onSurface },
                         ]}
                       >
                         {t("progression.nextPhase")}
@@ -311,7 +372,7 @@ export default function HomeScreen() {
                       <Text
                         style={[
                           styles.nextStageName,
-                          { color: paperTheme.colors.text },
+                          { color: paperTheme.colors.onSurface },
                         ]}
                       >
                         {/* Auch für die nächste Phase die volle Übersetzung verwenden */}
@@ -369,7 +430,7 @@ export default function HomeScreen() {
                   <Text
                     style={[
                       styles.progressPercentage,
-                      { color: paperTheme.colors.text },
+                      { color: paperTheme.colors.onSurface },
                     ]}
                   >
                     {modulesSummary.total}%
@@ -395,7 +456,7 @@ export default function HomeScreen() {
                   <Text
                     style={[
                       styles.progressPercentage,
-                      { color: paperTheme.colors.text },
+                      { color: paperTheme.colors.onSurface },
                     ]}
                   >
                     {lifeWheelSummary.average / 10}
@@ -416,7 +477,10 @@ export default function HomeScreen() {
             >
               <View style={styles.statItem}>
                 <Text
-                  style={[styles.statValue, { color: paperTheme.colors.text }]}
+                  style={[
+                    styles.statValue,
+                    { color: paperTheme.colors.onSurface },
+                  ]}
                 >
                   {userSummary.daysInProgram}
                 </Text>
@@ -443,7 +507,10 @@ export default function HomeScreen() {
 
               <View style={styles.statItem}>
                 <Text
-                  style={[styles.statValue, { color: paperTheme.colors.text }]}
+                  style={[
+                    styles.statValue,
+                    { color: paperTheme.colors.onSurface },
+                  ]}
                 >
                   {modulesSummary.available.length}/35
                 </Text>
@@ -473,7 +540,7 @@ export default function HomeScreen() {
                   <Text
                     style={[
                       styles.statValue,
-                      { color: paperTheme.colors.text },
+                      { color: paperTheme.colors.onSurface },
                     ]}
                   >
                     {userSummary.streak}🔥
@@ -495,7 +562,7 @@ export default function HomeScreen() {
             <Button
               icon="chart-bar"
               mode="outlined"
-              onPress={() => navigation.navigate("LifeWheel" as never)}
+              onPress={() => navigation.navigate("LifeWheel")}
               style={{ 
                 borderColor: klareColors.k,
                 borderWidth: 2,
@@ -518,7 +585,7 @@ export default function HomeScreen() {
         </Card>
 
         {/* KLARE Methode Schritte */}
-        <Text style={[styles.sectionTitle, { color: paperTheme.colors.text }]}>
+        <Text style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}>
           {t("sections.klareMethod")}
         </Text>
         <KlareMethodCards
@@ -526,7 +593,7 @@ export default function HomeScreen() {
           stepProgress={stepProgress}
         />
         {/* Vision Board Section */}
-        <Text style={[styles.sectionTitle, { color: paperTheme.colors.text }]}>
+        <Text style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}>
           {t("sections.visionBoard.title")}
         </Text>
         <Card style={styles.card}>
@@ -538,7 +605,7 @@ export default function HomeScreen() {
                 color={klareColors.a}
                 style={{ marginRight: 10 }}
               />
-              <Text style={{ flex: 1, color: paperTheme.colors.text }}>
+              <Text style={{ flex: 1, color: paperTheme.colors.onSurface }}>
                 {t("sections.visionBoard.description")}
               </Text>
             </View>
@@ -546,7 +613,7 @@ export default function HomeScreen() {
           <Card.Actions>
             <Button
               mode="contained"
-              onPress={() => navigation.navigate("VisionBoard" as never)}
+              onPress={() => navigation.navigate("VisionBoard")}
               style={{ 
                 backgroundColor: klareColors.a,
                 minHeight: 48,
@@ -567,52 +634,55 @@ export default function HomeScreen() {
           </Card.Actions>
         </Card>
         {/* Fokus-Bereiche */}
-        <Text style={[styles.sectionTitle, { color: paperTheme.colors.text }]}>
+        <Text style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}>
           {t("sections.focusAreas.title")}
         </Text>
 
         <Card style={styles.card}>
           <Card.Content>
             <List.Section>
-              {lifeWheelSummary.lowestAreas.map((area) => (
-                <List.Item
-                  key={area.id}
-                  title={area.name}
-                  description={t("sections.focusAreas.currentValue", {
-                    value: area.currentValue,
-                  })}
-                  left={(props) => (
-                    <List.Icon
-                      {...props}
-                      icon="alert-circle-outline"
-                      color={klareColors.r}
-                    />
-                  )}
-                  onPress={() => navigation.navigate("LifeWheel" as never)}
-                />
-              ))}
+              {lifeWheelSummary &&
+              lifeWheelSummary.lowestAreas &&
+              lifeWheelSummary.lowestAreas.length > 0 ? (
+                lifeWheelSummary.lowestAreas.map((area) => (
+                  <List.Item
+                    key={area.id}
+                    title={area.name}
+                    description={t("sections.focusAreas.currentValue", {
+                      value: area.currentValue,
+                    })}
+                    left={(props) => (
+                      <List.Icon
+                        {...props}
+                        icon="alert-circle-outline"
+                        color={klareColors.r}
+                      />
+                    )}
+                    onPress={() => navigation.navigate("LifeWheel")}
+                  />
+                ))
+              ) : (
+                <Text style={styles.noDataText}>
+                  {t("noLifeWheelData")}
+                </Text>
+              )}
             </List.Section>
-
             <Button
-              mode="text"
-              onPress={() => navigation.navigate("LifeWheel" as never)}
-              labelStyle={{ 
-                color: klareColors.k,
-                fontSize: 16,
-                fontWeight: "600",
-                textTransform: "none"
-              }}
-              contentStyle={{
-                paddingVertical: 8,
+              icon="arrow-right"
+              mode="contained-tonal"
+              onPress={() => navigation.navigate("LifeWheel")}
+              style={{
+                marginTop: 8,
+                borderColor: klareColors.k,
               }}
             >
-              {t("sections.focusAreas.viewAllAreas")}
+              {t("sections.focusAreas.button")}
             </Button>
           </Card.Content>
         </Card>
 
         {/* Nächste Aktivitäten */}
-        <Text style={[styles.sectionTitle, { color: paperTheme.colors.text }]}>
+        <Text style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}>
           {t("sections.nextActivities.title")}
         </Text>
 
@@ -702,8 +772,8 @@ export default function HomeScreen() {
                   labelStyle={{ 
                     color: "white",
                     fontSize: 16,
-                    fontWeight: "600",
-                    textTransform: "none"
+                    fontWeight: "bold",
+
                   }}
                   contentStyle={{
                     paddingVertical: 8,
@@ -713,16 +783,16 @@ export default function HomeScreen() {
                     console.log('Button pressed for activity:', activity.type, activity.id);
                     if (activity.type === "module") {
                       // Navigate to ModuleScreen with specific step and module
-                      navigation.navigate("ModuleScreen" as never, { 
+                      navigation.navigate("ModuleScreen", { 
                         stepId: activity.step,
                         moduleId: `${activity.step.toLowerCase()}-intro`
-                      } as never);
+                      });
                     } else if (activity.type === "daily") {
                       // Navigate to journal for daily reflection
-                      navigation.navigate("Journal" as never);
+                      navigation.navigate("Journal");
                     } else if (activity.type === "weekly") {
                       // Navigate to life wheel for weekly update
-                      navigation.navigate("LifeWheel" as never);
+                      navigation.navigate("LifeWheel");
                     }
                   }}
                 >

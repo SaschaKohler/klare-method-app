@@ -7,10 +7,12 @@ import {
   JournalEntry,
 } from "../services/JournalService";
 import { VisionBoard } from "../services/VisionBoardService";
+import { LifeWheelArea } from "../store/useLifeWheelStore";
+import { Resource } from "../store/useResourceStore";
 type UserSummaryRow = Tables<"users">;
 
 // User-bezogene Typen
-export interface UserSummary extends UserSummaryRow {
+export interface UserSummary extends Omit<UserSummaryRow, "email"> {
   email: string | null;
   daysInProgram: number;
   currentStage: any | null; // Sollte mit entsprechendem Typ ersetzt werden
@@ -99,11 +101,11 @@ export interface ProfileCompleteness {
 
 // Lebensrad-bezogene Typen
 export interface LifeWheelSummary {
-  areas: any[]; // Sollte mit entsprechendem Typ ersetzt werden
+  areas: LifeWheelArea[];
   average: number;
-  lowestAreas: any[]; // Sollte mit entsprechendem Typ ersetzt werden
-  highestAreas: any[]; // Sollte mit entsprechendem Typ ersetzt werden
-  gapAreas: any[]; // Sollte mit entsprechendem Typ ersetzt werden
+  lowestAreas: LifeWheelArea[];
+  highestAreas: LifeWheelArea[];
+  gapAreas: LifeWheelArea[];
 }
 
 // Modul-bezogene Typen
@@ -130,8 +132,8 @@ export interface ResourceSummary {
     spiritual: number;
     social: number;
   };
-  topResources: any[]; // Sollte mit entsprechendem Typ ersetzt werden
-  recentlyActivated: any[]; // Sollte mit entsprechendem Typ ersetzt werden
+  topResources: Resource[];
+  recentlyActivated: Resource[];
 }
 
 // Journal-bezogene Typen

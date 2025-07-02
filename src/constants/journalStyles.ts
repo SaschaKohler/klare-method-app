@@ -45,15 +45,17 @@ export const createJournalStyles = (
       padding: 8,
       marginRight: 4,
     },
-    searchBar: {
+    searchContainer: {
+      paddingHorizontal: 8,
+      paddingBottom: 4,
+    },
+    searchbar: {
       elevation: 0,
       height: 40,
       borderRadius: 8,
       backgroundColor: isDarkMode
         ? `${theme.colors.elevation.level1}80`
         : `${klareColors.border}20`,
-      marginTop: 8,
-      marginBottom: 4,
     },
     searchInput: {
       fontSize: 14,

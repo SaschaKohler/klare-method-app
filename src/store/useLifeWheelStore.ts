@@ -8,9 +8,6 @@ export interface LifeWheelSnapshot {
   id: string;
   user_id: string;
   snapshot_data: any; // JSONB containing the actual snapshot
-  snapshot_date: string;
-  notes?: string;
-  trigger_event: string;
   ai_analysis?: any;
   created_at: string;
 }
@@ -34,14 +31,13 @@ export interface LifeWheelStoreState extends BaseState {
   // Actions
   loadLifeWheelData: (userId: string) => Promise<void>;
   updateLifeWheelArea: (
-    userId: string,
     areaId: string,
     updates: Partial<LifeWheelArea>,
-  ) => Promise<void>;
+  ) => void;
   createSnapshot: (
     userId: string,
-    title: string,
     description?: string,
+    triggerEvent?: string,
   ) => Promise<string | undefined>;
   createDefaultAreas: (userId: string) => Promise<void>;
   reset: () => void;
@@ -87,7 +83,7 @@ export const useLifeWheelStore = createBaseStore<LifeWheelStoreState>(
           .from("life_wheel_snapshots")
           .select("*")
           .eq("user_id", userId)
-          .order("snapshot_date", { ascending: false })
+          .order("created_at", { ascending: false })
           .limit(1)
           .single();
 
@@ -95,12 +91,19 @@ export const useLifeWheelStore = createBaseStore<LifeWheelStoreState>(
           throw snapshotError;
         }
 
-        if (snapshot) {
+        const isValidSnapshot =
+          snapshot &&
+          snapshot.snapshot_data &&
+          Array.isArray(snapshot.snapshot_data.areas) &&
+          snapshot.snapshot_data.areas.length > 0 &&
+          snapshot.snapshot_data.areas[0].hasOwnProperty("current_value");
+
+        if (isValidSnapshot) {
           const areas = snapshot.snapshot_data.areas.map((area: any) => ({
             id: area.name,
             name: getLocalizedName(area.name, area.translations),
-            currentValue: area.current_value,
-            targetValue: area.target_value,
+            currentValue: area.current_value ?? 0,
+            targetValue: area.target_value ?? 0,
             notes: area.notes,
             improvementActions: area.improvement_actions,
           }));
@@ -112,7 +115,7 @@ export const useLifeWheelStore = createBaseStore<LifeWheelStoreState>(
             isDirty: false,
           }));
         } else {
-          // If no snapshot exists, create default areas
+          // If no snapshot exists, or it's malformed, create default areas
           await get().createDefaultAreas(userId);
         }
         updateLastSync();
@@ -128,48 +131,26 @@ export const useLifeWheelStore = createBaseStore<LifeWheelStoreState>(
       const { setLoading, setError } = get();
       setLoading(true);
       try {
-        const defaultAreas = [
-          { name: "health_fitness", currentValue: 5, targetValue: 8 },
-          { name: "career", currentValue: 5, targetValue: 8 },
-          { name: "finances", currentValue: 5, targetValue: 8 },
-          { name: "relationships", currentValue: 5, targetValue: 8 },
-          { name: "personal_development", currentValue: 5, targetValue: 8 },
-          { name: "spirituality", currentValue: 5, targetValue: 8 },
-          { name: "fun_recreation", currentValue: 5, targetValue: 8 },
-          { name: "physical_environment", currentValue: 5, targetValue: 8 },
+        const defaultAreas: LifeWheelArea[] = [
+          { id: "health_fitness", name: "Gesundheit & Fitness", currentValue: 5, targetValue: 8 },
+          { id: "career", name: "Beruf & Karriere", currentValue: 5, targetValue: 8 },
+          { id: "finances", name: "Finanzen", currentValue: 5, targetValue: 8 },
+          { id: "relationships", name: "Beziehungen", currentValue: 5, targetValue: 8 },
+          { id: "personal_development", name: "Persönliche Entwicklung", currentValue: 5, targetValue: 8 },
+          { id: "spirituality", name: "Spiritualität", currentValue: 5, targetValue: 8 },
+          { id: "fun_recreation", name: "Spaß & Erholung", currentValue: 5, targetValue: 8 },
+          { id: "physical_environment", name: "Physische Umgebung", currentValue: 5, targetValue: 8 },
         ];
 
-        const areaInserts = defaultAreas.map((area) => ({
-          user_id: userId,
-          name: area.name,
-          current_value: area.currentValue,
-          target_value: area.targetValue,
-          notes: "",
-          improvement_actions: [],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }));
+        // Set the default areas in the state so createSnapshot can use them
+        set((state) => ({ ...state, lifeWheelAreas: defaultAreas }));
 
-        const { error: areasError } = await supabase
-          .from("life_wheel_areas")
-          .insert(areaInserts);
-
-        if (areasError) throw areasError;
-
-        const formattedAreas: LifeWheelArea[] = defaultAreas.map((area) => ({
-          id: area.name,
-          name: area.name,
-          currentValue: area.currentValue,
-          targetValue: area.targetValue,
-          notes: "",
-          improvementActions: [],
-        }));
-
-        set((state) => ({
-          ...state,
-          lifeWheelAreas: formattedAreas,
-          isDirty: false,
-        }));
+        // Create a snapshot to persist them
+        await get().createSnapshot(
+          userId,
+          "Automatisch erstelltes erstes Lebensrad.",
+          "initial",
+        );
       } catch (error) {
         setError(error as Error);
         console.error("Error creating default areas:", error);
@@ -178,58 +159,29 @@ export const useLifeWheelStore = createBaseStore<LifeWheelStoreState>(
       }
     },
 
-    updateLifeWheelArea: async (userId, areaId, updates) => {
-      const { setLoading, setError } = get();
-      setLoading(true);
-
-      // Optimistic update of local state
-      const originalAreas = get().lifeWheelAreas;
-      const updatedAreas = originalAreas.map((area) =>
-        area.id === areaId ? { ...area, ...updates } : area,
-      );
-      set((state) => ({ ...state, lifeWheelAreas: updatedAreas, isDirty: true }));
-
-      try {
-        const areaToUpdate = updatedAreas.find((a) => a.id === areaId);
-        if (!areaToUpdate) throw new Error("Area not found");
-
-        const { error } = await supabase
-          .from("life_wheel_areas")
-          .update({
-            current_value: areaToUpdate.currentValue,
-            target_value: areaToUpdate.targetValue,
-            notes: areaToUpdate.notes || "",
-            improvement_actions: areaToUpdate.improvementActions || [],
-            updated_at: new Date().toISOString(),
-          })
-          .eq("user_id", userId)
-          .eq("name", areaId);
-
-        if (error) throw error;
-
-        set((state) => ({ ...state, isDirty: false }));
-      } catch (error) {
-        setError(error as Error);
-        // Revert to original state on error
-        set((state) => ({ ...state, lifeWheelAreas: originalAreas }));
-        console.error(`Error updating area ${areaId}:`, error);
-      } finally {
-        setLoading(false);
-      }
+    updateLifeWheelArea: (areaId, updates) => {
+      set((state) => ({
+        ...state,
+        lifeWheelAreas: state.lifeWheelAreas.map((area) =>
+          area.id === areaId ? { ...area, ...updates } : area,
+        ),
+        isDirty: true,
+      }));
     },
 
-    createSnapshot: async (userId, title, description) => {
+    createSnapshot: async (userId, description, triggerEvent = "manual") => {
       const { setLoading, setError, updateLastSync } = get();
       setLoading(true);
       try {
         const snapshotData = {
+          description: description,
+          trigger_event: triggerEvent,
           areas: get().lifeWheelAreas.map((area) => ({
             name: area.id,
             current_value: area.currentValue,
             target_value: area.targetValue,
             notes: area.notes,
           })),
-          created_at: new Date().toISOString(),
         };
 
         const { data, error } = await supabase
@@ -237,9 +189,6 @@ export const useLifeWheelStore = createBaseStore<LifeWheelStoreState>(
           .insert({
             user_id: userId,
             snapshot_data: snapshotData,
-            notes: description,
-            trigger_event: "manual",
-            snapshot_date: new Date().toISOString(),
           })
           .select("id")
           .single();
