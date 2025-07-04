@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { NavigationProp, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { format, isToday, isYesterday, parseISO, subDays } from "date-fns";
 import { de, enUS } from "date-fns/locale";
-import { MotiView } from "moti";
+
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   Alert,
@@ -26,13 +26,7 @@ import {
   Title,
   useTheme,
 } from "react-native-paper";
-import Animated, {
-  Extrapolation,
-  interpolate,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue,
-} from "react-native-reanimated";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalendarStrip from "../components/CalendarStrip";
 import { createJournalStyles } from "../constants/journalStyles";
@@ -56,28 +50,24 @@ export default function JournalScreen() {
   const {
     categories,
     templates,
-    isLoading: journalLoading,
     loadEntries,
     loadTemplates,
     loadCategories,
     getEntriesByDate,
   } = klareStore.journal;
 
-  const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showSearch, setShowSearch] = useState(false);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [filterMenuVisible, setFilterMenuVisible] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedTemplate, setSelectedTemplate] =
-    useState<JournalTemplate | null>(null);
-  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [entriesForSelectedDate, setEntriesForSelectedDate] = useState<
     JournalEntry[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [filterMenuVisible, setFilterMenuVisible] = useState(false);
 
   // Get date locale based on current language
   const dateLocale = i18n.language === "de" ? de : enUS;
@@ -91,53 +81,9 @@ export default function JournalScreen() {
     [theme, klareColors, isDarkMode],
   );
 
-  const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
-  // Header Animation - More compact and subtle
-  const headerHeight = 60; // Reduced height for a more compact UI
-  const headerContainerStyle = useAnimatedStyle(() => {
-    return {
-      height: interpolate(
-        scrollY.value,
-        [0, headerHeight],
-        [headerHeight, 50], 
-        Extrapolation.CLAMP,
-      ),
-      opacity: interpolate(
-        scrollY.value,
-        [headerHeight - 40, headerHeight * 3],
-        [1, 0.95],
-        Extrapolation.CLAMP,
-      ),
-    };
-  });
 
-  const headerTitleStyle = useAnimatedStyle(() => {
-    return {
-      opacity: interpolate(
-        scrollY.value,
-        [headerHeight - 40, headerHeight - 10],
-        [0, 1],
-        Extrapolation.CLAMP,
-      ),
-      transform: [
-        {
-          translateY: interpolate(
-            scrollY.value,
-            [0, headerHeight],
-            [10, 0],
-            Extrapolation.CLAMP,
-          ),
-        },
-      ],
-    };
-  });
 
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
-    },
-  });
 
   // Load journal data when the screen is focused
   useFocusEffect(
@@ -444,100 +390,66 @@ export default function JournalScreen() {
     );
   };
 
-  // Render a template
+  // Render a journal template
   const renderTemplate = ({ item }: { item: JournalTemplate }) => (
-    <MotiView
-      from={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ type: "timing", duration: 250 }}
-    >
-      <TouchableOpacity
-        onPress={() => {
-          setSelectedTemplate(item);
-          createNewEntry(item);
-        }}
-      >
-        <Card style={styles.templateCard}>
-          <Card.Content>
-            <Title style={styles.templateTitle}>{item.title}</Title>
-            <Text style={styles.templateDescription}>{item.description}</Text>
-            <View style={styles.templateQuestionsPreview}>
-              {(item.promptQuestions && Array.isArray(item.promptQuestions) ? item.promptQuestions : []).slice(0, 2).map((question, index) => (
-                <Text
-                  key={index}
-                  style={styles.templateQuestion}
-                  numberOfLines={1}
-                >
-                  • {question}
-                </Text>
-              ))}
-              {(item.promptQuestions && Array.isArray(item.promptQuestions) && item.promptQuestions.length > 2) && (
-                <Text style={styles.templateQuestionMore}>
-                  {t("templateSelector.moreQuestions", { 
-                    count: item.promptQuestions.length - 2, 
-                    ns: "journal" 
-                  })}
-                </Text>
-              )}
-            </View>
-          </Card.Content>
-        </Card>
-      </TouchableOpacity>
-    </MotiView>
+    <TouchableOpacity onPress={() => createNewEntry(item)}>
+      <Card style={styles.entryCard}>
+        <Card.Content>
+          <Title>{item.title}</Title>
+          {item.description && <Text numberOfLines={2}>{item.description}</Text>}
+        </Card.Content>
+      </Card>
+    </TouchableOpacity>
   );
+
+
 
   // Render a journal entry
   const renderEntry = ({ item }: { item: JournalEntry }) => (
-    <MotiView
-      from={{ opacity: 0, translateY: 5 }}
-      animate={{ opacity: 1, translateY: 0 }}
-      transition={{ type: "timing", duration: 250 }}
-    >
-      <TouchableOpacity onPress={() => openEntry(item)}>
-        <Card style={styles.entryCard}>
-          <Card.Content>
-            <View style={styles.entryHeader}>
-              <Text style={styles.entryDate}>
-                {formatEntryDate(item.entryDate)}
-              </Text>
-              {item.isFavorite && (
-                <Ionicons name="star" size={16} color={klareColors.r} />
-              )}
-            </View>
-            <Text style={styles.entryContent} numberOfLines={3}>
-              {item.entryContent}
+    <TouchableOpacity onPress={() => openEntry(item)}>
+      <Card style={styles.entryCard}>
+        <Card.Content>
+          <View style={styles.entryHeader}>
+            <Text style={styles.entryDate}>
+              {formatEntryDate(item.entryDate)}
             </Text>
+            {item.isFavorite && (
+              <Ionicons name="star" size={16} color={klareColors.r} />
+            )}
+          </View>
+          <Text style={styles.entryContent} numberOfLines={3}>
+            {item.entryContent}
+          </Text>
 
-            {item.tags && item.tags.length > 0 && (
-              <View style={styles.tagsContainer}>
-                {item.tags.map((tag, index) => renderTagChip(tag, index))}
+          {item.tags && item.tags.length > 0 && (
+            <View style={styles.tagsContainer}>
+              {item.tags.map((tag, index) => renderTagChip(tag, index))}
+            </View>
+          )}
+
+          <View style={styles.entryFooter}>
+            {item.moodRating && renderMoodRating(item.moodRating)}
+            {item.clarityRating && (
+              <View style={styles.ratingContainer}>
+                <Ionicons
+                  name="bulb-outline"
+                  size={16}
+                  color={klareColors.k}
+                />
+                <Text
+                  style={[
+                    styles.ratingText,
+                    { color: klareColors.textSecondary },
+                  ]}
+                >
+                  {item.clarityRating}/10
+                </Text>
               </View>
             )}
-
-            <View style={styles.entryFooter}>
-              {item.moodRating && renderMoodRating(item.moodRating)}
-              {item.clarityRating && (
-                <View style={styles.ratingContainer}>
-                  <Ionicons
-                    name="bulb-outline"
-                    size={16}
-                    color={klareColors.k}
-                  />
-                  <Text
-                    style={[
-                      styles.ratingText,
-                      { color: klareColors.textSecondary },
-                    ]}
-                  >
-                    {item.clarityRating}/10
-                  </Text>
-                </View>
-              )}
-            </View>
-          </Card.Content>
-        </Card>
-      </TouchableOpacity>
-    </MotiView>
+          </View>
+        </Card.Content>
+      </Card>
+    </TouchableOpacity>
   );
 
   // Render category tabs
@@ -698,11 +610,7 @@ export default function JournalScreen() {
 
         {entriesForSelectedDate.length === 0 ? (
           <View style={styles.emptyStateContainer}>
-            <MotiView
-              from={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: "spring", damping: 15 }}
-            >
+            <View>
               <View style={styles.emptyIconContainer}>
                 <Ionicons
                   name="book-outline"
@@ -744,18 +652,16 @@ export default function JournalScreen() {
                   </Text>
                 </TouchableOpacity>
               </View>
-            </MotiView>
+            </View>
           </View>
         ) : (
-          <Animated.FlatList
+          <FlatList
             ref={flatListRef}
             data={entriesForSelectedDate}
             renderItem={renderEntry}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.entriesList}
             showsVerticalScrollIndicator={false}
-            onScroll={scrollHandler}
-            scrollEventThrottle={16}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -772,37 +678,32 @@ export default function JournalScreen() {
 
   return (
     <SafeAreaView
-      edges={["left", "right"]}
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      edges={['top', 'left', 'right']}
+      style={styles.container}
     >
-      {/* Streamlined header */}
-      <Animated.View style={[styles.headerContainer, headerContainerStyle]}>
+      {/* Header */}
+      <View style={styles.headerContainer}>
         <View style={styles.headerTop}>
           <View style={styles.headerTitleContainer}>
-            <Animated.Text style={[styles.headerTitle, headerTitleStyle]}>
-              {t("title", { ns: "journal" })}
-            </Animated.Text>
+            <Text style={styles.headerTitle}>
+              {t('title', { ns: 'journal' })}
+            </Text>
           </View>
 
           <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={styles.searchToggle}
+            <IconButton
+              icon="magnify"
+              size={24}
               onPress={() => setShowSearch(!showSearch)}
-            >
-              <Ionicons
-                name="search-outline"
-                size={22}
-                color={klareColors.text}
-              />
-            </TouchableOpacity>
-
+              iconColor={klareColors.text}
+            />
             <Menu
               visible={menuVisible}
               onDismiss={() => setMenuVisible(false)}
               anchor={
                 <IconButton
                   icon="dots-vertical"
-                  size={22}
+                  size={24}
                   onPress={() => setMenuVisible(true)}
                   iconColor={klareColors.text}
                 />
@@ -811,39 +712,18 @@ export default function JournalScreen() {
             >
               <Menu.Item
                 onPress={() => {
-                  console.log("Sort by date pressed");
                   setMenuVisible(false);
+                  // TODO: Navigate to settings
                 }}
-                title={t("menu.sortByDate", {
-                  ns: "journal",
-                  defaultValue: "Sort by Date",
-                })}
-                leadingIcon="sort-calendar-ascending"
-              />
-              <Menu.Item
-                onPress={() => {
-                  console.log("Filter pressed");
-                  setFilterMenuVisible(true);
-                  setMenuVisible(false);
-                }}
-                title={t("menu.filter", {
-                  ns: "journal",
-                  defaultValue: "Filter",
-                })}
-                leadingIcon="filter-variant"
-              />
-              <Menu.Item
-                onPress={() => {
-                  setMenuVisible(false);
-                }}
-                title={t("menu.settings", { ns: "journal" })}
+                title={t('menu.settings', { ns: 'journal' })}
                 leadingIcon="cog"
               />
               <Menu.Item
                 onPress={() => {
                   setMenuVisible(false);
+                  // TODO: Implement export functionality
                 }}
-                title={t("menu.export", { ns: "journal" })}
+                title={t('menu.export', { ns: 'journal' })}
                 leadingIcon="export"
               />
               <Menu.Item
@@ -874,61 +754,16 @@ export default function JournalScreen() {
                                 result.keysMatch !== "match"
                               ) {
                                 Alert.alert(
-                                  t("diagnose.problemsFound", { ns: "journal" }),
-                                  t("diagnose.problemsDetails", {
-                                    ns: "journal",
-                                    storageStatus: result.localStorageStatus,
-                                    formatStatus: result.localDataParseCheck,
-                                    keyStatus: result.keysMatch,
-                                  }),
-                                  [
-                                    {
-                                      text: t("diagnose.cancel", { ns: "journal" }),
-                                      style: "cancel",
-                                    },
-                                    {
-                                      text: t("diagnose.repair", { ns: "journal" }),
-                                      onPress: async () => {
-                                        const repaired =
-                                          await journalService.repairJournalStorage(
-                                            user.id,
-                                          );
-                                        if (repaired) {
-                                          Alert.alert(
-                                            t("diagnose.successTitle", { ns: "journal" }),
-                                            t("diagnose.successDescription", { ns: "journal" }),
-                                            [
-                                              {
-                                                text: t("diagnose.ok", { ns: "journal" }),
-                                                onPress: () => onRefresh(),
-                                              },
-                                            ],
-                                          );
-                                        } else {
-                                          Alert.alert(
-                                            t("diagnose.failureTitle", { ns: "journal" }),
-                                            t("diagnose.failureDescription", { ns: "journal" }),
-                                          );
-                                        }
-                                      },
-                                    },
-                                  ],
+                                  t("diagnose.issueTitle", { ns: "journal" }),
+                                  t("diagnose.issueDescription", { ns: "journal" })
                                 );
                               } else {
                                 Alert.alert(
-                                  t("diagnose.noProblemTitle", { ns: "journal" }),
-                                  t("diagnose.noProblemDescription", {
-                                    ns: "journal",
-                                    storageType: result.storageType,
-                                    localCount: result.localEntryCount,
-                                    serverStatus: result.serverStatus,
-                                    serverCount: result.serverEntryCount,
-                                  }),
-                                  [{ text: t("diagnose.ok", { ns: "journal" }) }],
+                                  t("diagnose.successTitle", { ns: "journal" }),
+                                  t("diagnose.successDescription", { ns: "journal" })
                                 );
                               }
                             } catch (error) {
-                              console.error("Diagnose-Fehler:", error);
                               const errorMessage = error instanceof Error ? error.message : String(error);
                               Alert.alert(
                                 t("diagnose.errorTitle", { ns: "journal" }),
@@ -950,6 +785,7 @@ export default function JournalScreen() {
               <Menu.Item
                 onPress={() => {
                   setMenuVisible(false);
+                  // TODO: Navigate to help screen
                 }}
                 title={t("menu.help", { ns: "journal" })}
                 leadingIcon="help-circle"
@@ -959,11 +795,7 @@ export default function JournalScreen() {
         </View>
 
         {showSearch && (
-          <MotiView
-            from={{ opacity: 0, translateY: -10 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            style={styles.searchContainer}
-          >
+          <View style={styles.searchContainer}>
             <Searchbar
               placeholder={t("search.placeholder", { ns: "journal" })}
               onChangeText={setSearchQuery}
@@ -974,24 +806,21 @@ export default function JournalScreen() {
               onClearIconPress={() => setSearchQuery("")}
               elevation={1}
             />
-          </MotiView>
+          </View>
         )}
-      </Animated.View>
+      </View>
 
       {/* Main Content */}
       <View style={styles.contentContainer}>{renderContent()}</View>
 
-      {/* FAB for new entry */}
-      {!showTemplateSelector && (
-        <FAB
-          style={[styles.fab, { backgroundColor: klareColors.k }]}
-          icon="plus"
-          color="white"
-          onPress={() => setShowTemplateSelector(true)}
-          visible={!showSearch}
-          animated
-        />
-      )}
+      {/* FAB to toggle template selector */}
+      <FAB
+        icon={showTemplateSelector ? "close" : "pencil-plus-outline"}
+        style={[styles.fab, { backgroundColor: klareColors.k }]}
+        onPress={() => setShowTemplateSelector(!showTemplateSelector)}
+        color={isDarkMode ? darkKlareColors.text : lightKlareColors.background}
+        visible={!loading}
+      />
     </SafeAreaView>
   );
 }

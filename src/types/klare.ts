@@ -1,6 +1,6 @@
 // src/types/klare.ts
-import { Tables, TablesInsert, TablesUpdate } from "./supabase-klare-app";
-import { AuthError, User } from "@supabase/supabase-js";
+import { Tables } from "../types/supabase";
+import { User } from "@supabase/supabase-js";
 import {
   JournalTemplate,
   JournalTemplateCategory,
@@ -9,9 +9,12 @@ import {
 import { VisionBoard } from "../services/VisionBoardService";
 import { LifeWheelArea } from "../store/useLifeWheelStore";
 import { Resource } from "../store/useResourceStore";
-type UserSummaryRow = Tables<"users">;
 
 // User-bezogene Typen
+type UserSummaryRow = Tables<"users"> & {
+  user_profiles?: Tables<"user_profiles"> | null;
+};
+
 export interface UserSummary extends Omit<UserSummaryRow, "email"> {
   email: string | null;
   daysInProgram: number;
@@ -23,23 +26,53 @@ export interface UserSummary extends Omit<UserSummaryRow, "email"> {
   id: string;
   join_date: string | null;
   last_active: string | null;
-  name: string;
-  progress: number | null;
-  streak: number | null;
+  name: string | null;
+  progress: string | null;
+  streak: string | null;
+  personalization_level: string | null;
+  ai_mode_enabled: boolean | null;
+  preferred_language: string | null;
 }
 
-export interface UserProfile extends Tables<"users"> {
+// UserProfile interface that combines data from both users and user_profiles tables
+export interface UserProfile {
+  // From users table
+  id: string;
+  email: string | null;
+  name: string | null;
+  progress: string | null;
+  streak: string | null;
+  personalization_level: string | null;
+  ai_mode_enabled: boolean | null;
+  preferred_language: string | null;
+  last_active: string | null;
+  join_date: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  
+  // From user_profiles table
+  first_name?: string | null;
+  preferred_name?: string | null;
+  age?: number | null;
+  location?: string | null;
+  occupation?: string | null;
+  relationship_status?: string | null;
+  learning_style?: string | null;
+  communication_style?: string | null;
+  personality_profile?: any | null;
+  preferences?: any | null;
+  profile_completeness?: number | null;
+  onboarding_completed_at?: string | null;
+  
+  // Computed fields
   display_name?: string | null;
-  preferred_language?: string | null;
-  timezone?: string | null;
-  interaction_style?: string | null;
   onboarding_completed?: boolean;
-  personality_traits?: PersonalityTraits | null;
-  learning_style?: LearningStyle | null;
-  motivation_drivers?: MotivationDrivers | null;
-  stress_indicators?: StressIndicators | null;
-  content_preferences?: ContentPreferences | null;
-  profile_completeness?: ProfileCompleteness | null;
+  
+  // Extended types (keep these for backward compatibility)
+  personality_traits?: any | null;
+  motivation_drivers?: any | null;
+  stress_indicators?: any | null;
+  content_preferences?: any | null;
 }
 
 export interface PersonalityTraits {

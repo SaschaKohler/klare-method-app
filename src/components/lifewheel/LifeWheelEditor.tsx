@@ -6,29 +6,18 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  Platform,
-  TouchableOpacity,
-  Animated,
-} from "react-native";
-import { Text, Card, useTheme, IconButton } from "react-native-paper";
+import { View, StyleSheet, ScrollView, Animated, Platform } from "react-native";
+import { Text, Card, useTheme } from "react-native-paper";
 import Slider from "@react-native-community/slider";
-import {
-  klareColors,
-  darkKlareColors,
-  lightKlareColors,
-} from "../../constants/theme";
+import { darkKlareColors, lightKlareColors } from "../../constants/theme";
 import { useTranslation } from "react-i18next";
 import debounce from "lodash/debounce";
-import LifeWheelAreaModal from "./LifeWheelAreaModal";
+
 
 interface LifeWheelEditorProps {
-  areas: any[]; // Wir verwenden das Datenformat aus dem Hook
+  areas: any[];
   onValueChange: (
-    areaId: string,
+    areaKey: string,
     updates: { current_value?: number; target_value?: number },
   ) => void;
   selectedAreaId?: string | null;
@@ -47,15 +36,21 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
   isEditing = false,
   onUserActivity,
 }) => {
+
   const { t } = useTranslation("lifeWheel");
   const theme = useTheme();
   const isDarkMode = theme.dark;
   const themeColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const scrollViewRef = useRef<ScrollView>(null);
   const [expandedAreaId, setExpandedAreaId] = useState<string | null>(null);
-  const [localValues, setLocalValues] = useState<Record<string, number>>({});
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedModalArea, setSelectedModalArea] = useState<any>(null);
+  const [localAreas, setLocalAreas] = useState(areas);
+
+  // Sync local state when the areas prop changes from the store
+  useEffect(() => {
+    setLocalAreas(areas);
+  }, [areas]);
+
+
   const editorAnimation = useRef(new Animated.Value(0)).current; // 0 = normal, 1 = editing mode
 
   const styles = useMemo(
@@ -134,13 +129,13 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
   const debouncedUpdateValue = useCallback(
     debounce(
       (
-        areaId: string,
+        areaKey: string,
         updates: { current_value?: number; target_value?: number },
       ) => {
-        onValueChange(areaId, updates);
+        onValueChange(areaKey, updates);
       },
       500,
-    ), // 500ms Verzögerung, bevor der API-Aufruf gestartet wird
+    ),
     [onValueChange],
   );
 
@@ -167,41 +162,30 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
     }
   }, [selectedAreaId, areas, isEditing, onEditingStart]);
 
-  // Initialer Zustand für lokale Werte
-  useEffect(() => {
-    const initialValues: Record<string, number> = {};
-    areas.forEach((area) => {
-      // Runden auf ganze Zahlen für Konsistenz
-      initialValues[`${area.id}_current`] = Math.round(area.currentValue || 0);
-      initialValues[`${area.id}_target`] = Math.round(area.targetValue || 0);
-    });
-    setLocalValues(initialValues);
-  }, [areas]);
+
 
   // Aktualisiere den Wert eines Bereichs
   const handleValueChange = (
-    areaId: string,
+    areaKey: string,
     valueType: "current" | "target",
     value: number,
   ) => {
-    // Runden auf ganze Zahlen für bessere UX und Datenkonsistenz
     const roundedValue = Math.round(value);
-    console.log("handleValueChange:", areaId, valueType, roundedValue);
-
-    // User-Aktivität melden
     onUserActivity?.();
 
-    // Sofort den lokalen Zustand aktualisieren für flüssige UI
-    setLocalValues((prev) => ({
-      ...prev,
-      [`${areaId}_${valueType}`]: roundedValue,
-    }));
+    setLocalAreas(prevAreas =>
+      prevAreas.map(area => {
+        if (area.areaKey === areaKey) {
+          return { ...area, [valueType === "current" ? "currentValue" : "targetValue"]: roundedValue };
+        }
+        return area;
+      }),
+    );
 
-    // Mit Verzögerung an API senden
     if (valueType === "current") {
-      debouncedUpdateValue(areaId, { current_value: roundedValue });
+      debouncedUpdateValue(areaKey, { current_value: roundedValue });
     } else {
-      debouncedUpdateValue(areaId, { target_value: roundedValue });
+      debouncedUpdateValue(areaKey, { target_value: roundedValue });
     }
   };
 
@@ -238,34 +222,18 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
     }).start();
   }, [isEditing, editorAnimation]);
 
-  // Handler für Modal
-  const handleOpenModal = (area: any) => {
-    setSelectedModalArea(area);
-    setModalVisible(true);
-  };
 
-  const handleCloseModal = () => {
-    setModalVisible(false);
-    setSelectedModalArea(null);
-  };
 
   // Rendere einen einzelnen Bereichscard
-  const renderAreaCard = (area: any) => {
+    const renderAreaCard = (area: any) => {
+    const localArea = localAreas.find(a => a.id === area.id) || area;
     const isExpanded = expandedAreaId === area.id;
-    // Verwende lokalen Wert falls vorhanden, sonst den Original-Wert
-    const currentValue =
-      localValues[`${area.id}_current`] !== undefined
-        ? localValues[`${area.id}_current`]
-        : area.current_value;
-
-    const targetValue =
-      localValues[`${area.id}_target`] !== undefined
-        ? localValues[`${area.id}_target`]
-        : area.target_value;
+    const currentValue = localArea.currentValue;
+    const targetValue = localArea.targetValue;
 
     return (
       <Card
-        key={area.id}
+        key={area.id || area.areaKey}
         style={[styles.card, isExpanded && styles.expandedCard]}
         onPress={() => handleCardPress(area.id)}
       >
@@ -274,12 +242,6 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
             <Text style={styles.areaName}>{getTranslatedAreaName(area)}</Text>
             <View style={styles.cardActions}>
               <Text style={styles.areaValue}>{currentValue}/10</Text>
-              {/* <IconButton */}
-              {/*   icon="edit" */}
-              {/*   size={20} */}
-              {/*   onPress={() => handleOpenModal(area)} */}
-              {/*   iconColor={themeColors.k} */}
-              {/* /> */}
             </View>
           </View>
 
@@ -302,7 +264,7 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
                   value={currentValue}
                   // Verwende ein Event für Bewegung UND Loslassen
                   onValueChange={(value) =>
-                    handleValueChange(area.id, "current", value)
+                    handleValueChange(area.areaKey, "current", value)
                   }
                   minimumTrackTintColor={themeColors.k}
                   maximumTrackTintColor={isDarkMode ? "#555" : "#ccc"}
@@ -334,7 +296,7 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
                   step={1}
                   value={targetValue}
                   onValueChange={(value) =>
-                    handleValueChange(area.id, "target", value)
+                    handleValueChange(area.areaKey, "target", value)
                   }
                   minimumTrackTintColor={themeColors.a}
                   maximumTrackTintColor={isDarkMode ? "#555" : "#ccc"}
@@ -365,20 +327,15 @@ const LifeWheelEditor: React.FC<LifeWheelEditorProps> = ({
         ref={scrollViewRef}
         style={[styles.scrollView, isEditing && styles.scrollViewEditing]}
       >
-        {areas.map(renderAreaCard)}
+        {localAreas.map(renderAreaCard)}
       </ScrollView>
 
-      <LifeWheelAreaModal
-        visible={modalVisible}
-        area={selectedModalArea}
-        onClose={handleCloseModal}
-        onValueChange={onValueChange}
-      />
+      
     </Animated.View>
   );
 };
 
-const createStyles = (theme: any, themeColors: typeof klareColors) =>
+const createStyles = (theme: any, themeColors: typeof lightKlareColors) =>
   StyleSheet.create({
     container: {
       marginVertical: 16,

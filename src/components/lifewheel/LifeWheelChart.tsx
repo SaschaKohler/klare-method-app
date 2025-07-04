@@ -1,5 +1,5 @@
 // src/components/lifewheel/LifeWheelChart.tsx
-import React from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -15,11 +15,7 @@ import Svg, {
   Polygon,
   Text as SvgText,
 } from "react-native-svg";
-import {
-  klareColors,
-  darkKlareColors,
-  lightKlareColors,
-} from "../../constants/theme";
+import { darkKlareColors, lightKlareColors } from "../../constants/theme";
 import {
   useLifeWheelStore,
   LifeWheelArea,
@@ -28,7 +24,6 @@ import {
 // Konstanten für das Lebensrad
 const WHEEL_PADDING = 40;
 const MAX_VALUE = 10;
-const LABEL_RADIUS_EXTRA = 30;
 const TOUCH_POINT_SIZE = 24; // Größerer Touchbereich für die Punkte
 
 interface LifeWheelChartProps {
@@ -40,24 +35,51 @@ interface LifeWheelChartProps {
 
 const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
   showTargetValues = false,
-  size = Math.min(Dimensions.get("window").width - WHEEL_PADDING * 2, 300),
+  size: propSize,
   onAreaPress,
   lifeWheelAreas: propLifeWheelAreas,
 }) => {
+  // Memoize the chart size to prevent unnecessary recalculations
+  const size = useMemo(() => {
+    return (
+      propSize ||
+      Math.min(Dimensions.get("window").width - WHEEL_PADDING * 2, 300)
+    );
+  }, [propSize]);
   // Theme für bessere Kontraste
-  const theme = useTheme();
-  const isDarkMode = theme.dark;
-  const themeColors = isDarkMode ? darkKlareColors : lightKlareColors;
+  const themeMode = useTheme();
+  const [theme, setTheme] = useState(themeMode.dark ? darkKlareColors : lightKlareColors);
+
+  useEffect(() => {
+    setTheme(themeMode.dark ? darkKlareColors : lightKlareColors);
+  }, [themeMode]);
+
+  const isDarkMode = themeMode.dark;
+  const themeColors = themeMode.dark ? darkKlareColors : lightKlareColors;
 
   // Entweder direkt übergebene Daten oder Daten aus dem Store nehmen
-  const { lifeWheelAreas: storeLifeWheelAreas } = useLifeWheelStore();
+  const { lifeWheelAreas: storeLifeWheelAreas, updateLifeWheelArea } = useLifeWheelStore();
   // Wenn LifeWheelAreas als Prop übergeben wurden, verwende diese, ansonsten aus dem Store
   const lifeWheelAreas = propLifeWheelAreas || storeLifeWheelAreas;
 
-  // Debug: Was erhält die Chart-Komponente?
-  // console.log('LifeWheelChart: propLifeWheelAreas =', propLifeWheelAreas);
-  // console.log('LifeWheelChart: storeLifeWheelAreas =', storeLifeWheelAreas);
-  // console.log('LifeWheelChart: final lifeWheelAreas =', lifeWheelAreas);
+  useEffect(() => {
+    console.log('LifeWheelChart received areas:', JSON.stringify(lifeWheelAreas, null, 2));
+  }, [lifeWheelAreas]);
+
+  // Validierung: Sicherstellen, dass wir gültige Daten haben
+  const validLifeWheelAreas = lifeWheelAreas.filter(area => 
+    area && 
+    typeof area.currentValue === 'number' && 
+    !isNaN(area.currentValue) &&
+    typeof area.targetValue === 'number' && 
+    !isNaN(area.targetValue)
+  );
+
+  // Wenn keine gültigen Daten vorhanden sind, zeige nichts an
+  if (validLifeWheelAreas.length === 0) {
+    console.warn('LifeWheelChart: No valid areas to display');
+    return null;
+  }
 
   // Berechnete Werte
   const center = size / 2;
@@ -70,32 +92,54 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
 
   // Konvertierung von Polarkoordinaten zu kartesischen Koordinaten
   const polarToCartesian = (radius: number, angleInDegrees: number) => {
-    const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+    // Sicherstellen, dass der Radius gültig ist
+    const safeRadius = Math.max(0, Math.min(radius, size / 2 * 0.99)); // 99% des maximalen Radius
+    
+    // Winkel in Bogenmaß umrechnen und sicherstellen, dass er im Bereich [0, 2π] liegt
+    const normalizedAngle = ((angleInDegrees % 360) + 360) % 360; // Normalisieren auf [0, 360)
+    const angleInRadians = ((normalizedAngle - 90) * Math.PI) / 180.0;
+    
+    // Koordinaten berechnen
+    const x = safeRadius * Math.cos(angleInRadians) + center;
+    const y = safeRadius * Math.sin(angleInRadians) + center;
+    
+    // Sicherstellen, dass die Koordinaten innerhalb der SVG-Grenzen liegen
     return {
-      x: radius * Math.cos(angleInRadians) + center,
-      y: radius * Math.sin(angleInRadians) + center,
+      x: Math.max(0, Math.min(x, size)),
+      y: Math.max(0, Math.min(y, size))
     };
   };
 
   // Punkte für das Current-Value-Polygon berechnen
-  const currentValuePoints = lifeWheelAreas
+  const currentValuePoints = validLifeWheelAreas
     .map((area, index) => {
-      const angle = calculateAngle(index, lifeWheelAreas.length);
+      const angle = calculateAngle(index, validLifeWheelAreas.length);
+      // Sicherstellen, dass currentValue eine gültige Zahl ist
+      const currentValue = typeof area.currentValue === 'number' && !isNaN(area.currentValue) 
+        ? Math.max(0, Math.min(Math.round(area.currentValue), MAX_VALUE))
+        : 0;
+      
       const point = polarToCartesian(
-        (radius * area.currentValue) / MAX_VALUE,
+        (radius * currentValue) / MAX_VALUE,
         angle,
       );
-      return `${point.x},${point.y}`;
+      
+      // Koordinaten runden für saubere SVG-Punkte
+      return `${Math.round(point.x)},${Math.round(point.y)}`;
     })
     .join(" ");
 
   // Punkte für das Target-Value-Polygon berechnen (falls aktiviert)
   const targetValuePoints = showTargetValues
-    ? lifeWheelAreas
+    ? validLifeWheelAreas
         .map((area, index) => {
-          const angle = calculateAngle(index, lifeWheelAreas.length);
+          const angle = calculateAngle(index, validLifeWheelAreas.length);
+          // Sicherstellen, dass targetValue eine gültige Zahl ist
+          const targetValue = typeof area.targetValue === 'number' && !isNaN(area.targetValue) 
+            ? area.targetValue 
+            : 0;
           const point = polarToCartesian(
-            (radius * area.targetValue) / MAX_VALUE,
+            (radius * targetValue) / MAX_VALUE,
             angle,
           );
           return `${point.x},${point.y}`;
@@ -106,22 +150,28 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
   // SVG allein kann die Touch-Events nicht zuverlässig verarbeiten,
   // daher verwenden wir TouchableOpacity-Komponenten, die über dem SVG positioniert werden
   const renderTouchPoints = () => {
-    return lifeWheelAreas.map((area, index) => {
-      const angle = calculateAngle(index, lifeWheelAreas.length);
+    return validLifeWheelAreas.map((area, index) => {
+      const angle = calculateAngle(index, validLifeWheelAreas.length);
 
       // Position für aktuellen Wert
+      const validCurrentValue = typeof area.currentValue === 'number' && !isNaN(area.currentValue) 
+        ? area.currentValue 
+        : 0;
       const currentPoint = polarToCartesian(
-        (radius * area.currentValue) / MAX_VALUE,
+        (radius * validCurrentValue) / MAX_VALUE,
         angle,
       );
 
       // Position für Zielwert (falls aktiviert)
+      const validTargetValue = typeof area.targetValue === 'number' && !isNaN(area.targetValue) 
+        ? area.targetValue 
+        : 0;
       const targetPoint = showTargetValues
-        ? polarToCartesian((radius * area.targetValue) / MAX_VALUE, angle)
+        ? polarToCartesian((radius * validTargetValue) / MAX_VALUE, angle)
         : null;
 
       return (
-        <React.Fragment key={`touch-point-${area.id}`}>
+        <React.Fragment key={`touch-point-${area.id ?? index}`}>
           {/* Touchpoint für aktuellen Wert */}
           <TouchableOpacity
             style={[
@@ -162,6 +212,70 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
   const bgOpacity = isDarkMode ? "30" : "20";
   const bgStrokeOpacity = isDarkMode ? "40" : "30";
 
+  const handleValueChange = (area: LifeWheelArea, newValue: number) => {
+    updateLifeWheelArea(area.id, { currentValue: newValue });
+  };
+
+  const getAreaPoints = () => {
+    const points = lifeWheelAreas.map((area, index) => {
+      const angle = calculateAngle(index, lifeWheelAreas.length);
+      const point = polarToCartesian(radius, angle);
+      return `${point.x},${point.y}`;
+    });
+    return points.join(" ");
+  };
+
+  const getTargetPoints = () => {
+    if (!lifeWheelAreas || lifeWheelAreas.length === 0) return [];
+    
+    return lifeWheelAreas.map((area, index) => {
+      const angle = calculateAngle(index, lifeWheelAreas.length);
+      // Sicherstellen, dass targetValue eine gültige Zahl ist und runden
+      const targetValue = typeof area.targetValue === 'number' && !isNaN(area.targetValue) 
+        ? Math.max(0, Math.min(Math.round(area.targetValue), MAX_VALUE)) // Runden und auf gültigen Bereich beschränken
+        : 0;
+      
+      const point = polarToCartesian(
+        (radius * targetValue) / MAX_VALUE,
+        angle,
+      );
+      
+      // Koordinaten runden für saubere SVG-Punkte
+      return {
+        x: Math.round(point.x),
+        y: Math.round(point.y)
+      };
+    });
+  };
+
+  const getTargetPath = () => {
+    const points = getTargetPoints();
+    if (!points || points.length === 0) return "";
+
+    // Sicherstellen, dass alle Punkte gültige Zahlen enthalten
+    const validPoints = points.filter(point => 
+      point && 
+      typeof point.x === 'number' && !isNaN(point.x) && 
+      typeof point.y === 'number' && !isNaN(point.y)
+    );
+
+    if (validPoints.length === 0) return "";
+
+    // Erstelle den Pfad mit M (move to) für den ersten Punkt und L (line to) für die folgenden Punkte
+    const path = validPoints
+      .map((point, index) => {
+        const command = index === 0 ? 'M' : 'L';
+        return `${command} ${point.x} ${point.y}`;
+      })
+      .join(' ');
+
+    // Schließe den Pfad mit Z (close path)
+    const closedPath = `${path} Z`;
+    
+    console.log('Generated target path:', closedPath);
+    return closedPath;
+  };
+
   return (
     <View style={[styles.container, { width: size, height: size }]}>
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -178,14 +292,14 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
           />
         ))}
 
-        {/* Teilungslinien mit verbessertem Kontrast */}
-        {lifeWheelAreas.map((_, index) => {
-          const angle = calculateAngle(index, lifeWheelAreas.length);
+        {/* Speichen für jede Area */}
+        {validLifeWheelAreas.map((area, index) => {
+          const angle = calculateAngle(index, validLifeWheelAreas.length);
           const point = polarToCartesian(radius, angle);
 
           return (
             <Line
-              key={`line-${index}`}
+              key={`line-${area.id ?? index}`}
               x1={center}
               y1={center}
               x2={point.x}
@@ -196,9 +310,9 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
           );
         })}
 
-        {/* Interaktive Beschriftungen mit Hover-Effekt */}
-        {lifeWheelAreas.map((area, index) => {
-          const angle = calculateAngle(index, lifeWheelAreas.length);
+        {/* Beschriftungen für jede Area */}
+        {validLifeWheelAreas.map((area, index) => {
+          const angle = calculateAngle(index, validLifeWheelAreas.length);
           const labelRadius = radius + 15; // Näher am Rad
           const labelPoint = polarToCartesian(labelRadius, angle);
 
@@ -221,7 +335,7 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
           const alignmentBaseline = "middle";
 
           return (
-            <G key={`label-${index}`}>
+            <G key={`label-${area.id ?? index}`}>
               {/* Touchable Area für Interaktion */}
               <TouchableOpacity
                 style={[
@@ -267,7 +381,7 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
         {/* Polygon für Zielwerte (falls aktiviert) mit verbessertem Kontrast */}
         {showTargetValues && (
           <Polygon
-            points={targetValuePoints}
+            points={getTargetPath()}
             fill={`${themeColors.a}30`}
             stroke={themeColors.a}
             strokeWidth="2"
@@ -276,15 +390,18 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
         )}
 
         {/* Punkte für die Werte mit verbesserten Visuellen */}
-        {lifeWheelAreas.map((area, index) => {
-          const angle = calculateAngle(index, lifeWheelAreas.length);
+        {validLifeWheelAreas.map((area, index) => {
+          const angle = calculateAngle(index, validLifeWheelAreas.length);
+          const validCurrentValue = typeof area.currentValue === 'number' && !isNaN(area.currentValue) 
+            ? area.currentValue 
+            : 0;
           const currentPoint = polarToCartesian(
-            (radius * area.currentValue) / MAX_VALUE,
+            (radius * validCurrentValue) / MAX_VALUE,
             angle,
           );
 
           return (
-            <G key={`point-${index}`}>
+            <G key={`point-${area.id ?? index}`}>
               {/* Sichtbarer Punkt für aktuellen Wert */}
               <Circle
                 cx={currentPoint.x}
@@ -316,14 +433,17 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
                 }
                 strokeWidth="0.5"
               >
-                {area.currentValue}
+                {validCurrentValue}
               </SvgText>
 
               {/* Punkt für Zielwert (falls aktiviert) */}
               {showTargetValues &&
                 (() => {
+                  const validTargetValue = typeof area.targetValue === 'number' && !isNaN(area.targetValue) 
+                    ? area.targetValue 
+                    : 0;
                   const targetPoint = polarToCartesian(
-                    (radius * area.targetValue) / MAX_VALUE,
+                    (radius * validTargetValue) / MAX_VALUE,
                     angle,
                   );
 
@@ -360,7 +480,7 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
                         }
                         strokeWidth="0.5"
                       >
-                        {area.targetValue}
+                        {validTargetValue}
                       </SvgText>
                     </>
                   );

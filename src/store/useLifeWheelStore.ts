@@ -1,234 +1,311 @@
-// src/store/useLifeWheelStore.ts - AI-Ready Schema Update (CORRECTED)
+// src/store/useLifeWheelStore.ts - Aligned with the new database schema
 
 import { supabase } from "../lib/supabase";
 import { createBaseStore, BaseState } from "./createBaseStore";
+import i18n from "../utils/i18n";
 
-// Types for AI-ready database schema (ACTUAL schema from migrations)
-export interface LifeWheelSnapshot {
-  id: string;
-  user_id: string;
-  snapshot_data: any; // JSONB containing the actual snapshot
-  ai_analysis?: any;
-  created_at: string;
+// The primary data structure for a life wheel area in the app
+export interface LifeWheelArea {
+  id: string; // Corresponds to 'id' in DB
+  areaKey: string; // Corresponds to 'name' in DB (e.g., 'health_fitness')
+  name: string; // Localized display name, derived from areaKey/translations
+  currentValue: number; // Corresponds to 'current_value'
+  targetValue: number; // Corresponds to 'target_value'
+  notes?: string; // Corresponds to 'notes'
+  improvementActions?: string[]; // Corresponds to 'improvement_actions'
+  priorityLevel?: number; // Corresponds to 'priority_level'
+  translations?: any; // Corresponds to 'translations'
+  createdAt?: string; // Corresponds to 'created_at'
+  updatedAt?: string; // Corresponds to 'updated_at'
 }
 
-export interface LifeWheelArea {
-  id: string; // Unique name of the area, e.g. 'health_fitness'
-  name: string; // Localized display name
+// Type for updates to a life wheel area
+type LifeWheelAreaUpdate = Partial<{
   currentValue: number;
   targetValue: number;
-  notes?: string;
-  improvementActions?: string[];
-}
+  notes: string;
+  improvementActions: string[];
+  priorityLevel: number;
+  translations: any;
+  createdAt: string;
+  updatedAt: string;
+}>;
 
 // Defines the state and actions for the Life Wheel Store
 export interface LifeWheelStoreState extends BaseState {
-  // State
+  userId: string | undefined;
   lifeWheelAreas: LifeWheelArea[];
-  currentSnapshot: LifeWheelSnapshot | null;
-  isDirty: boolean; // Indicates if there are unsaved changes
-
-  // Actions
   loadLifeWheelData: (userId: string) => Promise<void>;
   updateLifeWheelArea: (
     areaId: string,
-    updates: Partial<LifeWheelArea>,
-  ) => void;
-  createSnapshot: (
-    userId: string,
-    description?: string,
-    triggerEvent?: string,
-  ) => Promise<string | undefined>;
+    updates: Partial<
+      Pick<
+        LifeWheelArea,
+        | "currentValue"
+        | "targetValue"
+        | "notes"
+        | "improvementActions"
+        | "priorityLevel"
+      >
+    >,
+  ) => Promise<void>;
   createDefaultAreas: (userId: string) => Promise<void>;
   reset: () => void;
-
-  // Computed/Queries
   calculateAverage: () => number;
   findLowestAreas: (count?: number) => LifeWheelArea[];
 }
 
-// Helper function to get localized name;
-const getLocalizedName = (name: string, translations?: any): string => {
-  if (!translations) return name;
-  const currentLang = "de"; // Default fallback
-  try {
-    if (translations && typeof translations === "object") {
-      return (
-        translations[currentLang] ||
-        translations["de"] ||
-        translations["en"] ||
-        name
-      );
-    }
-  } catch (error) {
-    console.warn("Error parsing translations:", error);
-  }
-  return name;
+// Helper to get localized names from i18n
+const getLocalizedName = (key: string): string => {
+  return i18n.t(`lifeWheel:areas.${key}`) || key;
 };
 
 export const useLifeWheelStore = createBaseStore<LifeWheelStoreState>(
-  {},
-  (set, get) => ({
-    // Initial State
-    lifeWheelAreas: [],
-    currentSnapshot: null,
-    isDirty: false,
+  { 
+    userId: undefined,
+    lifeWheelAreas: [] 
+  },
+  (set, get) => {
+    return {
+      // Initial State
+      lifeWheelAreas: [],
+      userId: undefined,
 
-    // Actions
-    loadLifeWheelData: async (userId: string) => {
-      const { setLoading, setError, updateLastSync } = get();
-      setLoading(true);
-      try {
-        const { data: snapshot, error: snapshotError } = await supabase
-          .from("life_wheel_snapshots")
-          .select("*")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
+      // Actions
+      loadLifeWheelData: async (userId: string): Promise<void> => {
+        const { setLoading, setError, updateLastSync } = get();
+        
+        // Setze den Ladezustand zurück, bevor ein neuer Ladevorgang beginnt
+        setLoading(true);
+        
+        try {
+          console.log(`Lade Lebensrad-Daten für Benutzer ${userId}...`);
+          
+          const { data, error } = await supabase
+            .from("life_wheel_areas")
+            .select("*")
+            .eq("user_id", userId);
 
-        if (snapshotError && snapshotError.code !== "PGRST116") {
-          throw snapshotError;
+          if (error) {
+            console.error("Supabase Fehler:", error);
+            throw error;
+          }
+
+          console.log("Daten von Supabase empfangen:", data ? `Anzahl Einträge: ${data.length}` : 'Keine Daten');
+          
+          if (data && data.length > 0) {
+            console.log("Verarbeife Lebensrad-Bereiche...");
+            const areas = data.map(
+              (area: any): LifeWheelArea => ({
+                id: area.id,
+                areaKey: area.name,
+                name: getLocalizedName(area.name),
+                currentValue: area.current_value ?? 0,
+                targetValue: area.target_value ?? 0,
+                notes: area.notes,
+                improvementActions: area.improvement_actions,
+                priorityLevel: area.priority_level,
+                translations: area.translations,
+                createdAt: area.created_at,
+                updatedAt: area.updated_at,
+              }),
+            );
+            
+            console.log("Aktualisiere Zustand mit Lebensrad-Bereichen:", areas.length);
+            set((state) => ({ ...state, lifeWheelAreas: areas }));
+          } else {
+            console.log("Keine Lebensrad-Bereiche gefunden, erstelle Standardbereiche...");
+            // If no areas exist, create the default set
+            await get().createDefaultAreas(userId);
+          }
+          
+          updateLastSync();
+          console.log("Lebensrad-Daten erfolgreich geladen.");
+          
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+          console.error("Fehler beim Laden der Lebensrad-Daten:", errorMessage);
+          setError(error as Error);
+          throw error; // Wirft den Fehler weiter, damit der Aufrufer darauf reagieren kann
+          
+        } finally {
+          console.log("Setze Ladezustand auf 'false'.");
+          setLoading(false);
         }
+      },
 
-        const isValidSnapshot =
-          snapshot &&
-          snapshot.snapshot_data &&
-          Array.isArray(snapshot.snapshot_data.areas) &&
-          snapshot.snapshot_data.areas.length > 0 &&
-          snapshot.snapshot_data.areas[0].hasOwnProperty("current_value");
+      createDefaultAreas: async (userId: string) => {
+        const { setLoading, setError, updateLastSync } = get();
+        setLoading(true);
+        try {
+          const defaultAreaKeys = [
+            "health_fitness",
+            "career",
+            "finances",
+            "relationships",
+            "personal_development",
+            "spirituality",
+            "fun_recreation",
+            "physical_environment",
+          ];
 
-        if (isValidSnapshot) {
-          const areas = snapshot.snapshot_data.areas.map((area: any) => ({
-            id: area.name,
-            name: getLocalizedName(area.name, area.translations),
-            currentValue: area.current_value ?? 0,
-            targetValue: area.target_value ?? 0,
-            notes: area.notes,
-            improvementActions: area.improvement_actions,
+          const areasToInsert = defaultAreaKeys.map((key) => ({
+            user_id: userId,
+            name: key,
+            current_value: 5,
+            target_value: 8,
+            priority_level: 3,
           }));
 
-          set((state) => ({
-            ...state,
-            currentSnapshot: snapshot,
-            lifeWheelAreas: areas,
-            isDirty: false,
-          }));
-        } else {
-          // If no snapshot exists, or it's malformed, create default areas
-          await get().createDefaultAreas(userId);
+          // Insert new areas and select them back to get the generated IDs
+          const { data, error } = await supabase
+            .from("life_wheel_areas")
+            .insert(areasToInsert)
+            .select();
+
+          console.log("Data retrieved from Supabase:", data);
+          console.log("Data details:", JSON.stringify(data, null, 2)); // Added debug logging
+          if (error) throw error;
+
+          if (data) {
+            const newAreas = data.map(
+              (area: any): LifeWheelArea => ({
+                id: area.id,
+                areaKey: area.name,
+                name: getLocalizedName(area.name),
+                currentValue: area.current_value ?? 0,
+                targetValue: area.target_value ?? 0,
+                notes: area.notes,
+                improvementActions: area.improvement_actions,
+                priorityLevel: area.priority_level,
+                translations: area.translations,
+                createdAt: area.created_at,
+                updatedAt: area.updated_at,
+              }),
+            );
+            set((state) => ({ ...state, lifeWheelAreas: newAreas }));
+            console.log("New areas with IDs from database:", newAreas);
+            updateLastSync();
+            console.log("Last sync updated after creating default areas.");
+          }
+        } catch (error) {
+          setError(error as Error);
+          console.error("Error creating default areas:", error);
+        } finally {
+          setLoading(false);
         }
-        updateLastSync();
-      } catch (error) {
-        setError(error as Error);
-        console.error("Error loading life wheel data:", error);
-      } finally {
-        setLoading(false);
-      }
-    },
+      },
 
-    createDefaultAreas: async (userId: string) => {
-      const { setLoading, setError } = get();
-      setLoading(true);
-      try {
-        const defaultAreas: LifeWheelArea[] = [
-          { id: "health_fitness", name: "Gesundheit & Fitness", currentValue: 5, targetValue: 8 },
-          { id: "career", name: "Beruf & Karriere", currentValue: 5, targetValue: 8 },
-          { id: "finances", name: "Finanzen", currentValue: 5, targetValue: 8 },
-          { id: "relationships", name: "Beziehungen", currentValue: 5, targetValue: 8 },
-          { id: "personal_development", name: "Persönliche Entwicklung", currentValue: 5, targetValue: 8 },
-          { id: "spirituality", name: "Spiritualität", currentValue: 5, targetValue: 8 },
-          { id: "fun_recreation", name: "Spaß & Erholung", currentValue: 5, targetValue: 8 },
-          { id: "physical_environment", name: "Physische Umgebung", currentValue: 5, targetValue: 8 },
-        ];
+      updateLifeWheelArea: async (
+        areaId: string,
+        updates: LifeWheelAreaUpdate,
+      ) => {
+        if (!areaId) {
+          console.error("Cannot update area in database: areaId is null");
+          return;
+        }
+        const { setError, lifeWheelAreas: originalAreas, updateLastSync } = get();
 
-        // Set the default areas in the state so createSnapshot can use them
-        set((state) => ({ ...state, lifeWheelAreas: defaultAreas }));
-
-        // Create a snapshot to persist them
-        await get().createSnapshot(
-          userId,
-          "Automatisch erstelltes erstes Lebensrad.",
-          "initial",
-        );
-      } catch (error) {
-        setError(error as Error);
-        console.error("Error creating default areas:", error);
-      } finally {
-        setLoading(false);
-      }
-    },
-
-    updateLifeWheelArea: (areaId, updates) => {
-      set((state) => ({
-        ...state,
-        lifeWheelAreas: state.lifeWheelAreas.map((area) =>
-          area.id === areaId ? { ...area, ...updates } : area,
-        ),
-        isDirty: true,
-      }));
-    },
-
-    createSnapshot: async (userId, description, triggerEvent = "manual") => {
-      const { setLoading, setError, updateLastSync } = get();
-      setLoading(true);
-      try {
-        const snapshotData = {
-          description: description,
-          trigger_event: triggerEvent,
-          areas: get().lifeWheelAreas.map((area) => ({
-            name: area.id,
-            current_value: area.currentValue,
-            target_value: area.targetValue,
-            notes: area.notes,
-          })),
+        // Map camelCase to snake_case for database
+        const dbUpdates: Record<string, any> = {
+          updated_at: new Date().toISOString(),
         };
 
-        const { data, error } = await supabase
-          .from("life_wheel_snapshots")
-          .insert({
-            user_id: userId,
-            snapshot_data: snapshotData,
-          })
-          .select("id")
-          .single();
-
-        if (error || !data) {
-          throw new Error(`Failed to create snapshot: ${error?.message}`);
+        // Map updates to database fields
+        if ("currentValue" in updates) {
+          dbUpdates.current_value = updates.currentValue;
+        }
+        if ("targetValue" in updates) {
+          dbUpdates.target_value = updates.targetValue;
+        }
+        if ("notes" in updates) {
+          dbUpdates.notes = updates.notes;
+        }
+        if (updates.improvementActions !== undefined) {
+          dbUpdates.improvement_actions = updates.improvementActions;
+        }
+        if ("priorityLevel" in updates) {
+          dbUpdates.priority_level = updates.priorityLevel;
         }
 
-        updateLastSync();
-        set((state) => ({ ...state, isDirty: false }));
-        return data.id;
-      } catch (error) {
-        setError(error as Error);
-        return undefined;
-      } finally {
-        setLoading(false);
-      }
-    },
+        // Optimistic update
+        const updatedAreas = originalAreas.map((area) =>
+          area.id === areaId ? { ...area, ...updates } : area,
+        );
 
-    reset: () => {
-      set((state) => ({
-        ...state,
-        lifeWheelAreas: [],
-        currentSnapshot: null,
-        isDirty: false,
-      }));
-    },
+        set((state: LifeWheelStoreState) => ({
+          ...state,
+          lifeWheelAreas: updatedAreas as LifeWheelArea[],
+        }));
 
-    calculateAverage: () => {
-      const areas = get().lifeWheelAreas;
-      if (areas.length === 0) return 0;
-      const sum = areas.reduce((total, area) => total + area.currentValue, 0);
-      return Math.round((sum / areas.length) * 10) / 10; // Round to 1 decimal
-    },
+        try {
+          const { data, error } = await supabase
+            .from("life_wheel_areas")
+            .update(dbUpdates)
+            .eq("id", areaId)
+            .select();
 
-    findLowestAreas: (count = 3) => {
-      return [...get().lifeWheelAreas]
-        .sort((a, b) => a.currentValue - b.currentValue)
-        .slice(0, count);
-    },
-  }),
-  "lifeWheel",
+          console.log("Data retrieved from Supabase:", data);
+          console.log("Data details:", JSON.stringify(data, null, 2)); // Added debug logging
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            const updatedAreaFromServer = data[0];
+            set((state: LifeWheelStoreState) => ({
+              ...state,
+              lifeWheelAreas: state.lifeWheelAreas.map((area) => {
+                if (area.id === areaId) {
+                  return {
+                    ...area,
+                    ...updates, // Apply optimistic updates
+                    // And override with server response for consistency
+                    currentValue: updatedAreaFromServer.current_value,
+                    targetValue: updatedAreaFromServer.target_value,
+                    notes: updatedAreaFromServer.notes,
+                    improvementActions: updatedAreaFromServer.improvement_actions,
+                    priorityLevel: updatedAreaFromServer.priority_level,
+                    updatedAt: updatedAreaFromServer.updated_at,
+                  };
+                }
+                return area;
+              }),
+            }));
+            updateLastSync();
+          }
+        } catch (error) {
+          setError(error as Error);
+          console.error("Error updating life wheel area:", error);
+          // Revert optimistic update on error
+          set((state: LifeWheelStoreState) => ({
+            ...state,
+            lifeWheelAreas: originalAreas,
+          }));
+        }
+      },
+
+      reset: () => {
+        set((state: LifeWheelStoreState) => ({
+          ...state,
+          lifeWheelAreas: [],
+        }));
+      },
+
+      calculateAverage: () => {
+        const { lifeWheelAreas } = get();
+        console.log("Calculating average for areas:", lifeWheelAreas);
+        if (lifeWheelAreas.length === 0) return 0;
+        const sum = lifeWheelAreas.reduce((acc, area) => acc + area.currentValue, 0);
+        return sum / lifeWheelAreas.length;
+      },
+
+      findLowestAreas: (count: number = 3) => {
+        const { lifeWheelAreas } = get();
+        console.log("Finding lowest areas from:", lifeWheelAreas);
+        return lifeWheelAreas
+          .sort((a, b) => a.currentValue - b.currentValue)
+          .slice(0, count);
+      },
+    };
+  },
+  "lifeWheel"
 );

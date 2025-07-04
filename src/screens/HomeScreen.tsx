@@ -55,10 +55,41 @@ type Activity = {
 };
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
-  const { t, i18n } = useTranslation(["home", "common", "modules"]);
+  const { t, i18n } = useTranslation(["home", "common", "modules", "lifeWheel"]);
 
   // Use our custom hook instead of multiple useStore calls
-  const { summary, theme, progression, actions, analytics, isLoading, user } = useKlareStores();
+  const { summary, theme, progression, lifeWheel, analytics, isLoading, user } = useKlareStores();
+  
+  // Lade die Lebensrad-Daten für den aktuellen Benutzer mit Timeout
+  useEffect(() => {
+    if (!user?.id || !lifeWheel?.loadLifeWheelData) return;
+    
+    let isMounted = true;
+    const loadingTimeout = setTimeout(() => {
+      if (isMounted) {
+        console.warn("Laden der Lebensrad-Daten dauert länger als erwartet...");
+      }
+    }, 5000); // 5 Sekunden Timeout
+    
+    const loadData = async () => {
+      try {
+        await lifeWheel.loadLifeWheelData(user.id);
+      } catch (error) {
+        console.error("Fehler beim Laden der Lebensrad-Daten:", error);
+      } finally {
+        if (isMounted) {
+          clearTimeout(loadingTimeout);
+        }
+      }
+    };
+    
+    loadData();
+      
+    return () => {
+      isMounted = false;
+      clearTimeout(loadingTimeout);
+    };
+  }, [user?.id, lifeWheel?.loadLifeWheelData]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [todayTip, setTodayTip] = useState("");
 
@@ -197,7 +228,10 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     [summary],
   );
 
-  if (isLoading) {
+  // Debug-Flag für temporäre Statusanzeige
+const DEBUG_STORE_STATUS = true;
+
+if (isLoading) {
     return (
       <View
         style={{
@@ -211,6 +245,16 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <Text style={{ marginTop: 10, color: paperTheme.colors.onSurface }}>
           {t("loading")}
         </Text>
+        {/* Debug-Infos für Store-Status */}
+        {DEBUG_STORE_STATUS && (
+          <View style={{ marginTop: 24, padding: 12, backgroundColor: '#eee', borderRadius: 8, maxWidth: 340 }}>
+            <Text style={{ fontWeight: 'bold', color: '#d32f2f' }}>[DEBUG STORE STATUS]</Text>
+            <Text selectable style={{ fontSize: 12 }}>isLoading: {String(isLoading)}</Text>
+            <Text selectable style={{ fontSize: 12 }}>summary: {JSON.stringify(summary)}</Text>
+            <Text selectable style={{ fontSize: 12 }}>user: {JSON.stringify(user)}</Text>
+            {/* Hier könnten weitere relevante States ergänzt werden */}
+          </View>
+        )}
       </View>
     );
   }
@@ -228,6 +272,16 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <Text style={{ color: paperTheme.colors.onSurface }}>
           {t("errors.summaryNotAvailable")}
         </Text>
+        {/* Debug-Infos für Store-Status */}
+        {DEBUG_STORE_STATUS && (
+          <View style={{ marginTop: 24, padding: 12, backgroundColor: '#eee', borderRadius: 8, maxWidth: 340 }}>
+            <Text style={{ fontWeight: 'bold', color: '#d32f2f' }}>[DEBUG STORE STATUS]</Text>
+            <Text selectable style={{ fontSize: 12 }}>isLoading: {String(isLoading)}</Text>
+            <Text selectable style={{ fontSize: 12 }}>summary: {JSON.stringify(summary)}</Text>
+            <Text selectable style={{ fontSize: 12 }}>user: {JSON.stringify(user)}</Text>
+            {/* Hier könnten weitere relevante States ergänzt werden */}
+          </View>
+        )}
       </View>
     );
   }
@@ -644,23 +698,25 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               {lifeWheelSummary &&
               lifeWheelSummary.lowestAreas &&
               lifeWheelSummary.lowestAreas.length > 0 ? (
-                lifeWheelSummary.lowestAreas.map((area) => (
-                  <List.Item
-                    key={area.id}
-                    title={area.name}
-                    description={t("sections.focusAreas.currentValue", {
-                      value: area.currentValue,
-                    })}
-                    left={(props) => (
-                      <List.Icon
-                        {...props}
-                        icon="alert-circle-outline"
-                        color={klareColors.r}
-                      />
-                    )}
-                    onPress={() => navigation.navigate("LifeWheel")}
-                  />
-                ))
+                lifeWheelSummary.lowestAreas
+                  .filter(area => area && area.id)
+                  .map(area => (
+                    <List.Item
+                      key={area.id}
+                      title={t(`lifeWheel:areas.${area.areaKey}.name`)}
+                      description={t("sections.focusAreas.currentValue", {
+                        value: area.currentValue,
+                      })}
+                      left={props => (
+                        <List.Icon
+                          {...props}
+                          icon="alert-circle-outline"
+                          color={klareColors.r}
+                        />
+                      )}
+                      onPress={() => navigation.navigate("LifeWheel")}
+                    />
+                  ))
               ) : (
                 <Text style={styles.noDataText}>
                   {t("noLifeWheelData")}
@@ -676,7 +732,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                 borderColor: klareColors.k,
               }}
             >
-              {t("sections.focusAreas.button")}
+              {t("sections.focusAreas.viewAllAreas")}
             </Button>
           </Card.Content>
         </Card>

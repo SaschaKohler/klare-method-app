@@ -1,4 +1,5 @@
 // src/hooks/useKlareStores.ts
+import React from "react";
 import { useMemo, useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type {
@@ -37,8 +38,9 @@ const useUserStoreValues = () =>
     }))
   );
 
-const useLifeWheelStoreValues = () =>
-  useLifeWheelStore(
+const useLifeWheelStoreValues = () => {
+  console.log("Accessing life wheel store values");
+  return useLifeWheelStore(
     useShallow((state) => ({
       lifeWheelAreas: state.lifeWheelAreas,
       isLoading: state.metadata.isLoading,
@@ -48,6 +50,7 @@ const useLifeWheelStoreValues = () =>
       loadLifeWheelData: state.loadLifeWheelData,
     }))
   );
+};
 
 const useProgressionStoreValues = () =>
   useProgressionStore(
@@ -101,7 +104,7 @@ const useVisionBoardStoreValues = () =>
 // Main Hook: useKlareStores
 // =================================================================
 
-export const useKlareStores = (): KlareStoreResult => {
+export const useKlareStores = (userId?: string): KlareStoreResult => {
   // 1. Select State from Stores
   const userStore = useUserStoreValues();
   const lifeWheelStore = useLifeWheelStoreValues();
@@ -112,15 +115,30 @@ export const useKlareStores = (): KlareStoreResult => {
   const visionBoardStore = useVisionBoardStoreValues();
 
   // 2. Side Effects
+  // Stelle sicher, dass checkUserActivity nur einmal beim ersten Laden eines eingeloggten Users ausgeführt wird
+  // Dies verhindert doppelte Initialisierung und wiederholte Logs
+  const hasCheckedUserActivity = React.useRef(false);
   useEffect(() => {
-    if (userStore.user?.id) {
+    if (userStore.user?.id && !hasCheckedUserActivity.current) {
       userStore.checkUserActivity();
+      hasCheckedUserActivity.current = true;
     }
   }, [userStore.user?.id, userStore.checkUserActivity]);
 
+  useEffect(() => {
+    console.log("useEffect in useKlareStore triggered with userId:", userId);
+    if (userId) {
+      console.log("User ID is set, loading data for user:", userId);
+      lifeWheelStore.loadLifeWheelData(userId);
+    } else {
+      console.log("No user ID provided, skipping data load.");
+    }
+  }, [userId]);
+
   // 3. Memoized Summaries
-  const lifeWheelSummary = useMemo<LifeWheelSummary>(() => {
-    const { lifeWheelAreas, calculateAverage, findLowestAreas } = lifeWheelStore;
+  const useLifeWheelSummary = (): LifeWheelSummary => {
+    console.log("useLifeWheelSummary called");
+    const { lifeWheelAreas, calculateAverage, findLowestAreas } = useLifeWheelStoreValues();
 
     if (!lifeWheelAreas || lifeWheelAreas.length === 0) {
       return { areas: [], average: 0, lowestAreas: [], highestAreas: [], gapAreas: [] };
@@ -141,7 +159,9 @@ export const useKlareStores = (): KlareStoreResult => {
       highestAreas,
       gapAreas,
     };
-  }, [lifeWheelStore]);
+  };
+
+  const lifeWheelSummary = useLifeWheelSummary();
 
   const modulesSummary = useMemo<ModulesSummary>(() => {
     const { getAvailableModules, completedModules, getCurrentStage, getNextStage } = progressionStore;
@@ -169,23 +189,64 @@ export const useKlareStores = (): KlareStoreResult => {
 
     if (!user) {
       return {
-        id: "", name: "Gast", email: null, progress: 0, daysInProgram: 0,
-        currentStage: null, nextStage: null, joinDate: null, join_date: null,
-        last_active: null, streak: 0, completed_modules: [], created_at: null,
-      } as UserSummary;
+        id: "",
+        name: "Gast",
+        email: null,
+        progress: 0,
+        daysInProgram: 0,
+        currentStage: null,
+        nextStage: null,
+        joinDate: null,
+        join_date: null,
+        last_active: null,
+        streak: 0,
+        completed_modules: [],
+        created_at: null,
+        updated_at: null,
+        ai_mode_enabled: false,
+        personalization_level: 'low',
+        preferred_language: 'de',
+      } as unknown as UserSummary; // Type assertion needed due to complex type requirements
     }
 
     const moduleProgress = modulesSummary.total > 0 ? ((modulesSummary.completed.length || 0) / modulesSummary.total) * 100 : 0;
     const lifeWheelProgress = lifeWheelSummary.average * 10; // Scale 0-10 to 0-100
     const totalProgress = (moduleProgress + lifeWheelProgress) / 2;
 
-    return {
-      ...user, id: user.id, name: user.name ?? "Unbekannt", email: user.email ?? null,
-      join_date: user.join_date ?? null, last_active: user.last_active ?? null, streak: user.streak ?? 0,
-      created_at: user.created_at ?? null, progress: totalProgress, daysInProgram: getDaysInProgram(),
-      currentStage: getCurrentStage(), nextStage: getNextStage(), joinDate: user.join_date ?? null,
+    // Create a properly typed user summary object with all required fields
+    const userSummary: UserSummary = {
+      // Spread all user properties first
+      ...user,
+      
+      // Ensure required fields from AppUser
+      id: user.id,
+      name: user.name ?? "Unbekannt",
+      email: user.email ?? null,
+      join_date: user.join_date ?? null,
+      last_active: user.last_active ?? null,
+      streak: user.streak ?? 0,
+      created_at: user.created_at ?? new Date().toISOString(),
+      updated_at: user.updated_at ?? new Date().toISOString(),
+      
+      // Add computed fields
+      progress: totalProgress,
+      daysInProgram: getDaysInProgram(),
+      currentStage: getCurrentStage(),
+      nextStage: getNextStage(),
+      joinDate: user.join_date ?? null,
       completed_modules: completedModules ?? [],
+      
+      // Add required UserSummary fields with defaults
+      ai_mode_enabled: false, // Default to false
+      personalization_level: 'medium', // Default level
+      preferred_language: 'de', // Default to German
+      
+      // Add any other required fields from UserSummary with defaults
+      // These are just examples - adjust according to your actual UserSummary type
+      ...(user as any), // Spread any additional properties that might be on the user object
     };
+    
+    return userSummary;
   }, [userStore.user, progressionStore, lifeWheelSummary, modulesSummary]);
 
   const resourcesSummary = useMemo<ResourceSummary>(() => {

@@ -84,57 +84,56 @@ export const useUserStore = createBaseStore<UserState>(
   (set, get) => ({
     ...userInitialState,
 
-    loadUserData: async (sessionParam: Session | null = null) => {
+        loadUserData: async (sessionParam: Session | null = null) => {
       const { setLoading, setError, setStorageStatus, updateLastSync, saveUserData } = get();
       setLoading(true);
       setError(null);
       setStorageStatus("initializing");
 
       try {
-        // This function should only run when a session is explicitly provided.
-        // This prevents a race condition on startup with the onAuthStateChange listener.
         const sessionToUse = sessionParam;
-        if (!sessionToUse) {
+        if (sessionToUse) {
+          debugLog("AUTH_LOGS", "loadUserData started with a session.");
+          const user = sessionToUse.user;
+          set((state) => ({ ...state, isOnline: true, user }));
+
+          const jsonLocalData = await unifiedStorage.getStringAsync(StorageKeys.USER);
+          if (jsonLocalData) {
+            const localData = JSON.parse(jsonLocalData);
+            const { user, lifeWheelAreas, completedModules, moduleProgressCache } = localData;
+            set((state) => ({ ...state, user, lifeWheelAreas, completedModules, moduleProgressCache }));
+          }
+          setStorageStatus("ready");
+
+          const { data: profileData, error: profileError } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", user.id)
+            .single();
+
+          if (profileError) {
+            console.warn("Could not fetch user profile:", profileError.message);
+            if (typeof navigator !== 'undefined' && !navigator.onLine) setError(null);
+            else throw profileError;
+          } else if (profileData) {
+            set((state) => ({ ...state, user: { ...state.user, ...profileData, streak: profileData.streak, last_active: profileData.last_active } as AppUser }));
+            updateLastSync();
+          }
+
+          await useLifeWheelStore.getState().loadLifeWheelData(user.id);
+          await useProgressionStore.getState().loadProgressionData(user.id);
+          
+          await saveUserData();
+        } else {
           debugLog("AUTH_LOGS", "loadUserData skipped: No session provided.");
-          return;
         }
-
-        const user = sessionToUse.user;
-        set((state) => ({ ...state, isOnline: true, user }));
-
-        const jsonLocalData = await unifiedStorage.getStringAsync(StorageKeys.USER);
-        if (jsonLocalData) {
-          const localData = JSON.parse(jsonLocalData);
-          const { user, lifeWheelAreas, completedModules, moduleProgressCache } = localData;
-          set((state) => ({ ...state, user, lifeWheelAreas, completedModules, moduleProgressCache }));
-        }
-        setStorageStatus("ready");
-
-        const { data: profileData, error: profileError } = await supabase
-          .from("users")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-
-        if (profileError) {
-          console.warn("Could not fetch user profile:", profileError.message);
-          if (typeof navigator !== 'undefined' && !navigator.onLine) setError(null);
-          else throw profileError;
-        } else if (profileData) {
-          set((state) => ({ ...state, user: { ...state.user, ...profileData, streak: profileData.streak, last_active: profileData.last_active } as AppUser }));
-          updateLastSync();
-        }
-
-        await useLifeWheelStore.getState().loadLifeWheelData(user.id);
-        await useProgressionStore.getState().loadProgressionData(user.id);
-        
-        await saveUserData();
       } catch (error) {
         debugLog("AUTH_LOGS", "Failed to load user data:", error);
         setError(error as Error);
         set((state) => ({ ...state, isOnline: false }));
       } finally {
         setLoading(false);
+        debugLog("AUTH_LOGS", "loadUserData finished, loading set to false.");
       }
     },
 

@@ -27,14 +27,16 @@ const LifeWheelScreen = () => {
   const { t, i18n } = useTranslation("lifeWheel");
   const { user } = useKlareStores();
   const [showInsights, setShowInsights] = useState(true);
-  const [selectedAreaId, setSelectedAreaId] = useState(null);
+  const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  console.log("isEditing state initialized or updated:", isEditing);
   const chartAnimation = useRef({
     scale: new Animated.Value(1),
     translateX: new Animated.Value(0),
     translateY: new Animated.Value(0),
   }).current;
   const inactivityTimer = useRef<NodeJS.Timeout | null>(null);
+  console.log("inactivityTimer ref initialized:", inactivityTimer.current);
   const insightsAnimation = useRef(new Animated.Value(0)).current; // 0 = normal, 1 = editing mode
 
   const theme = useTheme();
@@ -44,13 +46,16 @@ const LifeWheelScreen = () => {
     [theme, klareColors],
   );
 
-  // Store für LifeWheel-Daten verwenden
-  const {
-    lifeWheelAreas: areas,
-    metadata: { isLoading: loading, error },
-    loadLifeWheelData,
-    updateLifeWheelArea,
-  } = useLifeWheelStore();
+  // Daten aus dem Store abrufen
+  console.log("Initializing Klare Store with userId:", user?.id);
+  const store = useLifeWheelStore();
+  const areas = store.lifeWheelAreas || [];
+  const loading = store.metadata?.isLoading || false;
+  const error = store.metadata?.error || null;
+
+  useEffect(() => {
+    console.log('Areas passed to LifeWheelChart:', JSON.stringify(areas, null, 2));
+  }, [areas]);
 
   // Timer-Management für Auto-Return
   const resetInactivityTimer = useCallback(() => {
@@ -76,40 +81,50 @@ const LifeWheelScreen = () => {
 
   // Daten laden wenn User verfügbar ist oder sich die Sprache ändert
   useEffect(() => {
+    console.log("useEffect in LifeWheelScreen triggered with userId:", user?.id);
     if (user?.id) {
-      loadLifeWheelData(user.id);
+      // loadLifeWheelData(user.id);
     }
-  }, [user?.id, i18n.language, loadLifeWheelData]);
+  }, [user?.id, i18n.language]);
 
   // Handler für Wertänderungen im LifeWheelEditor
-  const handleAreaValueChange = (id, updates) => {
-    // Optimistische Updates über den Store
-    console.log("handleAreaValueChange", id, updates);
+  const handleAreaValueChange = (
+    areaKey: string,
+    updates: { current_value?: number; target_value?: number },
+  ) => {
+    const areaToUpdate = areas.find((a) => a.areaKey === areaKey);
+    if (!areaToUpdate) {
+      console.error(`Could not find area with key: ${areaKey}`);
+      return;
+    }
 
-    // Timer zurücksetzen bei jeder Benutzeraktivität
-    resetInactivityTimer();
+    const areaId = areaToUpdate.id;
 
-    // Nur die tatsächlich geänderten Werte übernehmen - andere Werte beibehalten
-    const updateObj = {};
+    // Map to camelCase for the store
+    const storeUpdates: { currentValue?: number; targetValue?: number } = {};
     if (updates.current_value !== undefined) {
-      updateObj.currentValue = Math.round(updates.current_value);
+      storeUpdates.currentValue = updates.current_value;
     }
     if (updates.target_value !== undefined) {
-      updateObj.targetValue = Math.round(updates.target_value);
+      storeUpdates.targetValue = updates.target_value;
     }
 
-    // Updates im neuen Format für AI-ready Store
-    updateLifeWheelArea(id, updateObj);
+    if (Object.keys(storeUpdates).length > 0) {
+      store.updateLifeWheelArea(areaId, storeUpdates);
+    }
   };
 
   // Handler für Editing-Start
   const handleEditingStart = () => {
+    console.log("Handling editing start. Current isEditing state:", isEditing);
     setIsEditing(true);
 
     // Timer starten für Auto-Return
+    console.log("Starting inactivity timer on edit start.");
     resetInactivityTimer();
 
     // Parallele Animationen für Chart und Insights
+    console.log("Starting animation for editing start. IsEditing:", isEditing);
     Animated.parallel([
       // Chart-Animation
       Animated.parallel([
@@ -133,7 +148,7 @@ const LifeWheelScreen = () => {
         }),
         // Insights-Animation
         Animated.timing(insightsAnimation, {
-          toValue: 1, // Nach oben bewegen
+          toValue: 1, // Nach oben bewegen während Editing
           duration: 500,
           easing: Easing.bezier(0.25, 0.1, 0.25, 1),
           useNativeDriver: true,
@@ -153,7 +168,7 @@ const LifeWheelScreen = () => {
       inactivityTimer.current = null;
     }
 
-    // Parallele Animationen zurück zur ursprünglichen Position
+    console.log("Starting animation for editing end. IsEditing:", isEditing);
     Animated.parallel([
       // Chart-Animation
       Animated.parallel([
@@ -187,7 +202,7 @@ const LifeWheelScreen = () => {
   };
 
   // Handler für Klicks auf Bereiche im Chart
-  const handleAreaPress = (areaId) => {
+  const handleAreaPress = (areaId: string) => {
     if (isEditing) {
       // Wenn wir im Editing-Modus sind, Chart-Klick beendet das Editing
       handleEditingEnd();
@@ -202,13 +217,7 @@ const LifeWheelScreen = () => {
 
   // LifeWheel-Bereiche sortieren nach dem größten Unterschied zwischen current_value und target_value
   const getDevelopmentAreas = () => {
-    return [...areas]
-      .sort(
-        (a, b) =>
-          a.target_value - a.current_value - (b.target_value - b.current_value),
-      )
-      .reverse()
-      .slice(0, 3);
+    return areas;
   };
 
   // Dynamische Chart-Größe basierend auf Animation - entfernt da wir jetzt transform verwenden
@@ -225,15 +234,7 @@ const LifeWheelScreen = () => {
     ],
   };
 
-  // Datentransformation für den LifeWheelChart (Store verwendet bereits camelCase)
-  const adaptedAreasForChart = useMemo(() => {
-    return areas.map((area) => ({
-      id: area.id,
-      name: area.name,
-      currentValue: area.currentValue, // Store verwendet camelCase
-      targetValue: area.targetValue, // Store verwendet camelCase
-    }));
-  }, [areas]);
+
 
   // Zusammenfassung der Entwicklungsbereiche
   const renderDevelopmentAreas = () => {
@@ -245,8 +246,8 @@ const LifeWheelScreen = () => {
           {t("insights.developmentAreas")}
         </Text>
 
-        {developmentAreas.map((area) => (
-          <View key={area.id} style={styles.insightItem}>
+        {developmentAreas.map((area, idx) => (
+          <View key={area.id ?? `devarea-${idx}`} style={styles.insightItem}>
             <View
               style={[styles.insightDot, { backgroundColor: klareColors.l }]}
             />
@@ -262,6 +263,7 @@ const LifeWheelScreen = () => {
 
   // Toggle für Insights
   const toggleInsights = () => {
+    console.log("Toggling insights visibility. Current showInsights state:", showInsights);
     setShowInsights(!showInsights);
   };
 
@@ -324,7 +326,7 @@ const LifeWheelScreen = () => {
         >
           <View style={styles.chartContainer}>
             <LifeWheelChart
-              lifeWheelAreas={adaptedAreasForChart}
+              lifeWheelAreas={getDevelopmentAreas()}
               showTargetValues={true}
               onAreaPress={handleAreaPress}
               size={Math.min(320, Math.max(220, theme.dark ? 280 : 300))}
@@ -370,7 +372,7 @@ const LifeWheelScreen = () => {
                 fontSize: 20,
                 fontWeight: "600",
                 marginBottom: 16,
-                color: theme.colors.text,
+                color: theme.colors.onSurface,
               }}
             >
               {t("insights.title")}

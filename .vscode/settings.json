@@ -1,0 +1,12 @@
+{
+    "editor.fontSize": 14,
+    "vim.cursorStylePerMode.insert": "block",
+    "vim.cursorStylePerMode.normal": "block-outline",
+    "vim.cursorStylePerMode.visual": "block",
+    "vim.easymotion": true,
+    "vim.enableNeovim": true,
+    "vim.leader": "space",
+    "vim.neovimUseConfigFile": true,
+    "vim.smartRelativeLine": true,
+    "vim.statusBarColorControl": true
+}

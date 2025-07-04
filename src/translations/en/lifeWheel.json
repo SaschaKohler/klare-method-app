@@ -18,6 +18,7 @@
   },
   "areas": {
     "health": "Health",
+    "health_fitness": "Health & Fitness",
     "career": "Career",
     "finances": "Finances",
     "contribution": "Contribution & Purpose",
