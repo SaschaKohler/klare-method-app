@@ -332,7 +332,7 @@ const LResourceManagerComponent = ({
       <ScrollView style={styles.scrollContainer}>
         <Card style={styles.infoCard}>
           <Card.Content>
-            <Title style={{ color: themeColor }}>Lebendigkeit</Title>
+            <Text variant="titleMedium" style={{ color: themeColor }}>Lebendigkeit</Text>
             <Paragraph>
               Lebendigkeit ist Ihr natürlicher Zustand von Energie und
               Authentizität. Identifizieren Sie Ihre Ressourcen, die
@@ -381,7 +381,7 @@ const LResourceManagerComponent = ({
 
         <Card style={[styles.tipsCard, { marginTop: 16 }]}>
           <Card.Content>
-            <Title style={styles.tipsTitle}>Tipps zur Lebendigkeit</Title>
+            <Text variant="titleMedium" style={styles.tipsTitle}>Tipps zur Lebendigkeit</Text>
             <View style={styles.tipItem}>
               <Ionicons
                 name="checkmark-circle"

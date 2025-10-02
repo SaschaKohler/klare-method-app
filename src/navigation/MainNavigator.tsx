@@ -116,39 +116,59 @@ const MainNavigator = () => {
   const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(null);
   const [userEmail, setUserEmail] = useState<string>("");
 
+  const handleSessionChange = useCallback(
+    async (nextSession: Session | null) => {
+      try {
+        const currentUser = nextSession?.user || null;
+        const isVerified = !!currentUser?.email_confirmed_at;
+
+        setSession(nextSession);
+        setUser(currentUser);
+        setIsEmailVerified(isVerified);
+        setUserEmail(currentUser?.email || "");
+
+        if (currentUser && isVerified) {
+          await createUserProfileIfNeeded(currentUser);
+          await loadUserData(nextSession);
+        } else if (!currentUser) {
+          clearUser();
+        }
+      } catch (error) {
+        debugLog(
+          "AUTH_LOGS",
+          "Error during auth state change processing:",
+          error,
+        );
+        clearUser();
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [clearUser, createUserProfileIfNeeded, loadUserData, setUser],
+  );
+
+  useEffect(() => {
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        debugLog("AUTH_LOGS", "MainNavigator: Initial session fetched", data);
+        return handleSessionChange(data.session);
+      })
+      .catch((error) => {
+        debugLog("AUTH_LOGS", "Failed to fetch initial session:", error);
+        setIsLoading(false);
+      });
+  }, [handleSessionChange]);
+
   useEffect(() => {
     debugLog("AUTH_LOGS", "MainNavigator: Auth state listener enabled");
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       debugLog("AUTH_LOGS", `Auth event: ${event}`, session);
-      // Do not set isLoading to true here; it causes an infinite re-render loop.
-      // The initial state from useState(true) handles the initial app load.
-      try {
-        const currentUser = session?.user || null;
-        const isVerified = !!currentUser?.email_confirmed_at;
-
-        setSession(session);
-        setUser(currentUser); // Set user in the global store
-        setIsEmailVerified(isVerified);
-        setUserEmail(currentUser?.email || "");
-
-        if (currentUser && isVerified) {
-          // Wait for profile creation and data loading to complete
-          await createUserProfileIfNeeded(currentUser);
-          await loadUserData(session);
-        } else if (currentUser) {
-          // User exists but is not verified, user is already set in store
-        } else {
-          // No user session, clear all user data
-          clearUser();
-        }
-      } catch (error) {
-        debugLog("AUTH_LOGS", "Error during auth state change processing:", error);
-        clearUser(); // Ensure state is clean on error
-      } finally {
-        setIsLoading(false);
-      }
+      // Do not set isLoading to true here; initial load is handled separately.
+      // We still process the session update to keep user state in sync.
+      void handleSessionChange(session);
     });
 
     const handleDeepLink = (url: string | null) => {
@@ -180,7 +200,7 @@ const MainNavigator = () => {
       linkingSubscription.remove();
       appStateSubscription.remove();
     };
-  }, [loadUserData, createUserProfileIfNeeded, clearUser, setUser]);
+  }, [clearUser, createUserProfileIfNeeded, handleSessionChange]);
 
   const resendConfirmationEmail = useCallback(async () => {
     if (!userEmail) return;

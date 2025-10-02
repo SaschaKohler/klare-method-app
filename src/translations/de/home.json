@@ -45,9 +45,17 @@
           "title": "Tägliche Kongruenz-Praxis",
           "description": "5-Minuten Übung für mehr Kongruenz"
         },
+        "dailyReflection": {
+          "title": "Tägliche Reflexion",
+          "description": "Kurze Reflexionseinheit, um den Tag bewusst abzuschließen"
+        },
         "updateLifeWheel": {
           "title": "Lebensrad aktualisieren",
           "description": "Wöchentliche Überprüfung Ihrer Fortschritte"
+        },
+        "weeklyReview": {
+          "title": "Wöchentliche Rückschau",
+          "description": "Reflektieren Sie Ihre wichtigsten Erkenntnisse der Woche"
         },
         "continueModule": {
           "title": "{{step}} - {{title}} fortsetzen",

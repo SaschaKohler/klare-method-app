@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { View, ScrollView, Animated, Dimensions } from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
+import { View, ScrollView, Animated, Dimensions, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -8,10 +8,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Text } from "../../components/ui/Text";
 import { Button } from "../../components/ui/Button";
 import { useOnboarding } from "../../hooks/useOnboarding";
-import { useLifeWheelStore } from "../../store/useLifeWheelStore";
 import { lightKlareColors } from "../../constants/theme";
+import { navigateWithFallback } from "../../utils/navigationUtils";
 
-const { width, height } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
 
 interface NextStep {
   icon: keyof typeof Ionicons.glyphMap;
@@ -22,8 +22,8 @@ interface NextStep {
 
 const OnboardingCompleteScreen: React.FC = () => {
   const { t } = useTranslation("onboarding");
-  const { completeOnboardingFlow } = useOnboarding();
-  const { areas } = useLifeWheelStore();
+  const { completeOnboardingFlow, isLoading, lifeWheelAreas } = useOnboarding();
+  const [isCompleting, setIsCompleting] = useState(false);
 
   // Animations
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -32,18 +32,18 @@ const OnboardingCompleteScreen: React.FC = () => {
   const [progressAnim] = useState(new Animated.Value(0));
 
   // Calculate stats
-  const completedAreas = areas?.length || 8;
-  const currentAverage = areas?.length
+  const completedAreas = lifeWheelAreas?.length || 8;
+  const currentAverage = lifeWheelAreas?.length
     ? Math.round(
-        (areas.reduce((sum, area) => sum + area.currentValue, 0) /
-          areas.length) *
+        (lifeWheelAreas.reduce((sum, area) => sum + area.currentValue, 0) /
+          lifeWheelAreas.length) *
           10,
       ) / 10
     : 5.0;
-  const targetAverage = areas?.length
+  const targetAverage = lifeWheelAreas?.length
     ? Math.round(
-        (areas.reduce((sum, area) => sum + area.targetValue, 0) /
-          areas.length) *
+        (lifeWheelAreas.reduce((sum, area) => sum + area.targetValue, 0) /
+          lifeWheelAreas.length) *
           10,
       ) / 10
     : 8.0;
@@ -58,7 +58,7 @@ const OnboardingCompleteScreen: React.FC = () => {
       color: lightKlareColors.k,
     },
     {
-      icon: "target-outline",
+      icon: "locate-outline",
       titleKey: "complete.next_steps.refine_wheel",
       descriptionKey: "complete.next_steps.refine_wheel_desc",
       color: lightKlareColors.l,
@@ -107,26 +107,53 @@ const OnboardingCompleteScreen: React.FC = () => {
     }, 5000);
 
     return () => clearTimeout(autoCompleteTimer);
-  }, []);
+  }, [handleStartJourney]);
 
-  const handleStartJourney = async () => {
-    console.log('🚀 Starting journey - completing onboarding...');
-    const success = await completeOnboardingFlow();
-    console.log('Onboarding completion result:', success);
-    
-    if (success) {
-      // The OnboardingWrapper should now recognize the completed status
-      // and automatically show the main app - no additional actions needed
-      console.log('✅ Onboarding completed successfully, should navigate to main app');
-    } else {
-      console.error('❌ Failed to complete onboarding');
-    }
-  };
+  const attemptNavigation = useCallback(
+    (targetRoute: "Main" | "ModuleScreen", params: Record<string, any> | undefined, attempt: number = 0) => {
+      const navigated = navigateWithFallback(targetRoute, params);
+      if (!navigated && attempt < 5) {
+        setTimeout(() => attemptNavigation(targetRoute, params, attempt + 1), 200);
+      }
+      return navigated;
+    },
+    [],
+  );
 
-  const handleExploreFirst = () => {
-    // Same as start journey - complete onboarding first
-    handleStartJourney();
-  };
+  const completeAndNavigate = useCallback(
+    async (targetRoute: "Main" | "ModuleScreen", params?: Record<string, any>) => {
+      if (isCompleting || isLoading) {
+        return;
+      }
+
+      setIsCompleting(true);
+      try {
+        const success = await completeOnboardingFlow();
+        if (success) {
+          const navigated = attemptNavigation(targetRoute, params, 0);
+          if (!navigated) {
+            attemptNavigation("Main", undefined, 0);
+          }
+        } else {
+          Alert.alert(
+            t("complete.error.title"),
+            t("complete.error.description"),
+          );
+        }
+      } finally {
+        setIsCompleting(false);
+      }
+    },
+    [attemptNavigation, completeOnboardingFlow, isCompleting, isLoading, t],
+  );
+
+  const handleStartJourney = useCallback(() => {
+    completeAndNavigate("Main");
+  }, [completeAndNavigate]);
+
+  const handleExploreFirst = useCallback(() => {
+    completeAndNavigate("ModuleScreen");
+  }, [completeAndNavigate]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f8fafc" }}>
@@ -153,7 +180,7 @@ const OnboardingCompleteScreen: React.FC = () => {
             <View
               style={{
                 alignItems: "center",
-                marginTop: height * 0.08,
+                marginTop: 5,
                 marginBottom: 40,
               }}
             >
@@ -190,6 +217,7 @@ const OnboardingCompleteScreen: React.FC = () => {
                     fontSize: 32,
                     fontWeight: "bold",
                     color: "#1f2937",
+                    paddingTop: 10,
                     marginHorizontal: 12,
                   }}
                 >
@@ -441,7 +469,14 @@ const OnboardingCompleteScreen: React.FC = () => {
             {/* Action Buttons */}
             <View style={{ gap: 16, marginBottom: 20 }}>
               <Button
+                title={t("complete.actions.start_journey")}
                 onPress={handleStartJourney}
+                size="large"
+                variant="primary"
+                loading={isCompleting || isLoading}
+                disabled={isCompleting || isLoading}
+                icon={<Ionicons name="rocket" size={22} color="white" />}
+                iconPosition="right"
                 style={{
                   backgroundColor: lightKlareColors.r,
                   paddingVertical: 18,
@@ -452,36 +487,22 @@ const OnboardingCompleteScreen: React.FC = () => {
                   shadowRadius: 4,
                   elevation: 2,
                 }}
-              >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: "white",
-                      fontSize: 18,
-                      fontWeight: "700",
-                      marginRight: 8,
-                      textShadowColor: "rgba(0,0,0,0.3)",
-                      textShadowOffset: { width: 0, height: 1 },
-                      textShadowRadius: 2,
-                    }}
-                  >
-                    {t("complete.actions.start_journey")}
-                  </Text>
-                  <Ionicons name="rocket" size={22} color="white" />
-                </View>
-              </Button>
+                textStyle={{
+                  fontSize: 18,
+                  fontWeight: "700",
+                }}
+              />
 
               <Button
+                title={`${t("complete.actions.explore_first")} →`}
                 onPress={handleExploreFirst}
+                size="large"
+                variant="outline"
+                loading={isCompleting || isLoading}
+                disabled={isCompleting || isLoading}
                 style={{
                   backgroundColor: "rgba(255,255,255,0.9)",
-                  borderColor: "#4F46E5", 
+                  borderColor: "#4F46E5",
                   borderWidth: 2,
                   paddingVertical: 14,
                   borderRadius: 12,
@@ -491,18 +512,12 @@ const OnboardingCompleteScreen: React.FC = () => {
                   shadowRadius: 2,
                   elevation: 1,
                 }}
-              >
-                <Text
-                  style={{
-                    color: "#4F46E5",
-                    fontSize: 16,
-                    fontWeight: "600",
-                    textAlign: "center",
-                  }}
-                >
-                  {t("complete.actions.explore_first")} →
-                </Text>
-              </Button>
+                textStyle={{
+                  color: "#4F46E5",
+                  fontSize: 16,
+                  fontWeight: "600",
+                }}
+              />
             </View>
           </Animated.View>
         </ScrollView>
@@ -512,4 +527,3 @@ const OnboardingCompleteScreen: React.FC = () => {
 };
 
 export default OnboardingCompleteScreen;
-

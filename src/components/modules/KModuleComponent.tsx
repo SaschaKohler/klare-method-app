@@ -83,6 +83,22 @@ const KModuleComponent: React.FC<KModuleComponentProps> = ({
   // Component Styles
   const styles = useMemo(() => createStyles(theme, klareColors), [theme, klareColors]);
 
+  const introSteps = useMemo(
+    () => [
+      {
+        title: 'Deine aktuelle Standortbestimmung',
+        content:
+          'Bevor wir mit der Arbeit beginnen, lass uns gemeinsam schauen, wo du gerade stehst.',
+      },
+      {
+        title: 'Bereit für das Meta-Modell',
+        content:
+          'Perfekt! Du bist jetzt bereit, das Meta-Modell der Sprache zu erlernen. Dieses mächtige Werkzeug hilft dir dabei, präziser zu kommunizieren und mehr Klarheit in deinen Gesprächen zu schaffen.',
+      },
+    ],
+    [],
+  );
+
   // Initialize component
   useEffect(() => {
     initializeKModule();
@@ -169,9 +185,11 @@ const KModuleComponent: React.FC<KModuleComponentProps> = ({
   };
 
   const getTotalSteps = () => {
+    if (module.module_id === 'k-intro') {
+      return introSteps.length;
+    }
+
     switch (module.module_id) {
-      case 'k-intro':
-        return 3; // Intro, Reflexion, Zusammenfassung
       case 'k-meta-model':
         return 5; // 5 Meta-Model Levels
       default:
@@ -359,62 +377,42 @@ const KModuleComponent: React.FC<KModuleComponentProps> = ({
   );
 
   const renderIntroStepContent = () => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <Card style={styles.contentCard} mode="elevated">
-            <Card.Content>
-              <Text style={styles.stepTitle}>Willkommen zur Klarheit!</Text>
-              <Text style={styles.stepContent}>
-                Im ersten Schritt der KLARE-Methode geht es um bewusste Wahrnehmung und 
-                Standortbestimmung. Du lernst, deine aktuelle Situation klar zu erkennen 
-                und präzise zu kommunizieren.
-              </Text>
-              <View style={styles.objectivesList}>
-                <Text style={styles.objectivesTitle}>Deine Ziele:</Text>
-                <Text style={styles.objective}>• Bewusste Wahrnehmung entwickeln</Text>
-                <Text style={styles.objective}>• Kommunikation präzisieren</Text>
-                <Text style={styles.objective}>• Meta-Modell der Sprache erlernen</Text>
-              </View>
-            </Card.Content>
-          </Card>
-        );
-      case 1:
-        return (
-          <Card style={styles.contentCard} mode="elevated">
-            <Card.Content>
-              <Text style={styles.stepTitle}>Deine aktuelle Standortbestimmung</Text>
-              <Text style={styles.stepContent}>
-                Bevor wir mit der Arbeit beginnen, lass uns gemeinsam schauen, 
-                wo du gerade stehst.
-              </Text>
-            </Card.Content>
-          </Card>
-        );
-      case 2:
-        return (
-          <Card style={styles.contentCard} mode="elevated">
-            <Card.Content>
-              <Text style={styles.stepTitle}>Bereit für das Meta-Modell</Text>
-              <Text style={styles.stepContent}>
-                Perfekt! Du bist jetzt bereit, das Meta-Modell der Sprache zu erlernen. 
-                Dieses mächtige Werkzeug hilft dir dabei, präziser zu kommunizieren 
-                und mehr Klarheit in deinen Gesprächen zu schaffen.
-              </Text>
-            </Card.Content>
-          </Card>
-        );
-      default:
-        return null;
+    if (module.module_id !== 'k-intro') {
+      return null;
     }
+
+    const current = introSteps[currentStep];
+    if (!current) {
+      return null;
+    }
+
+    return (
+      <Card style={styles.contentCard} mode="elevated">
+        <Card.Content>
+          <Text style={styles.stepTitle}>{current.title}</Text>
+          <Text style={styles.stepContent}>{current.content}</Text>
+        </Card.Content>
+      </Card>
+    );
   };
 
   const getStepTitle = () => {
+    if (module.module_id === 'k-intro') {
+      const current = introSteps[currentStep];
+      if (current) {
+        return current.title;
+      }
+    }
+
     switch (currentStep) {
-      case 0: return 'Einführung';
-      case 1: return 'Standortbestimmung';
-      case 2: return 'Vorbereitung';
-      default: return 'Schritt';
+      case 0:
+        return 'Einführung';
+      case 1:
+        return 'Standortbestimmung';
+      case 2:
+        return 'Vorbereitung';
+      default:
+        return 'Schritt';
     }
   };
 

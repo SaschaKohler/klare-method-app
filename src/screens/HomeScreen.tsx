@@ -1,14 +1,7 @@
 // src/screens/HomeScreen.optimized.tsx
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Animated,
-  ImageBackground,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Animated, ImageBackground, ScrollView, View } from "react-native";
 import {
   Avatar,
   Button,
@@ -17,7 +10,6 @@ import {
   List,
   ProgressBar,
   Text,
-  Title,
   useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -42,7 +34,7 @@ export type RootStackParamList = {
   // Add other screens here
 };
 
-type HomeScreenProps = StackScreenProps<RootStackParamList, 'Home'>;
+type HomeScreenProps = StackScreenProps<RootStackParamList, "Home">;
 
 type Activity = {
   id: string;
@@ -55,22 +47,28 @@ type Activity = {
 };
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
-  const { t, i18n } = useTranslation(["home", "common", "modules", "lifeWheel"]);
+  const { t, i18n } = useTranslation([
+    "home",
+    "common",
+    "modules",
+    "lifeWheel",
+  ]);
 
   // Use our custom hook instead of multiple useStore calls
-  const { summary, theme, progression, lifeWheel, analytics, isLoading, user } = useKlareStores();
-  
+  const { summary, theme, progression, lifeWheel, analytics, isLoading, user } =
+    useKlareStores();
+
   // Lade die Lebensrad-Daten für den aktuellen Benutzer mit Timeout
   useEffect(() => {
     if (!user?.id || !lifeWheel?.loadLifeWheelData) return;
-    
+
     let isMounted = true;
     const loadingTimeout = setTimeout(() => {
       if (isMounted) {
         console.warn("Laden der Lebensrad-Daten dauert länger als erwartet...");
       }
     }, 5000); // 5 Sekunden Timeout
-    
+
     const loadData = async () => {
       try {
         await lifeWheel.loadLifeWheelData(user.id);
@@ -82,9 +80,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         }
       }
     };
-    
+
     loadData();
-      
+
     return () => {
       isMounted = false;
       clearTimeout(loadingTimeout);
@@ -100,7 +98,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const styles = useMemo(
     () => createStyles(paperTheme, klareColors),
-    [paperTheme, klareColors]
+    [paperTheme, klareColors],
   );
 
   // Animation für Stage-Fortschritt
@@ -149,7 +147,8 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   useEffect(() => {
     const date = new Date();
     const dayOfYear = Math.floor(
-      (date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24),
+      (date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) /
+        (1000 * 60 * 60 * 24),
     );
     const tipIndex = dayOfYear % dailyTips.length;
     setTodayTip(dailyTips[tipIndex]);
@@ -167,9 +166,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     const daysInProgram = progression.getDaysInProgram();
 
     // TEMPORÄRER FIX: K-Module direkt verfügbar machen
-    const availableModules = ['k-intro', 'k-meta-model']; // progression.getAvailableModules();
+    const availableModules = ["k-intro", "k-meta-model"]; // progression.getAvailableModules();
 
-    availableModules.forEach(moduleId => {
+    availableModules.forEach((moduleId) => {
       const mod = getModuleById(moduleId);
       if (mod) {
         activities.push({
@@ -183,23 +182,29 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       }
     });
 
-    if (daysInProgram % 1 === 0) { // Täglich
+    if (daysInProgram % 1 === 0) {
+      // Täglich
       activities.push({
         id: "daily-reflection",
         type: "daily",
-        title: t("activities.dailyReflection.title"),
-        description: t("activities.dailyReflection.description"),
+        title: t("sections.nextActivities.activities.dailyReflection.title"),
+        description: t(
+          "sections.nextActivities.activities.dailyReflection.description",
+        ),
         step: "R",
         completed: false,
       });
     }
 
-    if (daysInProgram % 7 === 0) { // Wöchentlich
+    if (daysInProgram % 7 === 0) {
+      // Wöchentlich
       activities.push({
         id: "weekly-review",
         type: "weekly",
-        title: t("activities.weeklyReview.title"),
-        description: t("activities.weeklyReview.description"),
+        title: t("sections.nextActivities.activities.weeklyReview.title"),
+        description: t(
+          "sections.nextActivities.activities.weeklyReview.description",
+        ),
         step: "R",
         completed: false,
       });
@@ -212,26 +217,23 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   }, [progression, t]);
 
   // Berechne den Fortschritt für jeden KLARE-Schritt
-  const stepProgress = useMemo(
-    () => {
-      if (!summary?.modules) {
-        return { K: 0, L: 0, A: 0, R: 0, E: 0 };
-      }
-      return {
-        K: summary.modules.k / 100,
-        L: summary.modules.l / 100,
-        A: summary.modules.a / 100,
-        R: summary.modules.r / 100,
-        E: summary.modules.e / 100,
-      };
-    },
-    [summary],
-  );
+  const stepProgress = useMemo(() => {
+    if (!summary?.modules) {
+      return { K: 0, L: 0, A: 0, R: 0, E: 0 };
+    }
+    return {
+      K: summary.modules.k / 100,
+      L: summary.modules.l / 100,
+      A: summary.modules.a / 100,
+      R: summary.modules.r / 100,
+      E: summary.modules.e / 100,
+    };
+  }, [summary]);
 
   // Debug-Flag für temporäre Statusanzeige
-const DEBUG_STORE_STATUS = true;
+  const DEBUG_STORE_STATUS = true;
 
-if (isLoading) {
+  if (isLoading) {
     return (
       <View
         style={{
@@ -247,11 +249,27 @@ if (isLoading) {
         </Text>
         {/* Debug-Infos für Store-Status */}
         {DEBUG_STORE_STATUS && (
-          <View style={{ marginTop: 24, padding: 12, backgroundColor: '#eee', borderRadius: 8, maxWidth: 340 }}>
-            <Text style={{ fontWeight: 'bold', color: '#d32f2f' }}>[DEBUG STORE STATUS]</Text>
-            <Text selectable style={{ fontSize: 12 }}>isLoading: {String(isLoading)}</Text>
-            <Text selectable style={{ fontSize: 12 }}>summary: {JSON.stringify(summary)}</Text>
-            <Text selectable style={{ fontSize: 12 }}>user: {JSON.stringify(user)}</Text>
+          <View
+            style={{
+              marginTop: 24,
+              padding: 12,
+              backgroundColor: "#eee",
+              borderRadius: 8,
+              maxWidth: 340,
+            }}
+          >
+            <Text style={{ fontWeight: "bold", color: "#d32f2f" }}>
+              [DEBUG STORE STATUS]
+            </Text>
+            <Text selectable style={{ fontSize: 12 }}>
+              isLoading: {String(isLoading)}
+            </Text>
+            <Text selectable style={{ fontSize: 12 }}>
+              summary: {JSON.stringify(summary)}
+            </Text>
+            <Text selectable style={{ fontSize: 12 }}>
+              user: {JSON.stringify(user)}
+            </Text>
             {/* Hier könnten weitere relevante States ergänzt werden */}
           </View>
         )}
@@ -274,11 +292,27 @@ if (isLoading) {
         </Text>
         {/* Debug-Infos für Store-Status */}
         {DEBUG_STORE_STATUS && (
-          <View style={{ marginTop: 24, padding: 12, backgroundColor: '#eee', borderRadius: 8, maxWidth: 340 }}>
-            <Text style={{ fontWeight: 'bold', color: '#d32f2f' }}>[DEBUG STORE STATUS]</Text>
-            <Text selectable style={{ fontSize: 12 }}>isLoading: {String(isLoading)}</Text>
-            <Text selectable style={{ fontSize: 12 }}>summary: {JSON.stringify(summary)}</Text>
-            <Text selectable style={{ fontSize: 12 }}>user: {JSON.stringify(user)}</Text>
+          <View
+            style={{
+              marginTop: 24,
+              padding: 12,
+              backgroundColor: "#eee",
+              borderRadius: 8,
+              maxWidth: 340,
+            }}
+          >
+            <Text style={{ fontWeight: "bold", color: "#d32f2f" }}>
+              [DEBUG STORE STATUS]
+            </Text>
+            <Text selectable style={{ fontSize: 12 }}>
+              isLoading: {String(isLoading)}
+            </Text>
+            <Text selectable style={{ fontSize: 12 }}>
+              summary: {JSON.stringify(summary)}
+            </Text>
+            <Text selectable style={{ fontSize: 12 }}>
+              user: {JSON.stringify(user)}
+            </Text>
             {/* Hier könnten weitere relevante States ergänzt werden */}
           </View>
         )}
@@ -286,7 +320,11 @@ if (isLoading) {
     );
   }
 
-  const { user: userSummary, modules: modulesSummary, lifeWheel: lifeWheelSummary } = summary;
+  const {
+    user: userSummary,
+    modules: modulesSummary,
+    lifeWheel: lifeWheelSummary,
+  } = summary;
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -316,12 +354,17 @@ if (isLoading) {
         {/* Header mit Begrüßung und KLARE Logo */}
         <View style={styles.headerContainer}>
           <View>
-            <Text style={[styles.greeting, { color: paperTheme.colors.onSurface }]}>
+            <Text
+              style={[styles.greeting, { color: paperTheme.colors.onSurface }]}
+            >
               {getGreeting()}
             </Text>
-            <Title style={{ color: paperTheme.colors.onSurface }}>
+            <Text
+              variant="titleMedium"
+              style={{ color: paperTheme.colors.onSurface }}
+            >
               {getGreeting()}, {userSummary.name || t("anonymousUser")}
-            </Title>
+            </Text>
           </View>
           {user?.user_metadata?.avatar_url ? (
             <Avatar.Image
@@ -463,7 +506,7 @@ if (isLoading) {
         {/* Fortschrittsübersicht */}
         <Card style={styles.progressCard}>
           <Card.Content>
-            <Title>{t("progress.title")}</Title>
+            <Text>{t("progress.title")}</Text>
 
             <View style={styles.progressContainer}>
               <View style={styles.progressItem}>
@@ -617,16 +660,16 @@ if (isLoading) {
               icon="chart-bar"
               mode="outlined"
               onPress={() => navigation.navigate("LifeWheel")}
-              style={{ 
+              style={{
                 borderColor: klareColors.k,
                 borderWidth: 2,
                 minHeight: 48,
               }}
-              labelStyle={{ 
+              labelStyle={{
                 color: klareColors.k,
                 fontSize: 16,
                 fontWeight: "600",
-                textTransform: "none"
+                textTransform: "none",
               }}
               contentStyle={{
                 paddingVertical: 8,
@@ -639,7 +682,9 @@ if (isLoading) {
         </Card>
 
         {/* KLARE Methode Schritte */}
-        <Text style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}>
+        <Text
+          style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}
+        >
           {t("sections.klareMethod")}
         </Text>
         <KlareMethodCards
@@ -647,7 +692,9 @@ if (isLoading) {
           stepProgress={stepProgress}
         />
         {/* Vision Board Section */}
-        <Text style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}>
+        <Text
+          style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}
+        >
           {t("sections.visionBoard.title")}
         </Text>
         <Card style={styles.card}>
@@ -668,15 +715,15 @@ if (isLoading) {
             <Button
               mode="contained"
               onPress={() => navigation.navigate("VisionBoard")}
-              style={{ 
+              style={{
                 backgroundColor: klareColors.a,
                 minHeight: 48,
               }}
-              labelStyle={{ 
+              labelStyle={{
                 color: "white",
                 fontSize: 16,
                 fontWeight: "600",
-                textTransform: "none"
+                textTransform: "none",
               }}
               contentStyle={{
                 paddingVertical: 8,
@@ -688,7 +735,9 @@ if (isLoading) {
           </Card.Actions>
         </Card>
         {/* Fokus-Bereiche */}
-        <Text style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}>
+        <Text
+          style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}
+        >
           {t("sections.focusAreas.title")}
         </Text>
 
@@ -699,15 +748,17 @@ if (isLoading) {
               lifeWheelSummary.lowestAreas &&
               lifeWheelSummary.lowestAreas.length > 0 ? (
                 lifeWheelSummary.lowestAreas
-                  .filter(area => area && area.id)
-                  .map(area => (
+                  .filter((area) => area && area.id)
+                  .map((area) => (
                     <List.Item
                       key={area.id}
-                      title={t(`lifeWheel:areas.${area.areaKey}.name`)}
+                      title={t(`lifeWheel:areas.${area.areaKey}`, {
+                        defaultValue: area.name ?? area.areaKey,
+                      })}
                       description={t("sections.focusAreas.currentValue", {
                         value: area.currentValue,
                       })}
-                      left={props => (
+                      left={(props) => (
                         <List.Icon
                           {...props}
                           icon="alert-circle-outline"
@@ -718,9 +769,7 @@ if (isLoading) {
                     />
                   ))
               ) : (
-                <Text style={styles.noDataText}>
-                  {t("noLifeWheelData")}
-                </Text>
+                <Text style={styles.noDataText}>{t("noLifeWheelData")}</Text>
               )}
             </List.Section>
             <Button
@@ -738,7 +787,9 @@ if (isLoading) {
         </Card>
 
         {/* Nächste Aktivitäten */}
-        <Text style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}>
+        <Text
+          style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}
+        >
           {t("sections.nextActivities.title")}
         </Text>
 
@@ -807,7 +858,9 @@ if (isLoading) {
                   )}
                 </View>
 
-                <Title style={styles.activityTitle}>{activity.title}</Title>
+                <Text variant="titleMedium" style={styles.activityTitle}>
+                  {activity.title}
+                </Text>
                 <Text
                   style={[
                     styles.activityDescription,
@@ -821,27 +874,30 @@ if (isLoading) {
               <Card.Actions>
                 <Button
                   mode="contained"
-                  style={{ 
+                  style={{
                     backgroundColor: stepInfo?.color || klareColors.k,
                     minHeight: 48,
                   }}
-                  labelStyle={{ 
+                  labelStyle={{
                     color: "white",
                     fontSize: 16,
                     fontWeight: "bold",
-
                   }}
                   contentStyle={{
                     paddingVertical: 8,
                     paddingHorizontal: 16,
                   }}
                   onPress={() => {
-                    console.log('Button pressed for activity:', activity.type, activity.id);
+                    console.log(
+                      "Button pressed for activity:",
+                      activity.type,
+                      activity.id,
+                    );
                     if (activity.type === "module") {
                       // Navigate to ModuleScreen with specific step and module
-                      navigation.navigate("ModuleScreen", { 
+                      navigation.navigate("ModuleScreen", {
                         stepId: activity.step,
-                        moduleId: `${activity.step.toLowerCase()}-intro`
+                        moduleId: `${activity.step.toLowerCase()}-intro`,
                       });
                     } else if (activity.type === "daily") {
                       // Navigate to journal for daily reflection
@@ -872,9 +928,9 @@ if (isLoading) {
               <View style={styles.tipIconContainer}>
                 <Ionicons name="bulb-outline" size={24} color="white" />
               </View>
-              <Title style={styles.tipTitle}>
+              <Text variant="titleMedium" style={styles.tipTitle}>
                 {t("sections.dailyTip.title")}
-              </Title>
+              </Text>
               <Text style={styles.tipText}>{todayTip}</Text>
             </Card.Content>
           </ImageBackground>

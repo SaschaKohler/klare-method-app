@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-} from "react-native";
+import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import {
   Card,
-  Title,
-  Paragraph,
+  Text,
   Button,
   Chip,
   ActivityIndicator,
@@ -252,13 +244,11 @@ const LModuleIndexComponent = () => {
         <Card.Content>
           <View style={styles.headerContent}>
             <View style={styles.headerTextContainer}>
-              <Title style={[styles.headerTitle, { color: themeColor }]}>
-                Lebendigkeit
-              </Title>
-              <Paragraph style={styles.headerDescription}>
+              <Text variant="titleMedium">Lebendigkeit</Text>
+              <Text variant="bodyMedium" style={styles.headerDescription}>
                 Entdecken Sie Ihre natürlichen Energiequellen und transformieren
                 Sie Ihre Blockaden.
-              </Paragraph>
+              </Text>
             </View>
 
             <View
@@ -273,7 +263,7 @@ const LModuleIndexComponent = () => {
         </Card.Content>
       </Card>
 
-      {introModules.length > 0 && (
+      {introModus.length > 0 && (
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Einführung</Text>
           <View style={styles.modulesList}>
@@ -302,7 +292,7 @@ const LModuleIndexComponent = () => {
 
       <Card style={styles.tipsCard}>
         <Card.Content>
-          <Title style={styles.tipsTitle}>Lebendigkeits-Tipps</Title>
+          <Text variant="titleMedium" style={styles.tipsTitle}>Lebendigkeits-Tipps</Text>
           <View style={styles.tipsList}>
             <View style={styles.tipItem}>
               <Ionicons

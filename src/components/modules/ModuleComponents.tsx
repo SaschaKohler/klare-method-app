@@ -11,8 +11,6 @@ import {
 import {
   Text,
   Card,
-  Title,
-  Paragraph,
   Button,
   Checkbox,
   RadioButton,
@@ -152,8 +150,10 @@ const VideoModule: React.FC<{
             </Text>
           </View>
 
-          <Title style={styles.sectionTitle}>Video: {module.title}</Title>
-          <Paragraph>{module.description}</Paragraph>
+          <Text variant="titleMedium" style={styles.sectionTitle}>
+            Video: {module.title}
+          </Text>
+          <Text variant="bodyMedium">{module.description}</Text>
           <Text style={styles.durationText}>
             Dauer: {module.duration} Minuten
           </Text>
@@ -388,7 +388,7 @@ const ExerciseModule = ({ module, onComplete }: ExerciseModuleProps) => {
               {/* Beschreibungsansicht */}
               {activeSection === "description" && (
                 <View>
-                  <Title style={styles.exerciseTitle}>{module.title}</Title>
+                  <Text variant="titleMedium" style={styles.exerciseTitle}>{module.title}</Text>
                   <Paragraph style={styles.exerciseDescription}>
                     {exercise.description}
                   </Paragraph>
@@ -409,7 +409,7 @@ const ExerciseModule = ({ module, onComplete }: ExerciseModuleProps) => {
               {/* Schritte-Ansicht */}
               {activeSection === "steps" && (
                 <View>
-                  <Title style={styles.exerciseTitle}>Übungsschritte</Title>
+                  <Text variant="titleMedium" style={styles.exerciseTitle}>Übungsschritte</Text>
 
                   {exercise.steps.map((step, index) => (
                     <View key={index} style={styles.stepItem}>
@@ -459,7 +459,7 @@ const ExerciseModule = ({ module, onComplete }: ExerciseModuleProps) => {
               {/* Reflexionsansicht */}
               {activeSection === "reflection" && (
                 <View>
-                  <Title style={styles.exerciseTitle}>Reflexionsfragen</Title>
+                  <Text variant="titleMedium" style={styles.exerciseTitle}>Reflexionsfragen</Text>
                   <Paragraph style={styles.exerciseDescription}>
                     Nehmen Sie sich Zeit, über die folgenden Fragen
                     nachzudenken. Das Festhalten Ihrer Gedanken vertieft den
@@ -706,7 +706,7 @@ const QuizModule: React.FC<{
                 style={styles.resultsIcon}
               />
 
-              <Title style={styles.resultsTitle}>Quiz abgeschlossen!</Title>
+              <Text variant="titleMedium" style={styles.resultsTitle}>Quiz abgeschlossen!</Text>
 
               <Text style={styles.resultsScore}>
                 Ihr Ergebnis: {score} von {quiz.questions.length} Punkten (

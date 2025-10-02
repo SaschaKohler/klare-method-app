@@ -1,21 +1,6 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Animated,
-} from "react-native";
-import {
-  Card,
-  Button,
-  IconButton,
-  Title,
-  Paragraph,
-  Surface,
-  useTheme,
-} from "react-native-paper";
+import { View, Text, StyleSheet, Pressable, Animated } from "react-native";
+import { Button, useTheme } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 
 // ResourceVisualizer Komponente für den L-Schritt

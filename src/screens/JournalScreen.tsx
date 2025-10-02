@@ -1,6 +1,10 @@
 // src/screens/JournalScreen.tsx - Updated to use JournalStore and i18n
 import { Ionicons } from "@expo/vector-icons";
-import { NavigationProp, useFocusEffect, useNavigation } from "@react-navigation/native";
+import {
+  NavigationProp,
+  useFocusEffect,
+  useNavigation,
+} from "@react-navigation/native";
 import { format, isToday, isYesterday, parseISO, subDays } from "date-fns";
 import { de, enUS } from "date-fns/locale";
 
@@ -23,12 +27,10 @@ import {
   Menu,
   Searchbar,
   Text,
-  Title,
   useTheme,
 } from "react-native-paper";
 
 import { SafeAreaView } from "react-native-safe-area-context";
-import CalendarStrip from "../components/CalendarStrip";
 import { createJournalStyles } from "../constants/journalStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { useTranslation } from "react-i18next";
@@ -81,10 +83,6 @@ export default function JournalScreen() {
     [theme, klareColors, isDarkMode],
   );
 
-
-
-
-
   // Load journal data when the screen is focused
   useFocusEffect(
     React.useCallback(() => {
@@ -101,20 +99,24 @@ export default function JournalScreen() {
 
             // Debug log for loaded data
             if (__DEV__) {
-              console.log('JournalScreen loaded data:', {
+              console.log("JournalScreen loaded data:", {
                 templatesCount: templates.length,
                 categoriesCount: categories.length,
                 currentLanguage: i18n.language,
-                templateTitles: templates.map(t => t.title),
-                categoryNames: categories.map(c => c.name)
+                templateTitles: templates.map((t) => t.title),
+                categoryNames: categories.map((c) => c.name),
               });
-              
+
               // Warning if no data loaded
               if (templates.length === 0) {
-                console.warn('⚠️ No journal templates loaded. Check network connection or clear cache.');
+                console.warn(
+                  "⚠️ No journal templates loaded. Check network connection or clear cache.",
+                );
               }
               if (categories.length === 0) {
-                console.warn('⚠️ No journal categories loaded. Check network connection or clear cache.');
+                console.warn(
+                  "⚠️ No journal categories loaded. Check network connection or clear cache.",
+                );
               }
             }
 
@@ -214,12 +216,15 @@ export default function JournalScreen() {
   const formatEntryDate = (dateString: string) => {
     // Guard against undefined or invalid dateString
     if (!dateString) {
-      return t("calendar.invalidDate", { ns: "journal", defaultValue: "Unknown Date" });
+      return t("calendar.invalidDate", {
+        ns: "journal",
+        defaultValue: "Unknown Date",
+      });
     }
-    
+
     try {
       const date = parseISO(dateString);
-      
+
       if (isToday(date)) {
         return `${t("calendar.today", { ns: "journal" })}, ${format(date, "HH:mm")}`;
       } else if (isYesterday(date)) {
@@ -229,7 +234,10 @@ export default function JournalScreen() {
       }
     } catch (error) {
       console.error("Error formatting date:", error);
-      return t("calendar.invalidDate", { ns: "journal", defaultValue: "Invalid Date" });
+      return t("calendar.invalidDate", {
+        ns: "journal",
+        defaultValue: "Invalid Date",
+      });
     }
   };
 
@@ -247,54 +255,61 @@ export default function JournalScreen() {
   };
 
   // Helper function to check if a category is valid for current language
-  const isCategoryValidForLanguage = (categoryName: string, language: string) => {
+  const isCategoryValidForLanguage = (
+    categoryName: string,
+    language: string,
+  ) => {
     // Categories that don't exist in CLEAR method (English version)
     // Only filter out categories that are purely KLARE-specific method steps
     const germanOnlyCategories = [
-      'Ausrichtung',     // KLARE-specific step with no CLEAR equivalent
-      'Entfaltung',      // KLARE-specific step with no CLEAR equivalent
+      "Ausrichtung", // KLARE-specific step with no CLEAR equivalent
+      "Entfaltung", // KLARE-specific step with no CLEAR equivalent
       // English translations that should also be filtered
-      'Alignment',       // KLARE-specific
-      'Unfolding'        // KLARE-specific
+      "Alignment", // KLARE-specific
+      "Unfolding", // KLARE-specific
     ];
 
-    // Note: 'Abend Reflexion'/'Evening Reflection' and 'Werte Reflexion'/'Values Reflection' 
+    // Note: 'Abend Reflexion'/'Evening Reflection' and 'Werte Reflexion'/'Values Reflection'
     // are universal reflection concepts, not KLARE-specific, so they should be available in both languages
 
     // If we're in English mode, filter out only KLARE-specific categories
-    if (language === 'en') {
+    if (language === "en") {
       // Check both original name and potential translations
-      const isGermanOnly = germanOnlyCategories.some(germanCat => {
+      const isGermanOnly = germanOnlyCategories.some((germanCat) => {
         if (categoryName === germanCat) return true;
-        
+
         // Check if this is a translation of a German-only category
-        const category = categories.find(cat => cat.name === categoryName);
-        if (category?.translations?.de?.name && 
-            germanOnlyCategories.includes(category.translations.de.name)) {
+        const category = categories.find((cat) => cat.name === categoryName);
+        if (
+          category?.translations?.de?.name &&
+          germanOnlyCategories.includes(category.translations.de.name)
+        ) {
           return true;
         }
-        
+
         return false;
       });
-      
+
       return !isGermanOnly;
     }
-    
+
     // In German mode, all categories are valid
     return true;
   };
 
   // Filter categories by language appropriateness
   const filteredCategories = useMemo(() => {
-    const currentLanguage = i18n.language || 'de';
-    
-    return categories.filter(category => 
-      isCategoryValidForLanguage(category.name, currentLanguage)
+    const currentLanguage = i18n.language || "de";
+
+    return categories.filter((category) =>
+      isCategoryValidForLanguage(category.name, currentLanguage),
     );
   }, [categories, i18n.language]);
 
   // Helper function to get category names for filtering (updated to use filtered categories)
-  const getCategoryNamesForFiltering = (displayedCategoryName: string): string[] => {
+  const getCategoryNamesForFiltering = (
+    displayedCategoryName: string,
+  ): string[] => {
     // Create a mapping from any display name (DE or EN) to the internal category name
     const categoryMapping: Record<string, string> = categories.reduce(
       (acc, category) => {
@@ -324,42 +339,47 @@ export default function JournalScreen() {
   const filteredTemplates = useMemo(() => {
     if (!activeCategory) {
       // When no category is selected, still filter templates by language appropriateness
-      const currentLanguage = i18n.language || 'de';
-      
-      return templates.filter(template => {
+      const currentLanguage = i18n.language || "de";
+
+      return templates.filter((template) => {
         if (!template.category) return true; // Include templates without category
         return isCategoryValidForLanguage(template.category, currentLanguage);
       });
     }
-    
+
     // Get all possible names for this category
     const categoryNames = getCategoryNamesForFiltering(activeCategory);
-    
+
     const filtered = templates.filter(
       (template) =>
         template.category && categoryNames.includes(template.category),
     );
-    
+
     // Debug log
     if (__DEV__) {
-      console.log('Template filtering:', {
+      console.log("Template filtering:", {
         activeCategory,
         categoryNames,
         totalTemplates: templates.length,
         filteredCount: filtered.length,
-        templateCategories: templates.map(t => t.category),
-        availableCategories: filteredCategories.map(c => ({ name: c.name, translations: c.translations })),
-        language: i18n.language
+        templateCategories: templates.map((t) => t.category),
+        availableCategories: filteredCategories.map((c) => ({
+          name: c.name,
+          translations: c.translations,
+        })),
+        language: i18n.language,
       });
-      
+
       // Check for empty filter results
       if (filtered.length === 0 && templates.length > 0) {
-        console.warn('⚠️ No templates found for category:', activeCategory);
-        console.log('Available template categories:', [...new Set(templates.map(t => t.category))]);
-        console.log('Searching for category names:', categoryNames);
+        console.warn("⚠️ No templates found for category:", activeCategory);
+        console.log("Available template categories:", [
+          ...new Set(templates.map((t) => t.category)),
+        ]);
+        console.log("Searching for category names:", categoryNames);
       }
     }
-    
+
     return filtered;
   }, [templates, activeCategory, filteredCategories, i18n.language]);
 
@@ -395,14 +415,14 @@ export default function JournalScreen() {
     <TouchableOpacity onPress={() => createNewEntry(item)}>
       <Card style={styles.entryCard}>
         <Card.Content>
-          <Title>{item.title}</Title>
-          {item.description && <Text numberOfLines={2}>{item.description}</Text>}
+          <Text>{item.title}</Text>
+          {item.description && (
+            <Text numberOfLines={2}>{item.description}</Text>
+          )}
         </Card.Content>
       </Card>
     </TouchableOpacity>
   );
-
-
 
   // Render a journal entry
   const renderEntry = ({ item }: { item: JournalEntry }) => (
@@ -431,11 +451,7 @@ export default function JournalScreen() {
             {item.moodRating && renderMoodRating(item.moodRating)}
             {item.clarityRating && (
               <View style={styles.ratingContainer}>
-                <Ionicons
-                  name="bulb-outline"
-                  size={16}
-                  color={klareColors.k}
-                />
+                <Ionicons name="bulb-outline" size={16} color={klareColors.k} />
                 <Text
                   style={[
                     styles.ratingText,
@@ -478,8 +494,9 @@ export default function JournalScreen() {
         </TouchableOpacity>
 
         {filteredCategories.map((category) => {
-          const currentLanguage = i18n.language as 'de' | 'en';
-          const displayName = category.translations?.[currentLanguage]?.name || category.name;
+          const currentLanguage = i18n.language as "de" | "en";
+          const displayName =
+            category.translations?.[currentLanguage]?.name || category.name;
 
           return (
             <TouchableOpacity
@@ -518,39 +535,33 @@ export default function JournalScreen() {
   // Render compact day selector
   const renderDaySelector = () => (
     <View style={styles.daySelectorContainer}>
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.dayButtonsContainer}
       >
         {Array.from({ length: 10 }, (_, i) => {
           const date = subDays(new Date(), 9 - i);
-          const isSelected = format(date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
-          
+          const isSelected =
+            format(date, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd");
+
           return (
-            <TouchableOpacity 
-              key={i} 
-              style={[
-                styles.dayButton,
-                isSelected && styles.selectedDayButton
-              ]}
+            <TouchableOpacity
+              key={i}
+              style={[styles.dayButton, isSelected && styles.selectedDayButton]}
               onPress={() => setSelectedDate(date)}
             >
-              <Text style={[
-                styles.dayName, 
-                isSelected && styles.selectedDayText
-              ]}>
-                {format(date, 'E', { locale: dateLocale })}
+              <Text
+                style={[styles.dayName, isSelected && styles.selectedDayText]}
+              >
+                {format(date, "E", { locale: dateLocale })}
               </Text>
-              <Text style={[
-                styles.dayNumber, 
-                isSelected && styles.selectedDayText
-              ]}>
-                {format(date, 'd')}
+              <Text
+                style={[styles.dayNumber, isSelected && styles.selectedDayText]}
+              >
+                {format(date, "d")}
               </Text>
-              {isToday(date) && (
-                <View style={styles.todayIndicator} />
-              )}
+              {isToday(date) && <View style={styles.todayIndicator} />}
             </TouchableOpacity>
           );
         })}
@@ -619,21 +630,24 @@ export default function JournalScreen() {
                 />
               </View>
               <Text style={styles.emptyTitle}>
-                {t("emptyState.title", { 
-                  ns: "journal", 
-                  date: isToday(selectedDate) 
-                    ? t("emptyState.today", { ns: "journal" }) 
-                    : format(selectedDate, "dd. MMMM", { locale: dateLocale }) 
+                {t("emptyState.title", {
+                  ns: "journal",
+                  date: isToday(selectedDate)
+                    ? t("emptyState.today", { ns: "journal" })
+                    : format(selectedDate, "dd. MMMM", { locale: dateLocale }),
                 })}
               </Text>
               <Text style={styles.emptySubtitle}>
                 {t("emptyState.subtitle", { ns: "journal" })}
               </Text>
-              
+
               {/* Quick action buttons */}
               <View style={styles.quickActionsContainer}>
                 <TouchableOpacity
-                  style={[styles.quickActionButton, { backgroundColor: klareColors.k }]}
+                  style={[
+                    styles.quickActionButton,
+                    { backgroundColor: klareColors.k },
+                  ]}
                   onPress={() => createNewEntry()}
                 >
                   <Ionicons name="create-outline" size={20} color="white" />
@@ -641,13 +655,19 @@ export default function JournalScreen() {
                     {t("emptyState.freeEntry", { ns: "journal" })}
                   </Text>
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity
                   style={[styles.quickActionButton, styles.secondaryButton]}
                   onPress={() => setShowTemplateSelector(true)}
                 >
-                  <Ionicons name="list-outline" size={20} color={klareColors.k} />
-                  <Text style={[styles.quickActionText, { color: klareColors.k }]}>
+                  <Ionicons
+                    name="list-outline"
+                    size={20}
+                    color={klareColors.k}
+                  />
+                  <Text
+                    style={[styles.quickActionText, { color: klareColors.k }]}
+                  >
                     {t("emptyState.withTemplate", { ns: "journal" })}
                   </Text>
                 </TouchableOpacity>
@@ -677,16 +697,13 @@ export default function JournalScreen() {
   };
 
   return (
-    <SafeAreaView
-      edges={['top', 'left', 'right']}
-      style={styles.container}
-    >
+    <SafeAreaView edges={["top", "left", "right"]} style={styles.container}>
       {/* Header */}
       <View style={styles.headerContainer}>
         <View style={styles.headerTop}>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitle}>
-              {t('title', { ns: 'journal' })}
+              {t("title", { ns: "journal" })}
             </Text>
           </View>
 
@@ -715,7 +732,7 @@ export default function JournalScreen() {
                   setMenuVisible(false);
                   // TODO: Navigate to settings
                 }}
-                title={t('menu.settings', { ns: 'journal' })}
+                title={t("menu.settings", { ns: "journal" })}
                 leadingIcon="cog"
               />
               <Menu.Item
@@ -723,7 +740,7 @@ export default function JournalScreen() {
                   setMenuVisible(false);
                   // TODO: Implement export functionality
                 }}
-                title={t('menu.export', { ns: 'journal' })}
+                title={t("menu.export", { ns: "journal" })}
                 leadingIcon="export"
               />
               <Menu.Item
@@ -755,16 +772,23 @@ export default function JournalScreen() {
                               ) {
                                 Alert.alert(
                                   t("diagnose.issueTitle", { ns: "journal" }),
-                                  t("diagnose.issueDescription", { ns: "journal" })
+                                  t("diagnose.issueDescription", {
+                                    ns: "journal",
+                                  }),
                                 );
                               } else {
                                 Alert.alert(
                                   t("diagnose.successTitle", { ns: "journal" }),
-                                  t("diagnose.successDescription", { ns: "journal" })
+                                  t("diagnose.successDescription", {
+                                    ns: "journal",
+                                  }),
                                 );
                               }
                             } catch (error) {
-                              const errorMessage = error instanceof Error ? error.message : String(error);
+                              const errorMessage =
+                                error instanceof Error
+                                  ? error.message
+                                  : String(error);
                               Alert.alert(
                                 t("diagnose.errorTitle", { ns: "journal" }),
                                 t("diagnose.errorDescription", {

@@ -45,9 +45,17 @@
           "title": "Daily Congruence Practice",
           "description": "5-minute exercise for more congruence"
         },
+        "dailyReflection": {
+          "title": "Daily Reflection",
+          "description": "Brief reflection to consciously close your day"
+        },
         "updateLifeWheel": {
           "title": "Update Life Wheel",
           "description": "Weekly review of your progress"
+        },
+        "weeklyReview": {
+          "title": "Weekly Review",
+          "description": "Reflect on your key insights of the week"
         },
         "continueModule": {
           "title": "{{step}} - Continue {{title}}",

@@ -1,6 +1,7 @@
 // src/components/resources/ResourceFinder.tsx
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -9,7 +10,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from "react-native";
@@ -17,13 +17,14 @@ import {
   Button,
   Card,
   Chip,
-  Paragraph,
+  Text,
   ProgressBar,
   Surface,
-  Title,
   useTheme,
 } from "react-native-paper";
+import type { MD3Theme } from "react-native-paper";
 import { useKlareStores } from "../../hooks";
+import { RootStackParamList } from "../../navigation/types";
 import { ResourceCategory } from "../../services/ResourceLibraryService";
 import { darkKlareColors, lightKlareColors } from "../../constants/theme";
 
@@ -79,19 +80,18 @@ const RESOURCE_QUESTIONS: ResourceQuestion[] = [
   },
 ];
 
-const ResourceFinder = ({
-  onComplete,
-  themeColor = "#8B5CF6",
-  module,
-}: ResourceFinderProps) => {
-  const paperTheme = useTheme();
+type KlareColorPalette = typeof lightKlareColors | typeof darkKlareColors;
 
-  const { user, auth, theme, resources } = useKlareStores();
+const ResourceFinder = ({ onComplete, module }: ResourceFinderProps) => {
+  const paperTheme = useTheme();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
+  const { user, theme, resources } = useKlareStores();
   const isDarkMode = theme.isDarkMode;
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
   const styles = useMemo(
     () => createResourceFinderStyles(paperTheme, klareColors),
-    [theme, klareColors],
+    [theme, klareColors, paperTheme],
   );
   // Core states
   const [currentStep, setCurrentStep] = useState(0);
@@ -107,7 +107,7 @@ const ResourceFinder = ({
 
   // Get resources from the store
 
-  const userId = user.id || "guest";
+  const userId = user?.id || "guest";
   //
   // Steps for the resource finder process
   const steps = [
@@ -336,7 +336,9 @@ const ResourceFinder = ({
   };
 
   // Get category icon
-  const getCategoryIcon = (category: ResourceCategory): string => {
+  const getCategoryIcon = (
+    category: ResourceCategory,
+  ): keyof typeof Ionicons.glyphMap => {
     switch (category) {
       case ResourceCategory.ACTIVITY:
         return "flash-outline";
@@ -383,12 +385,10 @@ const ResourceFinder = ({
     return (
       <Card style={styles.card}>
         <Card.Content>
-          <Title style={[styles.title, { color: klareColors.text }]}>
+          <Text variant="titleLarge" style={styles.title}>
             {currentStepData.title}
-          </Title>
-          <Paragraph style={styles.paragraph}>
-            {currentStepData.description}
-          </Paragraph>
+          </Text>
+          <Text variant="bodyMedium">{currentStepData.description}</Text>
 
           <View style={styles.iconContainer}>
             <Ionicons
@@ -401,11 +401,11 @@ const ResourceFinder = ({
             </Text>
           </View>
 
-          <Paragraph style={[styles.paragraph, { marginTop: 16 }]}>
+          <Text variant="bodyMedium">
             Ressourcen sind deine persönlichen Energiequellen. Sie helfen dir,
             in stressigen Zeiten wieder in deine Kraft zu kommen und deine
             natürliche Lebendigkeit zu aktivieren.
-          </Paragraph>
+          </Text>
         </Card.Content>
 
         <Card.Actions style={styles.cardActions}>
@@ -429,9 +429,9 @@ const ResourceFinder = ({
     return (
       <Card style={styles.card}>
         <Card.Content>
-          <Title style={[styles.title, { color: klareColors.text }]}>
+          <Text variant="titleMedium">
             {currentStepData.title}
-          </Title>
+          </Text>
 
           <ScrollView
             horizontal
@@ -522,12 +522,12 @@ const ResourceFinder = ({
     return (
       <Card style={styles.card}>
         <Card.Content>
-          <Title style={[styles.title, { color: klareColors.k }]}>
+          <Text variant="titleMedium">
             {currentStepData.title}
-          </Title>
-          <Paragraph style={styles.paragraph}>
+          </Text>
+          <Text variant="bodyMedium">
             {currentStepData.description}
-          </Paragraph>
+          </Text>
 
           <View style={styles.textareaContainer}>
             <Text style={styles.inputLabel}>Name der Ressource</Text>
@@ -624,12 +624,12 @@ const ResourceFinder = ({
     return (
       <Card style={styles.card}>
         <Card.Content>
-          <Title style={[styles.title, { color: paperTheme.colors.primary }]}>
+          <Text variant="titleMedium">
             {currentStepData.title}
-          </Title>
-          <Paragraph style={styles.paragraph}>
+          </Text>
+          <Text style={styles.paragraph}>
             {currentStepData.description}
-          </Paragraph>
+          </Text>
 
           <View style={styles.resourcePreview}>
             <View style={styles.resourcePreviewHeader}>
@@ -668,12 +668,12 @@ const ResourceFinder = ({
             </View>
           </View>
 
-          <Paragraph style={styles.paragraph}>
+          <Text style={styles.paragraph}>
             Bewerte, wie stark diese Ressource aktuell in deinem Leben präsent
             ist. Eine niedrige Bewertung bedeutet nicht, dass die Ressource
             unwichtig ist - im Gegenteil kann es besonders wertvoll sein,
             schwache Ressourcen zu stärken.
-          </Paragraph>
+          </Text>
         </Card.Content>
 
         <Card.Actions style={styles.cardActions}>
@@ -704,12 +704,12 @@ const ResourceFinder = ({
     return (
       <Card style={styles.card}>
         <Card.Content>
-          <Title style={[styles.title, { color: paperTheme.colors.primary }]}>
+          <Text variant="titleMedium" style={[styles.title, { color: paperTheme.colors.primary }]}>
             {currentStepData.title}
-          </Title>
-          <Paragraph style={styles.paragraph}>
+          </Text>
+          <Text style={styles.paragraph}>
             {currentStepData.description}
-          </Paragraph>
+          </Text>
 
           <View style={styles.resourcePreview}>
             <Text style={styles.resourceName}>{resourceName}</Text>
@@ -780,12 +780,12 @@ const ResourceFinder = ({
     return (
       <Card style={styles.card}>
         <Card.Content>
-          <Title style={[styles.title, { color: paperTheme.colors.primary }]}>
+          <Text variant="titleMedium" >
             {currentStepData.title}
-          </Title>
-          <Paragraph style={styles.paragraph}>
+          </Text>
+          <Text style={styles.paragraph}>
             {currentStepData.description}
-          </Paragraph>
+          </Text>
 
           <Surface elevation={0} style={styles.resourceSummary}>
             <View style={styles.resourceHeader}>
@@ -878,7 +878,10 @@ const ResourceFinder = ({
   );
 };
 
-const createResourceFinderStyles = (paperTheme, klareColors) =>
+const createResourceFinderStyles = (
+  paperTheme: MD3Theme,
+  klareColors: KlareColorPalette,
+) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -1001,7 +1004,7 @@ const createResourceFinderStyles = (paperTheme, klareColors) =>
       paddingVertical: 2,
     },
     answeredChip: {
-      borderColor: klareColors.borderColor,
+      borderColor: klareColors.border,
       borderWidth: 1,
     },
     currentQuestion: {
@@ -1103,7 +1106,7 @@ const createResourceFinderStyles = (paperTheme, klareColors) =>
     resourceSummary: {
       borderRadius: 8,
       padding: 16,
-      backgroundColor: paperTheme.colors.backgroundColor,
+      backgroundColor: paperTheme.colors.surface,
     },
     resourceHeader: {
       flexDirection: "row",
@@ -1168,7 +1171,7 @@ const createResourceFinderStyles = (paperTheme, klareColors) =>
       padding: 12,
       borderRadius: 8,
       borderLeftWidth: 4,
-      borderLeftColor: paperTheme.colors.pr,
+      borderLeftColor: paperTheme.colors.primary,
     },
     saveInfoText: {
       fontSize: 13,

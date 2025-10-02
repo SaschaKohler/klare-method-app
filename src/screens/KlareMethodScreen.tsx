@@ -17,16 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  Button,
-  Card,
-  Chip,
-  List,
-  Paragraph,
-  Text,
-  Title,
-  useTheme,
-} from "react-native-paper";
+import { Button, Card, Chip, List, Text, useTheme } from "react-native-paper";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -68,13 +59,17 @@ type TabType =
   | "questions"
   | "modules";
 
-type KlareMethodScreenNavigationProp = StackNavigationProp<RootStackParamList, 'KlareMethod'>;
+type KlareMethodScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "KlareMethod"
+>;
 
 export default function KlareMethodScreen() {
   const navigation = useNavigation<KlareMethodScreenNavigationProp>();
   const route = useRoute<KlareMethodScreenRouteProp>();
   const scrollViewRef = useRef<ScrollView>(null);
-  const { t, i18n } = useTranslation("klareMethod");  const { progression, theme: themeStore } = useKlareStores();
+  const { t } = useTranslation("klareMethod");
+  const { progression, theme: themeStore } = useKlareStores();
 
   // State für den aktiven KLARE-Schritt und den aktiven Tab
   const [activeStepId, setActiveStepId] = useState<"K" | "L" | "A" | "R" | "E">(
@@ -84,9 +79,15 @@ export default function KlareMethodScreen() {
   const [autoRotate, setAutoRotate] = useState(false);
 
   // State for content from Supabase
-  const [transformationPoints, setTransformationPoints] = useState<TransformationPoint[]>([]);
-  const [practicalExercises, setPracticalExercises] = useState<PracticalExercise[]>([]);
-  const [supportingQuestions, setSupportingQuestions] = useState<SupportingQuestion[]>([]);
+  const [transformationPoints, setTransformationPoints] = useState<
+    TransformationPoint[]
+  >([]);
+  const [practicalExercises, setPracticalExercises] = useState<
+    PracticalExercise[]
+  >([]);
+  const [supportingQuestions, setSupportingQuestions] = useState<
+    SupportingQuestion[]
+  >([]);
   const [expandedQuestionIds, setExpandedQuestionIds] = useState<string[]>([]);
   const [isContentLoading, setIsContentLoading] = useState(false);
 
@@ -137,7 +138,7 @@ export default function KlareMethodScreen() {
     };
 
     loadContent();
-  }, [activeStepId]);  // Module für den aktiven Schritt laden
+  }, [activeStepId]); // Module für den aktiven Schritt laden
   useEffect(() => {
     const fetchModules = async () => {
       setIsLoading(true);
@@ -216,7 +217,7 @@ export default function KlareMethodScreen() {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [autoRotate]);  // Umschalten des Auto-Rotationsmodus
+  }, [autoRotate]); // Umschalten des Auto-Rotationsmodus
   const toggleAutoRotate = () => {
     setAutoRotate((prev) => !prev);
   };
@@ -245,21 +246,28 @@ export default function KlareMethodScreen() {
   const renderOverviewTab = () => (
     <View style={styles.sectionContainer}>
       <Text style={styles.sectionTitle}>
-        {t("overview.meaningTitle", { stepTitle: t(`stepTitles.${getLocalizedStepId(activeStepId)}`) })}
+        {t("overview.meaningTitle", {
+          stepTitle: t(`stepTitles.${getLocalizedStepId(activeStepId)}`),
+        })}
       </Text>
 
-      <Paragraph style={styles.description}>
+      <Text style={styles.description}>
         {t(`overview.descriptions.${getLocalizedStepId(activeStepId)}`)}
-      </Paragraph>
+      </Text>
 
       <Card style={styles.infoCard}>
         <Card.Content>
-          <Title style={[styles.infoTitle, { color: activeStep.color }]}>
-            {t("overview.aboutTitle", { stepId: getLocalizedStepId(activeStepId) })}
-          </Title>
-          <Paragraph>
+          <Text
+            variant="titleMedium"
+            style={[styles.infoTitle, { color: activeStep.color }]}
+          >
+            {t("overview.aboutTitle", {
+              stepId: getLocalizedStepId(activeStepId),
+            })}
+          </Text>
+          <Text>
             {t(`overview.aboutTexts.${getLocalizedStepId(activeStepId)}`)}
-          </Paragraph>
+          </Text>
         </Card.Content>
       </Card>
 
@@ -281,9 +289,7 @@ export default function KlareMethodScreen() {
       {isContentLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={activeStep.color} />
-          <Text style={styles.loadingText}>
-            {t("transformation.loading")}
-          </Text>
+          <Text style={styles.loadingText}>{t("transformation.loading")}</Text>
         </View>
       ) : (
         <TransformationList
@@ -387,6 +393,7 @@ export default function KlareMethodScreen() {
                 )}
               >
                 <List.Item
+                  title="test"
                   description={question.answer_text || t("questions.noAnswer")}
                   descriptionNumberOfLines={10}
                   style={{ marginLeft: 16 }}
@@ -411,12 +418,6 @@ export default function KlareMethodScreen() {
   };
 
   const renderModulesTab = () => {
-    const handleLModuleNavigation = (moduleId: string) => {
-      // This is a placeholder for special navigation logic for the 'L' step
-      // For now, it behaves like the default navigation
-      navigateToModules(moduleId);
-    };
-
     return (
       <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>
@@ -448,7 +449,7 @@ export default function KlareMethodScreen() {
                   ]}
                   onPress={() => {
                     if (isAvailable) {
-                       navigateToModules(moduleId);
+                      navigateToModules(moduleId);
                     }
                   }}
                 >
@@ -458,14 +459,15 @@ export default function KlareMethodScreen() {
                         <Text style={styles.moduleType}>
                           {t(`modules.contentTypes.${module.content_type}`)}
                         </Text>
-                        <Title
+                        <Text
+                          variant="titleMedium"
                           style={[
                             styles.moduleTitle,
                             !isAvailable && styles.lockedText,
                           ]}
                         >
                           {module.title_localized || module.title}
-                        </Title>
+                        </Text>
                       </View>
 
                       {!isAvailable && (
@@ -479,7 +481,7 @@ export default function KlareMethodScreen() {
                       )}
                     </View>
 
-                    <Paragraph
+                    <Text
                       style={[
                         styles.moduleDescription,
                         !isAvailable && styles.lockedText,
@@ -487,7 +489,7 @@ export default function KlareMethodScreen() {
                       numberOfLines={2}
                     >
                       {module.description}
-                    </Paragraph>
+                    </Text>
 
                     <View style={styles.moduleFooter}>
                       <View style={styles.moduleDuration}>

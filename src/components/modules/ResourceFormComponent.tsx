@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   KeyboardAvoidingView,
@@ -10,8 +9,7 @@ import {
 import {
   TextInput,
   Button,
-  Title,
-  Paragraph,
+  Text,
   useTheme,
   Portal,
   Modal,

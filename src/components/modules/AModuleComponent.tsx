@@ -1,19 +1,16 @@
 // src/components/modules/AModuleComponent.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import {
   Card,
-  Title,
-  Paragraph,
   Button,
   ProgressBar,
   useTheme,
   Text,
   TextInput,
-  Divider,
 } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
-import { lightKlareColors, klareColors } from "../../constants/theme";
+import { lightKlareColors } from "../../constants/theme";
 import { saveExerciseResult } from "../../lib/contentService";
 import { useUserStore } from "../../store/useUserStore";
 import { supabase } from "../../lib/supabase";
@@ -34,7 +31,9 @@ const AModuleComponent = ({ module, onComplete }: AModuleComponentProps) => {
   const themeColor = lightKlareColors.a;
 
   const [currentStep, setCurrentStep] = useState(0);
-  const [userResponses, setUserResponses] = useState<Record<string, string>>({});
+  const [userResponses, setUserResponses] = useState<Record<string, string>>(
+    {},
+  );
   const [userValues, setUserValues] = useState<PersonalValue[]>([]);
   const [loading, setLoading] = useState(false);
   const user = useUserStore((state) => state.user);
@@ -49,60 +48,68 @@ const AModuleComponent = ({ module, onComplete }: AModuleComponentProps) => {
   if (isValuesHierarchyModule) {
     return (
       <View style={styles.container}>
-        <Title style={[styles.moduleTitle, { color: themeColor }]}>
+        <Text
+          variant="titleMedium"
+          style={[styles.moduleTitle, { color: themeColor }]}
+        >
           {module.title || "Werte-Hierarchie"}
-        </Title>
+        </Text>
         <Paragraph style={styles.moduleDescription}>
-          {module.content?.description || 
-           "Diese Übung hilft Ihnen, Ihre Kernwerte zu identifizieren und in eine stimmige Hierarchie zu bringen."}
+          {module.content?.description ||
+            "Diese Übung hilft Ihnen, Ihre Kernwerte zu identifizieren und in eine stimmige Hierarchie zu bringen."}
         </Paragraph>
-        
-        <ValuesHierarchyComponent 
+
+        <ValuesHierarchyComponent
           onSaveValues={(values) => {
             if (!user) {
-              console.warn("Kein Benutzer angemeldet, Werte können nicht gespeichert werden.");
+              console.warn(
+                "Kein Benutzer angemeldet, Werte können nicht gespeichert werden.",
+              );
               onComplete();
               return;
             }
-            
+
             setLoading(true);
-            
+
             // Speichere die Werte in der personal_values Tabelle
             const savePersonalValues = async () => {
               try {
                 // Lösche vorhandene Werte dieses Benutzers
                 await supabase
-                  .from('personal_values')
+                  .from("personal_values")
                   .delete()
-                  .eq('user_id', user.id);
-                
+                  .eq("user_id", user.id);
+
                 // Füge neue Werte hinzu
                 const { data, error } = await supabase
-                  .from('personal_values')
+                  .from("personal_values")
                   .insert(
-                    values.map(value => ({
+                    values.map((value) => ({
                       user_id: user.id,
                       value_name: value.value_name,
                       description: value.description,
                       rank: value.rank,
-                      conflict_analysis: value.conflict_analysis
-                    }))
+                      conflict_analysis: value.conflict_analysis,
+                    })),
                   );
-                
+
                 if (error) {
                   throw error;
                 }
-            
+
                 // Aktion erfolgreich abgeschlossen
-                console.log('Persönliche Werte gespeichert:', data);
+                console.log("Persönliche Werte gespeichert:", data);
                 onComplete();
               } catch (error) {
-                console.error("Fehler beim Speichern der persönlichen Werte:", error);
+                console.error(
+                  "Fehler beim Speichern der persönlichen Werte:",
+                  error,
+                );
               } finally {
                 setLoading(false);
               }
             };
-            
+
             savePersonalValues();
           }}
           initialValues={userValues}
@@ -114,14 +121,17 @@ const AModuleComponent = ({ module, onComplete }: AModuleComponentProps) => {
   if (isLifeVisionModule) {
     return (
       <View style={styles.container}>
-        <Title style={[styles.moduleTitle, { color: themeColor }]}>
+        <Text
+          variant="titleMedium"
+          style={[styles.moduleTitle, { color: themeColor }]}
+        >
           {module.title || "Lebensvision"}
-        </Title>
+        </Text>
         <Paragraph style={styles.moduleDescription}>
-          {module.content?.description || 
-           "Diese Übung hilft Ihnen, eine integrierte Vision für Ihr Leben zu entwickeln."}
+          {module.content?.description ||
+            "Diese Übung hilft Ihnen, eine integrierte Vision für Ihr Leben zu entwickeln."}
         </Paragraph>
-        
+
         <VisionBoardExercise onComplete={onComplete} />
       </View>
     );
@@ -181,14 +191,17 @@ const AModuleComponent = ({ module, onComplete }: AModuleComponentProps) => {
         setLoading(true);
         const stepId = currentStepData.id;
         const response = userResponses[stepId] || "";
-        
+
         // Speichern der Eingabe in der Datenbank
         if (response.trim().length > 0) {
           await saveExerciseResult(user.id, stepId, response);
         }
-        
+
         // Zum nächsten Schritt gehen
-        if (module.exercise_steps && currentStep < module.exercise_steps.length - 1) {
+        if (
+          module.exercise_steps &&
+          currentStep < module.exercise_steps.length - 1
+        ) {
           setCurrentStep(currentStep + 1);
         } else {
           // Modul abschließen
@@ -201,7 +214,10 @@ const AModuleComponent = ({ module, onComplete }: AModuleComponentProps) => {
       }
     } else {
       // Wenn kein User oder kein aktueller Schritt, gehe einfach zum nächsten Schritt
-      if (module.exercise_steps && currentStep < module.exercise_steps.length - 1) {
+      if (
+        module.exercise_steps &&
+        currentStep < module.exercise_steps.length - 1
+      ) {
         setCurrentStep(currentStep + 1);
       } else {
         // Modul abschließen
@@ -236,9 +252,12 @@ const AModuleComponent = ({ module, onComplete }: AModuleComponentProps) => {
         return (
           <Card style={styles.card}>
             <Card.Content>
-              <Title style={[styles.title, { color: themeColor }]}>
+              <Text
+                variant="titleMedium"
+                style={[styles.title, { color: themeColor }]}
+              >
                 {currentStepData.title}
-              </Title>
+              </Text>
               <Paragraph style={styles.paragraph}>
                 {currentStepData.instructions}
               </Paragraph>
@@ -255,7 +274,9 @@ const AModuleComponent = ({ module, onComplete }: AModuleComponentProps) => {
                   style={styles.textInput}
                   placeholder="Tippen Sie hier, um Ihre Gedanken festzuhalten..."
                   value={userResponses[currentStepData.id] || ""}
-                  onChangeText={(text) => handleResponseChange(currentStepData.id, text)}
+                  onChangeText={(text) =>
+                    handleResponseChange(currentStepData.id, text)
+                  }
                 />
               </View>
             </Card.Content>
@@ -286,9 +307,12 @@ const AModuleComponent = ({ module, onComplete }: AModuleComponentProps) => {
         return (
           <Card style={styles.card}>
             <Card.Content>
-              <Title style={[styles.title, { color: themeColor }]}>
+              <Text
+                variant="titleMedium"
+                style={[styles.title, { color: themeColor }]}
+              >
                 {currentStepData.title}
-              </Title>
+              </Text>
               <Paragraph style={styles.paragraph}>
                 {currentStepData.instructions}
               </Paragraph>
@@ -299,9 +323,13 @@ const AModuleComponent = ({ module, onComplete }: AModuleComponentProps) => {
                   multiline={currentStepData.options?.multiline}
                   numberOfLines={currentStepData.options?.multiline ? 6 : 1}
                   style={styles.textInput}
-                  placeholder={currentStepData.options?.placeholder || "Ihre Antwort..."}
+                  placeholder={
+                    currentStepData.options?.placeholder || "Ihre Antwort..."
+                  }
                   value={userResponses[currentStepData.id] || ""}
-                  onChangeText={(text) => handleResponseChange(currentStepData.id, text)}
+                  onChangeText={(text) =>
+                    handleResponseChange(currentStepData.id, text)
+                  }
                 />
               </View>
             </Card.Content>
@@ -331,12 +359,15 @@ const AModuleComponent = ({ module, onComplete }: AModuleComponentProps) => {
         return (
           <Card style={styles.card}>
             <Card.Content>
-              <Title style={[styles.title, { color: themeColor }]}>
+              <Text
+                variant="titleMedium"
+                style={[styles.title, { color: themeColor }]}
+              >
                 {currentStepData.title || "Schritt"}
-              </Title>
-              <Paragraph style={styles.paragraph}>
+              </Text>
+              <Text style={styles.paragraph}>
                 {currentStepData.instructions || "Keine Anweisungen verfügbar."}
-              </Paragraph>
+              </Text>
 
               {isValuesHierarchyModule && (
                 <View style={styles.iconContainer}>
@@ -367,7 +398,11 @@ const AModuleComponent = ({ module, onComplete }: AModuleComponentProps) => {
 
               {isIntegrationCheckModule && (
                 <View style={styles.iconContainer}>
-                  <Ionicons name="checkmark-done" size={48} color={themeColor} />
+                  <Ionicons
+                    name="checkmark-done"
+                    size={48}
+                    color={themeColor}
+                  />
                   <Text style={[styles.iconText, { color: themeColor }]}>
                     Integrations-Check
                   </Text>
@@ -507,7 +542,8 @@ const styles = StyleSheet.create({
   },
   completeButton: {
     padding: 8,
-  }
+  },
 });
 
 export default AModuleComponent;
+

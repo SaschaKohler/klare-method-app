@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -7,6 +7,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -15,92 +16,84 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../constants/Colors";
 import { Text, Button } from "../../components/ui";
-import { useUserStore } from "../../store";
+import { useOnboarding } from "../../hooks/useOnboarding";
 import { OnboardingProgress } from "../../components/onboarding";
 import { OnboardingStackParamList } from "./OnboardingNavigator";
+import { OnboardingProfile } from "../../store/onboardingStore";
 
 type ProfileSetupScreenNavigationProp = StackNavigationProp<
   OnboardingStackParamList,
   "ProfileSetup"
 >;
 
-interface UserProfile {
-  firstName: string;
-  preferredName: string;
-  ageRange: string;
-  primaryGoals: string[];
-  currentChallenges: string[];
-  experienceLevel: string;
-  timeCommitment: string;
-}
-
 export const ProfileSetupScreen: React.FC = () => {
   const navigation = useNavigation<ProfileSetupScreenNavigationProp>();
   const { t } = useTranslation(["onboarding", "common"]);
 
-  const [profile, setProfile] = useState<UserProfile>({
-    firstName: "",
-    preferredName: "",
-    ageRange: "",
-    primaryGoals: [],
-    currentChallenges: [],
-    experienceLevel: "",
-    timeCommitment: "",
-  });
+  const {
+    profile: storedProfile,
+    updateProfile,
+    saveProgress,
+    setCurrentStep,
+  } = useOnboarding();
 
-  const handleInputChange = (field: keyof UserProfile, value: string) => {
-    setProfile((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const [profile, setProfile] = useState<OnboardingProfile>(storedProfile);
+
+  useEffect(() => {
+    setCurrentStep(4);
+  }, [setCurrentStep]);
+
+  useEffect(() => {
+    setProfile(storedProfile);
+  }, [storedProfile]);
+
+  const handleInputChange = (field: keyof OnboardingProfile, value: string) => {
+    setProfile((prev) => {
+      const updatedProfile = { ...prev, [field]: value } as OnboardingProfile;
+      updateProfile({ [field]: value } as Partial<OnboardingProfile>);
+      return updatedProfile;
+    });
   };
 
   const handleMultiSelect = (
     field: "primaryGoals" | "currentChallenges",
     value: string,
   ) => {
-    setProfile((prev) => ({
-      ...prev,
-      [field]: prev[field].includes(value)
+    setProfile((prev) => {
+      const isSelected = prev[field].includes(value);
+      const updatedValues = isSelected
         ? prev[field].filter((item) => item !== value)
-        : [...prev[field], value],
-    }));
+        : [...prev[field], value];
+      const updatedProfile = {
+        ...prev,
+        [field]: updatedValues,
+      } as OnboardingProfile;
+      updateProfile({
+        [field]: updatedValues,
+      } as Partial<OnboardingProfile>);
+      return updatedProfile;
+    });
   };
 
-  const { user, setUser, saveUserData } = useUserStore();
   const [isSaving, setIsSaving] = useState(false);
 
   const handleContinue = async () => {
-    if (!user) return;
     setIsSaving(true);
 
-    const updatedProfile = {
-      display_name: profile.preferredName || profile.firstName,
-      age_range: profile.ageRange,
-      primary_goals: profile.primaryGoals,
-      current_challenges: profile.currentChallenges,
-      experience_level: profile.experienceLevel,
-      time_commitment: profile.timeCommitment,
-      // Set onboarding as partially completed
-      onboarding_status: 'profile_completed',
-    };
+    try {
+      updateProfile(profile);
+      const success = await saveProgress();
 
-    // 1. Update user state locally
-    setUser({
-      ...user,
-      ...updatedProfile,
-    });
-
-    // 2. Persist changes to the database
-    const success = await saveUserData();
-
-    setIsSaving(false);
-
-    if (success) {
-      navigation.navigate("LifeWheelSetup");
-    } else {
-      // Optionally, show an error message to the user
-      alert("Fehler beim Speichern des Profils. Bitte versuchen Sie es erneut.");
+      if (success) {
+        navigation.navigate("LifeWheelSetup");
+      } else {
+        Alert.alert(
+          t("complete.error.title"),
+          t("complete.error.description"),
+        );
+      }
+    } finally {
+      setIsSaving(false);
     }
   };
 

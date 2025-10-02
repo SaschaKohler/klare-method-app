@@ -218,6 +218,14 @@
     "actions": {
       "start_journey": "Jetzt durchstarten",
       "explore_first": "Später erkunden"
+    },
+    "success": {
+      "title": "Onboarding abgeschlossen",
+      "description": "Deine Einstellungen wurden gespeichert. Wir öffnen jetzt die Hauptansicht."
+    },
+    "error": {
+      "title": "Onboarding fehlgeschlagen",
+      "description": "Bitte überprüfe deine Internetverbindung und versuche es erneut."
     }
   }
 }

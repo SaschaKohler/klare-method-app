@@ -12,7 +12,6 @@ import {
   Text,
   View,
   useColorScheme,
-  Alert,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Provider as PaperProvider } from "react-native-paper";
@@ -56,8 +55,6 @@ import { setTopLevelNavigator } from "./src/utils/navigationUtils";
 // import { prepare } from "@react-three/fiber/dist/declarations/src/core/renderer";
 import React from "react";
 import { OnboardingWrapper } from "./src/components/OnboardingWrapper";
-import { MMKV } from "react-native-mmkv";
-import supabase from "./src/lib/supabase";
 
 // Splash Screen während des Ladens anzeigen
 SplashScreen.preventAutoHideAsync();
@@ -71,7 +68,7 @@ export default function App() {
   const loadUserData = useUserStore((state) => state.loadUserData);
   const user = useUserStore((state) => state.user);
   const { loadResources } = useResourceStore();
-  
+
   // Debug store hydration status (only when enabled)
   useEffect(() => {
     if (!DEBUG_CONFIG.STORE_HYDRATION) return;

@@ -6,6 +6,11 @@
 import { supabase } from '../lib/supabase';
 import { storage, sensitiveStorage, privacyStorage } from '../lib/storage';
 import AIService from './AIService';
+import type {
+  PostgrestError,
+  PostgrestResponse,
+  PostgrestSingleResponse,
+} from '@supabase/supabase-js';
 
 export interface UserPrivacyPreferences {
   aiEnabled: boolean;
@@ -70,20 +75,74 @@ export interface QuizQuestion {
 
 export interface ModuleContent {
   id: string;
-  title: string;
-  description?: string;
-  content: any;
+  module_id: string;
   klare_step: string;
+  title: string;
+  description?: string | null;
+  content_type?: 'video' | 'theory' | 'intro' | 'exercise' | 'quiz' | 'text' | string;
+  content: any;
   order_index: number;
-  difficulty_level: number;
-  duration?: number;
-  estimated_duration?: number; // Legacy
-  content_type?: 'video' | 'theory' | 'intro' | 'exercise' | 'quiz' | string;
-  title_localized?: string;
-  module_id?: string; // Legacy
+  difficulty_level?: number | null;
+  duration?: number | null;
+  estimated_duration?: number | null;
+  sections?: ContentSection[];
+  exercise_steps?: ExerciseStep[];
+  quiz_questions?: QuizQuestion[];
+  title_localized?: string | null;
   // Additional properties for flexibility
   [key: string]: any;
 }
+
+interface ModuleSectionRaw {
+  id: string;
+  module_content_id: string;
+  title: string;
+  content: any;
+  section_type?: string | null;
+  order_index: number;
+}
+
+interface ModuleExerciseStepRaw {
+  id: string;
+  module_content_id: string;
+  title: string;
+  instructions: any;
+  step_type: string;
+  options: any;
+  order_index: number;
+}
+
+interface ModuleQuizQuestionRaw {
+  id: string;
+  module_content_id: string;
+  question: string;
+  question_type: string;
+  options: any;
+  correct_answer: any;
+  explanation?: any;
+  order_index: number;
+}
+
+type RawModuleContent = {
+  id: string;
+  module_id?: string | null;
+  klare_step?: string | null;
+  title: string;
+  description?: string | null;
+  content_type: string;
+  content: any;
+  order_index: number;
+  difficulty_level?: number | null;
+  duration?: number | null;
+  estimated_duration?: number | null;
+  title_localized?: string | null;
+};
+
+type RawModuleFetchResult = RawModuleContent & {
+  content_sections: ModuleSectionRaw[] | null;
+  exercise_steps: ModuleExerciseStepRaw[] | null;
+  quiz_questions: ModuleQuizQuestionRaw[] | null;
+};
 
 // =======================================
 // PRIVACY SERVICE
@@ -97,6 +156,77 @@ export class PrivacyService {
       PrivacyService.instance = new PrivacyService();
     }
     return PrivacyService.instance;
+  }
+
+  private mapPreferencesToDb(
+    userId: string,
+    preferences: Partial<UserPrivacyPreferences>,
+  ): Record<string, any> {
+    const timestamp = new Date().toISOString();
+    const dbPreferences: Record<string, any> = {
+      id: userId,
+      updated_at: timestamp,
+    };
+
+    if (preferences.aiEnabled !== undefined) {
+      dbPreferences.ai_enabled = preferences.aiEnabled;
+    }
+    if (preferences.aiPersonalizationLevel !== undefined) {
+      dbPreferences.ai_personalization_level = preferences.aiPersonalizationLevel;
+    }
+    if (preferences.dataSharingLevel !== undefined) {
+      dbPreferences.data_sharing_level = preferences.dataSharingLevel;
+    }
+    if (preferences.sensitiveDataLocalOnly !== undefined) {
+      dbPreferences.sensitive_data_local_only = preferences.sensitiveDataLocalOnly;
+    }
+    if (preferences.intimateDataLocalOnly !== undefined) {
+      dbPreferences.intimate_data_local_only = preferences.intimateDataLocalOnly;
+    }
+    if (preferences.prefersStaticQuestions !== undefined) {
+      dbPreferences.prefers_static_questions = preferences.prefersStaticQuestions;
+    }
+    if (preferences.allowsAiQuestions !== undefined) {
+      dbPreferences.allows_ai_questions = preferences.allowsAiQuestions;
+    }
+    if (preferences.preferredLanguage !== undefined) {
+      dbPreferences.preferred_language = preferences.preferredLanguage;
+    }
+    if (preferences.autoTranslate !== undefined) {
+      dbPreferences.auto_translate = preferences.autoTranslate;
+    }
+    if (preferences.consentVersion !== undefined) {
+      dbPreferences.consent_version = preferences.consentVersion;
+    }
+
+    if (preferences.last_consent_update !== undefined) {
+      dbPreferences.last_consent_update = preferences.last_consent_update;
+    } else {
+      dbPreferences.last_consent_update = timestamp;
+    }
+
+    return dbPreferences;
+  }
+
+  private mapPreferencesFromDb(data: any): UserPrivacyPreferences {
+    if (!data) {
+      return data;
+    }
+
+    return {
+      aiEnabled: data.ai_enabled ?? false,
+      aiPersonalizationLevel: data.ai_personalization_level ?? 'basic',
+      dataSharingLevel: data.data_sharing_level ?? 'cloud_safe',
+      sensitiveDataLocalOnly: data.sensitive_data_local_only ?? true,
+      intimateDataLocalOnly: data.intimate_data_local_only ?? true,
+      prefersStaticQuestions: data.prefers_static_questions ?? false,
+      allowsAiQuestions: data.allows_ai_questions ?? true,
+      preferredLanguage: data.preferred_language ?? 'de',
+      autoTranslate: data.auto_translate ?? false,
+      consentVersion: data.consent_version ?? undefined,
+      last_consent_update: data.last_consent_update ?? undefined,
+      updated_at: data.updated_at ?? undefined,
+    };
   }
 
   /**
@@ -156,13 +286,11 @@ export class PrivacyService {
     userId: string, 
     preferences: Partial<UserPrivacyPreferences>
   ): Promise<void> {
+    const dbPreferences = this.mapPreferencesToDb(userId, preferences);
+
     const { error } = await supabase
       .from('user_privacy_preferences')
-      .upsert({
-        id: userId,
-        ...preferences,
-        last_consent_update: new Date().toISOString()
-      });
+      .upsert(dbPreferences);
     
     if (error) throw error;
   }
@@ -178,7 +306,7 @@ export class PrivacyService {
       .single();
     
     if (error && error.code !== 'PGRST116') throw error;
-    return data;
+    return data ? this.mapPreferencesFromDb(data) : null;
   }
 
   /**
@@ -540,35 +668,538 @@ export class AIServiceWrapper {
 /**
  * Load module content (legacy compatibility)
  */
-export async function loadModuleContent(moduleId: string): Promise<ModuleContent | null> {
+const LOCAL_MODULE_CACHE: Record<string, ModuleContent> = {};
+
+function normalizeArray<T extends { order_index?: number }>(items: T[] | null | undefined): T[] {
+  if (!items) {
+    return [];
+  }
+  return items
+    .slice()
+    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+    .map((item) => ({ ...item }));
+}
+
+function mapSection(section: ModuleSectionRaw): ContentSection {
+  return {
+    id: section.id,
+    title: section.title,
+    content: typeof section.content === 'string' ? section.content : JSON.stringify(section.content ?? {}),
+    section_type: section.section_type ?? 'text',
+    order_index: section.order_index,
+  };
+}
+
+function mapExerciseStep(step: ModuleExerciseStepRaw): ExerciseStep {
+  return {
+    id: step.id,
+    title: step.title,
+    description:
+      typeof step.instructions === 'string'
+        ? step.instructions
+        : JSON.stringify(step.instructions ?? {}),
+    step_type: step.step_type,
+    options: step.options ?? {},
+    order_index: step.order_index,
+  };
+}
+
+function mapQuizQuestion(question: ModuleQuizQuestionRaw): QuizQuestion {
+  const normalizedOptions =
+    typeof question.options === 'string'
+      ? (() => {
+          try {
+            return JSON.parse(question.options);
+          } catch (error) {
+            console.warn('Quiz options JSON parse failed:', error);
+            return [];
+          }
+        })()
+      : question.options ?? [];
+
+  const normalizedCorrectAnswer =
+    typeof question.correct_answer === 'string' && question.correct_answer.trim().startsWith('{')
+      ? question.correct_answer
+      : typeof question.correct_answer === 'object'
+        ? JSON.stringify(question.correct_answer)
+        : String(question.correct_answer ?? '');
+
+  return {
+    id: question.id,
+    question_text: question.question,
+    question_type: question.question_type,
+    options: normalizedOptions,
+    correct_answer: normalizedCorrectAnswer,
+    explanation:
+      typeof question.explanation === 'string'
+        ? question.explanation
+        : question.explanation
+          ? JSON.stringify(question.explanation)
+          : undefined,
+  };
+}
+
+function mapRawModuleContent(raw: RawModuleFetchResult): ModuleContent {
+  const content =
+    raw.content && typeof raw.content === 'object'
+      ? raw.content
+      : raw.content
+        ? { body: raw.content }
+        : {};
+
+  const sections = normalizeArray<ModuleSectionRaw>(raw.content_sections).map(mapSection);
+  const exerciseSteps = normalizeArray<ModuleExerciseStepRaw>(raw.exercise_steps).map(mapExerciseStep);
+  const quizQuestions = normalizeArray<ModuleQuizQuestionRaw>(raw.quiz_questions).map(mapQuizQuestion);
+
+  const moduleIdentifier = raw.module_id ?? raw.id;
+  const klareStep = raw.klare_step ?? moduleIdentifier.substring(0, 1).toUpperCase();
+
+  return {
+    id: raw.id,
+    module_id: moduleIdentifier,
+    klare_step: klareStep,
+    title: raw.title,
+    description: raw.description ?? undefined,
+    content_type: raw.content_type,
+    content,
+    order_index: raw.order_index,
+    difficulty_level: raw.difficulty_level ?? undefined,
+    duration: raw.duration ?? (content as any)?.duration_minutes ?? undefined,
+    estimated_duration: raw.estimated_duration ?? undefined,
+    title_localized: raw.title_localized ?? undefined,
+    sections,
+    exercise_steps: exerciseSteps,
+    quiz_questions: quizQuestions,
+  };
+}
+
+const MODULE_SELECT_COLUMNS_LEGACY = `
+  id,
+  module_id,
+  klare_step,
+  title,
+  description,
+  content_type,
+  content,
+  order_index,
+  difficulty_level,
+  duration,
+  estimated_duration,
+  title_localized,
+  content_sections:content_sections(*),
+  exercise_steps:exercise_steps(*),
+  quiz_questions:quiz_questions(*)
+`;
+
+const MODULE_SELECT_COLUMNS_MODERN = `
+  id,
+  klare_step,
+  title,
+  description,
+  content_type,
+  content,
+  order_index,
+  difficulty_level,
+  duration,
+  estimated_duration,
+  title_localized,
+  content_sections:content_sections(*),
+  exercise_steps:exercise_steps(*),
+  quiz_questions:quiz_questions(*)
+`;
+
+type SupabaseModuleResponse = RawModuleFetchResult & { module_id?: string | null };
+
+type ModuleListRow = {
+  id: string;
+  module_id?: string | null;
+  klare_step?: string | null;
+  title: string;
+  description?: string | null;
+  content_type: string;
+  content: any;
+  order_index: number;
+  difficulty_level?: number | null;
+  duration?: number | null;
+  estimated_duration?: number | null;
+  title_localized?: string | null;
+};
+
+async function runModuleSelect(
+  moduleId: string,
+  field: 'module_id' | 'id',
+  columns: string,
+): Promise<PostgrestSingleResponse<SupabaseModuleResponse>> {
+  const response = await supabase
+    .from('module_contents')
+    .select(columns)
+    .eq(field, moduleId)
+    .maybeSingle<SupabaseModuleResponse>();
+
+  return response as PostgrestSingleResponse<SupabaseModuleResponse>;
+}
+
+async function fetchModuleFromSupabase(moduleId: string): Promise<ModuleContent | null> {
   try {
-    const { data, error } = await supabase
-      .from('module_contents')
-      .select('*')
-      .eq('id', moduleId)
-      .single();
-    
-    if (error) throw error;
-    return data;
+    let useLegacyColumns = true;
+    let response = await runModuleSelect(moduleId, 'module_id', MODULE_SELECT_COLUMNS_LEGACY);
+
+    if (response.error) {
+      if ((response.error as PostgrestError).code === '42703') {
+        useLegacyColumns = false;
+        response = await runModuleSelect(moduleId, 'module_id', MODULE_SELECT_COLUMNS_MODERN);
+      } else if ((response.error as PostgrestError).code !== 'PGRST116') {
+        throw response.error;
+      }
+    }
+
+    if ((!response.data || (response.error as PostgrestError | null)?.code === 'PGRST116') && useLegacyColumns) {
+      response = await runModuleSelect(moduleId, 'id', MODULE_SELECT_COLUMNS_LEGACY);
+      if (
+        response.error &&
+        (response.error as PostgrestError).code !== 'PGRST116' &&
+        (response.error as PostgrestError).code !== '42703'
+      ) {
+        throw response.error;
+      }
+    }
+
+    if (!response.data) {
+      if (useLegacyColumns) {
+        const fallback = await runModuleSelect(moduleId, 'id', MODULE_SELECT_COLUMNS_MODERN);
+        if (
+          fallback.error &&
+          (fallback.error as PostgrestError).code !== 'PGRST116' &&
+          (fallback.error as PostgrestError).code !== '42703'
+        ) {
+          throw fallback.error;
+        }
+        if (!fallback.data) {
+          console.warn(`Supabase: Modul ${moduleId} nicht gefunden.`);
+          return null;
+        }
+        return mapRawModuleContent(fallback.data);
+      }
+
+      console.warn(`Supabase: Modul ${moduleId} nicht gefunden.`);
+      return null;
+    }
+
+    return mapRawModuleContent(response.data);
   } catch (error) {
-    console.error('Failed to load module content:', error);
+    console.error('Failed to load module content from Supabase:', error);
     return null;
   }
+}
+
+function loadModuleFromModuleDefinitions(moduleId: string): ModuleContent | null {
+  try {
+    const { getModuleById } = require('../data/klareMethodModules') as typeof import('../data/klareMethodModules');
+    const moduleContentData = require('../data/klareModuleContent') as typeof import('../data/klareModuleContent');
+
+    const moduleDefinition = getModuleById(moduleId);
+    if (!moduleDefinition) {
+      return null;
+    }
+
+    const { theoryContent, exerciseContent, quizContent } = moduleContentData;
+
+    let content: any = {
+      intro_text: moduleDefinition.description,
+    };
+    let sections: ContentSection[] = [];
+    let exerciseSteps: ExerciseStep[] = [];
+    let quizQuestions: QuizQuestion[] = [];
+
+    if (moduleDefinition.type === 'text') {
+      const markdown = moduleDefinition.content
+        ? theoryContent[moduleDefinition.content as keyof typeof theoryContent]
+        : undefined;
+      if (markdown) {
+        content = { markdown };
+        sections = [
+          {
+            id: `${moduleId}-section-1`,
+            title: moduleDefinition.title,
+            content: markdown,
+            section_type: 'markdown',
+            order_index: 1,
+          },
+        ];
+      }
+    }
+
+    if (moduleDefinition.type === 'video') {
+      content = {
+        intro_text: moduleDefinition.description,
+        media_key: moduleDefinition.content,
+      };
+    }
+
+    if (moduleDefinition.type === 'exercise') {
+      const exercise = moduleDefinition.content
+        ? exerciseContent[moduleDefinition.content as keyof typeof exerciseContent]
+        : undefined;
+      if (exercise) {
+        content = {
+          intro_text: exercise.description,
+        };
+        exerciseSteps = exercise.steps.map((step, index) => ({
+          id: `${moduleId}-step-${index + 1}`,
+          title: `Schritt ${index + 1}`,
+          description: step,
+          step_type: 'reflection',
+          options: {},
+          order_index: index + 1,
+        }));
+      }
+    }
+
+    if (moduleDefinition.type === 'quiz') {
+      const quiz = moduleDefinition.content
+        ? quizContent[moduleDefinition.content as keyof typeof quizContent]
+        : undefined;
+      if (quiz) {
+        quizQuestions = quiz.questions.map((question, index) => ({
+          id: `${moduleId}-quiz-${index + 1}`,
+          question_text: question.question,
+          question_type: 'single_choice',
+          options: question.options,
+          correct_answer: String(question.correctAnswer),
+          explanation: question.explanation,
+        }));
+        content = {
+          intro_text: moduleDefinition.description,
+        };
+      }
+    }
+
+    return {
+      id: moduleId,
+      module_id: moduleId,
+      klare_step: moduleDefinition.stepId,
+      title: moduleDefinition.title,
+      description: moduleDefinition.description,
+      content_type: moduleDefinition.type,
+      content,
+      order_index: moduleDefinition.order,
+      difficulty_level: null,
+      duration: moduleDefinition.duration,
+      estimated_duration: undefined,
+      sections,
+      exercise_steps: exerciseSteps,
+      quiz_questions: quizQuestions,
+      title_localized: undefined,
+    };
+  } catch (error) {
+    console.warn('Module definition fallback failed:', error);
+    return null;
+  }
+}
+
+function loadModuleFromLocalData(moduleId: string): ModuleContent | null {
+  const moduleFromDefinitions = loadModuleFromModuleDefinitions(moduleId);
+  if (moduleFromDefinitions) {
+    return moduleFromDefinitions;
+  }
+
+  try {
+    const localModule = require('../data/klareModuleContent') as typeof import('../data/klareModuleContent');
+    const theoryContent = localModule.theoryContent?.[moduleId];
+    const exerciseContent = localModule.exerciseContent?.[moduleId];
+    const quizContent = localModule.quizContent?.[moduleId];
+
+    if (!theoryContent && !exerciseContent && !quizContent) {
+      return null;
+    }
+
+    const content: Record<string, unknown> = theoryContent
+      ? { markdown: theoryContent }
+      : exerciseContent
+        ? {
+            intro_text: exerciseContent.description,
+          }
+        : {
+            intro_text: '',
+          };
+
+    const exerciseSteps: ExerciseStep[] = exerciseContent
+      ? exerciseContent.steps.map((step, index) => ({
+          id: `${moduleId}-step-${index + 1}`,
+          title: `Schritt ${index + 1}`,
+          description: step,
+          step_type: 'reflection',
+          options: {},
+          order_index: index + 1,
+        }))
+      : [];
+
+    const quizQuestions: QuizQuestion[] = quizContent
+      ? quizContent.questions.map((question, index) => ({
+          id: `${moduleId}-quiz-${index + 1}`,
+          question_text: question.question,
+          question_type: 'single_choice',
+          options: question.options,
+          correct_answer: String(question.correctAnswer),
+          explanation: question.explanation,
+        }))
+      : [];
+
+    const sections: ContentSection[] = theoryContent
+      ? [
+          {
+            id: `${moduleId}-section-1`,
+            title: 'Inhalt',
+            content: theoryContent,
+            section_type: 'markdown',
+            order_index: 1,
+          },
+        ]
+      : [];
+
+    const klareStep = moduleId.substring(0, 1).toUpperCase();
+
+    return {
+      id: moduleId,
+      module_id: moduleId,
+      klare_step: klareStep,
+      title: moduleId,
+      content_type: theoryContent ? 'theory' : exerciseContent ? 'exercise' : 'quiz',
+      content,
+      order_index: 0,
+      sections,
+      exercise_steps: exerciseSteps,
+      quiz_questions: quizQuestions,
+      difficulty_level: null,
+      duration: null,
+      estimated_duration: undefined,
+      description: undefined,
+    };
+  } catch (error) {
+    console.warn('Legacy local content fallback failed:', error);
+    return null;
+  }
+}
+export async function loadModuleContent(moduleId: string): Promise<ModuleContent | null> {
+  if (!moduleId) {
+    console.warn('loadModuleContent called without moduleId');
+    return null;
+  }
+
+  if (LOCAL_MODULE_CACHE[moduleId]) {
+    return LOCAL_MODULE_CACHE[moduleId];
+  }
+
+  const remoteModule = await fetchModuleFromSupabase(moduleId);
+
+  if (remoteModule) {
+    LOCAL_MODULE_CACHE[moduleId] = remoteModule;
+    return remoteModule;
+  }
+
+  const localFallback = loadModuleFromLocalData(moduleId);
+  if (localFallback) {
+    console.warn(
+      `Module ${moduleId} not found in Supabase. Falling back to static data from src/data/klareModuleContent.ts`,
+    );
+    LOCAL_MODULE_CACHE[moduleId] = localFallback;
+    return localFallback;
+  }
+
+  return null;
 }
 
 /**
  * Load modules by KLARE step (legacy compatibility)
  */
+const MODULE_LIST_COLUMNS_LEGACY = `
+  id,
+  module_id,
+  klare_step,
+  title,
+  description,
+  content_type,
+  content,
+  order_index,
+  difficulty_level,
+  duration,
+  estimated_duration,
+  title_localized
+`;
+
+const MODULE_LIST_COLUMNS_MODERN = `
+  id,
+  klare_step,
+  title,
+  description,
+  content_type,
+  content,
+  order_index,
+  difficulty_level,
+  duration,
+  estimated_duration,
+  title_localized
+`;
+
+async function selectModulesByStep(step: string, columns: string): Promise<PostgrestResponse<ModuleListRow>> {
+  const response = await supabase
+    .from('module_contents')
+    .select(columns)
+    .eq('klare_step', step)
+    .order('order_index');
+
+  return response as PostgrestResponse<ModuleListRow>;
+}
+
 export async function loadModulesByStep(step: string): Promise<ModuleContent[]> {
   try {
-    const { data, error } = await supabase
-      .from('module_contents')
-      .select('*')
-      .eq('klare_step', step)
-      .order('order_index');
-    
-    if (error) throw error;
-    return data || [];
+    let useLegacyColumns = true;
+    let { data, error } = await selectModulesByStep(step, MODULE_LIST_COLUMNS_LEGACY);
+
+    if (error) {
+      if (error.code === '42703') {
+        useLegacyColumns = false;
+        const fallback = await selectModulesByStep(step, MODULE_LIST_COLUMNS_MODERN);
+        data = fallback.data ?? [];
+        error = fallback.error ?? null;
+      } else {
+        throw error;
+      }
+    }
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    return data.map((module) => {
+      const moduleIdentifier = module.module_id ?? module.id;
+      const klareStep = module.klare_step ?? moduleIdentifier.substring(0, 1).toUpperCase();
+
+      const mapped: ModuleContent = {
+        id: module.id,
+        module_id: moduleIdentifier,
+        klare_step: klareStep,
+        title: module.title,
+        description: module.description ?? undefined,
+        content_type: module.content_type,
+        content: module.content ?? {},
+        order_index: module.order_index,
+        difficulty_level: module.difficulty_level ?? undefined,
+        duration: module.duration ?? undefined,
+        estimated_duration: module.estimated_duration ?? undefined,
+        title_localized: module.title_localized ?? undefined,
+        sections: [],
+        exercise_steps: [],
+        quiz_questions: [],
+      };
+
+      LOCAL_MODULE_CACHE[moduleIdentifier] = mapped;
+      return mapped;
+    });
   } catch (error) {
     console.error('Failed to load modules by step:', error);
     return [];

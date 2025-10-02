@@ -280,7 +280,7 @@ const ResourceLibrary = ({
               size={20}
               color="#666"
             />
-            <Title style={styles.resourceTitle}>{resource.name}</Title>
+            <Text variant="titleMedium" style={styles.resourceTitle}>{resource.name}</Text>
           </View>
           <Menu
             visible={isMenu}

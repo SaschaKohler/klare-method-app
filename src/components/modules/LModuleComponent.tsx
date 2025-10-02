@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 import {
   Card,
-  Title,
-  Paragraph,
+  Text,
   Button,
   ProgressBar,
-  Chip,
   useTheme,
   Divider,
   Portal,
@@ -64,7 +62,7 @@ const TimerKlareLogo = ({ logoScale }) => {
       transform: [{ scale: logoScale.value }],
     };
   });
-  
+
   // KLARE Farben und Buchstaben
   const letters = [
     { letter: "K", color: klareColors.k },
@@ -73,21 +71,22 @@ const TimerKlareLogo = ({ logoScale }) => {
     { letter: "R", color: klareColors.r },
     { letter: "E", color: klareColors.e },
   ];
-  
+
   const size = 45; // Etwas größer als Original
   const fontSize = 18;
   const spacing = 5;
-  
+
   return (
-    <Animated.View 
-      style={[
-        styles.animatedLogoContainer,
-        animatedStyle,
-      ]}
-    >
+    <Animated.View style={[styles.animatedLogoContainer, animatedStyle]}>
       <View style={styles.logoRow}>
         {letters.map((item, index) => (
-          <Svg key={index} width={size} height={size} viewBox="0 0 100 100" style={{ marginHorizontal: spacing/2 }}>
+          <Svg
+            key={index}
+            width={size}
+            height={size}
+            viewBox="0 0 100 100"
+            style={{ marginHorizontal: spacing / 2 }}
+          >
             <Circle cx="50" cy="50" r="45" fill={item.color} />
             <SvgText
               x="50"
@@ -120,34 +119,36 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
   const [userBlockers, setUserBlockers] = useState<Blocker[]>([]);
   const [loading, setLoading] = useState(false);
   const user = useUserStore((state) => state.user);
-  
+
   // Timer-Zustände
   const [timerVisible, setTimerVisible] = useState(false);
   const [timerDuration, setTimerDuration] = useState(300); // 5 Minuten = 300 Sekunden
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Animation für das Logo
   const logoScale = useSharedValue(1);
-  
+
   // Logo-Animation starten oder stoppen
   useEffect(() => {
     if (isTimerRunning) {
       // Stärkere Pulsation für das Logo, wenn der Timer läuft
       logoScale.value = withRepeat(
         withSequence(
-          withTiming(1.3, { // Von 1 auf 1.3 (30% größer)
-            duration: 800,   // Schnellere Animation
+          withTiming(1.3, {
+            // Von 1 auf 1.3 (30% größer)
+            duration: 800, // Schnellere Animation
             easing: Easing.inOut(Easing.ease),
           }),
-          withTiming(0.95, { // Auf 0.95 (5% kleiner als Original)
-            duration: 800,   // Gleiche Geschwindigkeit
+          withTiming(0.95, {
+            // Auf 0.95 (5% kleiner als Original)
+            duration: 800, // Gleiche Geschwindigkeit
             easing: Easing.inOut(Easing.ease),
-          })
+          }),
         ),
         -1, // Unendliche Wiederholungen
-        false // Nicht umkehren, um einen deutlicheren Pulseffekt zu erzielen
+        false, // Nicht umkehren, um einen deutlicheren Pulseffekt zu erzielen
       );
     } else {
       // Animation stoppen, indem wir auf die Originalgröße zurückgehen
@@ -160,13 +161,13 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
     if (timerInterval.current) {
       clearInterval(timerInterval.current);
     }
-    
+
     setIsTimerRunning(true);
     setTimeRemaining(timerDuration);
     setTimerVisible(true);
-    
+
     timerInterval.current = setInterval(() => {
-      setTimeRemaining(prev => {
+      setTimeRemaining((prev) => {
         if (prev <= 1) {
           // Timer ist abgelaufen
           clearInterval(timerInterval.current!);
@@ -177,7 +178,7 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
       });
     }, 1000);
   };
-  
+
   const pauseTimer = () => {
     if (timerInterval.current) {
       clearInterval(timerInterval.current);
@@ -185,17 +186,17 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
     }
     setIsTimerRunning(false);
   };
-  
+
   const resetTimer = () => {
     pauseTimer();
     setTimeRemaining(timerDuration);
   };
-  
+
   const closeTimer = () => {
     pauseTimer();
     setTimerVisible(false);
   };
-  
+
   // Timer aufräumen, wenn die Komponente unmountet
   useEffect(() => {
     return () => {
@@ -283,14 +284,20 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
         setLoading(true);
         const stepId = currentStepData.id;
         const response = userResponses[stepId] || ""; // Leerer String, falls keine Antwort
-        
+
         // Speichern der Eingabe in der Datenbank
-        if (currentStepData.step_type === "reflection" && response.trim().length > 0) {
+        if (
+          currentStepData.step_type === "reflection" &&
+          response.trim().length > 0
+        ) {
           await saveExerciseResult(user.id, stepId, response);
         }
-        
+
         // Zum nächsten Schritt gehen
-        if (module.exercise_steps && currentStep < module.exercise_steps.length - 1) {
+        if (
+          module.exercise_steps &&
+          currentStep < module.exercise_steps.length - 1
+        ) {
           setCurrentStep(currentStep + 1);
         } else {
           // Modul abschließen
@@ -303,7 +310,10 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
       }
     } else {
       // Wenn kein User oder kein aktueller Schritt, gehe einfach zum nächsten Schritt
-      if (module.exercise_steps && currentStep < module.exercise_steps.length - 1) {
+      if (
+        module.exercise_steps &&
+        currentStep < module.exercise_steps.length - 1
+      ) {
         setCurrentStep(currentStep + 1);
       } else {
         // Modul abschließen
@@ -338,12 +348,15 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
         return (
           <Card style={styles.card}>
             <Card.Content>
-              <Title style={[styles.title, { color: themeColor }]}>
+              <Text
+                variant="titleMedium"
+                style={[styles.title, { color: themeColor }]}
+              >
                 {currentStepData.title}
-              </Title>
-              <Paragraph style={styles.paragraph}>
+              </Text>
+              <Text style={styles.paragraph}>
                 {currentStepData.instructions}
-              </Paragraph>
+              </Text>
 
               {isResourceFinderModule && (
                 <View style={styles.iconContainer}>
@@ -398,9 +411,12 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
         return (
           <Card style={styles.card}>
             <Card.Content>
-              <Title style={[styles.title, { color: themeColor }]}>
+              <Text
+                variant="titleMedium"
+                style={[styles.title, { color: themeColor }]}
+              >
                 {currentStepData.title}
-              </Title>
+              </Text>
               <Paragraph style={styles.paragraph}>
                 {currentStepData.instructions}
               </Paragraph>
@@ -417,7 +433,9 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
                   style={styles.textInput}
                   placeholder="Tippen Sie hier, um Ihre Gedanken festzuhalten..."
                   value={userResponses[currentStepData.id] || ""}
-                  onChangeText={(text) => handleResponseChange(currentStepData.id, text)}
+                  onChangeText={(text) =>
+                    handleResponseChange(currentStepData.id, text)
+                  }
                 />
               </View>
             </Card.Content>
@@ -448,12 +466,15 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
         return (
           <Card style={styles.card}>
             <Card.Content>
-              <Title style={[styles.title, { color: themeColor }]}>
+              <Text
+                variant="titleMedium"
+                style={[styles.title, { color: themeColor }]}
+              >
                 {currentStepData.title}
-              </Title>
-              <Paragraph style={styles.paragraph}>
+              </Text>
+              <Text style={styles.paragraph}>
                 {currentStepData.instructions}
-              </Paragraph>
+              </Text>
 
               {currentStepData.options?.timer_duration && (
                 <View style={styles.timerContainer}>
@@ -502,9 +523,12 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
         return (
           <Card style={styles.card}>
             <Card.Content>
-              <Title style={[styles.title, { color: themeColor }]}>
+              <Text
+                variant="titleMedium"
+                style={[styles.title, { color: themeColor }]}
+              >
                 {currentStepData.title}
-              </Title>
+              </Text>
               <Paragraph style={styles.paragraph}>
                 {currentStepData.instructions}
               </Paragraph>
@@ -542,9 +566,12 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
         return (
           <Card style={styles.card}>
             <Card.Content>
-              <Title style={[styles.title, { color: themeColor }]}>
+              <Text
+                variant="titleMedium"
+                style={[styles.title, { color: themeColor }]}
+              >
                 {currentStepData.title || "Schritt"}
-              </Title>
+              </Text>
               <Paragraph style={styles.paragraph}>
                 {currentStepData.instructions || "Keine Anweisungen verfügbar."}
               </Paragraph>
@@ -618,7 +645,7 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
           </Button>
         )}
       </View>
-      
+
       {/* Timer-Dialog */}
       <Portal>
         <Dialog
@@ -626,25 +653,24 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
           onDismiss={closeTimer}
           style={styles.timerDialog}
         >
-          <Dialog.Title style={styles.timerDialogTitle}>
+          <Text variant="titleMedium" style={styles.timerDialogTitle}>
             Entspannungs-Timer
-          </Dialog.Title>
-          
+          </Text>
+
           <Dialog.Content>
             <View style={styles.timerDialogContent}>
               {/* KLARE Logo */}
               <View style={styles.logoContainer}>
                 <TimerKlareLogo logoScale={logoScale} />
               </View>
-              
+
               <Text style={styles.timerCountdown}>
                 {Math.floor(timeRemaining / 60)
                   .toString()
-                  .padStart(2, "0")}:{(timeRemaining % 60)
-                  .toString()
                   .padStart(2, "0")}
+                :{(timeRemaining % 60).toString().padStart(2, "0")}
               </Text>
-              
+
               <View style={styles.timerProgressContainer}>
                 <ProgressBar
                   progress={timeRemaining / timerDuration}
@@ -652,7 +678,7 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
                   style={styles.timerProgress}
                 />
               </View>
-              
+
               <View style={styles.timerControls}>
                 {isTimerRunning ? (
                   <IconButton
@@ -669,7 +695,7 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
                     onPress={startTimer}
                   />
                 )}
-                
+
                 <IconButton
                   icon="refresh"
                   size={30}
@@ -677,14 +703,14 @@ const LModuleComponent = ({ module, onComplete }: LModuleComponentProps) => {
                   onPress={resetTimer}
                 />
               </View>
-              
+
               <Text style={styles.timerInstructions}>
-                Nutzen Sie diese Zeit für die beschriebene Übung. 
-                Der Timer benachrichtigt Sie, wenn die Zeit abgelaufen ist.
+                Nutzen Sie diese Zeit für die beschriebene Übung. Der Timer
+                benachrichtigt Sie, wenn die Zeit abgelaufen ist.
               </Text>
             </View>
           </Dialog.Content>
-          
+
           <Dialog.Actions>
             <Button onPress={closeTimer}>Schließen</Button>
           </Dialog.Actions>
@@ -762,7 +788,7 @@ const styles = StyleSheet.create({
   },
   timerButton: {
     height: 40,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   iconContainer: {
     alignItems: "center",
@@ -816,13 +842,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   animatedLogoContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   logoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   timerCountdown: {
     fontSize: 48,

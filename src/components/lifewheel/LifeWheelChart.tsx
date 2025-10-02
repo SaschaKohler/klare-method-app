@@ -225,55 +225,29 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
     return points.join(" ");
   };
 
-  const getTargetPoints = () => {
-    if (!lifeWheelAreas || lifeWheelAreas.length === 0) return [];
-    
-    return lifeWheelAreas.map((area, index) => {
-      const angle = calculateAngle(index, lifeWheelAreas.length);
-      // Sicherstellen, dass targetValue eine gültige Zahl ist und runden
-      const targetValue = typeof area.targetValue === 'number' && !isNaN(area.targetValue) 
-        ? Math.max(0, Math.min(Math.round(area.targetValue), MAX_VALUE)) // Runden und auf gültigen Bereich beschränken
-        : 0;
-      
-      const point = polarToCartesian(
-        (radius * targetValue) / MAX_VALUE,
-        angle,
-      );
-      
-      // Koordinaten runden für saubere SVG-Punkte
-      return {
-        x: Math.round(point.x),
-        y: Math.round(point.y)
-      };
-    });
-  };
+  const getTargetPointString = () => {
+    if (!lifeWheelAreas || lifeWheelAreas.length === 0) {
+      return "";
+    }
 
-  const getTargetPath = () => {
-    const points = getTargetPoints();
-    if (!points || points.length === 0) return "";
-
-    // Sicherstellen, dass alle Punkte gültige Zahlen enthalten
-    const validPoints = points.filter(point => 
-      point && 
-      typeof point.x === 'number' && !isNaN(point.x) && 
-      typeof point.y === 'number' && !isNaN(point.y)
-    );
-
-    if (validPoints.length === 0) return "";
-
-    // Erstelle den Pfad mit M (move to) für den ersten Punkt und L (line to) für die folgenden Punkte
-    const path = validPoints
-      .map((point, index) => {
-        const command = index === 0 ? 'M' : 'L';
-        return `${command} ${point.x} ${point.y}`;
+    const points = lifeWheelAreas
+      .map((area, index) => {
+        const angle = calculateAngle(index, lifeWheelAreas.length);
+        const rawTarget =
+          typeof area.targetValue === "number" && !Number.isNaN(area.targetValue)
+            ? area.targetValue
+            : 0;
+        const targetValue = Math.max(0, Math.min(rawTarget, MAX_VALUE));
+        const point = polarToCartesian((radius * targetValue) / MAX_VALUE, angle);
+        return `${Math.round(point.x)},${Math.round(point.y)}`;
       })
-      .join(' ');
+      .filter(Boolean);
 
-    // Schließe den Pfad mit Z (close path)
-    const closedPath = `${path} Z`;
-    
-    console.log('Generated target path:', closedPath);
-    return closedPath;
+    if (points.length === 0) {
+      return "";
+    }
+
+    return `${points.join(" ")} ${points[0]}`;
   };
 
   return (
@@ -381,7 +355,7 @@ const LifeWheelChart: React.FC<LifeWheelChartProps> = ({
         {/* Polygon für Zielwerte (falls aktiviert) mit verbessertem Kontrast */}
         {showTargetValues && (
           <Polygon
-            points={getTargetPath()}
+            points={getTargetPointString()}
             fill={`${themeColors.a}30`}
             stroke={themeColors.a}
             strokeWidth="2"
