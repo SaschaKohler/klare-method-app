@@ -76,5 +76,10 @@
         "Üben Sie bewusst, innere und äußere Kongruenz in einer herausfordernden Situation."
       ]
     }
-  }
+  },
+  "errors": {
+    "summaryNotAvailable": "Zusammenfassung derzeit nicht verfügbar"
+  },
+  "anonymousUser": "Gast",
+  "noLifeWheelData": "Keine Lebensrad-Daten verfügbar"
 }

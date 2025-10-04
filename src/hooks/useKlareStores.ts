@@ -376,6 +376,16 @@ export const useKlareStores = (userId?: string): KlareStoreResult => {
       getAvailableModules: progressionStore.getAvailableModules,
       isModuleAvailable: progressionStore.isModuleAvailable,
       getNextStage: progressionStore.getNextStage,
+      getModuleDetails: (moduleId: string) => ({
+        id: moduleId,
+        step: "K",
+        completed: progressionStore.completedModules.includes(moduleId),
+        available: progressionStore.getAvailableModules().includes(moduleId),
+        unlockDate: null,
+        daysUntilUnlock: -1,
+      }),
+      getStepProgressPercentage: (step: "K" | "L" | "A" | "R" | "E") =>
+        progressionStore.getModuleProgress(step),
       completeModule,
     },
     theme,

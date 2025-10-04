@@ -76,5 +76,10 @@
         "Consciously practice inner and outer congruence in a challenging situation."
       ]
     }
-  }
+  },
+  "errors": {
+    "summaryNotAvailable": "Summary currently unavailable"
+  },
+  "anonymousUser": "Guest",
+  "noLifeWheelData": "No life wheel data available"
 }

@@ -17,6 +17,7 @@ import { KlareMethodCards } from "../components";
 import createStyles from "../constants/createStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { getKlareSteps } from "../data/klareMethodData";
+import { ProgressionStage } from "../data/progression";
 import { useKlareStores } from "../hooks";
 import { getModuleById } from "../data/klareMethodModules";
 // i18n
@@ -245,7 +246,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       >
         <ActivityIndicator animating={true} size="large" />
         <Text style={{ marginTop: 10, color: paperTheme.colors.onSurface }}>
-          {t("common:status.loading")}
+          {t("common:status.loading", { defaultValue: "Wird geladen..." })}
         </Text>
         {/* Debug-Infos für Store-Status */}
         {/* {DEBUG_STORE_STATUS && ( */}
@@ -288,7 +289,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         }}
       >
         <Text style={{ color: paperTheme.colors.onSurface }}>
-          {t("errors.summaryNotAvailable")}
+          {t("home:errors.summaryNotAvailable")}
         </Text>
         {/* Debug-Infos für Store-Status */}
         {DEBUG_STORE_STATUS && (
@@ -330,11 +331,11 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     const hour = currentTime.getHours();
 
     if (hour < 12) {
-      return t("greeting.morning");
+      return t("home:greeting.morning");
     } else if (hour < 18) {
-      return t("greeting.day");
+      return t("home:greeting.day");
     } else {
-      return t("greeting.evening");
+      return t("home:greeting.evening");
     }
   };
 
@@ -363,7 +364,10 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               variant="titleMedium"
               style={{ color: paperTheme.colors.onSurface }}
             >
-              {getGreeting()}, {userSummary.name || t("anonymousUser")}
+              {getGreeting()},
+              {" "}
+              {userSummary.name ||
+                t("home:anonymousUser", { defaultValue: "Gast" })}
             </Text>
           </View>
           {user?.user_metadata?.avatar_url ? (
@@ -401,7 +405,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                       { color: paperTheme.colors.onSurface },
                     ]}
                   >
-                    {t("progression.program", {
+                    {t("home:progression.program", {
                       days: userSummary.daysInProgram,
                     })}
                   </Text>
@@ -413,7 +417,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                     { backgroundColor: `${klareColors.k}15` },
                   ]}
                 >
-                  {t("progression.phase", {
+                  {t("home:progression.phase", {
                     id: userSummary?.currentStage
                       ? userSummary?.currentStage.id
                       : "1",
@@ -464,7 +468,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                           { color: paperTheme.colors.onSurface },
                         ]}
                       >
-                        {t("progression.nextPhase")}
+                        {t("home:progression.nextPhase")}
                       </Text>
                       <Text
                         style={[
@@ -488,7 +492,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                             { color: klareColors.textSecondary },
                           ]}
                         >
-                          {t("progression.inDays", {
+                          {t("home:progression.inDays", {
                             days:
                               userSummary.nextStage.requiredDays -
                               userSummary.daysInProgram,
@@ -506,7 +510,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         {/* Fortschrittsübersicht */}
         <Card style={styles.progressCard}>
           <Card.Content>
-            <Text>{t("progress.title")}</Text>
+            <Text>{t("home:progress.title")}</Text>
 
             <View style={styles.progressContainer}>
               <View style={styles.progressItem}>
@@ -516,7 +520,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                     { color: klareColors.textSecondary },
                   ]}
                 >
-                  {t("progress.totalProgress")}
+                  {t("home:progress.totalProgress")}
                 </Text>
                 <View style={styles.progressBarContainer}>
                   <ProgressBar
@@ -542,7 +546,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                     { color: klareColors.textSecondary },
                   ]}
                 >
-                  {t("progress.lifeWheelAverage")}
+                  {t("home:progress.lifeWheelAverage")}
                 </Text>
                 <View style={styles.progressBarContainer}>
                   <ProgressBar
@@ -587,7 +591,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                     { color: klareColors.textSecondary },
                   ]}
                 >
-                  {t("progress.stats.days")}
+                  {t("home:progress.stats.days")}
                 </Text>
               </View>
 
@@ -617,7 +621,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                     { color: klareColors.textSecondary },
                   ]}
                 >
-                  {t("progress.stats.modules")}
+                  {t("home:progress.stats.modules")}
                 </Text>
               </View>
 
@@ -649,7 +653,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                     { color: klareColors.textSecondary },
                   ]}
                 >
-                  {t("progress.stats.streak")}
+                  {t("home:progress.stats.streak")}
                 </Text>
               </View>
             </View>
@@ -657,6 +661,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
           <Card.Actions>
             <Button
+              testID="view-lifewheel-button"
               icon="chart-bar"
               mode="outlined"
               onPress={() => navigation.navigate("LifeWheel")}
@@ -676,7 +681,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                 paddingHorizontal: 16,
               }}
             >
-              {t("progress.viewLifeWheel")}
+              {t("home:progress.viewLifeWheel", {
+                defaultValue: "Lebensrad ansehen",
+              })}
             </Button>
           </Card.Actions>
         </Card>
@@ -685,7 +692,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <Text
           style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}
         >
-          {t("sections.klareMethod")}
+          {t("home:sections.klareMethod", { defaultValue: "KLARE Methode" })}
         </Text>
         <KlareMethodCards
           klareSteps={translatedKlareSteps}
@@ -695,7 +702,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <Text
           style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}
         >
-          {t("sections.visionBoard.title")}
+          {t("home:sections.visionBoard.title")}
         </Text>
         <Card style={styles.card}>
           <Card.Content>
@@ -707,7 +714,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                 style={{ marginRight: 10 }}
               />
               <Text style={{ flex: 1, color: paperTheme.colors.onSurface }}>
-                {t("sections.visionBoard.description")}
+                {t("home:sections.visionBoard.description")}
               </Text>
             </View>
           </Card.Content>
@@ -730,7 +737,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                 paddingHorizontal: 16,
               }}
             >
-              {t("sections.visionBoard.createButton")}
+              {t("home:sections.visionBoard.createButton")}
             </Button>
           </Card.Actions>
         </Card>
@@ -738,7 +745,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <Text
           style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}
         >
-          {t("sections.focusAreas.title")}
+          {t("home:sections.focusAreas.title")}
         </Text>
 
         <Card style={styles.card}>
@@ -755,7 +762,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                       title={t(`lifeWheel:areas.${area.areaKey}`, {
                         defaultValue: area.name ?? area.areaKey,
                       })}
-                      description={t("sections.focusAreas.currentValue", {
+                      description={t("home:sections.focusAreas.currentValue", {
                         value: area.currentValue,
                       })}
                       left={(props) => (
@@ -769,7 +776,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                     />
                   ))
               ) : (
-                <Text style={styles.noDataText}>{t("noLifeWheelData")}</Text>
+                <Text style={styles.noDataText}>{t("home:noLifeWheelData")}</Text>
               )}
             </List.Section>
             <Button
@@ -781,7 +788,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                 borderColor: klareColors.k,
               }}
             >
-              {t("sections.focusAreas.viewAllAreas")}
+              {t("home:sections.focusAreas.viewAllAreas")}
             </Button>
           </Card.Content>
         </Card>
@@ -790,7 +797,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <Text
           style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}
         >
-          {t("home:sections.nextActivities.title")}
+          {t("home:sections.nextActivities.title", {
+            defaultValue: "Nächste Aktivitäten",
+          })}
         </Text>
 
         {getNextActivities.map((activity) => {
@@ -929,7 +938,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                 <Ionicons name="bulb-outline" size={24} color="white" />
               </View>
               <Text variant="titleMedium" style={styles.tipTitle}>
-                {t("sections.dailyTip.title")}
+                {t("home:sections.dailyTip.title")}
               </Text>
               <Text style={styles.tipText}>{todayTip}</Text>
             </Card.Content>
