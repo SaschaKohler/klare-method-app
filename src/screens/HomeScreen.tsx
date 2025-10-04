@@ -108,7 +108,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   // Tipps des Tages
   const dailyTips = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) =>
-      t(`sections.dailyTip.tips.${i}`),
+      t(`home:sections.dailyTip.tips.${i}`),
     );
   }, [t]);
 
@@ -187,9 +187,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       activities.push({
         id: "daily-reflection",
         type: "daily",
-        title: t("sections.nextActivities.activities.dailyReflection.title"),
+        title: t("home:sections.nextActivities.activities.dailyReflection.title"),
         description: t(
-          "sections.nextActivities.activities.dailyReflection.description",
+          "home:sections.nextActivities.activities.dailyReflection.description",
         ),
         step: "R",
         completed: false,
@@ -201,9 +201,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       activities.push({
         id: "weekly-review",
         type: "weekly",
-        title: t("sections.nextActivities.activities.weeklyReview.title"),
+        title: t("home:sections.nextActivities.activities.weeklyReview.title"),
         description: t(
-          "sections.nextActivities.activities.weeklyReview.description",
+          "home:sections.nextActivities.activities.weeklyReview.description",
         ),
         step: "R",
         completed: false,
@@ -245,34 +245,34 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       >
         <ActivityIndicator animating={true} size="large" />
         <Text style={{ marginTop: 10, color: paperTheme.colors.onSurface }}>
-          {t("loading")}
+          {t("common:status.loading")}
         </Text>
         {/* Debug-Infos für Store-Status */}
-        {DEBUG_STORE_STATUS && (
-          <View
-            style={{
-              marginTop: 24,
-              padding: 12,
-              backgroundColor: "#eee",
-              borderRadius: 8,
-              maxWidth: 340,
-            }}
-          >
-            <Text style={{ fontWeight: "bold", color: "#d32f2f" }}>
-              [DEBUG STORE STATUS]
-            </Text>
-            <Text selectable style={{ fontSize: 12 }}>
-              isLoading: {String(isLoading)}
-            </Text>
-            <Text selectable style={{ fontSize: 12 }}>
-              summary: {JSON.stringify(summary)}
-            </Text>
-            <Text selectable style={{ fontSize: 12 }}>
-              user: {JSON.stringify(user)}
-            </Text>
-            {/* Hier könnten weitere relevante States ergänzt werden */}
-          </View>
-        )}
+        {/* {DEBUG_STORE_STATUS && ( */}
+        {/*   <View */}
+        {/*     style={{ */}
+        {/*       marginTop: 24, */}
+        {/*       padding: 12, */}
+        {/*       backgroundColor: "#eee", */}
+        {/*       borderRadius: 8, */}
+        {/*       maxWidth: 340, */}
+        {/*     }} */}
+        {/*   > */}
+        {/*     <Text style={{ fontWeight: "bold", color: "#d32f2f" }}> */}
+        {/*       [DEBUG STORE STATUS] */}
+        {/*     </Text> */}
+        {/*     <Text selectable style={{ fontSize: 12 }}> */}
+        {/*       isLoading: {String(isLoading)} */}
+        {/*     </Text> */}
+        {/*     <Text selectable style={{ fontSize: 12 }}> */}
+        {/*       summary: {JSON.stringify(summary)} */}
+        {/*     </Text> */}
+        {/*     <Text selectable style={{ fontSize: 12 }}> */}
+        {/*       user: {JSON.stringify(user)} */}
+        {/*     </Text> */}
+        {/* Hier könnten weitere relevante States ergänzt werden */}
+        {/*   </View> */}
+        {/* )} */}
       </View>
     );
   }
@@ -790,7 +790,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <Text
           style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}
         >
-          {t("sections.nextActivities.title")}
+          {t("home:sections.nextActivities.title")}
         </Text>
 
         {getNextActivities.map((activity) => {
@@ -837,10 +837,10 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                       ]}
                     >
                       {activity.type === "daily"
-                        ? t("sections.nextActivities.types.daily")
+                        ? t("home:sections.nextActivities.types.daily")
                         : activity.type === "weekly"
-                          ? t("sections.nextActivities.types.weekly")
-                          : t("sections.nextActivities.types.module")}
+                          ? t("home:sections.nextActivities.types.weekly")
+                          : t("home:sections.nextActivities.types.module")}
                     </Text>
                   </View>
 
@@ -908,7 +908,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                     }
                   }}
                 >
-                  {t("sections.nextActivities.startButton")}
+                  {t("home:sections.nextActivities.startButton")}
                 </Button>
               </Card.Actions>
             </Card>

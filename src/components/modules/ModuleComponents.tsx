@@ -17,12 +17,15 @@ import {
   TextInput,
   ProgressBar,
   IconButton,
+  Paragraph,
+  ActivityIndicator,
 } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { klareColors } from "../../constants/theme";
-import { Module } from "../../data/klareMethodModules";
+import type { Module } from "../../data/klareMethodData";
 import { theoryContent, exerciseHelpers } from "../../data/klareModuleContent";
 import { useUserStore } from "../../store/useUserStore";
+import AIService from "../../services/AIService";
 import Markdown from "react-native-markdown-display";
 
 export interface ModuleComponentsProps {
@@ -258,16 +261,70 @@ const ExerciseModule = ({ module, onComplete }: ExerciseModuleProps) => {
   >("description");
   const [completedSteps, setCompletedSteps] = useState<boolean[]>([]);
   const [reflectionAnswers, setReflectionAnswers] = useState<string[]>([]);
+  const [aiQuestion, setAiQuestion] = useState<string | null>(null);
+  const [aiAnswer, setAiAnswer] = useState<string>("");
+  const [showAiQuestion, setShowAiQuestion] = useState(true);
+  const [aiStatus, setAiStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  const defaultIntroQuestion = "Welche Intention möchtest du mit dieser Übung konkret verfolgen?";
+
+  const user = useUserStore((state) => state.user);
 
   // Hole den Übungsinhalt aus den Inhaltsquellen
   const exercise = exerciseHelpers.getExerciseContent(module.content);
 
   useEffect(() => {
-    if (exercise) {
+    let isMounted = true;
+
+    const setupExercise = async () => {
+      if (!exercise) {
+        return;
+      }
+
       setCompletedSteps(new Array(exercise.steps.length).fill(false));
       setReflectionAnswers(new Array(exercise.reflection.length).fill(""));
-    }
-  }, [exercise]);
+      setAiStatus("loading");
+      setAiError(null);
+      setAiQuestion(null);
+      setAiAnswer("");
+      setShowAiQuestion(true);
+
+      if (!user?.id) {
+        if (isMounted) {
+          setAiStatus("error");
+          setAiError("Kein Benutzerkontext verfügbar. Bitte melde dich erneut an.");
+        }
+        return;
+      }
+
+      try {
+        const question = await AIService.generateExerciseIntroQuestion(user.id, {
+          moduleId: module.id,
+          moduleTitle: module.title,
+          stepId: module.stepId,
+          moduleDescription: module.description,
+        });
+
+        if (isMounted) {
+          setAiQuestion(question?.trim() || defaultIntroQuestion);
+          setAiStatus("ready");
+        }
+      } catch (error) {
+        console.error("Failed to load AI intro question:", error);
+        if (isMounted) {
+          setAiStatus("error");
+          setAiError("Die personalisierte Einstiegsfrage konnte nicht geladen werden.");
+        }
+      }
+    };
+
+    setupExercise();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [exercise, module.description, module.id, module.stepId, module.title, user?.id]);
 
   // Überprüfe, ob alle Schritte abgeschlossen sind
   const areAllStepsCompleted = () => {
@@ -396,13 +453,68 @@ const ExerciseModule = ({ module, onComplete }: ExerciseModuleProps) => {
                     Dauer: ca. {module.duration} Minuten
                   </Text>
 
-                  <Button
-                    mode="contained"
-                    onPress={() => changeSection("steps")}
-                    style={[styles.stepButton, { marginTop: 20 }]}
-                  >
-                    Mit der Übung beginnen
-                  </Button>
+                  {showAiQuestion ? (
+                    <View style={styles.aiQuestionContainer}>
+                      {aiStatus === "loading" && (
+                        <View style={styles.aiLoadingWrapper}>
+                          <ActivityIndicator
+                            animating
+                            size="small"
+                            color={klareColors[module.stepId.toLowerCase() as "k" | "l" | "a" | "r" | "e"]}
+                          />
+                          <Text style={styles.aiLoadingText}>Personalisierte Frage wird generiert...</Text>
+                        </View>
+                      )}
+
+                      {aiStatus === "error" && (
+                        <View style={styles.aiErrorWrapper}>
+                          <Text style={styles.aiErrorText}>{aiError}</Text>
+                          <Button
+                            mode="outlined"
+                            onPress={() => {
+                              setShowAiQuestion(false);
+                              changeSection("steps");
+                            }}
+                            style={[styles.stepButton, { marginTop: 12 }]}
+                          >
+                            Ohne Frage fortfahren
+                          </Button>
+                        </View>
+                      )}
+
+                      {aiStatus === "ready" && (
+                        <>
+                          <Text style={styles.aiQuestionText}>{aiQuestion}</Text>
+                          <TextInput
+                            mode="outlined"
+                            placeholder="Deine Antwort..."
+                            value={aiAnswer}
+                            onChangeText={setAiAnswer}
+                            style={{ marginTop: 8 }}
+                          />
+                          <Button
+                            mode="contained"
+                            onPress={() => setShowAiQuestion(false)}
+                            disabled={!aiAnswer.trim()}
+                            style={[
+                              styles.stepButton,
+                              { marginTop: 16, backgroundColor: klareColors.a },
+                            ]}
+                          >
+                            Antwort bestätigen & Übung starten
+                          </Button>
+                        </>
+                      )}
+                    </View>
+                  ) : (
+                    <Button
+                      mode="contained"
+                      onPress={() => changeSection("steps")}
+                      style={[styles.stepButton, { marginTop: 20 }]}
+                    >
+                      Mit der Übung beginnen
+                    </Button>
+                  )}
                 </View>
               )}
 
@@ -999,6 +1111,35 @@ const styles = StyleSheet.create({
   },
   reflectionInput: {
     minHeight: 100,
+  },
+  aiQuestionContainer: {
+    marginTop: 24,
+    padding: 16,
+    backgroundColor: `${klareColors.a}1A`,
+    borderRadius: 8,
+  },
+  aiQuestionText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: klareColors.text,
+    fontStyle: 'italic',
+  },
+  aiLoadingWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  aiLoadingText: {
+    fontSize: 14,
+    color: klareColors.textSecondary,
+    flex: 1,
+  },
+  aiErrorWrapper: {
+    paddingVertical: 8,
+  },
+  aiErrorText: {
+    fontSize: 14,
+    color: "#B00020",
   },
   // Quiz-Komponenten-Stile
   quizProgress: {

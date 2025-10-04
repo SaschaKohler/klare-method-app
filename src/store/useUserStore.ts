@@ -84,7 +84,7 @@ export const useUserStore = createBaseStore<UserState>(
   (set, get) => ({
     ...userInitialState,
 
-        loadUserData: async (sessionParam: Session | null = null) => {
+    loadUserData: async (sessionParam: Session | null = null) => {
       const { setLoading, setError, setStorageStatus, updateLastSync, saveUserData } = get();
       setLoading(true);
       setError(null);

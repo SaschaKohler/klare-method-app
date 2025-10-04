@@ -60,6 +60,66 @@ const getLocalizedName = (key: string): string => {
   return i18n.t(`lifeWheel:areas.${key}`) || key;
 };
 
+const DEFAULT_AREA_ORDER: string[] = [
+  "health_fitness",
+  "career",
+  "finances",
+  "relationships",
+  "personal_development",
+  "spirituality",
+  "fun_recreation",
+  "physical_environment",
+];
+
+const deduplicateLifeWheelAreas = (areas: LifeWheelArea[]): LifeWheelArea[] => {
+  const uniqueAreas = new Map<string, LifeWheelArea>();
+
+  areas.forEach((area) => {
+    const key = area.areaKey || area.id;
+    const existing = uniqueAreas.get(key);
+
+    if (!existing) {
+      uniqueAreas.set(key, area);
+      return;
+    }
+
+    const existingUpdatedAt = existing.updatedAt ? new Date(existing.updatedAt).getTime() : 0;
+    const currentUpdatedAt = area.updatedAt ? new Date(area.updatedAt).getTime() : 0;
+
+    if (currentUpdatedAt >= existingUpdatedAt) {
+      uniqueAreas.set(key, area);
+    }
+  });
+
+  const normalized = Array.from(uniqueAreas.values());
+
+  return normalized.sort((a, b) => {
+    const orderA = DEFAULT_AREA_ORDER.indexOf(a.areaKey);
+    const orderB = DEFAULT_AREA_ORDER.indexOf(b.areaKey);
+
+    if (orderA === -1 && orderB === -1) {
+      return a.name.localeCompare(b.name);
+    }
+
+    if (orderA === -1) {
+      return 1;
+    }
+
+    if (orderB === -1) {
+      return -1;
+    }
+
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+
+    const updatedA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+    const updatedB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+
+    return updatedB - updatedA;
+  });
+};
+
 export const useLifeWheelStore = createBaseStore<LifeWheelStoreState>(
   { 
     userId: undefined,
@@ -112,7 +172,8 @@ export const useLifeWheelStore = createBaseStore<LifeWheelStoreState>(
             );
             
             console.log("Aktualisiere Zustand mit Lebensrad-Bereichen:", areas.length);
-            set((state) => ({ ...state, lifeWheelAreas: areas }));
+            const normalizedAreas = deduplicateLifeWheelAreas(areas);
+            set((state) => ({ ...state, lifeWheelAreas: normalizedAreas }));
           } else {
             console.log("Keine Lebensrad-Bereiche gefunden, erstelle Standardbereiche...");
             // If no areas exist, create the default set
@@ -183,7 +244,8 @@ export const useLifeWheelStore = createBaseStore<LifeWheelStoreState>(
                 updatedAt: area.updated_at,
               }),
             );
-            set((state) => ({ ...state, lifeWheelAreas: newAreas }));
+            const normalizedAreas = deduplicateLifeWheelAreas(newAreas);
+            set((state) => ({ ...state, lifeWheelAreas: normalizedAreas }));
             console.log("New areas with IDs from database:", newAreas);
             updateLastSync();
             console.log("Last sync updated after creating default areas.");
@@ -233,9 +295,10 @@ export const useLifeWheelStore = createBaseStore<LifeWheelStoreState>(
           area.id === areaId ? { ...area, ...updates } : area,
         );
 
+        const normalizedAreas = deduplicateLifeWheelAreas(updatedAreas as LifeWheelArea[]);
         set((state: LifeWheelStoreState) => ({
           ...state,
-          lifeWheelAreas: updatedAreas as LifeWheelArea[],
+          lifeWheelAreas: normalizedAreas,
         }));
 
         try {
@@ -251,9 +314,8 @@ export const useLifeWheelStore = createBaseStore<LifeWheelStoreState>(
 
           if (data && data.length > 0) {
             const updatedAreaFromServer = data[0];
-            set((state: LifeWheelStoreState) => ({
-              ...state,
-              lifeWheelAreas: state.lifeWheelAreas.map((area) => {
+            set((state: LifeWheelStoreState) => {
+              const updatedFromServer = state.lifeWheelAreas.map((area) => {
                 if (area.id === areaId) {
                   return {
                     ...area,
@@ -268,8 +330,17 @@ export const useLifeWheelStore = createBaseStore<LifeWheelStoreState>(
                   };
                 }
                 return area;
-              }),
-            }));
+              });
+
+              const normalizedFromServer = deduplicateLifeWheelAreas(
+                updatedFromServer as LifeWheelArea[],
+              );
+
+              return {
+                ...state,
+                lifeWheelAreas: normalizedFromServer,
+              };
+            });
             updateLastSync();
           }
         } catch (error) {

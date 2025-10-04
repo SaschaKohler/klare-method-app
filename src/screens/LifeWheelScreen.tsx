@@ -35,7 +35,7 @@ const LifeWheelScreen = () => {
     translateX: new Animated.Value(0),
     translateY: new Animated.Value(0),
   }).current;
-  const inactivityTimer = useRef<NodeJS.Timeout | null>(null);
+  const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   console.log("inactivityTimer ref initialized:", inactivityTimer.current);
   const insightsAnimation = useRef(new Animated.Value(0)).current; // 0 = normal, 1 = editing mode
 

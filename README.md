@@ -62,6 +62,27 @@ Diese App unterstützt Benutzer dabei, die KLARE Methode in ihrem Leben anzuwend
 1. Supabase-Projekt erstellen unter [supabase.com](https://supabase.com)
 2. SQL-Migrations-Dateien im Supabase SQL-Editor ausführen
 
+## Tests
+
+- **Unit-/Store-Tests**: `npm test`
+- **Supabase Integrations-Tests** (gegen nicht-produktive DB):
+
+  1. `.env.test` mit folgenden Variablen anlegen:
+
+     ```env
+     RUN_DB_TESTS=true
+     SUPABASE_TEST_URL=<https://...>
+     SUPABASE_TEST_SERVICE_KEY=<service-role-key>
+     ```
+
+  2. Befehl ausführen:
+
+     ```bash
+     RUN_DB_TESTS=true npx jest src/store/__tests__/integration --runInBand
+     ```
+
+  Der Guard `RUN_DB_TESTS` verhindert, dass Integrations-Tests versehentlich gegen Produktivinstanzen laufen.
+
 ## Funktionen
 
 - Benutzerauthentifizierung

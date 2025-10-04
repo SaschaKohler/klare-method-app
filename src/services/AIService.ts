@@ -122,7 +122,7 @@ export class AIService {
         
         return { sessionId, response };
       }
-      
+
       return { sessionId };
     } catch (error) {
       console.error("Error starting conversation:", error);
@@ -211,6 +211,39 @@ export class AIService {
     }
     
     return data;
+  }
+
+  static async getPromptTemplateForModule(
+    promptType: string,
+    moduleReference?: string,
+  ): Promise<AIPromptTemplate | null> {
+    if (!moduleReference) {
+      return this.getPromptTemplate(promptType);
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("ai_prompt_templates")
+        .select("*")
+        .eq("prompt_type", promptType)
+        .eq("module_reference", moduleReference)
+        .eq("is_active", true)
+        .order("priority", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error && error.code !== "PGRST116") {
+        console.warn("Error fetching module-specific prompt template:", error);
+      }
+
+      if (data) {
+        return data;
+      }
+    } catch (error) {
+      console.warn("Error fetching module-specific prompt template:", error);
+    }
+
+    return this.getPromptTemplate(promptType);
   }
   
   /**
@@ -665,9 +698,17 @@ export class AIService {
       const nextModules = this.getRecommendedModules(context.completedModules || []);
       
       // Save generated insights
-      const insights = response.insights || [];
-      if (insights.length > 0) {
-        await Promise.all(insights.map(insight => this.createPersonalInsight(insight)));
+      const generatedInsights = response.insights || [];
+      const persistedInsights: PersonalInsight[] = [];
+      if (generatedInsights.length > 0) {
+        for (const insight of generatedInsights) {
+          try {
+            const created = await this.createPersonalInsight(insight);
+            persistedInsights.push(created);
+          } catch (error) {
+            console.warn("Failed to persist AI insight:", error);
+          }
+        }
       }
       
       await this.logServiceUsage(userId, "progress_analysis");
@@ -676,7 +717,7 @@ export class AIService {
         analysis: response.content,
         suggestions: response.suggestions || [],
         nextModules,
-        insights: insights as PersonalInsight[]
+        insights: persistedInsights
       };
     } catch (error) {
       console.error("Error analyzing progress:", error);
@@ -687,6 +728,66 @@ export class AIService {
         insights: []
       };
     }
+  }
+
+  static async generateExerciseIntroQuestion(
+    userId: string,
+    params: {
+      moduleId: string;
+      moduleTitle: string;
+      stepId?: string;
+      moduleDescription?: string | null;
+    },
+  ): Promise<string> {
+    try {
+      const context = await this.buildChatContext(userId);
+      const template = await this.getPromptTemplateForModule(
+        "exercise_adaptation",
+        params.moduleId,
+      );
+
+      const templateVariables =
+        template?.variables &&
+        typeof template.variables === "object" &&
+        !Array.isArray(template.variables)
+          ? (template.variables as Record<string, any>)
+          : undefined;
+
+      const preferredLanguage =
+        context.preferredLanguage || (templateVariables?.language as string) || "de";
+
+      const basePrompt =
+        template?.prompt_template ||
+        "Formuliere eine kurze, fokussierte Coaching-Frage in {{language}}, die den Nutzer motiviert, sich auf die Übung {{module_title}} (KLARE-Schritt {{klare_step}}) einzustimmen. Verwende die du-Form und stelle genau eine Frage.";
+
+      const promptMessage = this.applyTemplateVariables(basePrompt, {
+        module_id: params.moduleId,
+        module_title: params.moduleTitle,
+        module_description: params.moduleDescription ?? "",
+        klare_step: params.stepId ?? "",
+        language: preferredLanguage,
+      });
+
+      const response = await this.generateResponse(
+        promptMessage,
+        { ...context, preferredLanguage },
+        "coaching",
+      );
+
+      await this.logServiceUsage(userId, "exercise_intro_question", {
+        moduleId: params.moduleId,
+        moduleTitle: params.moduleTitle,
+        stepId: params.stepId,
+      });
+
+      if (response.content?.trim()) {
+        return response.content.trim();
+      }
+    } catch (error) {
+      console.error("Error generating exercise intro question:", error);
+    }
+
+    return "Welche Intention möchtest du mit dieser Übung konkret verfolgen?";
   }
   
   /**
@@ -809,6 +910,17 @@ export class AIService {
       console.error("Error cleaning up expired content:", error);
       return { deletedCount: 0 };
     }
+  }
+
+  private static applyTemplateVariables(
+    template: string,
+    variables: Record<string, string | undefined>,
+  ): string {
+    return Object.entries(variables).reduce((acc, [key, value]) => {
+      const safeValue = value ?? "";
+      const pattern = new RegExp(`{{\\s*${key}\\s*}}`, "g");
+      return acc.replace(pattern, safeValue);
+    }, template);
   }
 }
 

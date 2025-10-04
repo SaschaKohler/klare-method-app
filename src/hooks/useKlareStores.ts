@@ -1,22 +1,22 @@
 // src/hooks/useKlareStores.ts
 import React from "react";
-import { useMemo, useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type {
-  UserSummary,
+  KlareStoreResult,
   LifeWheelSummary,
   ModulesSummary,
   ResourceSummary,
   JournalSummary,
-  KlareStoreResult,
+  UserSummary,
 } from "../types/klare";
 import {
-  useUserStore,
+  useJournalStore,
   useLifeWheelStore,
-  useThemeStore,
   useProgressionStore,
   useResourceStore,
-  useJournalStore,
+  useThemeStore,
+  useUserStore,
   useVisionBoardStore,
 } from "../store";
 import { ResourceCategory } from "../store/useResourceStore";
@@ -35,12 +35,11 @@ const useUserStoreValues = () =>
       signUp: state.signUp,
       signOut: state.signOut,
       checkUserActivity: state.checkUserActivity,
-    }))
+    })),
   );
 
-const useLifeWheelStoreValues = () => {
-  console.log("Accessing life wheel store values");
-  return useLifeWheelStore(
+const useLifeWheelStoreValues = () =>
+  useLifeWheelStore(
     useShallow((state) => ({
       lifeWheelAreas: state.lifeWheelAreas,
       isLoading: state.metadata.isLoading,
@@ -48,15 +47,15 @@ const useLifeWheelStoreValues = () => {
       calculateAverage: state.calculateAverage,
       findLowestAreas: state.findLowestAreas,
       loadLifeWheelData: state.loadLifeWheelData,
-    }))
+    })),
   );
-};
 
 const useProgressionStoreValues = () =>
   useProgressionStore(
     useShallow((state) => ({
       completedModules: state.completedModules,
       isLoading: state.metadata.isLoading,
+      loadProgressionData: state.loadProgressionData,
       getModuleProgress: state.getModuleProgress,
       getDaysInProgram: state.getDaysInProgram,
       getCurrentStage: state.getCurrentStage,
@@ -64,7 +63,7 @@ const useProgressionStoreValues = () =>
       getNextStage: state.getNextStage,
       isModuleAvailable: state.isModuleAvailable,
       completeModule: state.completeModule,
-    }))
+    })),
   );
 
 const useThemeStoreValues = () =>
@@ -74,7 +73,8 @@ const useThemeStoreValues = () =>
       isSystemTheme: state.isSystemTheme,
       toggleTheme: state.toggleTheme,
       setSystemTheme: state.setSystemTheme,
-    }))
+      getActiveTheme: state.getActiveTheme,
+    })),
   );
 
 const useResourceStoreValues = () =>
@@ -91,7 +91,7 @@ const useResourceStoreValues = () =>
       getTopResources: state.getTopResources,
       searchResources: state.searchResources,
       getRecentlyActivatedResources: state.getRecentlyActivatedResources,
-    }))
+    })),
   );
 
 const useJournalStoreValues = () =>
@@ -115,8 +115,6 @@ export const useKlareStores = (userId?: string): KlareStoreResult => {
   const visionBoardStore = useVisionBoardStoreValues();
 
   // 2. Side Effects
-  // Stelle sicher, dass checkUserActivity nur einmal beim ersten Laden eines eingeloggten Users ausgeführt wird
-  // Dies verhindert doppelte Initialisierung und wiederholte Logs
   const hasCheckedUserActivity = React.useRef(false);
   useEffect(() => {
     if (userStore.user?.id && !hasCheckedUserActivity.current) {
@@ -126,29 +124,33 @@ export const useKlareStores = (userId?: string): KlareStoreResult => {
   }, [userStore.user?.id, userStore.checkUserActivity]);
 
   useEffect(() => {
-    console.log("useEffect in useKlareStore triggered with userId:", userId);
     if (userId) {
-      console.log("User ID is set, loading data for user:", userId);
       lifeWheelStore.loadLifeWheelData(userId);
-    } else {
-      console.log("No user ID provided, skipping data load.");
     }
-  }, [userId]);
+  }, [userId, lifeWheelStore]);
 
   // 3. Memoized Summaries
-  const useLifeWheelSummary = (): LifeWheelSummary => {
-    console.log("useLifeWheelSummary called");
-    const { lifeWheelAreas, calculateAverage, findLowestAreas } = useLifeWheelStoreValues();
+  const lifeWheelSummary = useMemo<LifeWheelSummary>(() => {
+    const { lifeWheelAreas, calculateAverage, findLowestAreas } = lifeWheelStore;
 
     if (!lifeWheelAreas || lifeWheelAreas.length === 0) {
-      return { areas: [], average: 0, lowestAreas: [], highestAreas: [], gapAreas: [] };
+      return {
+        areas: [],
+        average: 0,
+        lowestAreas: [],
+        highestAreas: [],
+        gapAreas: [],
+      };
     }
 
-    const sortedByValue = [...lifeWheelAreas].sort((a, b) => a.currentValue - b.currentValue);
+    const sortedByValue = [...lifeWheelAreas].sort(
+      (a, b) => a.currentValue - b.currentValue,
+    );
     const highestAreas = [...sortedByValue].reverse().slice(0, 3);
 
     const sortedByGap = [...lifeWheelAreas].sort(
-      (a, b) => (b.targetValue - b.currentValue) - (a.targetValue - a.currentValue)
+      (a, b) =>
+        b.targetValue - b.currentValue - (a.targetValue - a.currentValue),
     );
     const gapAreas = sortedByGap.slice(0, 3);
 
@@ -159,15 +161,18 @@ export const useKlareStores = (userId?: string): KlareStoreResult => {
       highestAreas,
       gapAreas,
     };
-  };
-
-  const lifeWheelSummary = useLifeWheelSummary();
+  }, [lifeWheelStore]);
 
   const modulesSummary = useMemo<ModulesSummary>(() => {
-    const { getAvailableModules, completedModules, getCurrentStage, getNextStage } = progressionStore;
+    const {
+      getAvailableModules,
+      completedModules,
+      getCurrentStage,
+      getNextStage,
+    } = progressionStore;
 
     const countByPrefix = (prefix: string) =>
-      (completedModules || []).filter((id) => id.startsWith(prefix + "-")).length;
+      (completedModules || []).filter((id) => id.startsWith(`${prefix}-`)).length;
 
     return {
       k: countByPrefix("k"),
@@ -175,7 +180,7 @@ export const useKlareStores = (userId?: string): KlareStoreResult => {
       a: countByPrefix("a"),
       r: countByPrefix("r"),
       e: countByPrefix("e"),
-      total: 15, // Assuming a fixed total for now
+      total: 15,
       available: getAvailableModules(),
       completed: completedModules || [],
       currentStage: getCurrentStage(),
@@ -185,72 +190,80 @@ export const useKlareStores = (userId?: string): KlareStoreResult => {
 
   const userSummary = useMemo<UserSummary>(() => {
     const { user } = userStore;
-    const { getDaysInProgram, getCurrentStage, getNextStage, completedModules } = progressionStore;
+    const {
+      getDaysInProgram,
+      getCurrentStage,
+      getNextStage,
+      completedModules,
+    } = progressionStore;
 
     if (!user) {
       return {
         id: "",
         name: "Gast",
         email: null,
-        progress: 0,
+        progress: "0",
         daysInProgram: 0,
         currentStage: null,
         nextStage: null,
         joinDate: null,
         join_date: null,
         last_active: null,
-        streak: 0,
+        streak: "0",
         completed_modules: [],
         created_at: null,
         updated_at: null,
         ai_mode_enabled: false,
-        personalization_level: 'low',
-        preferred_language: 'de',
-      } as unknown as UserSummary; // Type assertion needed due to complex type requirements
+        personalization_level: "low",
+        preferred_language: "de",
+      };
     }
 
-    const moduleProgress = modulesSummary.total > 0 ? ((modulesSummary.completed.length || 0) / modulesSummary.total) * 100 : 0;
-    const lifeWheelProgress = lifeWheelSummary.average * 10; // Scale 0-10 to 0-100
+    const moduleProgress =
+      modulesSummary.total > 0
+        ? ((modulesSummary.completed.length || 0) / modulesSummary.total) * 100
+        : 0;
+    const lifeWheelProgress = lifeWheelSummary.average * 10;
     const totalProgress = (moduleProgress + lifeWheelProgress) / 2;
 
-    // Create a properly typed user summary object with all required fields
-    const userSummary: UserSummary = {
-      // Spread all user properties first
-      ...user,
-      
-      // Ensure required fields from AppUser
+    const userProfile = user as Partial<UserSummary>;
+    const progressString = Number.isFinite(totalProgress)
+      ? totalProgress.toFixed(1)
+      : "0";
+
+    return {
       id: user.id,
       name: user.name ?? "Unbekannt",
       email: user.email ?? null,
       join_date: user.join_date ?? null,
+      joinDate: user.join_date ?? null,
       last_active: user.last_active ?? null,
-      streak: user.streak ?? 0,
+      streak:
+        user.streak !== undefined && user.streak !== null
+          ? String(user.streak)
+          : (userProfile.streak as string | null) ?? null,
       created_at: user.created_at ?? new Date().toISOString(),
       updated_at: user.updated_at ?? new Date().toISOString(),
-      
-      // Add computed fields
-      progress: totalProgress,
+      progress: progressString,
       daysInProgram: getDaysInProgram(),
       currentStage: getCurrentStage(),
       nextStage: getNextStage(),
-      joinDate: user.join_date ?? null,
       completed_modules: completedModules ?? [],
-      
-      // Add required UserSummary fields with defaults
-      ai_mode_enabled: false, // Default to false
-      personalization_level: 'medium', // Default level
-      preferred_language: 'de', // Default to German
-      
-      // Add any other required fields from UserSummary with defaults
-      // These are just examples - adjust according to your actual UserSummary type
-      ...(user as any), // Spread any additional properties that might be on the user object
+      ai_mode_enabled: userProfile.ai_mode_enabled ?? false,
+      personalization_level: userProfile.personalization_level ?? "medium",
+      preferred_language: userProfile.preferred_language ?? "de",
+      ...userProfile,
     };
-    
-    return userSummary;
   }, [userStore.user, progressionStore, lifeWheelSummary, modulesSummary]);
 
   const resourcesSummary = useMemo<ResourceSummary>(() => {
-    const { resources, getTopResources, getRecentlyActivatedResources, getResourcesByCategory } = resourcesStore;
+    const {
+      resources,
+      getTopResources,
+      getRecentlyActivatedResources,
+      getResourcesByCategory,
+    } = resourcesStore;
+
     return {
       count: resources.length,
       byCategory: {
@@ -267,7 +280,14 @@ export const useKlareStores = (userId?: string): KlareStoreResult => {
 
   const journalSummary = useMemo<JournalSummary>(() => {
     if (!journalStore.entries || !journalStore.getEntriesCountByMonth) {
-      return { totalEntries: 0, favoriteEntries: 0, entriesByMonth: {}, lastEntryDate: null, averageMoodRating: null, averageClarityRating: null };
+      return {
+        totalEntries: 0,
+        favoriteEntries: 0,
+        entriesByMonth: {},
+        lastEntryDate: null,
+        averageMoodRating: null,
+        averageClarityRating: null,
+      };
     }
     const lastEntry = journalStore.getLastEntryDate?.();
     return {
@@ -281,7 +301,55 @@ export const useKlareStores = (userId?: string): KlareStoreResult => {
   }, [journalStore]);
 
   // 4. Assemble Final Result
-  const isLoading = userStore.isLoading || lifeWheelStore.isLoading || progressionStore.isLoading || resourcesStore.isLoading || journalStore.isLoading;
+  const isLoading =
+    userStore.isLoading ||
+    lifeWheelStore.isLoading ||
+    progressionStore.isLoading ||
+    resourcesStore.isLoading ||
+    journalStore.isLoading;
+
+  const updateArea = (
+    areaId: string,
+    currentValue: number,
+    targetValue: number,
+    userId?: string,
+  ) =>
+    lifeWheelStore.updateLifeWheelArea(areaId, {
+      currentValue,
+      targetValue,
+      ...(userId ? { userId } : {}),
+    });
+
+  const completeModule = async (moduleId: string) => {
+    const userId = userStore.user?.id;
+    if (!userId) return;
+    await progressionStore.completeModule(userId, moduleId);
+  };
+
+  const theme = {
+    isDarkMode: themeStore.isDarkMode,
+    isSystemTheme: themeStore.isSystemTheme,
+    toggleTheme: themeStore.toggleTheme,
+    setSystemTheme: themeStore.setSystemTheme,
+    getActiveTheme: themeStore.getActiveTheme,
+  };
+
+  const resources = {
+    all: resourcesStore.resources,
+    loadResources: resourcesStore.loadResources,
+    add: resourcesStore.addResource,
+    update: resourcesStore.updateResource,
+    delete: resourcesStore.deleteResource,
+    activate: resourcesStore.activateResource,
+    getByCategory: (category: string) =>
+      resourcesStore.getResourcesByCategory(category as ResourceCategory),
+    getTop: (limit?: number) =>
+      resourcesStore.getTopResources(limit ?? 5),
+    search: resourcesStore.searchResources,
+    getRecentlyActivated: (limit?: number) =>
+      resourcesStore.getRecentlyActivatedResources(limit ?? 5),
+    isLoading: resourcesStore.isLoading,
+  };
 
   return {
     user: userStore.user,
@@ -295,7 +363,7 @@ export const useKlareStores = (userId?: string): KlareStoreResult => {
     },
     lifeWheel: {
       areas: lifeWheelStore.lifeWheelAreas,
-      updateArea: lifeWheelStore.updateLifeWheelArea,
+      updateArea,
       average: lifeWheelStore.calculateAverage(),
       loadLifeWheelData: lifeWheelStore.loadLifeWheelData,
       findLowestAreas: lifeWheelStore.findLowestAreas,
@@ -308,23 +376,10 @@ export const useKlareStores = (userId?: string): KlareStoreResult => {
       getAvailableModules: progressionStore.getAvailableModules,
       isModuleAvailable: progressionStore.isModuleAvailable,
       getNextStage: progressionStore.getNextStage,
-      completeModule: progressionStore.completeModule,
-      isLoading: progressionStore.isLoading,
+      completeModule,
     },
-    theme: themeStore,
-    resources: {
-      all: resourcesStore.resources,
-      loadResources: resourcesStore.loadResources,
-      add: resourcesStore.addResource,
-      update: resourcesStore.updateResource,
-      delete: resourcesStore.deleteResource,
-      activate: resourcesStore.activateResource,
-      getByCategory: resourcesStore.getResourcesByCategory,
-      getTop: resourcesStore.getTopResources,
-      search: resourcesStore.searchResources,
-      getRecentlyActivated: resourcesStore.getRecentlyActivatedResources,
-      isLoading: resourcesStore.isLoading,
-    },
+    theme,
+    resources,
     journal: {
       entries: journalStore.entries,
       templates: journalStore.templates,
@@ -348,12 +403,6 @@ export const useKlareStores = (userId?: string): KlareStoreResult => {
       visionBoard: visionBoardStore.visionBoard,
       loadVisionBoard: visionBoardStore.loadVisionBoard,
       createVisionBoard: visionBoardStore.createVisionBoard,
-      // The following are placeholders as per Klare.ts
-      // saveUserVisionBoard: visionBoardStore.saveVisionBoard,
-      // addItem: visionBoardStore.addItem,
-      // updateItem: visionBoardStore.updateItem,
-      // deleteItem: visionBoardStore.deleteItem,
-      // synchronize: visionBoardStore.synchronize,
     },
     summary: {
       user: userSummary,
@@ -362,7 +411,6 @@ export const useKlareStores = (userId?: string): KlareStoreResult => {
       resources: resourcesSummary,
       journal: journalSummary,
     },
-    // Placeholders for complex types not yet implemented
     analytics: {} as any,
     actions: {} as any,
     persistence: {} as any,

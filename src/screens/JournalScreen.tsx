@@ -69,7 +69,6 @@ export default function JournalScreen() {
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [menuVisible, setMenuVisible] = useState(false);
-  const [filterMenuVisible, setFilterMenuVisible] = useState(false);
 
   // Get date locale based on current language
   const dateLocale = i18n.language === "de" ? de : enUS;

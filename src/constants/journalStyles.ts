@@ -19,7 +19,9 @@ export const createJournalStyles = (
       paddingTop: 8,
       paddingBottom: 8,
       borderBottomWidth: 1,
-      borderBottomColor: isDarkMode ? `${theme.colors.surface}80` : theme.colors.surfaceDisabled,
+      borderBottomColor: isDarkMode
+        ? `${theme.colors.surface}80`
+        : theme.colors.surfaceDisabled,
       zIndex: 10,
     },
     headerTop: {
@@ -60,14 +62,18 @@ export const createJournalStyles = (
     searchInput: {
       fontSize: 14,
     },
-    
+
     // Date & day selector
     dateContainer: {
       paddingHorizontal: 16,
       paddingVertical: 8,
-      backgroundColor: isDarkMode ? `${theme.colors.surface}40` : `${theme.colors.surface}80`,
+      backgroundColor: isDarkMode
+        ? `${theme.colors.surface}40`
+        : `${theme.colors.surface}80`,
       borderBottomWidth: 1,
-      borderBottomColor: isDarkMode ? `${theme.colors.surface}80` : theme.colors.surfaceDisabled,
+      borderBottomColor: isDarkMode
+        ? `${theme.colors.surface}80`
+        : theme.colors.surfaceDisabled,
     },
     currentMonthYear: {
       fontSize: 14,
@@ -92,12 +98,12 @@ export const createJournalStyles = (
       justifyContent: "center",
       alignItems: "center",
       marginHorizontal: 4,
-      backgroundColor: isDarkMode 
-        ? `${theme.colors.elevation.level1}50` 
+      backgroundColor: isDarkMode
+        ? `${theme.colors.elevation.level1}50`
         : `${theme.colors.surface}`,
       borderWidth: 1,
-      borderColor: isDarkMode 
-        ? `${theme.colors.elevation.level1}` 
+      borderColor: isDarkMode
+        ? `${theme.colors.elevation.level1}`
         : `${theme.colors.surfaceDisabled}40`,
     },
     selectedDayButton: {
@@ -108,12 +114,15 @@ export const createJournalStyles = (
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.2,
       shadowRadius: 2,
-    },    dayName: {
+    },
+    dayName: {
       fontSize: 12,
       fontWeight: "500",
-      color: isDarkMode ? theme.colors.onSurfaceVariant : klareColors.textSecondary,
+      color: isDarkMode
+        ? theme.colors.onSurfaceVariant
+        : klareColors.textSecondary,
       marginBottom: 2,
-      textTransform: 'uppercase',
+      textTransform: "uppercase",
     },
     dayNumber: {
       fontSize: 16,
@@ -131,7 +140,7 @@ export const createJournalStyles = (
       position: "absolute",
       bottom: 6,
     },
-    
+
     // Empty state
     emptyStateContainer: {
       flex: 1,
@@ -188,7 +197,7 @@ export const createJournalStyles = (
       fontWeight: "500",
       color: "white",
       marginLeft: 8,
-    },    
+    },
     // Templates
     sectionHeader: {
       flexDirection: "row",
@@ -205,9 +214,11 @@ export const createJournalStyles = (
     stickyHeaderContainer: {
       backgroundColor: theme.colors.background,
       borderBottomWidth: 1,
-      borderBottomColor: isDarkMode ? `${theme.colors.surfaceVariant}40` : `${theme.colors.surfaceVariant}20`,
+      borderBottomColor: isDarkMode
+        ? `${theme.colors.surfaceVariant}40`
+        : `${theme.colors.surfaceVariant}20`,
       elevation: 2,
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
@@ -252,8 +263,8 @@ export const createJournalStyles = (
       borderRadius: 12,
       backgroundColor: theme.colors.surface,
       borderWidth: 1,
-      borderColor: isDarkMode 
-        ? `${theme.colors.surfaceVariant}30` 
+      borderColor: isDarkMode
+        ? `${theme.colors.surfaceVariant}30`
         : `${theme.colors.surfaceVariant}30`,
     },
     templateTitle: {
@@ -280,7 +291,7 @@ export const createJournalStyles = (
       fontWeight: "500",
       color: klareColors.k,
       marginTop: 4,
-    },    
+    },
     // Journal entries
     entriesList: {
       paddingHorizontal: 16,
@@ -292,8 +303,8 @@ export const createJournalStyles = (
       borderRadius: 12,
       backgroundColor: theme.colors.surface,
       borderWidth: 1,
-      borderColor: isDarkMode 
-        ? `${theme.colors.surfaceVariant}20` 
+      borderColor: isDarkMode
+        ? `${theme.colors.surfaceVariant}20`
         : `${theme.colors.surfaceVariant}20`,
       elevation: 1,
     },
@@ -336,7 +347,7 @@ export const createJournalStyles = (
       fontSize: 12,
       marginLeft: 4,
     },
-    
+
     // Loading state
     centerContainer: {
       flex: 1,
@@ -344,7 +355,7 @@ export const createJournalStyles = (
       alignItems: "center",
       height: 300,
     },
-    
+
     // FAB
     fab: {
       position: "absolute",
