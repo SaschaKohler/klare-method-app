@@ -1004,7 +1004,16 @@
 <a name='L939'></a><a href='#L939'>939</a>
 <a name='L940'></a><a href='#L940'>940</a>
 <a name='L941'></a><a href='#L941'>941</a>
-<a name='L942'></a><a href='#L942'>942</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L942'></a><a href='#L942'>942</a>
+<a name='L943'></a><a href='#L943'>943</a>
+<a name='L944'></a><a href='#L944'>944</a>
+<a name='L945'></a><a href='#L945'>945</a>
+<a name='L946'></a><a href='#L946'>946</a>
+<a name='L947'></a><a href='#L947'>947</a>
+<a name='L948'></a><a href='#L948'>948</a>
+<a name='L949'></a><a href='#L949'>949</a>
+<a name='L950'></a><a href='#L950'>950</a>
+<a name='L951'></a><a href='#L951'>951</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1053,6 +1062,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1345,6 +1355,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1665,7 +1678,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1720,6 +1735,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1782,6 +1798,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1964,6 +1982,7 @@ import { KlareMethodCards } from "../components";
 import createStyles from "../constants/createStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { getKlareSteps } from "../data/klareMethodData";
+import { ProgressionStage } from "../data/progression";
 import { useKlareStores } from "../hooks";
 import { getModuleById } from "../data/klareMethodModules";
 // i18n
@@ -2055,7 +2074,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
   // Tipps des Tages
   const dailyTips = <span class="cstat-no" title="statement not covered" >useMemo(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    return Array.from({ length: 7 }, <span class="fstat-no" title="function not covered" >(_</span>, i) =&gt;</span>
-<span class="cstat-no" title="statement not covered" >      t(`sections.dailyTip.tips.${i}`),</span>
+<span class="cstat-no" title="statement not covered" >      t(`home:sections.dailyTip.tips.${i}`),</span>
     );
   }, [t]);
 &nbsp;
@@ -2134,9 +2153,9 @@ export default function <span class="fstat-no" title="function not covered" >Hom
 <span class="cstat-no" title="statement not covered" >      activities.push({</span>
         id: "daily-reflection",
         type: "daily",
-        title: t("sections.nextActivities.activities.dailyReflection.title"),
+        title: t("home:sections.nextActivities.activities.dailyReflection.title"),
         description: t(
-          "sections.nextActivities.activities.dailyReflection.description",
+          "home:sections.nextActivities.activities.dailyReflection.description",
         ),
         step: "R",
         completed: false,
@@ -2148,9 +2167,9 @@ export default function <span class="fstat-no" title="function not covered" >Hom
 <span class="cstat-no" title="statement not covered" >      activities.push({</span>
         id: "weekly-review",
         type: "weekly",
-        title: t("sections.nextActivities.activities.weeklyReview.title"),
+        title: t("home:sections.nextActivities.activities.weeklyReview.title"),
         description: t(
-          "sections.nextActivities.activities.weeklyReview.description",
+          "home:sections.nextActivities.activities.weeklyReview.description",
         ),
         step: "R",
         completed: false,
@@ -2192,7 +2211,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
       &gt;
         &lt;ActivityIndicator animating={true} size="large" /&gt;
         &lt;Text style={{ marginTop: 10, color: paperTheme.colors.onSurface }}&gt;
-          {t("loading")}
+          {t("common:status.loading", { defaultValue: "Wird geladen..." })}
         &lt;/Text&gt;
         {/* Debug-Infos für Store-Status */}
         {/* {DEBUG_STORE_STATUS &amp;&amp; ( */}
@@ -2235,7 +2254,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
         }}
       &gt;
         &lt;Text style={{ color: paperTheme.colors.onSurface }}&gt;
-          {t("errors.summaryNotAvailable")}
+          {t("home:errors.summaryNotAvailable")}
         &lt;/Text&gt;
         {/* Debug-Infos für Store-Status */}
         {DEBUG_STORE_STATUS &amp;&amp; (
@@ -2277,11 +2296,11 @@ export default function <span class="fstat-no" title="function not covered" >Hom
     const hour = <span class="cstat-no" title="statement not covered" >currentTime.getHours();</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    if (hour &lt; 12) {</span>
-<span class="cstat-no" title="statement not covered" >      return t("greeting.morning");</span>
+<span class="cstat-no" title="statement not covered" >      return t("home:greeting.morning");</span>
     } else <span class="cstat-no" title="statement not covered" >if (hour &lt; 18) {</span>
-<span class="cstat-no" title="statement not covered" >      return t("greeting.day");</span>
+<span class="cstat-no" title="statement not covered" >      return t("home:greeting.day");</span>
     } else {
-<span class="cstat-no" title="statement not covered" >      return t("greeting.evening");</span>
+<span class="cstat-no" title="statement not covered" >      return t("home:greeting.evening");</span>
     }
   };
 &nbsp;
@@ -2310,7 +2329,10 @@ export default function <span class="fstat-no" title="function not covered" >Hom
               variant="titleMedium"
               style={{ color: paperTheme.colors.onSurface }}
             &gt;
-              {getGreeting()}, {userSummary.name || t("anonymousUser")}
+              {getGreeting()},
+              {" "}
+              {userSummary.name ||
+                t("home:anonymousUser", { defaultValue: "Gast" })}
             &lt;/Text&gt;
           &lt;/View&gt;
           {user?.user_metadata?.avatar_url ? (
@@ -2348,7 +2370,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                       { color: paperTheme.colors.onSurface },
                     ]}
                   &gt;
-                    {t("progression.program", {
+                    {t("home:progression.program", {
                       days: userSummary.daysInProgram,
                     })}
                   &lt;/Text&gt;
@@ -2360,7 +2382,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                     { backgroundColor: `${klareColors.k}15` },
                   ]}
                 &gt;
-                  {t("progression.phase", {
+                  {t("home:progression.phase", {
                     id: userSummary?.currentStage
                       ? userSummary?.currentStage.id
                       : "1",
@@ -2411,7 +2433,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                           { color: paperTheme.colors.onSurface },
                         ]}
                       &gt;
-                        {t("progression.nextPhase")}
+                        {t("home:progression.nextPhase")}
                       &lt;/Text&gt;
                       &lt;Text
                         style={[
@@ -2435,7 +2457,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                             { color: klareColors.textSecondary },
                           ]}
                         &gt;
-                          {t("progression.inDays", {
+                          {t("home:progression.inDays", {
                             days:
                               userSummary.nextStage.requiredDays -
                               userSummary.daysInProgram,
@@ -2453,7 +2475,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
         {/* Fortschrittsübersicht */}
         &lt;Card style={styles.progressCard}&gt;
           &lt;Card.Content&gt;
-            &lt;Text&gt;{t("progress.title")}&lt;/Text&gt;
+            &lt;Text&gt;{t("home:progress.title")}&lt;/Text&gt;
 &nbsp;
             &lt;View style={styles.progressContainer}&gt;
               &lt;View style={styles.progressItem}&gt;
@@ -2463,7 +2485,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                     { color: klareColors.textSecondary },
                   ]}
                 &gt;
-                  {t("progress.totalProgress")}
+                  {t("home:progress.totalProgress")}
                 &lt;/Text&gt;
                 &lt;View style={styles.progressBarContainer}&gt;
                   &lt;ProgressBar
@@ -2489,7 +2511,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                     { color: klareColors.textSecondary },
                   ]}
                 &gt;
-                  {t("progress.lifeWheelAverage")}
+                  {t("home:progress.lifeWheelAverage")}
                 &lt;/Text&gt;
                 &lt;View style={styles.progressBarContainer}&gt;
                   &lt;ProgressBar
@@ -2534,7 +2556,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                     { color: klareColors.textSecondary },
                   ]}
                 &gt;
-                  {t("progress.stats.days")}
+                  {t("home:progress.stats.days")}
                 &lt;/Text&gt;
               &lt;/View&gt;
 &nbsp;
@@ -2564,7 +2586,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                     { color: klareColors.textSecondary },
                   ]}
                 &gt;
-                  {t("progress.stats.modules")}
+                  {t("home:progress.stats.modules")}
                 &lt;/Text&gt;
               &lt;/View&gt;
 &nbsp;
@@ -2596,7 +2618,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                     { color: klareColors.textSecondary },
                   ]}
                 &gt;
-                  {t("progress.stats.streak")}
+                  {t("home:progress.stats.streak")}
                 &lt;/Text&gt;
               &lt;/View&gt;
             &lt;/View&gt;
@@ -2604,6 +2626,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
 &nbsp;
           &lt;Card.Actions&gt;
             &lt;Button
+              testID="view-lifewheel-button"
               icon="chart-bar"
               mode="outlined"
               onPress={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >navigation.navigate("LifeWheel")}</span>
@@ -2623,7 +2646,9 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                 paddingHorizontal: 16,
               }}
             &gt;
-              {t("progress.viewLifeWheel")}
+              {t("home:progress.viewLifeWheel", {
+                defaultValue: "Lebensrad ansehen",
+              })}
             &lt;/Button&gt;
           &lt;/Card.Actions&gt;
         &lt;/Card&gt;
@@ -2632,7 +2657,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
         &lt;Text
           style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}
         &gt;
-          {t("sections.klareMethod")}
+          {t("home:sections.klareMethod", { defaultValue: "KLARE Methode" })}
         &lt;/Text&gt;
         &lt;KlareMethodCards
           klareSteps={translatedKlareSteps}
@@ -2642,7 +2667,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
         &lt;Text
           style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}
         &gt;
-          {t("sections.visionBoard.title")}
+          {t("home:sections.visionBoard.title")}
         &lt;/Text&gt;
         &lt;Card style={styles.card}&gt;
           &lt;Card.Content&gt;
@@ -2654,7 +2679,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                 style={{ marginRight: 10 }}
               /&gt;
               &lt;Text style={{ flex: 1, color: paperTheme.colors.onSurface }}&gt;
-                {t("sections.visionBoard.description")}
+                {t("home:sections.visionBoard.description")}
               &lt;/Text&gt;
             &lt;/View&gt;
           &lt;/Card.Content&gt;
@@ -2677,7 +2702,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                 paddingHorizontal: 16,
               }}
             &gt;
-              {t("sections.visionBoard.createButton")}
+              {t("home:sections.visionBoard.createButton")}
             &lt;/Button&gt;
           &lt;/Card.Actions&gt;
         &lt;/Card&gt;
@@ -2685,7 +2710,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
         &lt;Text
           style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}
         &gt;
-          {t("sections.focusAreas.title")}
+          {t("home:sections.focusAreas.title")}
         &lt;/Text&gt;
 &nbsp;
         &lt;Card style={styles.card}&gt;
@@ -2702,7 +2727,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                       title={t(`lifeWheel:areas.${area.areaKey}`, {
                         defaultValue: area.name ?? area.areaKey,
                       })}
-                      description={t("sections.focusAreas.currentValue", {
+                      description={t("home:sections.focusAreas.currentValue", {
                         value: area.currentValue,
                       })}
                       left={<span class="fstat-no" title="function not covered" >(p</span>rops) =&gt; (
@@ -2716,7 +2741,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                     /&gt;
                   ))
               ) : (
-                &lt;Text style={styles.noDataText}&gt;{t("noLifeWheelData")}&lt;/Text&gt;
+                &lt;Text style={styles.noDataText}&gt;{t("home:noLifeWheelData")}&lt;/Text&gt;
               )}
             &lt;/List.Section&gt;
             &lt;Button
@@ -2728,7 +2753,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                 borderColor: klareColors.k,
               }}
             &gt;
-              {t("sections.focusAreas.viewAllAreas")}
+              {t("home:sections.focusAreas.viewAllAreas")}
             &lt;/Button&gt;
           &lt;/Card.Content&gt;
         &lt;/Card&gt;
@@ -2737,7 +2762,9 @@ export default function <span class="fstat-no" title="function not covered" >Hom
         &lt;Text
           style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}
         &gt;
-          {t("sections.nextActivities.title")}
+          {t("home:sections.nextActivities.title", {
+            defaultValue: "Nächste Aktivitäten",
+          })}
         &lt;/Text&gt;
 &nbsp;
         {getNextActivities.map(<span class="fstat-no" title="function not covered" >(a</span>ctivity) =&gt; {
@@ -2784,10 +2811,10 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                       ]}
                     &gt;
                       {activity.type === "daily"
-                        ? t("sections.nextActivities.types.daily")
+                        ? t("home:sections.nextActivities.types.daily")
                         : activity.type === "weekly"
-                          ? t("sections.nextActivities.types.weekly")
-                          : t("sections.nextActivities.types.module")}
+                          ? t("home:sections.nextActivities.types.weekly")
+                          : t("home:sections.nextActivities.types.module")}
                     &lt;/Text&gt;
                   &lt;/View&gt;
 &nbsp;
@@ -2855,7 +2882,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                     }
                   }}
                 &gt;
-                  {t("sections.nextActivities.startButton")}
+                  {t("home:sections.nextActivities.startButton")}
                 &lt;/Button&gt;
               &lt;/Card.Actions&gt;
             &lt;/Card&gt;
@@ -2876,7 +2903,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
                 &lt;Ionicons name="bulb-outline" size={24} color="white" /&gt;
               &lt;/View&gt;
               &lt;Text variant="titleMedium" style={styles.tipTitle}&gt;
-                {t("sections.dailyTip.title")}
+                {t("home:sections.dailyTip.title")}
               &lt;/Text&gt;
               &lt;Text style={styles.tipText}&gt;{todayTip}&lt;/Text&gt;
             &lt;/Card.Content&gt;
@@ -2893,7 +2920,7 @@ export default function <span class="fstat-no" title="function not covered" >Hom
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-04T08:08:58.165Z
+                at 2025-10-07T06:48:57.407Z
             </div>
         <script src="../prettify.js"></script>
         <script>
