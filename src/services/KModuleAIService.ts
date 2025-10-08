@@ -1,304 +1,485 @@
 // src/services/KModuleAIService.ts
-// KLARE Schritt K - AI Mock Service
-// Simuliert Claude API für Meta-Modell der Sprache und Klarheits-Coaching
+// KLARE Schritt K - AI Service Wrapper mit Fallback-Strategie
+
+import AIService, { AIResponse } from "./AIService";
+import { supabase } from "../lib/supabase";
 
 export interface UserContext {
   name: string;
   mainChallenge: string;
-  reflectionExperience: 'Anfänger' | 'Fortgeschritten' | 'Experte';
+  reflectionExperience: "Anfänger" | "Fortgeschritten" | "Experte";
   currentLifeAreas: string[];
 }
 
 export interface AICoachResponse {
-  type: 'welcome' | 'analysis' | 'guidance' | 'feedback';
+  type: "welcome" | "analysis" | "guidance" | "feedback";
   message: string;
   exercises?: string[];
   nextSteps?: string[];
   encouragement?: string;
+  metadata?: Record<string, any>;
 }
 
-export interface MetaModelAnalysis {
-  type: 'feedback';
-  message: string;
-  identifiedPatterns: string[];
-  suggestedQuestions: string[];
-  levelAssessment: number;
-  nextSteps: string[];
-  encouragement: string;
+export interface AnalysisResult {
+  pattern_type: string;
+  identified_word: string;
+  generated_question: string;
 }
+
+export interface MetaModelAnalysisResult {
+  analysis: AnalysisResult[];
+  coachResponse: AICoachResponse;
+  levelAssessment: number;
+  nextSteps?: string[];
+  metadata?: {
+    usedFallback: boolean;
+    challenge: string;
+  };
+}
+
+interface SupabaseMetaModelResponse {
+  analysis: AnalysisResult[];
+}
+
+interface HeuristicAnalysis {
+  patterns: string[];
+  questions: string[];
+  keywords: string[];
+}
+
+const DEFAULT_CHALLENGE = "universalquantoren";
 
 export class KModuleAIService {
-  private language: string;
+  private readonly language: string;
+  private sessionId: string | null = null;
+  private currentUserId: string | null = null;
+  private activeModuleId: string | null = null;
+  private cachedUserContext: UserContext | null = null;
 
-  constructor(language: string = 'de') {
+  constructor(language: string = "de") {
     this.language = language;
   }
 
-  /**
-   * Startet eine K-Session mit personalisiertem Coaching
-   */
-  async startKSession(userContext: UserContext, moduleId: string): Promise<AICoachResponse> {
-    await this.simulateApiDelay();
+  async startKSession(
+    userContext: UserContext,
+    moduleId: string,
+    options: { userId?: string; completedModules?: string[] } = {},
+  ): Promise<AICoachResponse> {
+    this.cachedUserContext = userContext;
+    this.activeModuleId = moduleId;
 
-    const responses = {
-      'k-intro': this.generateKIntroWelcome(userContext),
-      'k-meta-model': this.generateMetaModelWelcome(userContext),
-    };
+    const fallbackResponse = this.generateWelcomeByModule(userContext, moduleId);
 
-    return responses[moduleId] || this.generateGenericKWelcome(userContext);
+    if (!options.userId) {
+      return fallbackResponse;
+    }
+
+    try {
+      const introPrompt = this.buildIntroPrompt(userContext, moduleId, options.completedModules);
+      const { sessionId, response } = await AIService.startConversation(
+        options.userId,
+        "coaching",
+        introPrompt,
+      );
+
+      this.sessionId = sessionId;
+      this.currentUserId = options.userId;
+
+      await AIService.logServiceUsage(options.userId, "k_module_session_start", {
+        moduleId,
+        language: this.language,
+      });
+
+      return response ? this.mapAIResponseToCoach(response, "welcome") : fallbackResponse;
+    } catch (error) {
+      console.warn("[KModuleAIService] Start session fallback genutzt", error);
+      return fallbackResponse;
+    }
   }
 
-  /**
-   * Analysiert User-Aussage mit Meta-Modell
-   */
   async analyzeMetaModel(
     userStatement: string,
     currentLevel: number,
-    challenge: string
-  ): Promise<MetaModelAnalysis> {
-    await this.simulateApiDelay();
+    challenge: string,
+    options: { userId?: string } = {},
+  ): Promise<MetaModelAnalysisResult> {
+    const effectiveChallenge = challenge || DEFAULT_CHALLENGE;
+    const fallback = this.buildFallbackAnalysis(userStatement, currentLevel, effectiveChallenge);
 
-    const analysis = this.performMetaModelAnalysis(userStatement, currentLevel);
-    const feedback = this.generateLevelAppropriateFeedback(analysis, currentLevel);
+    try {
+      const { data, error } = await supabase
+        .functions
+        .invoke<SupabaseMetaModelResponse>("meta-modell-analyse", {
+          body: { inputText: userStatement },
+        });
 
-    return {
-      type: 'feedback',
-      message: feedback.message,
-      identifiedPatterns: analysis.patterns,
-      suggestedQuestions: analysis.questions,
-      levelAssessment: this.assessUserLevel(analysis, currentLevel),
-      nextSteps: feedback.nextSteps,
-      encouragement: feedback.encouragement,
-    };
+      if (error) {
+        throw new Error(error.message || "Meta-Modell Analyse fehlgeschlagen");
+      }
+
+      const serverAnalysis = Array.isArray(data?.analysis) ? data!.analysis : [];
+      const analysis = serverAnalysis.length > 0 ? serverAnalysis : fallback.analysis;
+      const levelAssessment = this.assessLevelFromAnalysis(analysis, currentLevel, serverAnalysis.length > 0);
+
+      const coachResponse = await this.generateCoachFeedback(
+        analysis,
+        userStatement,
+        effectiveChallenge,
+        levelAssessment,
+        options.userId,
+      );
+
+      if (options.userId) {
+        await AIService.logServiceUsage(options.userId, "k_module_meta_model_analysis", {
+          moduleId: this.activeModuleId,
+          analysisSize: analysis.length,
+          usedFallback: serverAnalysis.length === 0,
+        });
+      }
+
+      return {
+        analysis,
+        coachResponse,
+        levelAssessment,
+        nextSteps: coachResponse.nextSteps,
+        metadata: {
+          usedFallback: serverAnalysis.length === 0,
+          challenge: effectiveChallenge,
+        },
+      };
+    } catch (error) {
+      console.warn("[KModuleAIService] Analyse fallback genutzt", error);
+      return fallback;
+    }
   }
 
-  /**
-   * Generiert personalisierte Coaching-Nachrichten
-   */
   async generatePersonalizedCoaching(
     context: string,
-    userProgress: any
+    userProgress: Record<string, unknown>,
+    options: { userId?: string } = {},
   ): Promise<AICoachResponse> {
-    await this.simulateApiDelay();
-
-    return {
-      type: 'guidance',
-      message: this.generateContextualGuidance(context, userProgress),
-      exercises: this.suggestNextExercises(userProgress),
-      encouragement: this.generateEncouragement(userProgress),
-    };
-  }
-
-  // ========================================
-  // Private Methods - Mock AI Responses
-  // ========================================
-
-  private generateKIntroWelcome(context: UserContext): AICoachResponse {
-    const welcomeMessages = [
-      `Hallo ${context.name}! Schön, dass du dich für mehr Klarheit in deinem Leben entschieden hast. `,
-      `Willkommen ${context.name}! Der erste Schritt zur Veränderung ist, klar zu sehen, wo man steht. `,
-      `Hi ${context.name}! Klarheit ist der Schlüssel zu allem - lass uns gemeinsam deinen Weg erhellen. `,
-    ];
-
-    const challengeResponses = {
-      'Klarheit in der Kommunikation': 'Kommunikation ist die Brücke zwischen Menschen. Wenn wir präziser sprechen, verstehen wir uns besser.',
-      'Lebensentscheidungen': 'Große Entscheidungen werden leichter, wenn wir zuerst Klarheit über unsere Werte und Ziele haben.',
-      'Berufliche Orientierung': 'Berufliche Klarheit beginnt mit dem Verstehen deiner wahren Stärken und Interessen.',
-    };
-
-    const baseMessage = this.getRandomElement(welcomeMessages);
-    const challengeMessage = challengeResponses[context.mainChallenge] || 
-      'Jede Herausforderung wird lösbar, wenn wir sie klar definieren und verstehen.';
-
-    return {
-      type: 'welcome',
-      message: `${baseMessage}${challengeMessage} 
-
-In diesem Modul lernst du, bewusster wahrzunehmen und präziser zu kommunizieren. Wir starten mit einer sanften Standortbestimmung.`,
-      encouragement: 'Du machst bereits den wichtigsten Schritt: Du bist hier und bereit zu wachsen! 🌱',
-    };
-  }
-
-  private generateMetaModelWelcome(context: UserContext): AICoachResponse {
-    return {
-      type: 'welcome',
-      message: `Perfekt ${context.name}! Jetzt tauchen wir ein in das Meta-Modell der Sprache - eines der mächtigsten Werkzeuge für klare Kommunikation UND bewusstes Denken.
-
-Das Meta-Modell hilft dir dabei:
-• Unpräzise Aussagen zu erkennen (außen UND innen)
-• Die richtigen Fragen zu stellen  
-• Missverständnisse zu vermeiden
-• Klarheit in Gespräche zu bringen
-
-**Wichtige Erkenntnis:** Die Sprache im Außen ist das Denken im Inneren. Wenn wir lernen, die Sprache anderer zu hinterfragen, werden wir automatisch bewusster für unsere eigenen Denkprozesse und deren Unzulänglichkeiten.
-
-Wir starten mit Level 1: Universalquantoren wie "alle", "nie", "immer" erkennen - sowohl bei anderen als auch bei dir selbst.`,
-      exercises: [
-        'Achte heute bewusst auf Wörter wie "alle", "nie", "immer" in Gesprächen UND in deinen eigenen Gedanken',
-        'Stelle dir die Frage: "Stimmt das wirklich IMMER?" - auch bei deinen eigenen Überzeugungen',
-        'Übe sanftes Nachfragen: "Alle? Gibt es da Ausnahmen?" - bei anderen und dir selbst',
-      ],
-      encouragement: 'Das Meta-Modell ist wie ein Muskel für dein Bewusstsein - je mehr du es übst, desto klarer wird dein Denken! 💪',
-    };
-  }
-
-  private generateGenericKWelcome(context: UserContext): AICoachResponse {
-    return {
-      type: 'welcome',
-      message: `Willkommen ${context.name} zu diesem wichtigen Schritt auf deinem Weg zu mehr Klarheit! 
-
-Klarheit ist das Fundament für alle positiven Veränderungen. Wenn wir klar sehen, können wir klar handeln.`,
-      encouragement: 'Du bist genau richtig hier! 🎯',
-    };
-  }
-
-  private performMetaModelAnalysis(statement: string, level: number) {
-    const analysis = {
-      patterns: [] as string[],
-      questions: [] as string[],
-      violations: [] as string[],
-    };
-
-    // Level 1: Universalquantoren
-    if (this.containsUniversalQuantifiers(statement)) {
-      analysis.patterns.push('Universalquantoren gefunden');
-      analysis.questions.push('Alle? Gibt es da wirklich keine Ausnahmen?');
-      analysis.violations.push('Universalquantoren wie "alle", "nie", "immer"');
+    if (!options.userId) {
+      return this.buildFallbackCoaching(context, userProgress);
     }
 
-    // Level 2: Ursache-Wirkung
-    if (this.containsCausalConnections(statement)) {
-      analysis.patterns.push('Ursache-Wirkung-Verknüpfung');
-      analysis.questions.push('Wie genau führt das eine zum anderen?');
-      analysis.violations.push('Vereinfachte Ursache-Wirkung-Annahme');
+    try {
+      await this.ensureSession(options.userId);
+      const response = await AIService.sendMessage(
+        options.userId,
+        this.sessionId!,
+        context,
+        "coaching",
+      );
+
+      await AIService.logServiceUsage(options.userId, "k_module_contextual_guidance", {
+        moduleId: this.activeModuleId,
+      });
+
+      return this.mapAIResponseToCoach(response, "guidance");
+    } catch (error) {
+      console.warn("[KModuleAIService] Coaching fallback genutzt", error);
+      return this.buildFallbackCoaching(context, userProgress);
+    }
+  }
+
+  private async ensureSession(userId: string): Promise<void> {
+    if (this.sessionId) {
+      return;
     }
 
-    // Level 3: Tilgungen
-    if (this.containsDeletions(statement)) {
-      analysis.patterns.push('Getilgte Informationen');
-      analysis.questions.push('Wer genau? Was genau? Wann genau?');
-      analysis.violations.push('Fehlende spezifische Informationen');
+    const introContext = this.cachedUserContext || {
+      name: "Teilnehmer",
+      mainChallenge: "Klarheit in der Kommunikation",
+      reflectionExperience: "Anfänger" as const,
+      currentLifeAreas: [],
+    };
+
+    const prompt = this.buildIntroPrompt(introContext, this.activeModuleId || "k-meta-model");
+    const { sessionId } = await AIService.startConversation(userId, "coaching", prompt);
+    this.sessionId = sessionId;
+    this.currentUserId = userId;
+  }
+
+  private buildIntroPrompt(
+    userContext: UserContext,
+    moduleId: string,
+    completedModules: string[] = [],
+  ): string {
+    const moduleName = moduleId.replace("k-", "");
+    const completedList = completedModules.length > 0
+      ? `Der Nutzer hat bereits folgende K-Module abgeschlossen: ${completedModules.join(", ")}.`
+      : "Dies ist das erste Modul dieser Session.";
+
+    return [
+      `Sprache: ${this.language.toUpperCase()}.`,
+      `Modul: ${moduleId} (${moduleName}).`,
+      `Name des Nutzers: ${userContext.name}.`,
+      `Haupt-Herausforderung: ${userContext.mainChallenge}.`,
+      `Reflexions-Erfahrung: ${userContext.reflectionExperience}.`,
+      `Aktuelle Lebensbereiche: ${userContext.currentLifeAreas.join(", ") || "nicht angegeben"}.`,
+      completedList,
+      "Gib eine warme, strukturierte Begrüßung mit Fokus auf Klarheit und Meta-Modell.",
+    ].join("\n");
+  }
+
+  private generateWelcomeByModule(userContext: UserContext, moduleId: string): AICoachResponse {
+    if (moduleId === "k-meta-model") {
+      return this.generateMetaModelWelcome(userContext);
+    }
+    if (moduleId === "k-intro") {
+      return this.generateKIntroWelcome(userContext);
+    }
+    return this.generateGenericKWelcome(userContext);
+  }
+
+  private async generateCoachFeedback(
+    analysis: AnalysisResult[],
+    userStatement: string,
+    challenge: string,
+    levelAssessment: number,
+    userId?: string,
+  ): Promise<AICoachResponse> {
+    if (!userId) {
+      return this.buildFallbackFeedback(analysis, levelAssessment);
     }
 
-    // Level 4: Vorannahmen
-    if (this.containsPresuppositions(statement)) {
-      analysis.patterns.push('Versteckte Vorannahmen');
-      analysis.questions.push('Was nimmst du dabei als gegeben an?');
-      analysis.violations.push('Unausgesprochene Annahmen');
+    try {
+      await this.ensureSession(userId);
+      const summary = this.buildAnalysisSummaryMessage(analysis, userStatement, challenge, levelAssessment);
+      const response = await AIService.sendMessage(userId, this.sessionId!, summary, "coaching");
+      return this.mapAIResponseToCoach(response, "feedback", analysis);
+    } catch (error) {
+      console.warn("[KModuleAIService] Feedback fallback genutzt", error);
+      return this.buildFallbackFeedback(analysis, levelAssessment);
+    }
+  }
+
+  private buildAnalysisSummaryMessage(
+    analysis: AnalysisResult[],
+    userStatement: string,
+    challenge: string,
+    levelAssessment: number,
+  ): string {
+    const patternSummary = analysis
+      .map((item, index) => `${index + 1}. Muster: ${item.pattern_type} – Schlüsselwort: "${item.identified_word}"`)
+      .join("\n");
+
+    return [
+      "Fasse die Meta-Modell-Analyse empathisch zusammen.",
+      `Originalaussage: "${userStatement}"`,
+      `Aktuelle Herausforderung: ${challenge}`,
+      `Empfohlenes Level: ${levelAssessment}`,
+      "Gefundene Muster:",
+      patternSummary || "Keine Muster identifiziert.",
+      "Gib konkrete nächste Schritte und eine motivierende Abschlussbotschaft.",
+    ].join("\n");
+  }
+
+  private buildFallbackAnalysis(
+    statement: string,
+    currentLevel: number,
+    challenge: string,
+  ): MetaModelAnalysisResult {
+    const heuristics = this.performMetaModelAnalysis(statement, currentLevel);
+    const mapped = this.mapHeuristicToAnalysis(heuristics);
+    const feedback = this.buildFallbackFeedback(mapped, this.assessUserLevelHeuristic(heuristics, currentLevel));
+
+    return {
+      analysis: mapped,
+      coachResponse: feedback,
+      levelAssessment: this.assessUserLevelHeuristic(heuristics, currentLevel),
+      nextSteps: feedback.nextSteps,
+      metadata: {
+        usedFallback: true,
+        challenge,
+      },
+    };
+  }
+
+  private performMetaModelAnalysis(statement: string, _level: number): HeuristicAnalysis {
+    const analysis: HeuristicAnalysis = {
+      patterns: [],
+      questions: [],
+      keywords: [],
+    };
+
+    const normalized = statement.toLowerCase();
+
+    const universal = ["alle", "jeder", "niemand", "nie", "niemals", "immer", "ständig", "jedes mal"];
+    const universalMatch = universal.find((q) => normalized.includes(q));
+    if (universalMatch) {
+      analysis.patterns.push("Universalquantoren");
+      analysis.questions.push("Alle? Gibt es Ausnahmen? Bitte differenzieren.");
+      analysis.keywords.push(universalMatch);
+    }
+
+    const causalWords = ["weil", "deshalb", "dadurch", "führt zu", "verursacht", "macht mich", "macht dass"];
+    const causalMatch = causalWords.find((word) => normalized.includes(word));
+    if (causalMatch) {
+      analysis.patterns.push("Ursache-Wirkung-Verknüpfung");
+      analysis.questions.push("Wie genau hängt das eine mit dem anderen zusammen?");
+      analysis.keywords.push(causalMatch);
+    }
+
+    const vagueness = ["man", "sie", "es", "das", "sowas", "die leute", "manche"];
+    const vagueMatch = vagueness.find((word) => normalized.includes(word));
+    if (vagueMatch || statement.length < 20) {
+      analysis.patterns.push("Tilgungen / fehlende Referenzen");
+      analysis.questions.push("Wer genau? Was genau? Wann genau?");
+      analysis.keywords.push(vagueMatch || "unpräzise Aussage");
+    }
+
+    const presuppositions = ["schon wieder", "endlich", "sogar", "nur", "bereits", "noch immer"];
+    const presuppositionMatch = presuppositions.find((word) => normalized.includes(word));
+    if (presuppositionMatch) {
+      analysis.patterns.push("Vorannahmen");
+      analysis.questions.push("Welche unausgesprochene Annahme steckt dahinter?");
+      analysis.keywords.push(presuppositionMatch);
     }
 
     return analysis;
   }
 
-  private generateLevelAppropriateFeedback(analysis: any, level: number) {
-    if (analysis.patterns.length === 0) {
-      return {
-        message: 'Interessant! Diese Aussage ist bereits sehr präzise formuliert. Das zeigt, dass du schon ein gutes Gespür für klare Kommunikation entwickelst.\n\n💭 Selbstreflexion: Achte auch darauf, wie präzise deine inneren Gedanken sind - oft denken wir klarer als wir sprechen.',
-        nextSteps: ['keep_practicing'],
-        encouragement: 'Weiter so! Präzise Kommunikation wird für dich zur Gewohnheit. 👏',
-      };
-    }
-
-    const patternCount = analysis.patterns.length;
-    let message = `Großartig! Ich erkenne ${patternCount} Meta-Modell-Muster in deiner Aussage:\n\n`;
-    
-    analysis.patterns.forEach((pattern, index) => {
-      message += `${index + 1}. ${pattern}\n`;
-    });
-
-    message += `\nHier sind hilfreiche Fragen, die zu mehr Klarheit führen:\n`;
-    analysis.questions.forEach((question, index) => {
-      message += `• ${question}\n`;
-    });
-
-    // Selbstreflexions-Element hinzufügen
-    message += `\n🧠 **Bewusstseins-Check**: Falls das deine eigene Aussage war - erkennst du dieses Denkmuster auch in anderen Bereichen deines Lebens? Die Sprache spiegelt oft unsere tieferen Überzeugungen wider.`;
-
-    const nextSteps = patternCount >= 2 ? ['level_up', 'practice_more'] : ['practice_current_level'];
-    const encouragement = patternCount >= 3 
-      ? 'Wow! Du entwickelst bereits ein sehr scharfes Auge für Sprach- UND Denkmuster! 🎯'
-      : 'Du machst tolle Fortschritte! Jede Analyse macht dich nicht nur kommunikativ, sondern auch geistig präziser. 📈';
-
-    return { message, nextSteps, encouragement };
+  private mapHeuristicToAnalysis(heuristics: HeuristicAnalysis): AnalysisResult[] {
+    return heuristics.patterns.map((pattern, index) => ({
+      pattern_type: pattern,
+      identified_word: heuristics.keywords[index] || pattern,
+      generated_question: heuristics.questions[index] || "Kannst du das genauer beschreiben?",
+    }));
   }
 
-  private assessUserLevel(analysis: any, currentLevel: number): number {
-    const patternCount = analysis.patterns.length;
-    
-    if (patternCount >= 3 && currentLevel < 5) {
+  private assessLevelFromAnalysis(
+    analysis: AnalysisResult[],
+    currentLevel: number,
+    hasServerAnalysis: boolean,
+  ): number {
+    if (!hasServerAnalysis) {
+      return Math.min(currentLevel + (analysis.length >= 3 ? 1 : 0), 5);
+    }
+
+    if (analysis.length >= 4 && currentLevel < 5) {
       return currentLevel + 1;
     }
-    
+    if (analysis.length >= 2 && currentLevel < 5) {
+      return currentLevel;
+    }
     return currentLevel;
   }
 
-  // ========================================
-  // Pattern Recognition Methods
-  // ========================================
-
-  private containsUniversalQuantifiers(statement: string): boolean {
-    const quantifiers = ['alle', 'jeder', 'niemand', 'nie', 'niemals', 'immer', 'ständig', 'jedes mal'];
-    return quantifiers.some(q => statement.toLowerCase().includes(q));
+  private assessUserLevelHeuristic(heuristics: HeuristicAnalysis, currentLevel: number): number {
+    return heuristics.patterns.length >= 3 && currentLevel < 5 ? currentLevel + 1 : currentLevel;
   }
 
-  private containsCausalConnections(statement: string): boolean {
-    const causalWords = ['weil', 'deshalb', 'dadurch', 'führt zu', 'verursacht', 'macht mich', 'macht dass'];
-    return causalWords.some(c => statement.toLowerCase().includes(c));
+  private buildFallbackFeedback(
+    analysis: AnalysisResult[],
+    levelAssessment: number,
+  ): AICoachResponse {
+    if (analysis.length === 0) {
+      return {
+        type: "feedback",
+        message:
+          "Spannend! Deine Aussage ist bereits sehr präzise formuliert. Bleib dran und achte weiterhin auf feine sprachliche Nuancen.",
+        nextSteps: ["bewusst_reflektieren"],
+        encouragement: "Deine Klarheit wächst mit jedem Schritt! 👏",
+      };
+    }
+
+    const patternSummary = analysis
+      .map((item, index) => `${index + 1}. ${item.pattern_type} – Schlüsselwort: "${item.identified_word}"`)
+      .join("\n");
+
+    return {
+      type: "feedback",
+      message: [
+        "Großartig! Ich habe folgende Meta-Modell-Muster erkannt:",
+        patternSummary,
+        "Nutze die Fragen, um tiefer zu forschen und mehr Klarheit zu gewinnen.",
+      ].join("\n\n"),
+      nextSteps: [levelAssessment > 1 ? "level_fortsetzen" : "aktuelles_level_vertiefen"],
+      encouragement: "Jede Analyse schärft deinen Bewusstseins-Muskel. Weiter so! 💪",
+    };
   }
 
-  private containsDeletions(statement: string): boolean {
-    // Einfache Heuristik für getilgte Referenzen
-    const vagueness = ['man', 'sie', 'es', 'das', 'sowas', 'die leute', 'manche'];
-    return vagueness.some(v => statement.toLowerCase().includes(v)) ||
-           statement.length < 20; // Sehr kurze Aussagen oft unvollständig
+  private buildFallbackCoaching(
+    context: string,
+    userProgress: Record<string, unknown>,
+  ): AICoachResponse {
+    return {
+      type: "guidance",
+      message: `Basierend auf deinem Kontext ("${context}") empfehle ich dir, eine konkrete Situation zu wählen und das Meta-Modell bewusst anzuwenden.`,
+      nextSteps: ["reflexion_vertiefen", "meta_modell_üben"],
+      encouragement: "Du bist auf einem starken Weg – nutze jeden Moment für Klarheit! ✨",
+    };
   }
 
-  private containsPresuppositions(statement: string): boolean {
-    const presuppositionWords = ['schon wieder', 'endlich', 'sogar', 'nur', 'bereits', 'noch immer'];
-    return presuppositionWords.some(p => statement.toLowerCase().includes(p));
+  private mapAIResponseToCoach(
+    response: AIResponse,
+    type: AICoachResponse["type"],
+    analysis?: AnalysisResult[],
+  ): AICoachResponse {
+    return {
+      type,
+      message: response.content,
+      nextSteps: response.nextQuestions,
+      encouragement: response.metadata?.encouragement,
+      exercises: response.suggestions,
+      metadata: {
+        confidence: response.confidence,
+        analysisSize: analysis?.length ?? 0,
+      },
+    };
   }
 
-  // ========================================
-  // Helper Methods
-  // ========================================
-
-  private generateContextualGuidance(context: string, progress: any): string {
-    const guidanceTemplates = [
-      'Basierend auf deinem Fortschritt schlage ich vor...',
-      'Deine Entwicklung zeigt, dass du bereit bist für...',
-      'Der nächste logische Schritt wäre...',
+  private generateKIntroWelcome(context: UserContext): AICoachResponse {
+    const welcomes = [
+      `Hallo ${context.name}! Lass uns herausfinden, wo du gerade stehst – Klarheit öffnet jede neue Tür.`,
+      `Willkommen ${context.name}! Der erste Schritt ist getan: Du schaust ehrlich hin.`,
+      `Hi ${context.name}! Klarheit beginnt mit bewusster Wahrnehmung – großartig, dass du hier bist.`,
     ];
 
-    return this.getRandomElement(guidanceTemplates) + ' [Spezifische Anleitung basierend auf Kontext]';
+    const challengeHints: Record<string, string> = {
+      "Klarheit in der Kommunikation": "Wenn du präziser sprichst, wirst du besser verstanden – das Meta-Modell hilft dir dabei.",
+      "Lebensentscheidungen": "Große Entscheidungen werden leichter, sobald du deine wahren Werte erkennst.",
+      "Berufliche Orientierung": "Berufliche Klarheit startet mit dem Bewusstsein über deine Stärken und Bedürfnisse.",
+    };
+
+    const challengeMessage = challengeHints[context.mainChallenge] ??
+      "Jede Herausforderung wird beherrschbar, sobald du sie in klare Elemente zerlegst.";
+
+    return {
+      type: "welcome",
+      message: `${this.pickRandom(welcomes)}\n\n${challengeMessage}\n\nDieses Modul unterstützt dich dabei, deine Wahrnehmung zu schärfen und bewusstere Entscheidungen zu treffen.`,
+      encouragement: "Du bist bereit für Klarheit – und ich begleite dich dabei. 🌱",
+    };
   }
 
-  private suggestNextExercises(progress: any): string[] {
-    return [
-      'Führe heute 3 Meta-Modell-Analysen durch',
-      'Achte bewusst auf deine eigene Sprache',
-      'Stelle präzisierende Fragen in einem Gespräch',
-    ];
+  private generateMetaModelWelcome(context: UserContext): AICoachResponse {
+    return {
+      type: "welcome",
+      message: [
+        `Super, ${context.name}! Wir steigen jetzt in das Meta-Modell der Sprache ein – dein Werkzeug für präzise Kommunikation.`,
+        "Es hilft dir, unbewusste Sprachmuster zu entlarven, bessere Fragen zu stellen und innere wie äußere Klarheit zu schaffen.",
+        "Wir starten mit Level 1: Achte auf Generalisierungen wie 'alle', 'immer', 'nie'.",
+      ].join("\n\n"),
+      exercises: [
+        "Notiere heute drei Aussagen (eigene oder fremde), die Generalisierungen enthalten.",
+        "Formuliere zu jeder Aussage eine Präzisierungsfrage.",
+        "Beobachte, wie sich die Wirkung der Aussage durch die Frage verändert.",
+      ],
+      encouragement: "Mit jedem Muster erkennst du mehr Handlungsspielraum. Du bist auf Kurs! 💡",
+    };
   }
 
-  private generateEncouragement(progress: any): string {
-    const encouragements = [
-      'Du machst fantastische Fortschritte! 🌟',
-      'Deine Klarheit wächst mit jedem Tag! 🚀',
-      'Weiter so - du bist auf dem richtigen Weg! 💫',
-      'Ich bin beeindruckt von deiner Entwicklung! ⭐',
-    ];
-
-    return this.getRandomElement(encouragements);
+  private generateGenericKWelcome(context: UserContext): AICoachResponse {
+    return {
+      type: "welcome",
+      message: `Willkommen ${context.name}! Klarheit ist das Fundament für nachhaltige Veränderung. Lass uns gemeinsam deinen inneren Kompass schärfen.`,
+      encouragement: "Du bist genau am richtigen Ort zur richtigen Zeit. 🎯",
+    };
   }
 
-  private getRandomElement<T>(array: T[]): T {
-    return array[Math.floor(Math.random() * array.length)];
-  }
-
-  private async simulateApiDelay(): Promise<void> {
-    // Simuliert API-Aufruf mit realistischer Latenz
-    const delay = Math.random() * 1000 + 500; // 500-1500ms
-    return new Promise(resolve => setTimeout(resolve, delay));
+  private pickRandom<T>(values: T[]): T {
+    return values[Math.floor(Math.random() * values.length)];
   }
 }
 
