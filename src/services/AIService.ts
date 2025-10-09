@@ -1,4 +1,7 @@
 // src/services/AIService.ts
+import "react-native-get-random-values";
+import { v4 as uuidv4 } from "uuid";
+
 import { supabase } from "../lib/supabase";
 import { Database } from "../types/supabase";
 
@@ -83,7 +86,7 @@ export class AIService {
     initialMessage?: string
   ): Promise<{ sessionId: string; response?: AIResponse }> {
     try {
-      const sessionId = crypto.randomUUID();
+      const sessionId = uuidv4();
       
       // System Message für Kontext
       await this.saveMessage({

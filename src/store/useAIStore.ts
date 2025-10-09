@@ -2,16 +2,21 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { MMKV } from "react-native-mmkv";
-import AIService, { AIResponse, ChatContext } from "../services/AIService";
+import AIService, { AIResponse } from "../services/AIService";
 import { Database } from "../types/supabase";
 
-// Types
 type AIConversation = Database["public"]["Tables"]["ai_conversations"]["Row"];
 type PersonalInsight = Database["public"]["Tables"]["personal_insights"]["Row"];
 
+type ConversationType =
+  | "chat"
+  | "coaching"
+  | "insight_generation"
+  | "content_personalization";
+
 interface ChatSession {
   sessionId: string;
-  conversationType: "chat" | "coaching" | "insight_generation" | "content_personalization";
+  conversationType: ConversationType;
   messages: AIConversation[];
   isActive: boolean;
   startedAt: string;
@@ -19,61 +24,51 @@ interface ChatSession {
 }
 
 interface AIState {
-  // Chat Management
   currentSession: ChatSession | null;
   chatHistory: ChatSession[];
   isLoading: boolean;
   error: string | null;
-  
-  // Personal Insights
   insights: PersonalInsight[];
   insightsLoading: boolean;
-  
-  // AI Status
   isAIAvailable: boolean;
   lastSyncTime: string | null;
 }
 
+interface SyncSessionPayload {
+  sessionId: string;
+  conversationType: ConversationType;
+  messages?: AIConversation[];
+  isActive?: boolean;
+  startedAt?: string;
+  lastActivity?: string;
+}
+
 interface AIActions {
-  // Session Management
   startNewSession: (
-    userId: string, 
-    conversationType: ChatSession["conversationType"],
-    initialMessage?: string
+    userId: string,
+    conversationType: ConversationType,
+    initialMessage?: string,
   ) => Promise<void>;
-  
   sendMessage: (userId: string, message: string) => Promise<AIResponse | null>;
-  
   switchSession: (sessionId: string) => void;
-  
   endCurrentSession: () => void;
-  
   loadChatHistory: (userId: string) => Promise<void>;
-  
-  // Insights Management
+  syncExternalSession: (payload: SyncSessionPayload) => void;
   loadInsights: (userId: string) => Promise<void>;
-  
   generateNewInsights: (userId: string) => Promise<void>;
-  
   acknowledgeInsight: (insightId: string) => Promise<void>;
-  
   rateInsight: (insightId: string, rating: number) => Promise<void>;
-  
-  // Utility
   clearError: () => void;
-  
   reset: () => void;
 }
 
 type AIStore = AIState & AIActions;
 
-// MMKV Storage
 const aiStorage = new MMKV({
   id: "klare-ai-storage",
-  encryptionKey: "klare-ai-secure-key-2025"
+  encryptionKey: "klare-ai-secure-key-2025",
 });
 
-// Initial State
 const initialState: AIState = {
   currentSession: null,
   chatHistory: [],
@@ -82,303 +77,259 @@ const initialState: AIState = {
   insights: [],
   insightsLoading: false,
   isAIAvailable: true,
-  lastSyncTime: null
+  lastSyncTime: null,
 };
 
-export const useAIStore = create<AIStore>()(
+const buildSession = (
+  sessionId: string,
+  conversationType: ConversationType,
+  messages: AIConversation[] = [],
+  overrides?: Partial<ChatSession>,
+): ChatSession => {
+  const timestamp = new Date().toISOString();
+
+  return {
+    sessionId,
+    conversationType,
+    messages,
+    isActive: overrides?.isActive ?? true,
+    startedAt: overrides?.startedAt ?? timestamp,
+    lastActivity: overrides?.lastActivity ?? timestamp,
+  };
+};
+
+const mergeSessionIntoHistory = (
+  history: ChatSession[],
+  session: ChatSession,
+): ChatSession[] => {
+  const filteredHistory = history.filter(
+    (entry) => entry.sessionId !== session.sessionId,
+  );
+  return [session, ...filteredHistory];
+};
+
+const useAIStore = create<AIStore>()(
   persist(
     (set, get) => ({
       ...initialState,
-      
-      // =============================================================================
-      // SESSION MANAGEMENT
-      // =============================================================================
-      
+
       startNewSession: async (userId, conversationType, initialMessage) => {
+        set({ isLoading: true, error: null });
+
         try {
-          set({ isLoading: true, error: null });
-          
-          console.log(`[AIStore] Starting new ${conversationType} session for user ${userId}`);
-          
           const response = await AIService.startConversation(
-            userId, 
-            conversationType, 
-            initialMessage
-          );
-          
-          const newSession: ChatSession = {
-            sessionId: response.sessionId,
+            userId,
             conversationType,
-            messages: [],
-            isActive: true,
-            startedAt: new Date().toISOString(),
-            lastActivity: new Date().toISOString()
-          };
-          
-          // Load conversation history for the new session
+            initialMessage,
+          );
           const history = await AIService.getConversationHistory(response.sessionId);
-          newSession.messages = history;
-          
-          const { chatHistory } = get();
-          
-          set({
-            currentSession: newSession,
-            chatHistory: [newSession, ...chatHistory],
+          const session = buildSession(response.sessionId, conversationType, history);
+
+          set((state) => ({
+            currentSession: session,
+            chatHistory: mergeSessionIntoHistory(state.chatHistory, session),
             isLoading: false,
-            lastSyncTime: new Date().toISOString()
-          });
-          
-          console.log(`[AIStore] Session started successfully: ${response.sessionId}`);
-          
+            lastSyncTime: new Date().toISOString(),
+          }));
         } catch (error) {
-          console.error("[AIStore] Error starting session:", error);
-          set({ 
-            isLoading: false, 
-            error: error instanceof Error ? error.message : "Failed to start session" 
+          console.error("[AIStore] startNewSession failed", error);
+          set({
+            isLoading: false,
+            error:
+              error instanceof Error
+                ? error.message
+                : "Session konnte nicht gestartet werden",
           });
         }
       },
-      
+
       sendMessage: async (userId, message) => {
         const { currentSession } = get();
-        
         if (!currentSession) {
-          set({ error: "No active session" });
+          set({ error: "Keine aktive Session" });
           return null;
         }
-        
+
+        set({ isLoading: true, error: null });
+
         try {
-          set({ isLoading: true, error: null });
-          
-          console.log(`[AIStore] Sending message to session ${currentSession.sessionId}`);
-          
           const response = await AIService.sendMessage(
             userId,
             currentSession.sessionId,
             message,
-            currentSession.conversationType
+            currentSession.conversationType,
           );
-          
-          // Reload conversation history
-          const updatedHistory = await AIService.getConversationHistory(currentSession.sessionId);
-          
+
+          const updatedMessages = await AIService.getConversationHistory(
+            currentSession.sessionId,
+          );
           const updatedSession: ChatSession = {
             ...currentSession,
-            messages: updatedHistory,
-            lastActivity: new Date().toISOString()
+            messages: updatedMessages,
+            lastActivity: new Date().toISOString(),
           };
-          
-          // Update chat history
-          const { chatHistory } = get();
-          const updatedChatHistory = chatHistory.map(session => 
-            session.sessionId === currentSession.sessionId ? updatedSession : session
-          );
-          
-          set({
+
+          set((state) => ({
             currentSession: updatedSession,
-            chatHistory: updatedChatHistory,
+            chatHistory: mergeSessionIntoHistory(
+              state.chatHistory,
+              updatedSession,
+            ),
             isLoading: false,
-            lastSyncTime: new Date().toISOString()
-          });
-          
-          // If insights were generated, reload insights
-          if (response.insights && response.insights.length > 0) {
-            get().loadInsights(userId);
+            lastSyncTime: new Date().toISOString(),
+          }));
+
+          if (response.insights?.length) {
+            void get().loadInsights(userId);
           }
-          
+
           return response;
-          
         } catch (error) {
-          console.error("[AIStore] Error sending message:", error);
-          set({ 
-            isLoading: false, 
-            error: error instanceof Error ? error.message : "Failed to send message" 
+          console.error("[AIStore] sendMessage failed", error);
+          set({
+            isLoading: false,
+            error:
+              error instanceof Error
+                ? error.message
+                : "Nachricht konnte nicht gesendet werden",
           });
           return null;
         }
       },
-      
+
       switchSession: (sessionId) => {
         const { chatHistory } = get();
-        const session = chatHistory.find(s => s.sessionId === sessionId);
-        
-        if (session) {
-          // Mark previous session as inactive
-          const { currentSession } = get();
-          if (currentSession) {
-            const updatedHistory = chatHistory.map(s => 
-              s.sessionId === currentSession.sessionId 
-                ? { ...s, isActive: false }
-                : s.sessionId === sessionId 
-                ? { ...s, isActive: true }
-                : s
-            );
-            
-            set({
-              currentSession: { ...session, isActive: true },
-              chatHistory: updatedHistory
-            });
-          } else {
-            set({ currentSession: { ...session, isActive: true } });
-          }
-          
-          console.log(`[AIStore] Switched to session: ${sessionId}`);
+        const session = chatHistory.find(
+          (entry) => entry.sessionId === sessionId,
+        );
+        if (!session) {
+          return;
         }
+
+        const timestamp = new Date().toISOString();
+        const updatedHistory = chatHistory.map((entry) =>
+          entry.sessionId === sessionId
+            ? { ...entry, isActive: true, lastActivity: timestamp }
+            : { ...entry, isActive: false },
+        );
+
+        set({
+          currentSession: { ...session, isActive: true },
+          chatHistory: updatedHistory,
+        });
       },
-      
+
       endCurrentSession: () => {
         const { currentSession, chatHistory } = get();
-        
-        if (currentSession) {
-          const updatedHistory = chatHistory.map(session => 
-            session.sessionId === currentSession.sessionId 
-              ? { ...session, isActive: false }
-              : session
-          );
-          
-          set({
-            currentSession: null,
-            chatHistory: updatedHistory
-          });
-          
-          console.log(`[AIStore] Ended session: ${currentSession.sessionId}`);
+        if (!currentSession) {
+          return;
         }
+
+        const updatedHistory = chatHistory.map((entry) =>
+          entry.sessionId === currentSession.sessionId
+            ? { ...entry, isActive: false }
+            : entry,
+        );
+
+        set({
+          currentSession: null,
+          chatHistory: updatedHistory,
+        });
       },
-      
+
       loadChatHistory: async (userId) => {
         try {
-          console.log(`[AIStore] Loading chat history for user ${userId}`);
-          
-          // Note: This would require a new RPC function in Supabase
-          // For now, we'll use the stored chatHistory
-          const { chatHistory } = get();
-          
-          set({ 
-            chatHistory,
-            lastSyncTime: new Date().toISOString() 
-          });
-          
+          console.log(`[AIStore] loadChatHistory for ${userId}`);
+          set({ lastSyncTime: new Date().toISOString() });
         } catch (error) {
-          console.error("[AIStore] Error loading chat history:", error);
-          set({ error: "Failed to load chat history" });
+          console.error("[AIStore] loadChatHistory failed", error);
+          set({ error: "Chat-Verlauf konnte nicht geladen werden" });
         }
       },
-      
-      // =============================================================================
-      // INSIGHTS MANAGEMENT
-      // =============================================================================
-      
+
+      syncExternalSession: (payload) => {
+        const session = buildSession(
+          payload.sessionId,
+          payload.conversationType,
+          payload.messages,
+          {
+            isActive: payload.isActive,
+            startedAt: payload.startedAt,
+            lastActivity: payload.lastActivity,
+          },
+        );
+
+        set((state) => ({
+          currentSession: session,
+          chatHistory: mergeSessionIntoHistory(state.chatHistory, session),
+          isLoading: false,
+          error: null,
+          lastSyncTime: new Date().toISOString(),
+        }));
+      },
+
       loadInsights: async (userId) => {
         try {
           set({ insightsLoading: true, error: null });
-          
-          console.log(`[AIStore] Loading insights for user ${userId}`);
-          
           const insights = await AIService.getUserInsights(userId);
-          
-          set({ 
+          set({
             insights,
             insightsLoading: false,
-            lastSyncTime: new Date().toISOString()
+            lastSyncTime: new Date().toISOString(),
           });
-          
-          console.log(`[AIStore] Loaded ${insights.length} insights`);
-          
         } catch (error) {
-          console.error("[AIStore] Error loading insights:", error);
-          set({ 
-            insightsLoading: false, 
-            error: "Failed to load insights" 
+          console.error("[AIStore] loadInsights failed", error);
+          set({
+            insightsLoading: false,
+            error: "Insights konnten nicht geladen werden",
           });
         }
       },
-      
+
       generateNewInsights: async (userId) => {
         try {
           set({ insightsLoading: true, error: null });
-          
-          console.log(`[AIStore] Generating new insights for user ${userId}`);
-          
           const newInsights = await AIService.generateInsights(userId);
-          
-          const { insights } = get();
-          
-          set({
-            insights: [...newInsights, ...insights],
+          set((state) => ({
+            insights: [...newInsights, ...state.insights],
             insightsLoading: false,
-            lastSyncTime: new Date().toISOString()
-          });
-          
-          console.log(`[AIStore] Generated ${newInsights.length} new insights`);
-          
+            lastSyncTime: new Date().toISOString(),
+          }));
         } catch (error) {
-          console.error("[AIStore] Error generating insights:", error);
-          set({ 
-            insightsLoading: false, 
-            error: "Failed to generate insights" 
+          console.error("[AIStore] generateNewInsights failed", error);
+          set({
+            insightsLoading: false,
+            error: "Insights konnten nicht generiert werden",
           });
         }
       },
-      
+
       acknowledgeInsight: async (insightId) => {
-        try {
-          // Update in database
-          // Note: Would need to add this functionality to AIService
-          
-          // Update local state
-          const { insights } = get();
-          const updatedInsights = insights.map(insight => 
-            insight.id === insightId 
+        set((state) => ({
+          insights: state.insights.map((insight) =>
+            insight.id === insightId
               ? { ...insight, user_acknowledged: true }
-              : insight
-          );
-          
-          set({ insights: updatedInsights });
-          
-          console.log(`[AIStore] Acknowledged insight: ${insightId}`);
-          
-        } catch (error) {
-          console.error("[AIStore] Error acknowledging insight:", error);
-          set({ error: "Failed to acknowledge insight" });
-        }
+              : insight,
+          ),
+        }));
       },
-      
+
       rateInsight: async (insightId, rating) => {
-        try {
-          // Update in database
-          // Note: Would need to add this functionality to AIService
-          
-          // Update local state
-          const { insights } = get();
-          const updatedInsights = insights.map(insight => 
-            insight.id === insightId 
+        set((state) => ({
+          insights: state.insights.map((insight) =>
+            insight.id === insightId
               ? { ...insight, user_rating: rating }
-              : insight
-          );
-          
-          set({ insights: updatedInsights });
-          
-          console.log(`[AIStore] Rated insight ${insightId}: ${rating}/10`);
-          
-        } catch (error) {
-          console.error("[AIStore] Error rating insight:", error);
-          set({ error: "Failed to rate insight" });
-        }
+              : insight,
+          ),
+        }));
       },
-      
-      // =============================================================================
-      // UTILITY
-      // =============================================================================
-      
-      clearError: () => {
-        set({ error: null });
-      },
-      
+
+      clearError: () => set({ error: null }),
+
       reset: () => {
         set(initialState);
         aiStorage.clearAll();
-        console.log("[AIStore] Store reset and storage cleared");
-      }
+      },
     }),
     {
       name: "klare-ai-store",
@@ -392,17 +343,16 @@ export const useAIStore = create<AIStore>()(
         },
         removeItem: (key) => {
           aiStorage.delete(key);
-        }
+        },
       })),
-      // Only persist non-sensitive state
       partialize: (state) => ({
         chatHistory: state.chatHistory,
         insights: state.insights,
         lastSyncTime: state.lastSyncTime,
-        isAIAvailable: state.isAIAvailable
-      })
-    }
-  )
+        isAIAvailable: state.isAIAvailable,
+      }),
+    },
+  ),
 );
 
 export default useAIStore;

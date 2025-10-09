@@ -231,7 +231,15 @@ export type Database = {
           translations?: Json | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "content_sections_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       excercise_steps: {
         Row: {
@@ -270,7 +278,15 @@ export type Database = {
           translations?: Json | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "excercise_steps_module_content_id_fkey"
+            columns: ["module_content_id"]
+            isOneToOne: false
+            referencedRelation: "module_contents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       generated_content: {
         Row: {
@@ -563,9 +579,10 @@ export type Database = {
         Row: {
           content: string | null
           created_at: string | null
-          id: string | null
+          id: string
           media_url: string | null
           module_content_id: string | null
+          module_id: string | null
           order_index: number | null
           title: string | null
           translations: Json | null
@@ -574,9 +591,10 @@ export type Database = {
         Insert: {
           content?: string | null
           created_at?: string | null
-          id?: string | null
+          id: string
           media_url?: string | null
           module_content_id?: string | null
+          module_id?: string | null
           order_index?: number | null
           title?: string | null
           translations?: Json | null
@@ -585,9 +603,10 @@ export type Database = {
         Update: {
           content?: string | null
           created_at?: string | null
-          id?: string | null
+          id?: string
           media_url?: string | null
           module_content_id?: string | null
+          module_id?: string | null
           order_index?: number | null
           title?: string | null
           translations?: Json | null
@@ -818,7 +837,15 @@ export type Database = {
           translations?: Json | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_module_content_id_fkey"
+            columns: ["module_content_id"]
+            isOneToOne: false
+            referencedRelation: "module_contents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       static_content: {
         Row: {

@@ -1,9 +1,9 @@
 // src/components/modules/KModuleComponent.tsx
-// KLARE Schritt K (Klarheit) - Spezialisierte Komponente
-// Fokus: Meta-Modell der Sprache als Haupttool für IST-Analyse
+// KLARE Schritt K (Klarheit) - Vollständige Transformationsreise
+// 12 Phasen: Welcome → IST-Analyse → Meta-Modell (3 Level) → Genius Gate → Inkongruenz → Reflexion → Journal → Completion
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { View, ScrollView, StyleSheet, Alert, TextInput } from 'react-native';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { View, ScrollView, StyleSheet, Alert, TextInput, TouchableOpacity } from 'react-native';
 import {
   Text,
   Button,
@@ -13,16 +13,24 @@ import {
   useTheme,
   Surface,
   Divider,
+  List,
+  RadioButton,
 } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
 import { ModuleContent } from '../../lib/contentService';
 import { darkKlareColors, lightKlareColors } from '../../constants/theme';
+import { useUserStore } from '../../store/useUserStore';
+import { useProgressionStore } from '../../store/useProgressionStore';
+import { useLifeWheelStore } from '../../store/useLifeWheelStore';
+import useAIStore from '../../store/useAIStore';
 
-// Mock AI Service für K-Module (später Claude API)
-import { KModuleAIService } from '../../services/KModuleAIService';
-import { supabase } from '../../lib/supabase';
+import {
+  KModuleAIService,
+  AICoachResponse as ServiceCoachResponse,
+  MetaModelAnalysisResult,
+} from '../../services/KModuleAIService';
 
 interface KModuleComponentProps {
   module: ModuleContent;
@@ -36,23 +44,34 @@ interface MetaModelProgress {
   currentChallenge: string | null;
 }
 
-interface AICoachResponse {
-  type: 'welcome' | 'analysis' | 'guidance' | 'feedback';
-  message: string;
-  exercises?: any[];
-  nextSteps?: string[];
-  encouragement?: string;
+type KModulePhase = 
+  | 'welcome'
+  | 'lifewheel_analysis'
+  | 'metamodel_intro'
+  | 'metamodel_level1'
+  | 'metamodel_level2'
+  | 'metamodel_level3'
+  | 'genius_gate'
+  | 'genius_gate_practice'
+  | 'incongruence_mapping'
+  | 'clarity_reflection'
+  | 'journal_setup'
+  | 'completion';
+
+interface KModuleState {
+  currentPhase: KModulePhase;
+  completedPhases: KModulePhase[];
+  phaseData: Record<string, any>;
 }
+
+
+type AICoachResponse = ServiceCoachResponse;
 
 // Typen für die KI-Analyse
 interface AnalysisResult {
   pattern_type: string;
   identified_word: string;
   generated_question: string;
-}
-
-interface ApiResponse {
-  analysis: AnalysisResult[];
 }
 
 const KModuleComponent: React.FC<KModuleComponentProps> = ({
@@ -64,20 +83,37 @@ const KModuleComponent: React.FC<KModuleComponentProps> = ({
   const isDarkMode = theme.dark;
   const klareColors = isDarkMode ? darkKlareColors : lightKlareColors;
 
+  const user = useUserStore((state) => state.user);
+  const completedModules = useProgressionStore((state) => state.completedModules);
+  const syncExternalSession = useAIStore((state) => state.syncExternalSession);
+
   // State Management
-  const [currentStep, setCurrentStep] = useState(0);
+  const [moduleState, setModuleState] = useState<KModuleState>({
+    currentPhase: 'welcome',
+    completedPhases: [],
+    phaseData: {},
+  });
   const [userInput, setUserInput] = useState('');
-  const [analysisResults, setAnalysisResults] = useState<AnalysisResult[] | null>(null); // Neuer State
+  const [analysisResults, setAnalysisResults] = useState<AnalysisResult[] | null>(null);
   const [metaModelProgress, setMetaModelProgress] = useState<MetaModelProgress>({
     level: 1,
-    totalLevels: 5,
+    totalLevels: 3,
     completedExercises: [],
     currentChallenge: null,
   });
   const [aiResponse, setAiResponse] = useState<AICoachResponse | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedIncongruence, setSelectedIncongruence] = useState<{
+    cognitive: string;
+    emotional: string;
+    behavioral: string;
+  }>({ cognitive: '', emotional: '', behavioral: '' });
 
-  // AI Mock Service
+  // LifeWheel Store
+  const lifeWheelAreas = useLifeWheelStore((state) => state.lifeWheelAreas);
+  const loadLifeWheelData = useLifeWheelStore((state) => state.loadLifeWheelData);
+
+  // AI Service Wrapper (mit Fallbacks)
   const aiService = useMemo(() => new KModuleAIService(i18n.language), [i18n.language]);
 
   // Component Styles
@@ -102,28 +138,39 @@ const KModuleComponent: React.FC<KModuleComponentProps> = ({
   // Initialize component
   useEffect(() => {
     initializeKModule();
-  }, [module]);
+  }, [initializeKModule]);
 
-  const initializeKModule = async () => {
+  const initializeKModule = useCallback(async () => {
     try {
       setIsProcessing(true);
-      
-      // Lade User-spezifischen Kontext (Mock)
-      const userContext = {
-        name: 'User', // TODO: Aus UserStore laden
-        mainChallenge: 'Klarheit in der Kommunikation',
-        reflectionExperience: 'Anfänger' as const,
-        currentLifeAreas: ['career', 'relationships'],
-      };
 
-      // Initialisiere AI-Coach für K-Schritt
-      if (!module.module_id) {
-        throw new Error("Modul-ID ist für die Initialisierung erforderlich.");
+      const resolvedModuleId = module.module_id;
+      if (!resolvedModuleId) {
+        throw new Error('Modul-ID ist für die Initialisierung erforderlich.');
       }
-      const welcome = await aiService.startKSession(userContext, module.module_id);
+
+      const userContext = {
+        name: user?.user_metadata?.name || user?.email || 'Teilnehmer',
+        mainChallenge: user?.user_metadata?.primary_challenge || 'Klarheit in der Kommunikation',
+        reflectionExperience: (user?.user_metadata?.reflection_level as MetaModelProgress['reflectionExperience']) || 'Anfänger',
+        currentLifeAreas: user?.user_metadata?.focus_areas || ['career', 'relationships'],
+      } as const;
+
+      const welcome = await aiService.startKSession(userContext, resolvedModuleId, {
+        userId: user?.id,
+        completedModules,
+      });
       setAiResponse(welcome);
 
-      // Lade Meta-Model Progress
+      const sessionInfo = aiService.getSessionInfo();
+      if (sessionInfo.sessionId && sessionInfo.userId) {
+        syncExternalSession({
+          sessionId: sessionInfo.sessionId,
+          conversationType: 'coaching',
+          isActive: true,
+        });
+      }
+
       const progress = await loadMetaModelProgress();
       setMetaModelProgress(progress);
 
@@ -133,7 +180,7 @@ const KModuleComponent: React.FC<KModuleComponentProps> = ({
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, [aiService, completedModules, module.module_id, syncExternalSession, user]);
 
   const loadMetaModelProgress = async (): Promise<MetaModelProgress> => {
     // TODO: Aus Database laden
@@ -154,19 +201,33 @@ const KModuleComponent: React.FC<KModuleComponentProps> = ({
     setAiResponse(null); // Ggf. alte Coach-Antworten zurücksetzen
 
     try {
-      const { data, error: functionError } = await supabase.functions.invoke<ApiResponse>('meta-modell-analyse', {
-        body: { inputText: userStatement },
-      });
+      const challenge = metaModelProgress.currentChallenge ?? 'universalquantoren';
+      const analysisResult: MetaModelAnalysisResult = await aiService.analyzeMetaModel(
+        userStatement,
+        metaModelProgress.level,
+        challenge,
+        {
+          userId: user?.id,
+        },
+      );
 
-      if (functionError) {
-        throw new Error(`Fehler von der Funktion: ${functionError.message}`);
+      setAnalysisResults(analysisResult.analysis);
+      setAiResponse(analysisResult.coachResponse);
+      setMetaModelProgress((prev) => ({
+        ...prev,
+        level: analysisResult.levelAssessment,
+        completedExercises: [...prev.completedExercises, userStatement],
+        currentChallenge: analysisResult.metadata?.challenge ?? prev.currentChallenge,
+      }));
+
+      const sessionInfo = aiService.getSessionInfo();
+      if (sessionInfo.sessionId && sessionInfo.userId) {
+        syncExternalSession({
+          sessionId: sessionInfo.sessionId,
+          conversationType: 'coaching',
+          isActive: true,
+        });
       }
-
-      if (!data || !data.analysis) {
-        throw new Error('Die Analyse hat ein unerwartetes Format zurückgegeben.');
-      }
-
-      setAnalysisResults(data.analysis);
 
     } catch (e: any) {
       console.error('Fehler bei der Analyse:', e);

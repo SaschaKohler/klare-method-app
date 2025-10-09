@@ -20,29 +20,23 @@ ALTER TABLE quiz_questions
   ALTER COLUMN module_content_id TYPE uuid USING module_content_id::uuid;
 
 -- 3) Legacy mapping zwischen Slugs, Modulen und Bestandsinhalten
-CREATE TABLE IF NOT EXISTS legacy_module_mapping (
+DROP TABLE IF EXISTS legacy_module_mapping CASCADE;
+
+CREATE TABLE legacy_module_mapping (
   slug text PRIMARY KEY,
   module_id uuid NOT NULL,
   legacy_module_content_id uuid NOT NULL,
   created_at timestamptz DEFAULT now()
 );
 
+-- Mapping für bestehende Module (nur die mit echten legacy UUIDs)
+-- k-intro und k-meta-model werden übersprungen, da sie keine legacy IDs haben
 WITH mapping_data(slug, legacy_module_content_id) AS (
   VALUES
     ('a-intro',            '54b29d5a-ca3f-4c8c-83c2-e9af20353032'),
     ('a-theory',           '3d29b000-6cb4-4944-ae50-5a53c43ca721'),
     ('a-values-hierarchy', '4f95c8a5-10db-4be4-9a55-d547ce5faed4'),
     ('a-vision-board',     '6e5efcb9-b7eb-43df-9a62-bcb349973711'),
-    ('k-clarity-journal',  'cacab4bf-807d-4fc4-894a-fea946d80590'),
-    ('k-reality-check',        'K', 'Realitäts-Check Übung',                   'Ehrliche Bestandsaufnahme Ihrer aktuellen Situation',                                    'exercise', 4, 20),
-    ('k-incongruence-finder',  'K', 'Inkongruenz-Finder',                      'Diskrepanzen zwischen Denken, Fühlen und Handeln erkennen',                              'exercise', 5, 25),
-    ('k-reflection',           'K', 'Klarheits-Reflexion',                     'Reflexion der Erkenntnisse aus den Klarheits-Übungen',                                   'exercise', 6, 10),
-    ('k-quiz',                 'K', 'Klarheits-Quiz',                          'Verständnis des Klarheits-Konzepts überprüfen',                                          'quiz',     7,  5),
-    ('k-genius-gate',          'K', 'Genius Gate – Kommunikation mit dem Unbewussten', 'Techniken, um durch präzise Fragen zu tiefer Selbsterkenntnis zu gelangen',         'theory',   4, 15),
-    ('k-genius-gate-practice', 'K', 'Genius Gate in der Praxis',               'Praktische Anwendung der Genius-Gate-Fragetechniken in konkreten Situationen',            'exercise', 5, 20),
-    ('k-incongruence-mapping', 'K', 'Inkongruenzen kartieren',                 'Innere Konflikte erkennen und visualisieren, um Harmonie zu schaffen',                    'exercise', 6, 25),
-    ('k-metamodel-practice',   'K', 'Metamodell in der Praxis',                'Präzise Sprache nutzen, um Klarheit im Alltag zu fördern',                                 'exercise', 7, 20),
-    ('k-clarity-journal',      'K', 'Klarheits-Tagebuch',                      'Tägliche Praxis, um Klarheit dauerhaft zu verankern',                                     'exercise', 8, 15),
     ('l-embodiment',       'af170333-2007-4203-a16c-df1fee452491'),
     ('l-energy-blockers',  '9bf7a223-8c2d-46d4-8b0b-f0b8eade8ed0'),
     ('l-intro',            'd8b8af00-7d10-47b5-8a70-9a7d9da97203'),

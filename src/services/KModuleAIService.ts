@@ -481,6 +481,18 @@ export class KModuleAIService {
   private pickRandom<T>(values: T[]): T {
     return values[Math.floor(Math.random() * values.length)];
   }
+
+  getSessionInfo(): {
+    sessionId: string | null;
+    userId: string | null;
+    moduleId: string | null;
+  } {
+    return {
+      sessionId: this.sessionId,
+      userId: this.currentUserId,
+      moduleId: this.activeModuleId,
+    };
+  }
 }
 
 export default KModuleAIService;

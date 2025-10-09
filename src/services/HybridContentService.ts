@@ -823,6 +823,17 @@ type ModuleListRow = {
   duration?: number | null;
   estimated_duration?: number | null;
   title_localized?: string | null;
+  modules?: {
+    klare_step?: string | null;
+    title?: string | null;
+    description?: string | null;
+    content_type?: string | null;
+    order_index?: number | null;
+    difficulty_level?: number | null;
+    duration?: number | null;
+    estimated_duration?: number | null;
+    title_localized?: string | null;
+  } | null;
 };
 
 async function runModuleSelect(
@@ -1115,7 +1126,6 @@ export async function loadModuleContent(moduleId: string): Promise<ModuleContent
 const MODULE_LIST_COLUMNS_LEGACY = `
   id,
   module_id,
-  klare_step,
   title,
   description,
   content_type,
@@ -1129,7 +1139,7 @@ const MODULE_LIST_COLUMNS_LEGACY = `
 
 const MODULE_LIST_COLUMNS_MODERN = `
   id,
-  klare_step,
+  module_id,
   title,
   description,
   content_type,
@@ -1144,8 +1154,8 @@ const MODULE_LIST_COLUMNS_MODERN = `
 async function selectModulesByStep(step: string, columns: string): Promise<PostgrestResponse<ModuleListRow>> {
   const response = await supabase
     .from('module_contents')
-    .select(columns)
-    .eq('klare_step', step)
+    .select(`${columns}, modules!inner(klare_step, title, description, content_type, order_index, duration, estimated_duration, title_localized)`)
+    .eq('modules.klare_step', step)
     .order('order_index');
 
   return response as PostgrestResponse<ModuleListRow>;
@@ -1177,21 +1187,24 @@ export async function loadModulesByStep(step: string): Promise<ModuleContent[]> 
 
     return data.map((module) => {
       const moduleIdentifier = module.module_id ?? module.id;
-      const klareStep = module.klare_step ?? moduleIdentifier.substring(0, 1).toUpperCase();
+      const moduleMetadata = module.modules ?? null;
+      const klareStep = module.klare_step
+        ?? moduleMetadata?.klare_step
+        ?? moduleIdentifier.substring(0, 1).toUpperCase();
 
       const mapped: ModuleContent = {
         id: module.id,
         module_id: moduleIdentifier,
         klare_step: klareStep,
-        title: module.title,
-        description: module.description ?? undefined,
-        content_type: module.content_type,
+        title: module.title ?? moduleMetadata?.title ?? "",
+        description: module.description ?? moduleMetadata?.description ?? undefined,
+        content_type: module.content_type ?? moduleMetadata?.content_type ?? "intro",
         content: module.content ?? {},
-        order_index: module.order_index,
-        difficulty_level: module.difficulty_level ?? undefined,
-        duration: module.duration ?? undefined,
-        estimated_duration: module.estimated_duration ?? undefined,
-        title_localized: module.title_localized ?? undefined,
+        order_index: module.order_index ?? moduleMetadata?.order_index ?? 0,
+        difficulty_level: module.difficulty_level ?? moduleMetadata?.difficulty_level ?? undefined,
+        duration: module.duration ?? moduleMetadata?.duration ?? undefined,
+        estimated_duration: module.estimated_duration ?? moduleMetadata?.estimated_duration ?? undefined,
+        title_localized: module.title_localized ?? moduleMetadata?.title_localized ?? undefined,
         sections: [],
         exercise_steps: [],
         quiz_questions: [],

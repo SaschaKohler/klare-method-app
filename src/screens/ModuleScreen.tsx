@@ -20,10 +20,12 @@ import {
 
 // Import user store
 import { useUserStore } from "../store/useUserStore";
+import { useProgressionStore } from "../store/useProgressionStore";
 
 // Import module-specific components
 import { LModuleComponent, AModuleComponent } from "../components/modules";
 import KModuleComponent from "../components/modules/KModuleComponent";
+import KModuleComponentNew from "../components/modules/KModuleComponentNew";
 import ModuleContentComponent from "../components/modules/ModuleContent";
 import ModuleExercise from "../components/modules/ModuleExercise";
 import ModuleQuiz from "../components/modules/ModuleQuiz";
@@ -57,8 +59,9 @@ const ModuleScreen = () => {
   const [showModuleSelector, setShowModuleSelector] = useState(false);
 
   // User store
-  const completeModule = useUserStore((state) => state.completeModule);
   const user = useUserStore((state) => state.user);
+  const completedModules = useProgressionStore((state) => state.completedModules);
+  const completeModule = useProgressionStore((state) => state.completeModule);
 
   // Load module content
   const loadModuleData = useCallback(
@@ -119,8 +122,14 @@ const ModuleScreen = () => {
   const handleModuleComplete = useCallback(async () => {
     if (!moduleData || !user) return;
 
+    const alreadyCompleted = completedModules.includes(moduleData.module_id);
+    if (alreadyCompleted) {
+      navigation.goBack();
+      return;
+    }
+
     try {
-      await completeModule(moduleData.module_id);
+      await completeModule(user.id, moduleData.module_id);
 
       setTimeout(() => {
         navigation.goBack();
@@ -128,22 +137,17 @@ const ModuleScreen = () => {
     } catch (err) {
       console.error("Module Completion Error:", err);
     }
-  }, [moduleData, user, completeModule, navigation]);
+  }, [moduleData, user, completeModule, navigation, completedModules]);
 
   // Render module content based on type
   const renderModuleContent = () => {
     if (!moduleData) return null;
 
     // Prüfe, ob es ein K-Modul ist (Klarheit)
-    if (
-      moduleData.module_id.startsWith("k-") &&
-      (moduleData.content_type === "exercise" ||
-        moduleData.module_id === "k-intro" ||
-        moduleData.module_id === "k-meta-model" ||
-        moduleData.module_id === "k-clarity")
-    ) {
+    // Verwende die neue vollständige K-Module-Komponente
+    if (moduleData.module_id.startsWith("k-")) {
       return (
-        <KModuleComponent
+        <KModuleComponentNew
           module={moduleData}
           onComplete={handleModuleComplete}
         />
@@ -193,7 +197,6 @@ const ModuleScreen = () => {
             title={moduleData.title}
             content={moduleData.content}
             sections={moduleData.sections}
-            onComplete={handleModuleComplete}
           />
         );
 

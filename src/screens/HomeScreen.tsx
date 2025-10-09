@@ -17,7 +17,6 @@ import { KlareMethodCards } from "../components";
 import createStyles from "../constants/createStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 import { getKlareSteps } from "../data/klareMethodData";
-import { ProgressionStage } from "../data/progression";
 import { useKlareStores } from "../hooks";
 import { getModuleById } from "../data/klareMethodModules";
 // i18n
@@ -188,7 +187,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       activities.push({
         id: "daily-reflection",
         type: "daily",
-        title: t("home:sections.nextActivities.activities.dailyReflection.title"),
+        title: t(
+          "home:sections.nextActivities.activities.dailyReflection.title",
+        ),
         description: t(
           "home:sections.nextActivities.activities.dailyReflection.description",
         ),
@@ -364,8 +365,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               variant="titleMedium"
               style={{ color: paperTheme.colors.onSurface }}
             >
-              {getGreeting()},
-              {" "}
+              {getGreeting()},{" "}
               {userSummary.name ||
                 t("home:anonymousUser", { defaultValue: "Gast" })}
             </Text>
@@ -776,7 +776,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                     />
                   ))
               ) : (
-                <Text style={styles.noDataText}>{t("home:noLifeWheelData")}</Text>
+                <Text style={styles.noDataText}>
+                  {t("home:noLifeWheelData")}
+                </Text>
               )}
             </List.Section>
             <Button
