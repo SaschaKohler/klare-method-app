@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View, StyleSheet, Alert, ScrollView } from "react-native";
+import { View, StyleSheet, Alert, ScrollView, Platform } from "react-native";
 import {
   Text,
   Button,
@@ -18,12 +18,13 @@ import { Ionicons } from "@expo/vector-icons";
 import ThemeToggle from "../components/ThemeToggle";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { useKlareStores } from "../hooks";
-import { RootStackParamList } from "../navigation/MainNavigator";
+import { RootStackParamList } from "../navigation/types";
 import { navigateWithFallback, canNavigateTo } from "../utils/navigationUtils";
-import { Theme } from "react-native-paper/lib/typescript/types";
+import { MD3Theme } from "react-native-paper";
 // i18n
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from "../components/LanguageSelector";
+import { DebugMenu } from "../components/debug/DebugMenu";
 
 export default function ProfileScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -31,6 +32,7 @@ export default function ProfileScreen() {
 
   const { summary, auth, theme: klareTheme } = useKlareStores();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [debugMenuVisible, setDebugMenuVisible] = useState(false);
 
   const paperTheme = useTheme();
 
@@ -66,10 +68,10 @@ export default function ProfileScreen() {
             label={summary.user?.name?.charAt(0) || "U"}
             style={{ backgroundColor: klareColors.k }}
           />
-          <Text style={[styles.username, { color: paperTheme.colors.text }]}>
+          <Text style={[styles.username, { color: paperTheme.colors.onSurface }]}>
             {summary.user?.name || t('profile:profile.defaultUsername')}
           </Text>
-          <Text style={[styles.email, { color: paperTheme.colors.text }]}>
+          <Text style={[styles.email, { color: paperTheme.colors.onSurfaceVariant }]}>
             {summary.user?.email}
           </Text>
         </View>
@@ -151,7 +153,7 @@ export default function ProfileScreen() {
                   <Text
                     style={[
                       styles.progressText,
-                      { color: paperTheme.colors.text },
+                      { color: paperTheme.colors.onSurfaceVariant },
                     ]}
                   >
                     {t('profile.totalProgress')}
@@ -177,7 +179,7 @@ export default function ProfileScreen() {
                   <Text
                     style={[
                       styles.progressText,
-                      { color: paperTheme.colors.text },
+                      { color: paperTheme.colors.onSurfaceVariant },
                     ]}
                   >
                     {t('profile.streak')}
@@ -203,7 +205,7 @@ export default function ProfileScreen() {
                   <Text
                     style={[
                       styles.progressText,
-                      { color: paperTheme.colors.text },
+                      { color: paperTheme.colors.onSurfaceVariant },
                     ]}
                   >
                     {t('profile.modules')}
@@ -254,6 +256,16 @@ export default function ProfileScreen() {
           </Card.Content>
         </Card>
 
+        {/* LifeWheel Re-Assessment Button */}
+        <Button
+          mode="contained"
+          icon="refresh"
+          onPress={() => navigation.navigate("LifeWheelReAssessment")}
+          style={[styles.reAssessmentButton, { backgroundColor: klareColors.k }]}
+        >
+          Lebensbereiche neu bewerten
+        </Button>
+
         <Button
           mode="outlined"
           icon="logout"
@@ -264,34 +276,29 @@ export default function ProfileScreen() {
           {t('auth.signOut')}
         </Button>
 
-        {/* Debug-Button nur im Entwicklungsmodus anzeigen */}
+        {/* Debug Menu nur im Entwicklungsmodus anzeigen */}
         {__DEV__ && (
           <Button
             mode="text"
             icon="tools"
-            onPress={() => {
-              // Verbesserte Navigation mit Fallback
-              if (canNavigateTo("Debug")) {
-                navigateWithFallback("Debug");
-              } else {
-                Alert.alert(
-                  t('profile.debugMode'),
-                  t('profile.debugScreenUnavailable'),
-                  [{ text: t('actions.ok') }],
-                );
-              }
-            }}
+            onPress={() => setDebugMenuVisible(true)}
             style={styles.debugButton}
           >
-            {t('profile.developerTools')}
+            🛠️ Developer Tools
           </Button>
         )}
       </ScrollView>
+
+      {/* Debug Menu Modal */}
+      <DebugMenu
+        visible={debugMenuVisible}
+        onClose={() => setDebugMenuVisible(false)}
+      />
     </SafeAreaView>
   );
 }
 
-const createProfileStyles = (theme: Theme) =>
+const createProfileStyles = (theme: MD3Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -340,6 +347,10 @@ const createProfileStyles = (theme: Theme) =>
     },
     progressText: {
       fontSize: 12,
+    },
+    reAssessmentButton: {
+      marginVertical: 16,
+      alignSelf: "center",
     },
     logoutButton: {
       marginVertical: 24,

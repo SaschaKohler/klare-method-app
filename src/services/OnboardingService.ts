@@ -4,7 +4,6 @@ import {
   PrivacySettings,
   LifeWheelArea,
 } from "../store/onboardingStore";
-import { useUserStore } from "../store/userStore";
 
 export interface OnboardingData {
   profile: OnboardingProfile;
@@ -15,33 +14,42 @@ export interface OnboardingData {
 export class OnboardingService {
   /**
    * Save user profile to the AI-ready database
+   * @param markAsCompleted - Set to true to mark onboarding as completed (only for final completion)
    */
   static async saveUserProfile(
     userId: string,
     profile: OnboardingProfile,
+    markAsCompleted: boolean = false,
   ): Promise<void> {
     try {
+      // Prepare the update data
+      const updateData: any = {
+        user_id: userId,
+        first_name: profile.firstName,
+        preferred_name: profile.preferredName || null,
+        age_range: profile.ageRange,
+        primary_goals: profile.primaryGoals,
+        current_challenges: profile.currentChallenges,
+        experience_level: profile.experienceLevel,
+        time_commitment: profile.timeCommitment,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Only set onboarding_completed_at when explicitly marking as completed
+      if (markAsCompleted) {
+        updateData.onboarding_completed_at = new Date().toISOString();
+      }
+
       // Create or update user profile in the new AI-ready schema
       const { error: profileError } = await supabase
         .from("user_profiles")
-        .upsert({
-          user_id: userId,
-          first_name: profile.firstName,
-          preferred_name: profile.preferredName || null,
-          age_range: profile.ageRange,
-          primary_goals: profile.primaryGoals,
-          current_challenges: profile.currentChallenges,
-          experience_level: profile.experienceLevel,
-          time_commitment: profile.timeCommitment,
-          onboarding_completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
+        .upsert(updateData);
 
       if (profileError) {
         throw new Error(`Failed to save user profile: ${profileError.message}`);
       }
 
-      console.log("✅ User profile saved successfully");
+      console.log(`✅ User profile saved successfully${markAsCompleted ? ' (marked as completed)' : ''}`);
     } catch (error) {
       console.error("❌ Error saving user profile:", error);
       throw error;
@@ -145,7 +153,8 @@ export class OnboardingService {
       console.log("🚀 Starting onboarding completion process...");
 
       // Save all onboarding data in sequence
-      await this.saveUserProfile(userId, onboardingData.profile);
+      // Mark as completed only here, not during progress saves
+      await this.saveUserProfile(userId, onboardingData.profile, true);
       await this.savePrivacySettings(userId, onboardingData.privacySettings);
       await this.createLifeWheelSnapshot(userId, onboardingData.lifeWheelAreas);
 

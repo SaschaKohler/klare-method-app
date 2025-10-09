@@ -25,6 +25,7 @@ export const Colors = {
   background: '#F9FAFB',
   backgroundSecondary: '#F3F4F6',
   cardBackground: '#FFFFFF',
+  inputBackground: '#F9FAFB',
   
   // Text Colors
   text: '#1F2937',

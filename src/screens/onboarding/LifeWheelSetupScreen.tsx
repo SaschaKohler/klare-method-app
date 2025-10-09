@@ -1,10 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
   SafeAreaView,
   ScrollView,
   Dimensions,
+  ActivityIndicator,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ViewStyle,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -15,6 +20,8 @@ import { Colors } from "../../constants/Colors";
 import { Text, Button } from "../../components/ui";
 import { OnboardingProgress } from "../../components/onboarding";
 import { OnboardingStackParamList } from "./OnboardingNavigator";
+import { AIService } from "../../services/AIService";
+import { useUserStore } from "../../store/useUserStore";
 
 type LifeWheelSetupScreenNavigationProp = StackNavigationProp<
   OnboardingStackParamList,
@@ -35,8 +42,13 @@ const wheelSize = Math.min(width - 48, 300);
 export const LifeWheelSetupScreen: React.FC = () => {
   const navigation = useNavigation<LifeWheelSetupScreenNavigationProp>();
   const { t } = useTranslation(["onboarding", "lifeWheel", "common"]);
+  const { user } = useUserStore();
 
   const [currentAreaIndex, setCurrentAreaIndex] = useState(0);
+  const [coachingQuestion, setCoachingQuestion] = useState<string>("");
+  const [userAnswer, setUserAnswer] = useState<string>("");
+  const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
+  const [showAICoaching, setShowAICoaching] = useState(true);
   const [lifeWheelAreas, setLifeWheelAreas] = useState<LifeWheelArea[]>([
     {
       id: "health",
@@ -98,6 +110,34 @@ export const LifeWheelSetupScreen: React.FC = () => {
 
   const currentArea = lifeWheelAreas[currentAreaIndex];
 
+  // Load AI coaching question when area changes
+  useEffect(() => {
+    if (showAICoaching && user?.id) {
+      loadCoachingQuestion();
+    }
+  }, [currentAreaIndex, showAICoaching]);
+
+  const loadCoachingQuestion = async () => {
+    if (!user?.id) return;
+
+    setIsLoadingQuestion(true);
+    try {
+      const question = await AIService.generateLifeWheelCoachingQuestion({
+        userId: user.id,
+        areaName: currentArea.name,
+        areaId: currentArea.id,
+        currentValue: currentArea.currentValue,
+        targetValue: currentArea.targetValue,
+      });
+      setCoachingQuestion(question);
+    } catch (error) {
+      console.error("Error loading coaching question:", error);
+      setCoachingQuestion("Was ist dir in diesem Bereich am wichtigsten?");
+    } finally {
+      setIsLoadingQuestion(false);
+    }
+  };
+
   const handleValueChange = (type: "current" | "target", value: number) => {
     setLifeWheelAreas((prev) =>
       prev.map((area, index) =>
@@ -112,6 +152,9 @@ export const LifeWheelSetupScreen: React.FC = () => {
   };
 
   const handleNext = () => {
+    // Reset answer for next area
+    setUserAnswer("");
+    
     if (currentAreaIndex < lifeWheelAreas.length - 1) {
       setCurrentAreaIndex((prev) => prev + 1);
     } else {
@@ -153,19 +196,22 @@ export const LifeWheelSetupScreen: React.FC = () => {
           {value}/10
         </Text>
         <View style={styles.sliderContainer}>
-          {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
-            <Button
-              key={num}
-              title={num.toString()}
-              onPress={() => handleValueChange(type, num)}
-              variant={value === num ? "primary" : "outline"}
-              size="small"
-              style={[
-                styles.sliderButton,
-                value === num && { backgroundColor: currentArea.color },
-              ]}
-            />
-          ))}
+          {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => {
+            const buttonStyle: ViewStyle = value === num 
+              ? { ...styles.sliderButton, backgroundColor: currentArea.color }
+              : styles.sliderButton;
+            
+            return (
+              <Button
+                key={num}
+                title={num.toString()}
+                onPress={() => handleValueChange(type, num)}
+                variant={value === num ? "primary" : "outline"}
+                size="small"
+                style={buttonStyle}
+              />
+            );
+          })}
         </View>
       </View>
     );
@@ -240,6 +286,55 @@ export const LifeWheelSetupScreen: React.FC = () => {
             {renderValueSelector("current", currentArea.currentValue)}
             {renderValueSelector("target", currentArea.targetValue)}
           </View>
+
+          {/* AI Coaching Section */}
+          {showAICoaching && (
+            <View style={styles.coachingContainer}>
+              <View style={styles.coachingHeader}>
+                <Ionicons
+                  name="sparkles"
+                  size={24}
+                  color={currentArea.color}
+                  style={styles.coachingIcon}
+                />
+                <Text variant="subtitle" style={styles.coachingTitle}>
+                  AI-Coach Frage
+                </Text>
+              </View>
+
+              {isLoadingQuestion ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color={currentArea.color} />
+                  <Text variant="body" style={styles.loadingText}>
+                    Generiere personalisierte Frage...
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <Text variant="body" style={styles.coachingQuestion}>
+                    {coachingQuestion}
+                  </Text>
+                  <TextInput
+                    style={styles.answerInput}
+                    placeholder="Deine Gedanken hierzu... (optional)"
+                    placeholderTextColor={Colors.textSecondary}
+                    value={userAnswer}
+                    onChangeText={setUserAnswer}
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                  />
+                  <Button
+                    title="Neue Frage generieren"
+                    onPress={loadCoachingQuestion}
+                    variant="ghost"
+                    size="small"
+                    style={styles.regenerateButton}
+                  />
+                </>
+              )}
+            </View>
+          )}
         </ScrollView>
 
         {/* Bottom Actions */}
@@ -263,7 +358,7 @@ export const LifeWheelSetupScreen: React.FC = () => {
               onPress={handleNext}
               variant="primary"
               size="large"
-              style={[styles.navButton, { backgroundColor: currentArea.color }]}
+              style={{ ...styles.navButton, backgroundColor: currentArea.color } as ViewStyle}
             />
           </View>
 
@@ -387,5 +482,57 @@ const styles = StyleSheet.create({
   },
   navButton: {
     flex: 1,
+  },
+  coachingContainer: {
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 24,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  coachingHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  coachingIcon: {
+    marginRight: 8,
+  },
+  coachingTitle: {
+    color: Colors.text,
+    fontWeight: "600",
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 20,
+  },
+  loadingText: {
+    marginLeft: 12,
+    color: Colors.textSecondary,
+  },
+  coachingQuestion: {
+    color: Colors.text,
+    fontSize: 16,
+    lineHeight: 24,
+    marginBottom: 16,
+    fontStyle: "italic",
+  },
+  answerInput: {
+    backgroundColor: Colors.inputBackground,
+    borderRadius: 12,
+    padding: 16,
+    color: Colors.text,
+    fontSize: 15,
+    minHeight: 80,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 12,
+  },
+  regenerateButton: {
+    alignSelf: "flex-start",
   },
 });

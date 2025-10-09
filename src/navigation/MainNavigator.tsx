@@ -24,6 +24,7 @@ import HomeScreen from "../screens/HomeScreen";
 import KlareMethodScreen from "../screens/KlareMethodScreen";
 import ModuleScreen from "../screens/ModuleScreen";
 import LifeWheelScreen from "../screens/LifeWheelScreen";
+import { LifeWheelReAssessmentScreen } from "../screens/LifeWheelReAssessmentScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import AuthScreen from "../screens/AuthScreen";
 import JournalScreen from "../screens/JournalScreen";
@@ -234,6 +235,7 @@ const MainNavigator = () => {
             <Stack.Screen name="KlareMethod" component={KlareMethodScreen} />
             <Stack.Screen name="ModuleScreen" component={ModuleScreen as any} />
             <Stack.Screen name="LifeWheel" component={LifeWheelScreen} />
+            <Stack.Screen name="LifeWheelReAssessment" component={LifeWheelReAssessmentScreen} />
             <Stack.Screen name="JournalEditor" component={JournalEditorScreen} />
             <Stack.Screen name="JournalViewer" component={JournalViewerScreen} />
             <Stack.Screen name="VisionBoard" component={VisionBoardScreen} />

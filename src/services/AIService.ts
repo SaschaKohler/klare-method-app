@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { supabase } from "../lib/supabase";
 import { Database } from "../types/supabase";
+import { AnthropicService } from "./AnthropicService";
 
 // Type Definitions
 type AIConversation = Database["public"]["Tables"]["ai_conversations"]["Row"];
@@ -56,6 +57,12 @@ export interface ChatContext {
   personalityTraits?: Record<string, any>;
   currentGoals?: string[];
   preferredLanguage?: string;
+  // Neue erweiterte Kontext-Felder
+  userAnswers?: any[]; // Letzte User-Antworten
+  exerciseResults?: any[]; // Letzte Übungsergebnisse
+  keyThemes?: string[]; // Häufigste Themen aus Antworten
+  emotionalState?: string[]; // Emotionale Tags
+  patterns?: Array<{ type: string; confidence: number }>; // Erkannte Muster
 }
 
 export interface AIResponse {
@@ -458,10 +465,11 @@ export class AIService {
   
   /**
    * Baut Kontext für AI-Antworten auf
+   * ERWEITERT: Nutzt jetzt user_answers und exercise_results für granulierte Personalisierung
    */
   static async buildChatContext(userId: string): Promise<ChatContext> {
     try {
-      // Fetch user profile
+      // Fetch user profile (inkl. Onboarding-Daten)
       const { data: profile } = await supabase
         .from("user_profiles")
         .select("*")
@@ -477,7 +485,7 @@ export class AIService {
         .limit(1)
         .maybeSingle();
       
-      // Fetch recent journal entries (if journal system exists)
+      // Fetch recent journal entries
       const { data: journalEntries } = await supabase
         .from("journal_entries")
         .select("*")
@@ -485,12 +493,71 @@ export class AIService {
         .order("created_at", { ascending: false })
         .limit(5);
       
+      // NEU: Fetch recent user answers für Kontext
+      const { data: userAnswers } = await supabase
+        .from("user_answers")
+        .select("question_text, answer_text, key_themes, emotion_tags, answered_at")
+        .eq("user_id", userId)
+        .order("answered_at", { ascending: false })
+        .limit(20);
+      
+      // NEU: Fetch recent exercise results
+      const { data: exerciseResults } = await supabase
+        .from("exercise_results")
+        .select("exercise_type, completion_status, score, completed_at")
+        .eq("user_id", userId)
+        .eq("completion_status", "completed")
+        .order("completed_at", { ascending: false })
+        .limit(10);
+      
+      // NEU: Fetch completed modules
+      const { data: completedModules } = await supabase
+        .from("completed_modules")
+        .select("module_id")
+        .eq("user_id", userId);
+      
+      // NEU: Fetch active patterns
+      const { data: patterns } = await supabase
+        .from("user_patterns")
+        .select("pattern_type, confidence_score")
+        .eq("user_id", userId)
+        .eq("is_active", true);
+      
+      // Extrahiere häufigste Themen aus Antworten
+      const themeCount = new Map<string, number>();
+      const emotionSet = new Set<string>();
+      
+      userAnswers?.forEach(answer => {
+        answer.key_themes?.forEach((theme: string) => {
+          themeCount.set(theme, (themeCount.get(theme) || 0) + 1);
+        });
+        answer.emotion_tags?.forEach((emotion: string) => {
+          emotionSet.add(emotion);
+        });
+      });
+      
+      const topThemes = Array.from(themeCount.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([theme]) => theme);
+      
       return {
         userId,
         currentLifeWheelData: lifeWheelSnapshot?.snapshot_data as Record<string, any>,
         recentJournalEntries: journalEntries || [],
+        completedModules: completedModules?.map(m => m.module_id) || [],
         personalityTraits: profile?.personality_traits as Record<string, any>,
-        preferredLanguage: profile?.preferred_language || "de"
+        currentGoals: profile?.primary_goals || [],
+        preferredLanguage: profile?.preferred_language || "de",
+        // Erweiterte Kontext-Daten
+        userAnswers: userAnswers || [],
+        exerciseResults: exerciseResults || [],
+        keyThemes: topThemes,
+        emotionalState: Array.from(emotionSet),
+        patterns: patterns?.map(p => ({ 
+          type: p.pattern_type, 
+          confidence: p.confidence_score || 0 
+        })) || [],
       };
     } catch (error) {
       console.error("Error building chat context:", error);
@@ -503,8 +570,7 @@ export class AIService {
   // =============================================================================
   
   /**
-   * Generiert AI-Antwort (Fallback-Implementation)
-   * TODO: Integrate with actual AI API (OpenAI, Claude, etc.)
+   * Generiert AI-Antwort mit Anthropic Claude oder Fallback
    */
   private static async generateResponse(
     message: string,
@@ -512,10 +578,64 @@ export class AIService {
     conversationType: string,
     conversationHistory?: AIConversation[]
   ): Promise<AIResponse> {
-    // FALLBACK: Mock Response für Development
-    // TODO: Replace with actual AI API integration
+    const startTime = Date.now();
+
+    // Try Anthropic API first
+    if (AnthropicService.isServiceAvailable()) {
+      try {
+        const systemPrompt = this.getSystemPrompt(conversationType);
+        
+        // Build conversation history for Claude
+        const claudeHistory: Array<{ role: "user" | "assistant"; content: string }> = [];
+        if (conversationHistory) {
+          conversationHistory
+            .filter(msg => msg.message_type !== "system")
+            .forEach(msg => {
+              claudeHistory.push({
+                role: msg.message_type as "user" | "assistant",
+                content: msg.message_content,
+              });
+            });
+        }
+
+        // Add context to message
+        let enrichedMessage = message;
+        if (context.currentLifeWheelData) {
+          enrichedMessage += `\n\nKontext: Aktuelle LifeWheel-Daten verfügbar.`;
+        }
+
+        const response = await AnthropicService.generateResponse({
+          systemPrompt,
+          userMessage: enrichedMessage,
+          conversationHistory: claudeHistory,
+          maxTokens: 500,
+          temperature: 0.7,
+        });
+
+        return {
+          content: response.content,
+          confidence: 0.9,
+          suggestions: this.extractSuggestions(response.content),
+          nextQuestions: this.extractQuestions(response.content),
+          metadata: {
+            responseTime: Date.now() - startTime,
+            contextUsed: Object.keys(context).length,
+            conversationType,
+            aiModel: "claude-3-5-sonnet-20241022",
+            inputTokens: response.usage.inputTokens,
+            outputTokens: response.usage.outputTokens,
+          },
+        };
+      } catch (error) {
+        console.warn("⚠️ Anthropic API Fehler, nutze Fallback:", error);
+        // Fall through to fallback
+      }
+    }
+
+    // FALLBACK: Mock Response für Development oder wenn API nicht verfügbar
+    console.log("ℹ️ Verwende Mock-Responses (Anthropic nicht verfügbar)");
     
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API delay
     
     const responses = {
       chat: [
@@ -549,7 +669,7 @@ export class AIService {
         source: "ai_generated",
         relatedAreas: ["personal_growth", "action"],
         confidenceScore: 0.75,
-        aiModel: "gpt-4"
+        aiModel: "mock"
       });
     }
     
@@ -560,11 +680,38 @@ export class AIService {
       insights: insights.length > 0 ? insights : undefined,
       nextQuestions: ["Was ist dein nächster kleiner Schritt?", "Wie fühlst du dich dabei?"],
       metadata: {
-        responseTime: 1000,
+        responseTime: Date.now() - startTime,
         contextUsed: Object.keys(context).length,
-        conversationType
+        conversationType,
+        aiModel: "mock"
       }
     };
+  }
+
+  /**
+   * Extrahiert Vorschläge aus AI-Antwort
+   */
+  private static extractSuggestions(content: string): string[] {
+    // Simple heuristic - look for bullet points or numbered lists
+    const lines = content.split('\n');
+    const suggestions: string[] = [];
+    
+    for (const line of lines) {
+      if (line.match(/^[-*•]\s+/) || line.match(/^\d+\.\s+/)) {
+        suggestions.push(line.replace(/^[-*•\d.]\s+/, '').trim());
+      }
+    }
+    
+    return suggestions.slice(0, 5); // Max 5 suggestions
+  }
+
+  /**
+   * Extrahiert Fragen aus AI-Antwort
+   */
+  private static extractQuestions(content: string): string[] {
+    const questionRegex = /[^.!?]*\?/g;
+    const matches = content.match(questionRegex);
+    return matches ? matches.map(q => q.trim()).slice(0, 3) : [];
   }
   
   /**
@@ -599,8 +746,9 @@ export class AIService {
         .insert({
           user_id: userId,
           service_type: serviceType,
-          usage_timestamp: new Date().toISOString(),
-          metadata: metadata || {}
+          request_data: metadata || {},
+          success: true,
+          // created_at wird automatisch gesetzt
         });
       
       if (error) throw error;
@@ -676,6 +824,130 @@ export class AIService {
       
       return fallbackPrompts[Math.floor(Math.random() * fallbackPrompts.length)];
     }
+  }
+
+  /**
+   * Generiert eine Coaching-Frage für einen Lebensbereich im LifeWheel
+   * Mit optionalem Memory vorheriger Assessments
+   */
+  static async generateLifeWheelCoachingQuestion(params: {
+    userId: string;
+    areaName: string;
+    areaId: string;
+    currentValue?: number;
+    targetValue?: number;
+    previousValue?: number;
+    previousDate?: string;
+  }): Promise<string> {
+    const { userId, areaName, areaId, currentValue, targetValue, previousValue, previousDate } = params;
+
+    // Try Anthropic first if available
+    if (AnthropicService.isServiceAvailable()) {
+      try {
+        const areaDescriptions: Record<string, string> = {
+          health: "Körperliche und mentale Gesundheit, Fitness, Ernährung",
+          career: "Berufliche Entwicklung, Karriere, Arbeitszufriedenheit",
+          relationships: "Beziehungen zu Familie, Freunden, Partner",
+          personal_growth: "Persönliche Entwicklung, Lernen, Selbstverwirklichung",
+          finances: "Finanzielle Situation, Sicherheit, Wohlstand",
+          fun_recreation: "Freizeit, Hobbys, Entspannung, Lebensfreude",
+          physical_environment: "Wohnraum, Arbeitsumgebung, Ordnung",
+          contribution: "Beitrag für andere, gesellschaftliches Engagement, Sinn",
+        };
+
+        // Build context with memory if available
+        let userContext: Record<string, any> | undefined = undefined;
+        
+        if (previousValue !== undefined && previousDate) {
+          const daysSince = Math.floor(
+            (Date.now() - new Date(previousDate).getTime()) / (1000 * 60 * 60 * 24)
+          );
+          
+          userContext = {
+            previousValue,
+            previousDate,
+            daysSince,
+            valueChange: currentValue !== undefined ? currentValue - previousValue : 0,
+          };
+        }
+
+        const question = await AnthropicService.generateCoachingQuestion({
+          areaName,
+          areaDescription: areaDescriptions[areaId],
+          currentValue,
+          targetValue,
+          userContext,
+        });
+
+        await this.logServiceUsage(userId, "lifewheel_coaching_question", {
+          areaId,
+          areaName,
+          hasMemory: !!previousValue,
+        });
+
+        return question;
+      } catch (error) {
+        console.warn("⚠️ Anthropic Fehler bei Coaching-Frage, nutze Fallback:", error);
+      }
+    }
+
+    // Fallback: Vordefinierte Coaching-Fragen (mit und ohne Memory)
+    const hasMemory = previousValue !== undefined;
+    
+    const fallbackQuestions: Record<string, string[]> = {
+      health: hasMemory ? [
+        "Was hat sich in deiner Gesundheit seit der letzten Einschätzung am meisten verändert?",
+        "Welche Maßnahmen haben dir geholfen, deine Gesundheit zu verbessern?",
+        "Was möchtest du in diesem Bereich als nächstes angehen?",
+      ] : [
+        "Was würde sich in deinem Leben verändern, wenn du dich körperlich und mental gestärkt fühlst?",
+        "Welche kleine gesunde Gewohnheit könntest du heute beginnen?",
+        "Was brauchst du, um dich in deinem Körper wohler zu fühlen?",
+      ],
+      career: [
+        "Was macht dir an deiner Arbeit am meisten Freude?",
+        "Wo siehst du dich beruflich in einem Jahr?",
+        "Was würde deine ideale Arbeitswoche beinhalten?",
+      ],
+      relationships: [
+        "Welche Beziehung in deinem Leben verdient mehr Aufmerksamkeit?",
+        "Was schätzt du am meisten an deinen wichtigsten Beziehungen?",
+        "Wie könntest du mehr Tiefe in deine Beziehungen bringen?",
+      ],
+      personal_growth: [
+        "Was möchtest du in den nächsten 3 Monaten über dich lernen?",
+        "Welche Fähigkeit würde dein Leben bereichern?",
+        "Was hält dich davon ab, dein volles Potenzial zu entfalten?",
+      ],
+      finances: [
+        "Was bedeutet finanzielle Freiheit für dich?",
+        "Welcher erste Schritt würde deine finanzielle Situation verbessern?",
+        "Wie könntest du mehr Freude im Umgang mit Geld entwickeln?",
+      ],
+      fun_recreation: [
+        "Was bringt dich zum Lachen und zur Lebensfreude?",
+        "Wann hast du dich zuletzt richtig lebendig gefühlt?",
+        "Was könntest du tun, um mehr Leichtigkeit in deinen Alltag zu bringen?",
+      ],
+      physical_environment: [
+        "Wie würde dein idealer Lebensraum aussehen und sich anfühlen?",
+        "Was in deiner Umgebung gibt dir Energie, was raubt sie dir?",
+        "Welche kleine Veränderung würde dein Wohlbefinden zu Hause steigern?",
+      ],
+      contribution: [
+        "Wie möchtest du die Welt um dich herum positiv beeinflussen?",
+        "Was ist dein einzigartiger Beitrag, den nur du geben kannst?",
+        "Wo spürst du den Ruf, mehr zu geben?",
+      ],
+    };
+
+    const questions = fallbackQuestions[areaId] || [
+      "Was ist dir in diesem Bereich am wichtigsten?",
+      "Was würde eine Verbesserung für dich bedeuten?",
+      "Welcher erste Schritt fühlt sich richtig an?",
+    ];
+
+    return questions[Math.floor(Math.random() * questions.length)];
   }
   
   /**

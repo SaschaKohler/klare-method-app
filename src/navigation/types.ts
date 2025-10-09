@@ -17,6 +17,7 @@ export type RootStackParamList = {
   Debug: undefined; // Debug-Screen, nur im Entwicklungsmodus verfügbar.
   KlareMethod: { step: KlareMethodStep }; // Screen für einen Schritt der KLARE-Methode.
   LifeWheel: undefined; // Lebensrad-Screen.
+  LifeWheelReAssessment: undefined; // Erneute Lebensrad-Bewertung mit AI-Coaching.
   Journal: undefined; // Journal-Hauptscreen.
   JournalEditor: { templateId?: string; date?: string, entryId?: string }; // Editor zum Erstellen/Bearbeiten von Journaleinträgen.
   JournalViewer: { entryId: string }; // Anzeige eines einzelnen Journaleintrags.

@@ -125,6 +125,22 @@ const KModuleComponentNew: React.FC<KModuleComponentProps> = ({ module, onComple
     }
   }, [user?.id]);
 
+  // Restore phase data when navigating back
+  useEffect(() => {
+    const savedData = phaseData[currentPhase.id];
+    
+    if (currentPhase.id === 'clarity_reflection' && savedData) {
+      setReflectionData(savedData);
+    } else if (currentPhase.id === 'genius_gate_practice' && typeof savedData === 'string') {
+      setUserInput(savedData);
+    } else if (currentPhase.id === 'incongruence_mapping' && savedData?.cognitive) {
+      setIncongruenceData(savedData);
+    } else if (currentPhase.id.includes('metamodel_level') && Array.isArray(savedData) && savedData.length > 0) {
+      // Meta-Model Phasen haben bereits analysierte Aussagen
+      // Wir setzen analysisResults nicht, aber zeigen im UI, dass Analyse erfolgt ist
+    }
+  }, [currentPhaseIndex, currentPhase.id]);
+
   const initializeKModule = useCallback(async () => {
     try {
       setIsProcessing(true);
@@ -164,6 +180,21 @@ const KModuleComponentNew: React.FC<KModuleComponentProps> = ({ module, onComple
       return;
     }
 
+    // Persistiere aktuelle Phase-Daten bevor wir weitergehen
+    const updatedPhaseData = { ...phaseData };
+    
+    // Speichere Reflexionsdaten
+    if (currentPhase.id === 'clarity_reflection' && reflectionData.keyInsights) {
+      updatedPhaseData.clarity_reflection = reflectionData;
+    }
+    
+    // Speichere Genius Gate Daten
+    if (currentPhase.id === 'genius_gate_practice' && userInput.trim()) {
+      updatedPhaseData.genius_gate_practice = userInput;
+    }
+    
+    setPhaseData(updatedPhaseData);
+
     // Phase als abgeschlossen markieren
     setCompletedPhases((prev) => [...prev, currentPhase.id]);
 
@@ -175,7 +206,7 @@ const KModuleComponentNew: React.FC<KModuleComponentProps> = ({ module, onComple
     } else {
       onComplete();
     }
-  }, [currentPhaseIndex, currentPhase, totalPhases, onComplete]);
+  }, [currentPhaseIndex, currentPhase, totalPhases, onComplete, phaseData, reflectionData, userInput]);
 
   const handlePreviousPhase = useCallback(() => {
     if (currentPhaseIndex > 0) {
@@ -194,25 +225,34 @@ const KModuleComponentNew: React.FC<KModuleComponentProps> = ({ module, onComple
       case 'metamodel_level1':
       case 'metamodel_level2':
       case 'metamodel_level3':
-        if (analysisResults.length === 0) {
+        // Prüfe persistierte Daten in phaseData ODER aktuell angezeigte Ergebnisse
+        const hasAnalyzedStatements = 
+          (phaseData[currentPhase.id] && phaseData[currentPhase.id].length > 0) || 
+          analysisResults.length > 0;
+        
+        if (!hasAnalyzedStatements) {
           Alert.alert('Hinweis', 'Bitte analysiere mindestens eine Aussage.');
           return false;
         }
         return true;
       case 'genius_gate_practice':
-        if (!userInput.trim()) {
+        if (!userInput.trim() && !phaseData.genius_gate_practice) {
           Alert.alert('Hinweis', 'Bitte bearbeite die Genius-Gate-Übung.');
           return false;
         }
         return true;
       case 'incongruence_mapping':
-        if (!incongruenceData.cognitive || !incongruenceData.emotional || !incongruenceData.behavioral) {
+        const hasIncongruenceData = 
+          (phaseData.incongruence_mapping && phaseData.incongruence_mapping.cognitive) ||
+          (incongruenceData.cognitive && incongruenceData.emotional && incongruenceData.behavioral);
+        
+        if (!hasIncongruenceData) {
           Alert.alert('Hinweis', 'Bitte fülle alle drei Ebenen aus.');
           return false;
         }
         return true;
       case 'clarity_reflection':
-        if (!reflectionData.keyInsights) {
+        if (!reflectionData.keyInsights && !phaseData.clarity_reflection) {
           Alert.alert('Hinweis', 'Bitte teile deine wichtigsten Erkenntnisse.');
           return false;
         }
@@ -536,7 +576,8 @@ const KModuleComponentNew: React.FC<KModuleComponentProps> = ({ module, onComple
           </Card.Content>
         </Card>
 
-        {analysisResults.length > 0 && (
+        {/* Zeige Analyse-Ergebnisse oder Bestätigung dass analysiert wurde */}
+        {analysisResults.length > 0 ? (
           <Card style={styles.resultsCard} mode="elevated">
             <Card.Content>
               <Text style={styles.cardTitle}>🔍 Analyse-Ergebnisse</Text>
@@ -555,7 +596,22 @@ const KModuleComponentNew: React.FC<KModuleComponentProps> = ({ module, onComple
               ))}
             </Card.Content>
           </Card>
-        )}
+        ) : phaseData[currentPhase.id] && phaseData[currentPhase.id].length > 0 ? (
+          <Card style={styles.completedCard} mode="outlined">
+            <Card.Content>
+              <View style={styles.completedHeader}>
+                <Ionicons name="checkmark-circle" size={24} color={klareColors.k} />
+                <Text style={styles.completedTitle}>Analyse abgeschlossen</Text>
+              </View>
+              <Text style={styles.completedText}>
+                Du hast {phaseData[currentPhase.id].length} Aussage(n) analysiert.
+              </Text>
+              <Text style={styles.completedSubtext}>
+                Jede Analyse schärft deinen Bewusstseins-Muskel. Weiter so! 💪
+              </Text>
+            </Card.Content>
+          </Card>
+        ) : null}
 
         {aiResponse && (
           <Card style={styles.aiCoachCard} mode="elevated">
@@ -1363,6 +1419,35 @@ const createStyles = (theme: any, klareColors: any) =>
       color: theme.colors.onSurface,
       textAlign: 'center',
     },
+    
+    // Completed Card (für bereits abgeschlossene Analysen)
+    completedCard: {
+      backgroundColor: `${klareColors.k}10`,
+      borderColor: klareColors.k,
+      borderWidth: 1,
+    },
+    completedHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 8,
+    },
+    completedTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: klareColors.k,
+    },
+    completedText: {
+      fontSize: 14,
+      color: theme.colors.onSurface,
+      marginBottom: 4,
+    },
+    completedSubtext: {
+      fontSize: 13,
+      fontStyle: 'italic',
+      color: theme.colors.onSurfaceVariant,
+    },
+    
     summaryCard: {
       backgroundColor: theme.colors.surface,
     },
