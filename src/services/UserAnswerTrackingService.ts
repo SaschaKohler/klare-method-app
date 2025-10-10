@@ -7,12 +7,13 @@ import { supabase } from "../lib/supabase";
 export interface UserAnswer {
   id?: string;
   user_id: string;
+  content_type: string; // Required: e.g. 'onboarding_profile', 'module_exercise', etc.
   module_id?: string;
   question_id?: string;
   question_type: 'quiz' | 'reflection' | 'metamodel' | 'genius_gate' | 'coaching' | 'exercise';
   question_text: string;
   answer_text?: string;
-  answer_data?: Record<string, any>;
+  answer_data: Record<string, any>; // Required
   emotion_tags?: string[];
   key_themes?: string[];
   confidence_level?: number; // 1-5
@@ -80,6 +81,7 @@ export class UserAnswerTrackingService {
         .from("user_answers")
         .insert({
           user_id: answer.user_id,
+          content_type: answer.content_type,
           module_id: answer.module_id,
           question_id: answer.question_id,
           question_type: answer.question_type,

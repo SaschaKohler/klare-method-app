@@ -23,6 +23,10 @@ export type {
   ExerciseStep
 } from './HybridContentService';
 
+// Life Wheel Reflection Service
+export { LifeWheelReflectionService } from './LifeWheelReflectionService';
+export type { LifeWheelReflection } from './LifeWheelReflectionService';
+
 // Legacy Services (maintaining compatibility)
 export { default as JournalService } from './JournalServiceUpdate';
 export { default as PersonalInsightsService } from './PersonalInsightsService';

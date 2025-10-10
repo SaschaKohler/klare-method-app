@@ -24,11 +24,9 @@ type PrivacyPreferencesScreenNavigationProp = StackNavigationProp<
 >;
 
 interface PrivacySettings {
-  dataProcessing: "local" | "cloud" | "ai_enabled";
   analytics: boolean;
   crashReporting: boolean;
   marketing: boolean;
-  aiFeatures: boolean;
   personalInsights: boolean;
 }
 
@@ -37,11 +35,9 @@ export const PrivacyPreferencesScreen: React.FC = () => {
   const { t } = useTranslation(["onboarding", "common"]);
 
   const [privacySettings, setPrivacySettings] = useState<PrivacySettings>({
-    dataProcessing: "local",
     analytics: false,
     crashReporting: true,
     marketing: false,
-    aiFeatures: false,
     personalInsights: true,
   });
 
@@ -55,16 +51,12 @@ export const PrivacyPreferencesScreen: React.FC = () => {
     }));
   };
 
-  const handleDataProcessingInfo = (type: "local" | "cloud" | "ai_enabled") => {
-    const messages = {
-      local: t("privacy.data_processing.local.info"),
-      cloud: t("privacy.data_processing.cloud.info"),
-      ai_enabled: t("privacy.data_processing.ai_enabled.info"),
-    };
-
-    Alert.alert(t("privacy.data_processing.info_title"), messages[type], [
-      { text: t("common.ok") },
-    ]);
+  const handleGDPRInfo = () => {
+    Alert.alert(
+      t("privacy.gdpr_info.title", "DSGVO & EU-Datenschutz"),
+      t("privacy.gdpr_info.message", "Alle deine Daten werden DSGVO-konform auf Servern in Europa gespeichert. Du hast jederzeit das Recht auf Auskunft, Berichtigung, Löschung und Datenübertragbarkeit."),
+      [{ text: t("common.ok", "OK") }]
+    );
   };
 
   const { user, setUser, saveUserData } = useUserStore();
@@ -76,12 +68,14 @@ export const PrivacyPreferencesScreen: React.FC = () => {
 
     const updatedPreferences = {
       privacy_settings: {
-        data_processing_level: privacySettings.dataProcessing,
+        data_processing_level: 'cloud', // Always cloud with GDPR compliance
         allow_analytics: privacySettings.analytics,
         allow_crash_reporting: privacySettings.crashReporting,
         allow_marketing: privacySettings.marketing,
-        allow_ai_features: privacySettings.aiFeatures,
+        allow_ai_features: true, // AI is a core feature
         allow_personal_insights: privacySettings.personalInsights,
+        gdpr_consent: true,
+        consent_timestamp: new Date().toISOString(),
       },
       onboarding_status: 'privacy_completed',
     };
@@ -140,60 +134,54 @@ export const PrivacyPreferencesScreen: React.FC = () => {
             </Text>
           </View>
 
-          {/* Data Processing Level */}
-          <View style={styles.sectionContainer}>
-            <Text variant="h3" style={styles.sectionTitle}>
-              {t("privacy.data_processing.title")}
+          {/* DSGVO-konforme Cloud-Speicherung */}
+          <View style={styles.cloudInfoContainer}>
+            <View style={styles.cloudInfoHeader}>
+              <Ionicons name="cloud-done" size={32} color={Colors.primary} />
+              <Text variant="h3" style={styles.cloudInfoTitle}>
+                {t("privacy.cloud_storage.title", "Sichere Cloud-Speicherung")}
+              </Text>
+            </View>
+            
+            <Text variant="body" style={styles.cloudInfoText}>
+              {t("privacy.cloud_storage.description", "Deine Daten werden sicher in der Cloud gespeichert. Dies erm\u00f6glicht dir den Zugriff von all deinen Ger\u00e4ten und sch\u00fctzt deine Fortschritte.")}
             </Text>
 
-            {(["local", "cloud", "ai_enabled"] as const).map((type) => (
-              <View key={type} style={styles.radioContainer}>
-                <View style={styles.radioItem}>
-                  <View style={styles.radioLeft}>
-                    <View
-                      style={[
-                        styles.radioButton,
-                        privacySettings.dataProcessing === type &&
-                          styles.radioButtonSelected,
-                      ]}
-                    >
-                      {privacySettings.dataProcessing === type && (
-                        <View style={styles.radioButtonInner} />
-                      )}
-                    </View>
-                    <View style={styles.radioContent}>
-                      <Text variant="subtitle" style={styles.radioTitle}>
-                        {t(`privacy.data_processing.${type}.title`)}
-                      </Text>
-                      <Text variant="body" style={styles.radioDescription}>
-                        {t(`privacy.data_processing.${type}.description`)}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.radioActions}>
-                    <Button
-                      title={t("actions.info", { ns: "common" })}
-                      onPress={() => handleDataProcessingInfo(type)}
-                      variant="ghost"
-                      size="small"
-                      style={styles.infoButton}
-                    />
-                    <Button
-                      title={t("actions.select", { ns: "common" })}
-                      onPress={() =>
-                        handleSettingChange("dataProcessing", type)
-                      }
-                      variant={
-                        privacySettings.dataProcessing === type
-                          ? "primary"
-                          : "outline"
-                      }
-                      size="small"
-                    />
-                  </View>
+            <View style={styles.cloudFeatures}>
+              {[
+                {
+                  icon: "shield-checkmark",
+                  text: t("privacy.cloud_storage.gdpr", "DSGVO-konform & EU-Datenschutz")
+                },
+                {
+                  icon: "server",
+                  text: t("privacy.cloud_storage.eu_servers", "Server-Standort: Europa")
+                },
+                {
+                  icon: "lock-closed",
+                  text: t("privacy.cloud_storage.encrypted", "Ende-zu-Ende-Verschl\u00fcsselung")
+                },
+                {
+                  icon: "sync",
+                  text: t("privacy.cloud_storage.sync", "Automatische Synchronisation")
+                }
+              ].map((feature, index) => (
+                <View key={index} style={styles.cloudFeatureItem}>
+                  <Ionicons name={feature.icon as any} size={18} color={Colors.primary} />
+                  <Text variant="body" style={styles.cloudFeatureText}>
+                    {feature.text}
+                  </Text>
                 </View>
-              </View>
-            ))}
+              ))}
+            </View>
+
+            <Button
+              title={t("privacy.cloud_storage.learn_more", "Mehr erfahren")}
+              onPress={handleGDPRInfo}
+              variant="ghost"
+              size="small"
+              style={styles.learnMoreButton}
+            />
           </View>
 
           {/* Additional Privacy Settings */}
@@ -206,7 +194,6 @@ export const PrivacyPreferencesScreen: React.FC = () => {
               { key: "analytics", icon: "analytics", required: false },
               { key: "crashReporting", icon: "bug", required: true },
               { key: "marketing", icon: "mail", required: false },
-              { key: "aiFeatures", icon: "sparkles", required: false },
               { key: "personalInsights", icon: "bulb", required: false },
             ].map((setting) => (
               <View key={setting.key} style={styles.settingItem}>
@@ -259,26 +246,41 @@ export const PrivacyPreferencesScreen: React.FC = () => {
             ))}
           </View>
 
-          {/* GDPR Compliance */}
+          {/* GDPR Rights */}
           <View style={styles.complianceContainer}>
-            <Text variant="h3" style={styles.complianceTitle}>
-              {t("privacy.gdpr.title")}
-            </Text>
+            <View style={styles.complianceHeader}>
+              <Ionicons name="document-text" size={24} color={Colors.text} style={styles.complianceIcon} />
+              <Text variant="h3" style={styles.complianceTitle}>
+                {t("privacy.gdpr.title", "Deine Rechte nach DSGVO")}
+              </Text>
+            </View>
             <Text variant="body" style={styles.complianceText}>
-              {t("privacy.gdpr.description")}
+              {t("privacy.gdpr.description", "Du hast jederzeit folgende Rechte bez\u00fcglich deiner Daten:")}
             </Text>
 
             <View style={styles.rightsContainer}>
               {[
-                "data_access",
-                "data_portability",
-                "data_deletion",
-                "consent_withdrawal",
+                {
+                  key: "data_access",
+                  text: t("privacy.gdpr.rights.data_access", "Auskunftsrecht: Einsicht in alle gespeicherten Daten")
+                },
+                {
+                  key: "data_portability",
+                  text: t("privacy.gdpr.rights.data_portability", "Daten\u00fcbertragbarkeit: Export deiner Daten")
+                },
+                {
+                  key: "data_deletion",
+                  text: t("privacy.gdpr.rights.data_deletion", "L\u00f6schung: Vollst\u00e4ndige Entfernung deiner Daten")
+                },
+                {
+                  key: "consent_withdrawal",
+                  text: t("privacy.gdpr.rights.consent_withdrawal", "Widerruf: Einwilligungen jederzeit widerrufbar")
+                },
               ].map((right) => (
-                <View key={right} style={styles.rightItem}>
-                  <Ionicons name="checkmark" size={16} color={Colors.success} />
+                <View key={right.key} style={styles.rightItem}>
+                  <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
                   <Text variant="body" style={styles.rightText}>
-                    {t(`privacy.gdpr.rights.${right}`)}
+                    {right.text}
                   </Text>
                 </View>
               ))}
@@ -351,61 +353,48 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 16,
   },
-  radioContainer: {
-    marginBottom: 16,
-  },
-  radioItem: {
-    backgroundColor: Colors.cardBackground,
+  cloudInfoContainer: {
+    backgroundColor: Colors.primaryLight,
     borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  radioLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    padding: 20,
+    marginBottom: 32,
     borderWidth: 2,
-    borderColor: Colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  radioButtonSelected: {
     borderColor: Colors.primary,
   },
-  radioButtonInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Colors.primary,
+  cloudInfoHeader: {
+    alignItems: "center",
+    marginBottom: 16,
   },
-  radioContent: {
-    flex: 1,
-  },
-  radioTitle: {
+  cloudInfoTitle: {
     color: Colors.text,
-    marginBottom: 4,
+    textAlign: "center",
+    marginTop: 8,
   },
-  radioDescription: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    lineHeight: 18,
+  cloudInfoText: {
+    color: Colors.text,
+    lineHeight: 22,
+    textAlign: "center",
+    marginBottom: 20,
   },
-  radioActions: {
+  cloudFeatures: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  cloudFeatureItem: {
     flexDirection: "row",
-    gap: 8,
+    alignItems: "center",
+    paddingVertical: 4,
   },
-  infoButton: {
-    paddingHorizontal: 12,
+  cloudFeatureText: {
+    color: Colors.text,
+    marginLeft: 12,
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  learnMoreButton: {
+    alignSelf: "center",
+    marginTop: 8,
   },
   settingItem: {
     flexDirection: "row",
@@ -452,9 +441,17 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 32,
   },
+  complianceHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  complianceIcon: {
+    marginRight: 8,
+  },
   complianceTitle: {
     color: Colors.text,
-    marginBottom: 12,
     textAlign: "center",
   },
   complianceText: {

@@ -21,6 +21,7 @@ import { Text, Button } from "../../components/ui";
 import { OnboardingProgress } from "../../components/onboarding";
 import { OnboardingStackParamList } from "./OnboardingNavigator";
 import { AIService } from "../../services/AIService";
+import { LifeWheelReflectionService } from "../../services/LifeWheelReflectionService";
 import { useUserStore } from "../../store/useUserStore";
 
 type LifeWheelSetupScreenNavigationProp = StackNavigationProp<
@@ -151,7 +152,24 @@ export const LifeWheelSetupScreen: React.FC = () => {
     );
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // Save the user's answer if provided
+    if (userAnswer.trim() && user?.id && coachingQuestion) {
+      try {
+        await LifeWheelReflectionService.saveReflectionAnswer(
+          user.id,
+          currentArea.id,
+          coachingQuestion,
+          userAnswer,
+          `onboarding_${Date.now()}`
+        );
+        console.log(`✅ Saved reflection for area: ${currentArea.name}`);
+      } catch (error) {
+        console.error("⚠️ Could not save reflection:", error);
+        // Don't block progression if saving fails
+      }
+    }
+    
     // Reset answer for next area
     setUserAnswer("");
     

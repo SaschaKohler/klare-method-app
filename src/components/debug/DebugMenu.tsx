@@ -9,12 +9,12 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { Text, Button } from "../ui";
 import { Colors } from "../../constants/Colors";
 import { useUserStore } from "../../store/useUserStore";
 import { useOnboardingStore } from "../../store/onboardingStore";
 import { supabase } from "../../lib/supabase";
-import { useNavigation } from "@react-navigation/native";
 
 interface DebugMenuProps {
   visible: boolean;
@@ -22,7 +22,7 @@ interface DebugMenuProps {
 }
 
 export const DebugMenu: React.FC<DebugMenuProps> = ({ visible, onClose }) => {
-  const { user } = useUserStore();
+  const { user, signOut } = useUserStore();
   const { resetOnboarding: resetOnboardingStore } = useOnboardingStore();
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
@@ -55,16 +55,20 @@ export const DebugMenu: React.FC<DebugMenuProps> = ({ visible, onClose }) => {
               // Reset local onboarding store
               resetOnboardingStore();
 
+              // Close debug menu
+              onClose();
+              
+              // Sign out and sign back in to trigger onboarding
               Alert.alert(
                 "Erfolg",
-                "Onboarding wurde zurückgesetzt. App wird neu geladen...",
+                "Onboarding wurde zurückgesetzt. Die App wird jetzt neu geladen...",
                 [
                   {
                     text: "OK",
-                    onPress: () => {
-                      onClose();
-                      // Navigate to onboarding
-                      (navigation as any).navigate("Onboarding");
+                    onPress: async () => {
+                      // Signing out will trigger a re-render and the OnboardingWrapper
+                      // will detect the reset onboarding status
+                      await signOut();
                     },
                   },
                 ]

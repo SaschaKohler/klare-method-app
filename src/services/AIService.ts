@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { supabase } from "../lib/supabase";
 import { Database } from "../types/supabase";
 import { AnthropicService } from "./AnthropicService";
+import { LifeWheelReflectionService } from "./LifeWheelReflectionService";
 
 // Type Definitions
 type AIConversation = Database["public"]["Tables"]["ai_conversations"]["Row"];
@@ -745,7 +746,8 @@ export class AIService {
         .from("ai_service_logs")
         .insert({
           user_id: userId,
-          service_type: serviceType,
+          service_name: serviceType,
+          operation_type: metadata?.operation_type || 'generic',
           request_data: metadata || {},
           success: true,
           // created_at wird automatisch gesetzt
@@ -771,16 +773,16 @@ export class AIService {
       
       const { data, error } = await supabase
         .from("ai_service_logs")
-        .select("service_type")
+        .select("service_name")
         .eq("user_id", userId)
-        .gte("usage_timestamp", since);
+        .gte("created_at", since);
       
       if (error) throw error;
       
       // Count by service type
       const stats: Record<string, number> = {};
       data?.forEach(log => {
-        stats[log.service_type] = (stats[log.service_type] || 0) + 1;
+        stats[log.service_name] = (stats[log.service_name] || 0) + 1;
       });
       
       return stats;
@@ -841,6 +843,14 @@ export class AIService {
   }): Promise<string> {
     const { userId, areaName, areaId, currentValue, targetValue, previousValue, previousDate } = params;
 
+    // Load previous questions to avoid repetition
+    const previousQuestions = await LifeWheelReflectionService.getPreviousQuestions(
+      userId,
+      areaId
+    );
+    
+    console.log(`📝 Area: ${areaName}, Previously asked: ${previousQuestions.length} questions`);
+
     // Try Anthropic first if available
     if (AnthropicService.isServiceAvailable()) {
       try {
@@ -868,6 +878,11 @@ export class AIService {
             previousDate,
             daysSince,
             valueChange: currentValue !== undefined ? currentValue - previousValue : 0,
+            previousQuestions, // Add to context
+          };
+        } else {
+          userContext = {
+            previousQuestions, // Always include previous questions
           };
         }
 
@@ -883,6 +898,7 @@ export class AIService {
           areaId,
           areaName,
           hasMemory: !!previousValue,
+          previousQuestionsCount: previousQuestions.length,
         });
 
         return question;
@@ -947,7 +963,17 @@ export class AIService {
       "Welcher erste Schritt fühlt sich richtig an?",
     ];
 
-    return questions[Math.floor(Math.random() * questions.length)];
+    // Filter out previously asked questions to avoid repetition
+    const availableQuestions = questions.filter(
+      q => !previousQuestions.includes(q)
+    );
+    
+    // If all questions have been asked, use any question
+    const finalQuestions = availableQuestions.length > 0 
+      ? availableQuestions 
+      : questions;
+
+    return finalQuestions[Math.floor(Math.random() * finalQuestions.length)];
   }
   
   /**

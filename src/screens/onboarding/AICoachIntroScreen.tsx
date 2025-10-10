@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, SafeAreaView, ScrollView, Switch } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +15,6 @@ type AICoachIntroScreenNavigationProp = StackNavigationProp<OnboardingStackParam
 export const AICoachIntroScreen: React.FC = () => {
   const navigation = useNavigation<AICoachIntroScreenNavigationProp>();
   const { t, i18n } = useTranslation(['onboarding', 'common']); // Multiple namespaces
-  const [aiEnabled, setAiEnabled] = useState(true);
 
   const handleContinue = () => {
     navigation.navigate('PrivacyPreferences');
@@ -94,43 +93,50 @@ export const AICoachIntroScreen: React.FC = () => {
             ))}
           </View>
 
-          {/* AI Toggle */}
-          <View style={styles.toggleContainer}>
-            <View style={styles.toggleHeader}>
-              <Text variant="h3" style={styles.toggleTitle}>
-                {t('ai_intro.enable_ai')}
+          {/* AI Standard Feature Info */}
+          <View style={styles.infoContainer}>
+            <View style={styles.infoHeader}>
+              <Ionicons name="sparkles" size={24} color={Colors.primary} />
+              <Text variant="h3" style={styles.infoTitle}>
+                {t('ai_intro.standard_feature_title', 'Dein AI-Coach ist immer dabei')}
               </Text>
-              <Switch
-                value={aiEnabled}
-                onValueChange={setAiEnabled}
-                trackColor={{ false: Colors.border, true: Colors.primary }}
-                thumbColor={aiEnabled ? 'white' : Colors.textSecondary}
-              />
             </View>
-            <Text variant="body" style={styles.toggleDescription}>
-              {aiEnabled 
-                ? t('ai_intro.ai_enabled_description')
-                : t('ai_intro.ai_disabled_description')
-              }
+            <Text variant="body" style={styles.infoDescription}>
+              {t('ai_intro.standard_feature_description', 'Der AI-Coach ist ein integraler Bestandteil der KLARE-Methode und unterstützt dich bei jedem Schritt deiner Transformation.')}
             </Text>
           </View>
 
-          {/* Safety Guarantees */}
+          {/* DSGVO & Security Guarantees */}
           <View style={styles.safetyContainer}>
-            <Text variant="h3" style={styles.safetyTitle}>
-              {t('ai_intro.safety_title')}
-            </Text>
+            <View style={styles.safetyHeader}>
+              <Ionicons name="shield-checkmark" size={32} color={Colors.success} style={styles.safetyHeaderIcon} />
+              <Text variant="h3" style={styles.safetyTitle}>
+                {t('ai_intro.security_title', 'Sicherheit & Datenschutz')}
+              </Text>
+            </View>
             
             {[
-              'local_first',
-              'gdpr_compliant',
-              'always_optional',
-              'transparent_processing'
-            ].map((guarantee, index) => (
-              <View key={guarantee} style={styles.safetyItem}>
+              {
+                key: 'gdpr_compliant',
+                text: t('ai_intro.safety.gdpr_compliant', 'DSGVO-konform: Vollständig EU-Datenschutz-konform')
+              },
+              {
+                key: 'eu_servers',
+                text: t('ai_intro.safety.eu_servers', 'EU-Server: Alle Daten werden auf Servern in Europa gespeichert')
+              },
+              {
+                key: 'encrypted',
+                text: t('ai_intro.safety.encrypted', 'Verschlüsselt: End-to-End Verschlüsselung deiner persönlichen Daten')
+              },
+              {
+                key: 'your_data',
+                text: t('ai_intro.safety.your_data', 'Deine Daten: Du behältst jederzeit die volle Kontrolle')
+              }
+            ].map((guarantee) => (
+              <View key={guarantee.key} style={styles.safetyItem}>
                 <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
                 <Text variant="body" style={styles.safetyText}>
-                  {t(`ai_intro.safety.${guarantee}`)}
+                  {guarantee.text}
                 </Text>
               </View>
             ))}
@@ -224,26 +230,26 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 20,
   },
-  toggleContainer: {
-    backgroundColor: Colors.cardBackground,
+  infoContainer: {
+    backgroundColor: Colors.primaryLight,
     borderRadius: 12,
     padding: 20,
     marginBottom: 24,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: 2,
+    borderColor: Colors.primary,
   },
-  toggleHeader: {
+  infoHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  toggleTitle: {
+  infoTitle: {
     color: Colors.text,
+    marginLeft: 12,
     flex: 1,
   },
-  toggleDescription: {
-    color: Colors.textSecondary,
+  infoDescription: {
+    color: Colors.text,
     lineHeight: 20,
   },
   safetyContainer: {
@@ -252,9 +258,15 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 32,
   },
+  safetyHeader: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  safetyHeaderIcon: {
+    marginBottom: 8,
+  },
   safetyTitle: {
     color: Colors.text,
-    marginBottom: 16,
     textAlign: 'center',
   },
   safetyItem: {

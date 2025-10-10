@@ -4,6 +4,7 @@ import {
   PrivacySettings,
   LifeWheelArea,
 } from "../store/onboardingStore";
+import { UserAnswerTrackingService } from "./UserAnswerTrackingService";
 
 export interface OnboardingData {
   profile: OnboardingProfile;
@@ -41,9 +42,10 @@ export class OnboardingService {
       }
 
       // Create or update user profile in the new AI-ready schema
+      // Use onConflict to ensure updates instead of creating duplicates
       const { error: profileError } = await supabase
         .from("user_profiles")
-        .upsert(updateData);
+        .upsert(updateData, { onConflict: 'user_id' });
 
       if (profileError) {
         throw new Error(`Failed to save user profile: ${profileError.message}`);
@@ -177,6 +179,9 @@ export class OnboardingService {
       // Create initial personal insights based on onboarding data
       await this.createInitialInsights(userId, onboardingData);
 
+      // Save onboarding answers to user_answers table for AI personalization
+      await this.saveOnboardingAnswers(userId, onboardingData);
+
       console.log("🎉 Onboarding completed successfully!");
     } catch (error) {
       console.error("❌ Error completing onboarding:", error);
@@ -268,6 +273,98 @@ export class OnboardingService {
       }
     } catch (error) {
       console.error("⚠️ Warning: Error creating initial insights:", error);
+      // Don't rethrow - this is a non-critical operation
+    }
+  }
+
+  /**
+   * Save onboarding answers to user_answers table for AI personalization
+   */
+  private static async saveOnboardingAnswers(
+    userId: string,
+    data: OnboardingData,
+  ): Promise<void> {
+    try {
+      const answers = [];
+
+      // Save primary goals as answers
+      if (data.profile.primaryGoals.length > 0) {
+        answers.push({
+          user_id: userId,
+          content_type: 'onboarding_profile',
+          question_type: 'coaching' as const,
+          question_text: 'Was sind deine primären Ziele?',
+          answer_data: { goals: data.profile.primaryGoals },
+          answer_text: data.profile.primaryGoals.join(', '),
+          key_themes: data.profile.primaryGoals,
+        });
+      }
+
+      // Save challenges as answers
+      if (data.profile.currentChallenges.length > 0) {
+        answers.push({
+          user_id: userId,
+          content_type: 'onboarding_profile',
+          question_type: 'coaching' as const,
+          question_text: 'Was sind deine aktuellen Herausforderungen?',
+          answer_data: { challenges: data.profile.currentChallenges },
+          answer_text: data.profile.currentChallenges.join(', '),
+          key_themes: data.profile.currentChallenges,
+        });
+      }
+
+      // Save age range
+      if (data.profile.ageRange) {
+        answers.push({
+          user_id: userId,
+          content_type: 'onboarding_profile',
+          question_type: 'coaching' as const,
+          question_text: 'In welcher Altersgruppe bist du?',
+          answer_data: { age_range: data.profile.ageRange },
+          answer_text: data.profile.ageRange,
+        });
+      }
+
+      // Save experience level
+      if (data.profile.experienceLevel) {
+        answers.push({
+          user_id: userId,
+          content_type: 'onboarding_profile',
+          question_type: 'coaching' as const,
+          question_text: 'Wie viel Erfahrung hast du mit persönlicher Entwicklung?',
+          answer_data: { experience_level: data.profile.experienceLevel },
+          answer_text: data.profile.experienceLevel,
+        });
+      }
+
+      // Save time commitment
+      if (data.profile.timeCommitment) {
+        answers.push({
+          user_id: userId,
+          content_type: 'onboarding_profile',
+          question_type: 'coaching' as const,
+          question_text: 'Wie viel Zeit möchtest du täglich investieren?',
+          answer_data: { time_commitment: data.profile.timeCommitment },
+          answer_text: data.profile.timeCommitment,
+        });
+      }
+
+      // Save all answers
+      if (answers.length > 0) {
+        console.log(`📝 Attempting to save ${answers.length} onboarding answers...`);
+        for (const answer of answers) {
+          try {
+            await UserAnswerTrackingService.saveUserAnswer(answer);
+          } catch (answerError) {
+            console.error("❌ Failed to save answer:", answer.question_text, answerError);
+          }
+        }
+        console.log(`✅ Saved ${answers.length} onboarding answers for AI personalization`);
+      } else {
+        console.log('⚠️ No onboarding answers to save');
+      }
+    } catch (error) {
+      console.error("⚠️ Warning: Error saving onboarding answers:", error);
       // Don't rethrow - this is a non-critical operation
     }
   }
