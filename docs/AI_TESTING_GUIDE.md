@@ -1,4 +1,4 @@
-# AI Testing Guide - Anthropic Claude Integration
+# AI Testing Guide - OpenAI GPT Integration
 
 ## Quick Start Testing
 
@@ -8,9 +8,9 @@
 # Erstelle .env Datei
 cp .env.example .env
 
-# Füge deinen Anthropic API Key ein
+# Füge deinen OpenAI API Key ein
 # Öffne .env und setze:
-ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
+OPENAI_API_KEY=sk-your-openai-key-here
 ```
 
 ### 2. App starten
@@ -31,7 +31,7 @@ npm run android
 2. Registriere neuen Test-User
 3. Durchlaufe Onboarding bis LifeWheelSetup
 4. **Erwartung:** Mock-Fragen werden angezeigt
-5. **Console:** `"ℹ️ Verwende Mock-Responses (Anthropic nicht verfügbar)"`
+5. **Console:** `"ℹ️ Verwende Mock-Responses (OpenAI nicht verfügbar)"`
 
 #### B) Mit API-Key (Echte AI-Testing)
 
@@ -40,7 +40,7 @@ npm run android
 3. Registriere neuen Test-User (oder lösche alten)
 4. Durchlaufe Onboarding bis LifeWheelSetup
 5. **Erwartung:** AI-generierte personalisierte Fragen
-6. **Console:** `"✅ Anthropic Client erfolgreich initialisiert"`
+6. **Console:** `"✅ OpenAI Client erfolgreich initialisiert"`
 
 ## Test-Scenarios
 
@@ -68,9 +68,9 @@ wenn du dich körperlich und mental gestärkt fühlst?"
 
 **Console-Test:**
 ```typescript
-import { AnthropicService } from '@/services/AnthropicService';
+import { OpenAIService } from '@/services/OpenAIService';
 
-const health = await AnthropicService.healthCheck();
+const health = await OpenAIService.healthCheck();
 console.log('Health:', health);
 ```
 
@@ -78,7 +78,7 @@ console.log('Health:', health);
 ```json
 {
   "available": true,
-  "model": "claude-3-5-sonnet-20241022",
+  "model": "gpt-5-nano-2025-08-07",
   "responseTime": 847
 }
 ```
@@ -103,14 +103,14 @@ console.log('Generated Question:', question);
 ### Scenario 4: Fallback-Mechanismus
 
 **Test:**
-1. Setze ungültigen API-Key: `ANTHROPIC_API_KEY=invalid-key`
+1. Setze ungültigen API-Key: `OPENAI_API_KEY=invalid-key`
 2. Starte App neu
 3. Navigiere zu LifeWheelSetup
 
 **Erwartetes Verhalten:**
 - ✅ Keine Fehler-Anzeige für User
 - ✅ Vordefinierte Fragen werden verwendet
-- ✅ Console: `"⚠️ ANTHROPIC_API_KEY nicht konfiguriert"`
+- ✅ Console: `"⚠️ OPENAI_API_KEY nicht konfiguriert"`
 
 ## Performance Testing
 
@@ -159,19 +159,19 @@ for (let i = 0; i < 60; i++) {
 **Erwartetes Verhalten:**
 - Nach ~50 Requests: Rate Limit Error
 - Fallback aktiviert sich
-- Console: `"⚠️ Anthropic API Fehler, nutze Fallback"`
+- Console: `"⚠️ OpenAI API Fehler, nutze Fallback"`
 
 ### Test 3: Invalid API Key
 
 **.env:**
 ```env
-ANTHROPIC_API_KEY=sk-ant-invalid-key-123
+OPENAI_API_KEY=sk-invalid-key-123
 ```
 
 **Erwartetes Verhalten:**
 - Service nicht als "available" markiert
 - Sofortiger Fallback
-- Console: `"⚠️ ANTHROPIC_API_KEY nicht konfiguriert"`
+- Console: `"⚠️ OPENAI_API_KEY nicht konfiguriert"`
 
 ## Manual Test Checklist
 
@@ -206,17 +206,17 @@ ANTHROPIC_API_KEY=sk-ant-invalid-key-123
 
 **Erfolgreiche Initialisierung:**
 ```
-✅ Anthropic Client erfolgreich initialisiert
+✅ OpenAI Client erfolgreich initialisiert
 ```
 
 **Fallback-Aktivierung:**
 ```
-ℹ️ Verwende Mock-Responses (Anthropic nicht verfügbar)
+ℹ️ Verwende Mock-Responses (OpenAI nicht verfügbar)
 ```
 
 **API-Fehler:**
 ```
-⚠️ Anthropic API Fehler, nutze Fallback: [Error Details]
+⚠️ OpenAI API Fehler, nutze Fallback: [Error Details]
 ```
 
 ### React Native Debugger
@@ -228,7 +228,7 @@ ANTHROPIC_API_KEY=sk-ant-invalid-key-123
 ```
 
 **Breakpoints setzen:**
-- `src/services/AnthropicService.ts:72` - generateResponse
+- `src/services/OpenAIService.ts:72` - generateResponse
 - `src/services/AIService.ts:776` - generateLifeWheelCoachingQuestion
 
 ## API Usage Monitoring
@@ -253,9 +253,9 @@ ORDER BY created_at DESC
 LIMIT 10;
 ```
 
-### Anthropic Dashboard
+### OpenAI Dashboard
 
-1. Login to [Anthropic Console](https://console.anthropic.com/)
+1. Login to [OpenAI Platform](https://platform.openai.com/)
 2. Navigate to **Usage**
 3. Check:
    - Request Count
@@ -275,7 +275,7 @@ LIMIT 10;
 ls -la .env
 
 # 2. Check API-Key gesetzt
-cat .env | grep ANTHROPIC
+cat .env | grep OPENAI
 
 # 3. Metro Bundler neu starten
 # Drücke 'r' im Metro Terminal
@@ -318,7 +318,7 @@ Vor Launch:
 - [ ] Error Monitoring Setup (Sentry etc.)
 - [ ] Kosten-Tracking aktiviert
 - [ ] Fallback-Responses qualitätsgeprüft
-- [ ] Privacy Policy updated (Anthropic erwähnt)
+- [ ] Privacy Policy updated (OpenAI erwähnt)
 - [ ] User-Consent Flow getestet
 - [ ] DSGVO-Compliance geprüft
 
@@ -328,7 +328,7 @@ Vor Launch:
 
 1. Check Console Logs
 2. Check API-Key Konfiguration
-3. Check Anthropic Dashboard (Usage/Status)
+3. Check OpenAI Dashboard (Usage/Status)
 4. Check Docs: `/docs/AI_INTEGRATION_GUIDE.md`
 
 ---

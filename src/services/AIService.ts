@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { supabase } from "../lib/supabase";
 import { Database } from "../types/supabase";
-import { AnthropicService } from "./AnthropicService";
+import { OpenAIService } from "./OpenAIService";
 import { LifeWheelReflectionService } from "./LifeWheelReflectionService";
 
 // Type Definitions
@@ -571,7 +571,7 @@ export class AIService {
   // =============================================================================
   
   /**
-   * Generiert AI-Antwort mit Anthropic Claude oder Fallback
+   * Generiert AI-Antwort mit OpenAI GPT oder Fallback
    */
   private static async generateResponse(
     message: string,
@@ -581,18 +581,18 @@ export class AIService {
   ): Promise<AIResponse> {
     const startTime = Date.now();
 
-    // Try Anthropic API first
-    if (AnthropicService.isServiceAvailable()) {
+    // Try OpenAI API first
+    if (OpenAIService.isServiceAvailable()) {
       try {
         const systemPrompt = this.getSystemPrompt(conversationType);
         
-        // Build conversation history for Claude
-        const claudeHistory: Array<{ role: "user" | "assistant"; content: string }> = [];
+        // Build conversation history for OpenAI
+        const aiHistory: Array<{ role: "user" | "assistant"; content: string }> = [];
         if (conversationHistory) {
           conversationHistory
             .filter(msg => msg.message_type !== "system")
             .forEach(msg => {
-              claudeHistory.push({
+              aiHistory.push({
                 role: msg.message_type as "user" | "assistant",
                 content: msg.message_content,
               });
@@ -605,12 +605,11 @@ export class AIService {
           enrichedMessage += `\n\nKontext: Aktuelle LifeWheel-Daten verfügbar.`;
         }
 
-        const response = await AnthropicService.generateResponse({
+        const response = await OpenAIService.generateResponse({
           systemPrompt,
           userMessage: enrichedMessage,
-          conversationHistory: claudeHistory,
-          maxTokens: 500,
-          temperature: 0.7,
+          conversationHistory: aiHistory,
+          max_output_tokens: 500,
         });
 
         return {
@@ -622,19 +621,19 @@ export class AIService {
             responseTime: Date.now() - startTime,
             contextUsed: Object.keys(context).length,
             conversationType,
-            aiModel: "claude-3-5-sonnet-20241022",
+            aiModel: "gpt-4o-mini",
             inputTokens: response.usage.inputTokens,
             outputTokens: response.usage.outputTokens,
           },
         };
       } catch (error) {
-        console.warn("⚠️ Anthropic API Fehler, nutze Fallback:", error);
+        console.warn("⚠️ OpenAI API Fehler, nutze Fallback:", error);
         // Fall through to fallback
       }
     }
 
     // FALLBACK: Mock Response für Development oder wenn API nicht verfügbar
-    console.log("ℹ️ Verwende Mock-Responses (Anthropic nicht verfügbar)");
+    console.log("ℹ️ Verwende Mock-Responses (OpenAI nicht verfügbar)");
     
     await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API delay
     
@@ -849,10 +848,21 @@ export class AIService {
       areaId
     );
     
-    console.log(`📝 Area: ${areaName}, Previously asked: ${previousQuestions.length} questions`);
+    // Load user profile for initial questions (maybeSingle to handle missing profile)
+    const { data: userProfile } = await supabase
+      .from("user_profiles")
+      .select("age, preferences")
+      .eq("user_id", userId)
+      .maybeSingle();
+    
+    const isInitialQuestion = previousQuestions.length === 0;
+    console.log(`📝 Area: ${areaName}, Previously asked: ${previousQuestions.length} questions, Initial: ${isInitialQuestion}, UserProfile: ${!!userProfile}`);
 
-    // Try Anthropic first if available
-    if (AnthropicService.isServiceAvailable()) {
+    // Try OpenAI first if available
+    const openAIAvailable = OpenAIService.isServiceAvailable();
+    console.log(`🤖 OpenAI Service available: ${openAIAvailable}`);
+    
+    if (openAIAvailable) {
       try {
         const areaDescriptions: Record<string, string> = {
           health: "Körperliche und mentale Gesundheit, Fitness, Ernährung",
@@ -865,8 +875,13 @@ export class AIService {
           contribution: "Beitrag für andere, gesellschaftliches Engagement, Sinn",
         };
 
-        // Build context with memory if available
-        let userContext: Record<string, any> | undefined = undefined;
+        // Build context
+        let userContext: Record<string, any> = {
+          previousQuestions,
+          isInitialQuestion,
+          userAge: userProfile?.age,
+          userPreferences: userProfile?.preferences,
+        };
         
         if (previousValue !== undefined && previousDate) {
           const daysSince = Math.floor(
@@ -874,19 +889,15 @@ export class AIService {
           );
           
           userContext = {
+            ...userContext,
             previousValue,
             previousDate,
             daysSince,
             valueChange: currentValue !== undefined ? currentValue - previousValue : 0,
-            previousQuestions, // Add to context
-          };
-        } else {
-          userContext = {
-            previousQuestions, // Always include previous questions
           };
         }
 
-        const question = await AnthropicService.generateCoachingQuestion({
+        const question = await OpenAIService.generateCoachingQuestion({
           areaName,
           areaDescription: areaDescriptions[areaId],
           currentValue,
@@ -901,13 +912,15 @@ export class AIService {
           previousQuestionsCount: previousQuestions.length,
         });
 
+        console.log(`✅ OpenAI question generated: ${question.substring(0, 50)}...`);
         return question;
       } catch (error) {
-        console.warn("⚠️ Anthropic Fehler bei Coaching-Frage, nutze Fallback:", error);
+        console.warn("⚠️ OpenAI Fehler bei Coaching-Frage, nutze Fallback:", error);
       }
     }
 
     // Fallback: Vordefinierte Coaching-Fragen (mit und ohne Memory)
+    console.log(`🔄 Using fallback questions for area: ${areaId}`);
     const hasMemory = previousValue !== undefined;
     
     const fallbackQuestions: Record<string, string[]> = {
@@ -973,7 +986,9 @@ export class AIService {
       ? availableQuestions 
       : questions;
 
-    return finalQuestions[Math.floor(Math.random() * finalQuestions.length)];
+    const selectedQuestion = finalQuestions[Math.floor(Math.random() * finalQuestions.length)];
+    console.log(`✅ Fallback question selected: ${selectedQuestion}`);
+    return selectedQuestion;
   }
   
   /**

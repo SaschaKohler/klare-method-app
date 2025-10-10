@@ -30,18 +30,26 @@ export class LifeWheelReflectionService {
     areaId: string,
     question: string,
     answer: string,
-    sessionId?: string
+    sessionId?: string,
+    areaData?: {
+      name: string;
+      currentValue?: number;
+      targetValue?: number;
+    }
   ): Promise<void> {
     try {
-      // Get current reflection_data
+      // Try to find by name (string ID like "health") or UUID
       const { data: area, error: fetchError } = await supabase
         .from("life_wheel_areas")
-        .select("reflection_data")
-        .eq("id", areaId)
+        .select("reflection_data, id")
         .eq("user_id", userId)
-        .single();
+        .or(`id.eq.${areaId},name.eq.${areaId}`)
+        .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error("Error fetching area:", fetchError);
+        throw fetchError;
+      }
 
       const currentReflection: LifeWheelReflection = area?.reflection_data || {};
       
@@ -57,7 +65,15 @@ export class LifeWheelReflectionService {
         session_id: sessionId,
       });
 
-      // Update the area
+      // If area doesn't exist yet, we can't save (areas are created elsewhere)
+      if (!area) {
+        console.warn(`⚠️ Cannot save reflection: life_wheel_area '${areaId}' does not exist yet for user ${userId}`);
+        console.log("💡 Reflection will be saved later when areas are created.");
+        // Don't throw - this is expected during onboarding
+        return;
+      }
+
+      // Update the existing area
       const { error: updateError } = await supabase
         .from("life_wheel_areas")
         .update({ 
@@ -67,7 +83,10 @@ export class LifeWheelReflectionService {
         .eq("id", areaId)
         .eq("user_id", userId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("Error updating area:", updateError);
+        throw updateError;
+      }
 
       console.log(`✅ Reflection answer saved for area ${areaId}`);
     } catch (error) {
@@ -89,9 +108,18 @@ export class LifeWheelReflectionService {
         .select("reflection_data")
         .eq("id", areaId)
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      // If no row found, return empty object (not an error)
+      if (!data) {
+        console.log(`ℹ️ No life_wheel_area found for id=${areaId}, user=${userId}. Returning empty reflections.`);
+        return {};
+      }
+
+      if (error) {
+        console.error("❌ Error fetching area reflections:", error);
+        return {};
+      }
 
       return data?.reflection_data || {};
     } catch (error) {

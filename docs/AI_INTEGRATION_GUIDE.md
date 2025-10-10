@@ -1,18 +1,18 @@
-# AI Integration Guide - Anthropic Claude
+# AI Integration Guide - OpenAI GPT
 
 ## Übersicht
 
-Die KLARE-App nutzt **Anthropic Claude 3.5 Sonnet** für personalisiertes Coaching und AI-generierte Inhalte. Die Integration ist optional und fällt automatisch auf Mock-Responses zurück, wenn kein API-Key konfiguriert ist.
+Die KLARE-App nutzt **OpenAI GPT-5 Nano** für personalisiertes Coaching und AI-generierte Inhalte. Die Integration ist optional und fällt automatisch auf Mock-Responses zurück, wenn kein API-Key konfiguriert ist.
 
 ## Setup
 
 ### 1. API-Key erstellen
 
-1. Gehe zu [Anthropic Console](https://console.anthropic.com/)
+1. Gehe zu [OpenAI Platform](https://platform.openai.com/)
 2. Registriere dich oder logge dich ein
 3. Navigiere zu **API Keys**
 4. Erstelle einen neuen API-Key
-5. Kopiere den Key (beginnt mit `sk-ant-api03-...`)
+5. Kopiere den Key (beginnt mit `sk-...`)
 
 ### 2. Environment Variable konfigurieren
 
@@ -29,8 +29,8 @@ Füge deinen API-Key ein:
 SUPABASE_URL=https://awqavfvsnqhubvbfaccv.supabase.co
 SUPABASE_ANON_KEY=dein-supabase-anon-key
 
-# Anthropic AI
-ANTHROPIC_API_KEY=sk-ant-api03-dein-key-hier
+# OpenAI
+OPENAI_API_KEY=sk-dein-key-hier
 ```
 
 ### 3. App neu starten
@@ -79,7 +79,7 @@ Analysiert User-Fortschritt und generiert:
 
 ### 4. LifeWheel Insights
 
-**Funktion:** `AnthropicService.generateLifeWheelInsights(params)`
+**Funktion:** `OpenAIService.generateLifeWheelInsights(params)`
 
 Analysiert gesamtes LifeWheel und erstellt:
 - 2-3 prägnante Insights über Muster
@@ -120,19 +120,19 @@ const reply = await AIService.sendMessage(
 );
 ```
 
-### AnthropicService.ts
+### OpenAIService.ts
 
-Direkter Claude API Wrapper:
+Direkter GPT API Wrapper:
 
 ```typescript
-import { AnthropicService } from '@/services/AnthropicService';
+import { OpenAIService } from '@/services/OpenAIService';
 
 // Health Check
-const health = await AnthropicService.healthCheck();
+const health = await OpenAIService.healthCheck();
 console.log(health.available); // true/false
 
 // Direkte Anfrage
-const response = await AnthropicService.generateResponse({
+const response = await OpenAIService.generateResponse({
   systemPrompt: "Du bist ein Life Coach...",
   userMessage: "Was ist dein Rat?",
   maxTokens: 500,
@@ -142,7 +142,7 @@ const response = await AnthropicService.generateResponse({
 
 ## Fallback-Verhalten
 
-Wenn Anthropic API nicht verfügbar ist:
+Wenn OpenAI API nicht verfügbar ist:
 
 1. **Automatischer Fallback** auf vordefinierte Antworten
 2. **Keine Fehlermeldungen** für User
@@ -158,21 +158,21 @@ Wenn Anthropic API nicht verfügbar ist:
 
 ## Kosten & Limits
 
-### Claude 3.5 Sonnet Preise (Stand Januar 2025)
+### GPT-5 Nano Preise (Stand 2025)
 
-- **Input:** $3 / Million Tokens
-- **Output:** $15 / Million Tokens
+- **Input:** $0.50 / Million Tokens
+- **Output:** $2.00 / Million Tokens
 
 ### Durchschnittliche Kosten pro Feature:
 
 | Feature | Input Tokens | Output Tokens | Kosten |
 |---------|--------------|---------------|--------|
-| Coaching-Frage | ~150 | ~50 | $0.001 |
-| Journal Prompt | ~100 | ~30 | $0.0008 |
-| LifeWheel Insights | ~300 | ~400 | $0.007 |
-| Chat Message | ~200 | ~150 | $0.003 |
+| Coaching-Frage | ~150 | ~50 | $0.0002 |
+| Journal Prompt | ~100 | ~30 | $0.0001 |
+| LifeWheel Insights | ~300 | ~400 | $0.001 |
+| Chat Message | ~200 | ~150 | $0.0004 |
 
-**Geschätzte Monatskosten pro Aktiver User:** $0.50 - $2.00
+**Geschätzte Monatskosten pro Aktiver User:** $0.10 - $0.50
 
 ### Rate Limits
 
@@ -220,9 +220,9 @@ GROUP BY service_type;
 1. **User-Consent erforderlich:** Privacy Preferences im Onboarding
 2. **Opt-Out möglich:** `showAICoaching` Toggle
 3. **Daten-Minimierung:** Nur notwendige Kontextdaten
-4. **Keine Speicherung bei Anthropic:** Nur während Request
+4. **Keine Speicherung bei OpenAI:** Nur während Request (Zero Data Retention)
 
-### Gesendete Daten an Anthropic:
+### Gesendete Daten an OpenAI:
 
 - User-Antworten (wenn eingegeben)
 - LifeWheel-Werte (aggregiert, keine Namen)
@@ -243,7 +243,7 @@ User kann AI-Features steuern in `privacy_settings` (JSONB):
 
 ## Troubleshooting
 
-### Problem: "Anthropic Service nicht verfügbar"
+### Problem: "OpenAI Service nicht verfügbar"
 
 **Lösung:**
 1. Check `.env` Datei existiert
@@ -262,7 +262,7 @@ User kann AI-Features steuern in `privacy_settings` (JSONB):
 
 **Lösung:**
 1. Check Internetverbindung
-2. Erhöhe Timeout in `AnthropicService.ts`
+2. Erhöhe Timeout in `OpenAIService.ts`
 3. Fallback greift automatisch
 
 ## Testing
@@ -271,20 +271,20 @@ User kann AI-Features steuern in `privacy_settings` (JSONB):
 
 ```bash
 npm test src/services/AIService.test.ts
-npm test src/services/AnthropicService.test.ts
+npm test src/services/OpenAIService.test.ts
 ```
 
 ### Manual Testing
 
 ```typescript
 // Test im Simulator/Emulator
-import { AnthropicService } from '@/services/AnthropicService';
+import { OpenAIService } from '@/services/OpenAIService';
 
 // 1. Health Check
-const health = await AnthropicService.healthCheck();
+const health = await OpenAIService.healthCheck();
 
 // 2. Test Coaching Question
-const question = await AnthropicService.generateCoachingQuestion({
+const question = await OpenAIService.generateCoachingQuestion({
   areaName: "Test",
   currentValue: 5,
   targetValue: 8,
@@ -305,9 +305,9 @@ console.log("AI Question:", question);
 
 ### Alternative AI-Provider:
 
-Falls Anthropic-Migration gewünscht:
+Falls Provider-Wechsel gewünscht:
 
-1. **OpenAI GPT-4:** Ähnliche API, einfacher Switch
+1. **Anthropic Claude:** Ausgezeichnete Reasoning-Fähigkeiten
 2. **Google Gemini:** Längere Context Windows
 3. **Local LLMs:** Ollama für Offline-Nutzung
 
@@ -316,8 +316,8 @@ Falls Anthropic-Migration gewünscht:
 Bei Fragen zur AI-Integration:
 
 - **Dokumentation:** `/docs/AI_INTEGRATION_GUIDE.md`
-- **Code:** `/src/services/AIService.ts`, `/src/services/AnthropicService.ts`
-- **Anthropic Docs:** https://docs.anthropic.com/
+- **Code:** `/src/services/AIService.ts`, `/src/services/OpenAIService.ts`
+- **OpenAI Docs:** https://platform.openai.com/docs
 
 ---
 

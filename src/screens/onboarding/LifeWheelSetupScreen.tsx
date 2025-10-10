@@ -23,6 +23,7 @@ import { OnboardingStackParamList } from "./OnboardingNavigator";
 import { AIService } from "../../services/AIService";
 import { LifeWheelReflectionService } from "../../services/LifeWheelReflectionService";
 import { useUserStore } from "../../store/useUserStore";
+import { supabase } from "../../lib/supabase";
 
 type LifeWheelSetupScreenNavigationProp = StackNavigationProp<
   OnboardingStackParamList,
@@ -50,6 +51,10 @@ export const LifeWheelSetupScreen: React.FC = () => {
   const [userAnswer, setUserAnswer] = useState<string>("");
   const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
   const [showAICoaching, setShowAICoaching] = useState(true);
+  
+  // Store reflections locally until completion
+  const [areaReflections, setAreaReflections] = useState<Record<string, { question: string; answer: string }[]>>({});
+  
   const [lifeWheelAreas, setLifeWheelAreas] = useState<LifeWheelArea[]>([
     {
       id: "health",
@@ -153,21 +158,19 @@ export const LifeWheelSetupScreen: React.FC = () => {
   };
 
   const handleNext = async () => {
-    // Save the user's answer if provided
-    if (userAnswer.trim() && user?.id && coachingQuestion) {
-      try {
-        await LifeWheelReflectionService.saveReflectionAnswer(
-          user.id,
-          currentArea.id,
-          coachingQuestion,
-          userAnswer,
-          `onboarding_${Date.now()}`
-        );
-        console.log(`✅ Saved reflection for area: ${currentArea.name}`);
-      } catch (error) {
-        console.error("⚠️ Could not save reflection:", error);
-        // Don't block progression if saving fails
-      }
+    // Store the user's answer locally if provided
+    if (userAnswer.trim() && coachingQuestion) {
+      setAreaReflections(prev => ({
+        ...prev,
+        [currentArea.id]: [
+          ...(prev[currentArea.id] || []),
+          {
+            question: coachingQuestion,
+            answer: userAnswer,
+          }
+        ]
+      }));
+      console.log(`📝 Stored reflection for area: ${currentArea.name}`);
     }
     
     // Reset answer for next area
@@ -186,9 +189,71 @@ export const LifeWheelSetupScreen: React.FC = () => {
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    if (!user?.id) {
+      console.error("No user ID available");
+      navigation.navigate('OnboardingComplete');
+      return;
+    }
+
+    // Store the last reflection if there is one
+    let finalReflections = { ...areaReflections };
+    if (userAnswer.trim() && coachingQuestion) {
+      finalReflections = {
+        ...finalReflections,
+        [currentArea.id]: [
+          ...(finalReflections[currentArea.id] || []),
+          {
+            question: coachingQuestion,
+            answer: userAnswer,
+          }
+        ]
+      };
+      console.log(`📝 Stored final reflection for area: ${currentArea.name}`);
+    }
+
+    try {
+      console.log("💾 Saving life wheel areas with reflections...");
+      
+      // Save all areas to database
+      const areasToInsert = lifeWheelAreas.map(area => {
+        // Build reflection_data with initial answers
+        const reflections = finalReflections[area.id] || [];
+        const reflection_data = reflections.length > 0 ? {
+          previous_answers: reflections.map(r => ({
+            question: r.question,
+            answer: r.answer,
+            timestamp: new Date().toISOString(),
+            session_id: `onboarding_${Date.now()}`,
+          }))
+        } : null;
+
+        return {
+          user_id: user.id,
+          name: area.id, // 'health', 'career', etc.
+          current_value: area.currentValue,
+          target_value: area.targetValue,
+          reflection_data,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+      });
+
+      const { error } = await supabase
+        .from('life_wheel_areas')
+        .insert(areasToInsert);
+
+      if (error) {
+        console.error("Error saving life wheel areas:", error);
+        // Don't block progression even if save fails
+      } else {
+        console.log(`✅ Saved ${areasToInsert.length} life wheel areas with ${Object.keys(finalReflections).length} areas having reflections`);
+      }
+    } catch (error) {
+      console.error("Error in handleComplete:", error);
+    }
+
     // Navigate to completion screen
-    console.log("Onboarding completed!", lifeWheelAreas);
     navigation.navigate('OnboardingComplete');
   };
 

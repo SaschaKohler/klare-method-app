@@ -1,41 +1,45 @@
-// src/services/AnthropicService.ts
-import Anthropic from "@anthropic-ai/sdk";
-import { ANTHROPIC_API_KEY } from "@env";
+// src/services/OpenAIService.ts
+import OpenAI from "openai";
+import { OPENAI_API_KEY } from "@env";
 
 /**
- * Anthropic Claude Service für KLARE-App
- * Wrapper für Anthropic API mit Error Handling und Fallback
+ * OpenAI GPT Service für KLARE-App
+ * Wrapper für OpenAI API mit Error Handling und Fallback
  */
-export class AnthropicService {
-  private static client: Anthropic | null = null;
+export class OpenAIService {
+  private static client: OpenAI | null = null;
   private static isAvailable: boolean = false;
 
   /**
-   * Initialisiert den Anthropic Client
+   * Initialisiert den OpenAI Client
    */
   private static initializeClient(): void {
     if (this.client) return;
 
     try {
-      if (!ANTHROPIC_API_KEY || ANTHROPIC_API_KEY === "sk-ant-api03-your-key-here") {
-        console.warn("⚠️ ANTHROPIC_API_KEY nicht konfiguriert. Fallback auf Mock-Responses.");
+      console.log(`🔑 OPENAI_API_KEY Status: ${OPENAI_API_KEY ? `Gefunden (${OPENAI_API_KEY.substring(0, 10)}...)` : 'NICHT GEFUNDEN'}`);
+      
+      if (!OPENAI_API_KEY || OPENAI_API_KEY === "sk-your-openai-key-here") {
+        console.warn(
+          "⚠️ OPENAI_API_KEY nicht konfiguriert. Fallback auf Mock-Responses.",
+        );
         this.isAvailable = false;
         return;
       }
 
-      this.client = new Anthropic({
-        apiKey: ANTHROPIC_API_KEY,
+      this.client = new OpenAI({
+        apiKey: OPENAI_API_KEY,
       });
       this.isAvailable = true;
-      console.log("✅ Anthropic Client erfolgreich initialisiert");
+      console.log("✅ OpenAI Client erfolgreich initialisiert");
     } catch (error) {
-      console.error("❌ Fehler beim Initialisieren des Anthropic Clients:", error);
+      console.error("❌ Fehler beim Initialisieren des OpenAI Clients:", error);
       this.isAvailable = false;
     }
   }
 
   /**
-   * Prüft ob Anthropic API verfügbar ist
+   * Prüft ob OpenAI API verfügbar ist
    */
   static isServiceAvailable(): boolean {
     this.initializeClient();
@@ -43,14 +47,16 @@ export class AnthropicService {
   }
 
   /**
-   * Generiert eine AI-Antwort mit Claude
+   * Generiert eine AI-Antwort mit GPT
    */
   static async generateResponse(params: {
     systemPrompt: string;
     userMessage: string;
-    conversationHistory?: Array<{ role: "user" | "assistant"; content: string }>;
-    maxTokens?: number;
-    temperature?: number;
+    conversationHistory?: Array<{
+      role: "user" | "assistant";
+      content: string;
+    }>;
+    max_output_tokens?: number;
     model?: string;
   }): Promise<{
     content: string;
@@ -63,48 +69,61 @@ export class AnthropicService {
     this.initializeClient();
 
     if (!this.isAvailable || !this.client) {
-      throw new Error("Anthropic Service nicht verfügbar");
+      throw new Error("OpenAI Service nicht verfügbar");
     }
 
     const {
       systemPrompt,
       userMessage,
       conversationHistory = [],
-      maxTokens = 1024,
-      temperature = 0.7,
-      model = "claude-sonnet-4-5",
+      max_output_tokens = 1024,
+      model = "gpt-4o-mini",
     } = params;
 
     try {
       // Build messages array
-      const messages: Array<{ role: "user" | "assistant"; content: string }> = [
-        ...conversationHistory,
+      const messages: Array<{
+        role: "system" | "user" | "assistant";
+        content: string;
+      }> = [
+        { role: "system", content: systemPrompt },
+        ...conversationHistory.map((msg) => ({
+          role: msg.role as "user" | "assistant",
+          content: msg.content,
+        })),
         { role: "user", content: userMessage },
       ];
 
-      const response = await this.client.messages.create({
+      const response = await this.client.chat.completions.create({
         model,
-        max_tokens: maxTokens,
-        temperature,
-        system: systemPrompt,
+        max_completion_tokens: max_output_tokens,
+        temperature: 0.7,
         messages,
       });
 
-      const content = response.content[0];
-      if (content.type !== "text") {
-        throw new Error("Unexpected response type from Claude");
+      console.log(`📦 OpenAI Response:`, {
+        choices: response.choices?.length,
+        firstChoice: response.choices[0]?.message?.content?.substring(0, 100),
+        finishReason: response.choices[0]?.finish_reason,
+        usage: response.usage,
+      });
+
+      const content = response.choices[0]?.message?.content || "";
+
+      if (!content) {
+        console.error("❌ OpenAI returned empty content!");
       }
 
       return {
-        content: content.text,
+        content,
         usage: {
-          inputTokens: response.usage.input_tokens,
-          outputTokens: response.usage.output_tokens,
+          inputTokens: response.usage?.prompt_tokens || 0,
+          outputTokens: response.usage?.completion_tokens || 0,
         },
-        stopReason: response.stop_reason,
+        stopReason: response.choices[0]?.finish_reason || null,
       };
     } catch (error) {
-      console.error("❌ Fehler bei Claude API Call:", error);
+      console.error("❌ Fehler bei OpenAI API Call:", error);
       throw error;
     }
   }
@@ -123,10 +142,22 @@ export class AnthropicService {
     this.initializeClient();
 
     if (!this.isAvailable || !this.client) {
-      throw new Error("Anthropic Service nicht verfügbar");
+      throw new Error("OpenAI Service nicht verfügbar");
     }
 
-    const { areaName, areaDescription, currentValue, targetValue, userContext } = params;
+    const {
+      areaName,
+      areaDescription,
+      currentValue,
+      targetValue,
+      userContext,
+    } = params;
+
+    // Check if this is an initial question (no previous questions)
+    const isInitialQuestion = userContext?.isInitialQuestion === true;
+    const userAge = userContext?.userAge;
+    const userPreferences = userContext?.userPreferences;
+    const previousQuestions = userContext?.previousQuestions || [];
 
     const systemPrompt = `Du bist ein einfühlsamer Life Coach, der die KLARE-Methode verwendet. 
 Deine Aufgabe ist es, präzise, motivierende Coaching-Fragen zu stellen, die zur Selbstreflexion anregen.
@@ -134,21 +165,37 @@ Verwende die Du-Form und stelle genau EINE konkrete Frage.
 Die Frage sollte kurz (max. 20 Wörter), kraftvoll und auf Deutsch sein.`;
 
     let userMessage = `Stelle eine Coaching-Frage zum Lebensbereich "${areaName}".`;
-    
+
     if (areaDescription) {
       userMessage += ` Kontext: ${areaDescription}`;
     }
-    
-    if (currentValue !== undefined && targetValue !== undefined) {
-      userMessage += ` Der Klient bewertet sich aktuell mit ${currentValue}/10 und möchte auf ${targetValue}/10 kommen.`;
+
+    // For initial questions: only use age and basic preferences
+    if (isInitialQuestion) {
+      if (userAge) {
+        userMessage += ` Der Klient ist ${userAge} Jahre alt.`;
+      }
+      if (userPreferences) {
+        userMessage += ` Präferenzen: ${JSON.stringify(userPreferences)}`;
+      }
+      userMessage += ` Dies ist die erste Frage zu diesem Bereich. Stelle eine grundlegende, offene Einstiegsfrage.`;
+    } else {
+      // For follow-up questions: include current/target values
+      if (currentValue !== undefined && targetValue !== undefined) {
+        userMessage += ` Der Klient bewertet sich aktuell mit ${currentValue}/10 und möchte auf ${targetValue}/10 kommen.`;
+      }
+      
+      // Avoid repeating previous questions
+      if (previousQuestions.length > 0) {
+        userMessage += ` Vermeide diese bereits gestellten Fragen: ${previousQuestions.slice(-3).join("; ")}`;
+      }
     }
 
     try {
       const response = await this.generateResponse({
         systemPrompt,
         userMessage,
-        maxTokens: 150,
-        temperature: 0.8,
+        max_output_tokens: 150,
       });
 
       return response.content.trim();
@@ -180,7 +227,7 @@ Die Frage sollte kurz (max. 20 Wörter), kraftvoll und auf Deutsch sein.`;
     this.initializeClient();
 
     if (!this.isAvailable || !this.client) {
-      throw new Error("Anthropic Service nicht verfügbar");
+      throw new Error("OpenAI Service nicht verfügbar");
     }
 
     const { lifeWheelData } = params;
@@ -204,7 +251,10 @@ Antworte im JSON-Format mit deutscher Sprache:
 }`;
 
     const lifeWheelSummary = lifeWheelData
-      .map((item) => `${item.area}: Ist ${item.currentValue}/10, Ziel ${item.targetValue}/10`)
+      .map(
+        (item) =>
+          `${item.area}: Ist ${item.currentValue}/10, Ziel ${item.targetValue}/10`,
+      )
       .join("\n");
 
     const userMessage = `Analysiere diese LifeWheel-Daten:\n\n${lifeWheelSummary}`;
@@ -213,8 +263,7 @@ Antworte im JSON-Format mit deutscher Sprache:
       const response = await this.generateResponse({
         systemPrompt,
         userMessage,
-        maxTokens: 800,
-        temperature: 0.7,
+        max_output_tokens: 800,
       });
 
       // Parse JSON response
@@ -242,7 +291,7 @@ Antworte im JSON-Format mit deutscher Sprache:
     this.initializeClient();
 
     if (!this.isAvailable || !this.client) {
-      throw new Error("Anthropic Service nicht verfügbar");
+      throw new Error("OpenAI Service nicht verfügbar");
     }
 
     const { recentTopics = [], lifeWheelFocus } = params;
@@ -252,11 +301,11 @@ Erstelle EINE kurze, inspirierende Journaling-Frage auf Deutsch.
 Die Frage sollte zur Selbstreflexion anregen und max. 25 Wörter haben.`;
 
     let userMessage = "Erstelle eine Journaling-Frage für heute.";
-    
+
     if (lifeWheelFocus) {
       userMessage += ` Fokus: ${lifeWheelFocus}`;
     }
-    
+
     if (recentTopics.length > 0) {
       userMessage += ` Vermeide diese kürzlich verwendeten Themen: ${recentTopics.join(", ")}`;
     }
@@ -265,8 +314,7 @@ Die Frage sollte zur Selbstreflexion anregen und max. 25 Wörter haben.`;
       const response = await this.generateResponse({
         systemPrompt,
         userMessage,
-        maxTokens: 100,
-        temperature: 0.9,
+        max_output_tokens: 100,
       });
 
       return response.content.trim();
@@ -277,7 +325,7 @@ Die Frage sollte zur Selbstreflexion anregen und max. 25 Wörter haben.`;
   }
 
   /**
-   * Health Check für Anthropic Service
+   * Health Check für OpenAI Service
    */
   static async healthCheck(): Promise<{
     available: boolean;
@@ -300,22 +348,22 @@ Die Frage sollte zur Selbstreflexion anregen und max. 25 Wörter haben.`;
       await this.generateResponse({
         systemPrompt: "Du bist ein Test-Assistent.",
         userMessage: "Antworte mit 'OK'",
-        maxTokens: 10,
+        max_output_tokens: 10,
       });
 
       return {
         available: true,
-        model: "claude-sonnet-4-5",
+        model: "gpt-4o-mini",
         responseTime: Date.now() - startTime,
       };
     } catch (error) {
       return {
         available: false,
-        model: "claude-sonnet-4-5",
+        model: "gpt-4o-mini",
         error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
 }
 
-export default AnthropicService;
+export default OpenAIService;
