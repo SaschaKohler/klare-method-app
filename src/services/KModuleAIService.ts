@@ -60,6 +60,61 @@ export class KModuleAIService {
     this.language = language;
   }
 
+  async getMetaModelQuestions(
+    level: number,
+    mainGoal: string,
+    lowestAreas: string[] = [],
+    options: { userId?: string } = {},
+  ): Promise<AICoachResponse> {
+    const levelName = level === 1 ? "Generalisierungen" : level === 2 ? "Tilgungen" : "Verzerrungen";
+    if (!options.userId) {
+      return this.buildFallbackMetaQuestions(levelName, mainGoal, lowestAreas);
+    }
+    try {
+      await this.ensureSession(options.userId);
+      const prompt = [
+        `Erzeuge genau 3 kurze, aufeinander aufbauende Fragen zum Meta-Modell-Level ${level} (${levelName}).`,
+        `Ziel: Den Nutzer zu präzisen Antworten herausfordern und typische Fehler (${levelName}) sichtbar machen.`,
+        `Kontext: Hauptziel/Herausforderung: ${mainGoal || "nicht angegeben"}.`,
+        lowestAreas.length ? `Kritische Lebensbereiche: ${lowestAreas.join(", ")}.` : "",
+        "Anforderungen:",
+        "- Jede Frage muss mit einem Fragezeichen enden.",
+        "- Frage 1: Einstieg auf Ziel/aktuelles Problem bezogen.",
+        "- Frage 2: Zuspitzung mit Meta‑Modell‑Trigger (Wer/Wann/Was GENAU? Woran machst du das fest?).",
+        "- Frage 3: Konfrontierend-klar, zwingt zur konkreten Benennung (Zeitpunkt, Person, Handlung, Messkriterium).",
+        "- Nutze eine direkte, respektvolle Formulierung in Du-Ansprache.",
+      ].filter(Boolean).join("\n");
+      const response = await AIService.sendMessage(options.userId, this.sessionId!, prompt, "coaching");
+      const mapped = this.mapAIResponseToCoach(response, "guidance");
+      if (mapped.nextSteps && mapped.nextSteps.length >= 3) return mapped;
+      return this.buildFallbackMetaQuestions(levelName, mainGoal, lowestAreas);
+    } catch (e) {
+      return this.buildFallbackMetaQuestions(levelName, mainGoal, lowestAreas);
+    }
+  }
+
+  private buildFallbackMetaQuestions(levelName: string, mainGoal: string, lowestAreas: string[]): AICoachResponse {
+    const area = lowestAreas[0] || "deinen wichtigsten Bereich";
+    const base = levelName === "Generalisierungen"
+      ? [
+          `Was ist dein konkretestes Ziel in ${area} und woran würdest du erkennen, dass du es erreicht hast?`,
+          `Wenn du sagst, es ist schwierig: Wer genau sagt das, was genau ist schwierig und wann genau tritt es auf?`,
+          `Welche ganz konkrete Ausnahme gab es zuletzt – und was GENAU hast du dann anders gemacht?`,
+        ]
+      : levelName === "Tilgungen"
+      ? [
+          `Wovon sprichst du ganz genau in Bezug auf ${area} und dein Ziel?`,
+          `Wer ist konkret beteiligt, was GENAU passiert und wann/wo passiert es?`,
+          `Welche Information fehlt dir noch, um heute einen ersten, messbaren Schritt zu gehen?`,
+        ]
+      : [
+          `Wenn du sagst „X führt zu Y“ in ${area}: Wie GENAU hängt das zusammen und woran machst du das fest?`,
+          `Wessen Gedanken oder Erwartungen nimmst du hier an – und welche Beobachtung stützt das?`,
+          `Formuliere das als beobachtbares Verhalten: Was GENAU tust du oder andere als nächstes, mit welchem Ergebnis?`,
+        ];
+    return { type: "guidance", message: "", nextSteps: base };
+  }
+
   async startKSession(
     userContext: UserContext,
     moduleId: string,
@@ -219,6 +274,12 @@ export class KModuleAIService {
       `Aktuelle Lebensbereiche: ${userContext.currentLifeAreas.join(", ") || "nicht angegeben"}.`,
       completedList,
       "Gib eine warme, strukturierte Begrüßung mit Fokus auf Klarheit und Meta-Modell.",
+      "WICHTIG: Verwende strikt die KLARE-Schritte mit diesen Namen (in Deutsch): Klarheit, Lebendigkeit, Ausrichtung, Realisierung, Entfaltung.",
+      "Verwende KEINE Synonyme wie Lernen, Leben, Aussicht, Reflexion, Entscheidung anstelle der KLARE-Namen.",
+      "Dupliziere keine Begrüßungstexte – formuliere die Begrüßung einmal konsistent.",
+      "Stelle im Anschluss 2-3 prägnante Fragen (jeweils mit Fragezeichen), beginnend mit: Was ist aktuell dein wichtigstes Ziel?",
+      "Beziehe mindestens eine Frage klar auf einen schwächeren Lebensbereich (falls genannt) und konfrontiere freundlich-provokativ mögliche Ausweichmuster.",
+      "Nutze Meta-Modell-Fragen (Wer/Wann/Was genau? Woran machst du das fest? Was passiert, wenn nicht?), ohne belehrend zu wirken.",
     ].join("\n");
   }
 
@@ -271,6 +332,7 @@ export class KModuleAIService {
       `Empfohlenes Level: ${levelAssessment}`,
       "Gefundene Muster:",
       patternSummary || "Keine Muster identifiziert.",
+      "Formuliere 2-3 kurze, klar-provokative Folgefragen (mit Fragezeichen), die Ausweichmuster minimieren und zu Präzision zwingen.",
       "Gib konkrete nächste Schritte und eine motivierende Abschlussbotschaft.",
     ].join("\n");
   }
@@ -309,7 +371,7 @@ export class KModuleAIService {
     const universalMatch = universal.find((q) => normalized.includes(q));
     if (universalMatch) {
       analysis.patterns.push("Universalquantoren");
-      analysis.questions.push("Alle? Gibt es Ausnahmen? Bitte differenzieren.");
+      analysis.questions.push("Alle? Wirklich immer? Nenne konkrete Ausnahmen.");
       analysis.keywords.push(universalMatch);
     }
 
@@ -317,7 +379,7 @@ export class KModuleAIService {
     const causalMatch = causalWords.find((word) => normalized.includes(word));
     if (causalMatch) {
       analysis.patterns.push("Ursache-Wirkung-Verknüpfung");
-      analysis.questions.push("Wie genau hängt das eine mit dem anderen zusammen?");
+      analysis.questions.push("Wie GENAU hängt das zusammen? Woran machst du das fest?");
       analysis.keywords.push(causalMatch);
     }
 
@@ -325,7 +387,7 @@ export class KModuleAIService {
     const vagueMatch = vagueness.find((word) => normalized.includes(word));
     if (vagueMatch || statement.length < 20) {
       analysis.patterns.push("Tilgungen / fehlende Referenzen");
-      analysis.questions.push("Wer genau? Was genau? Wann genau?");
+      analysis.questions.push("Wer genau? Was GENAU? Wann und wo genau? Sag es präzise.");
       analysis.keywords.push(vagueMatch || "unpräzise Aussage");
     }
 
@@ -335,6 +397,30 @@ export class KModuleAIService {
       analysis.patterns.push("Vorannahmen");
       analysis.questions.push("Welche unausgesprochene Annahme steckt dahinter?");
       analysis.keywords.push(presuppositionMatch);
+    }
+
+    const modalPatterns = ["muss", "müsste", "sollte", "kann nicht", "darf nicht", "geht nicht"];
+    const modalMatch = modalPatterns.find((w) => normalized.includes(w));
+    if (modalMatch) {
+      analysis.patterns.push("Modaloperatoren");
+      analysis.questions.push("Wer sagt, dass du das musst/solltest? Was passiert, wenn du es NICHT tust?");
+      analysis.keywords.push(modalMatch);
+    }
+
+    const mindReadingCues = ["denkt", "glaubt", "meint", "will", "erwartet", "finden alle"];
+    const mindMatch = mindReadingCues.find((w) => normalized.includes(w));
+    if (mindMatch) {
+      analysis.patterns.push("Gedankenlesen");
+      analysis.questions.push("Woher WEISST du das? Woran genau machst du das fest?");
+      analysis.keywords.push(mindMatch);
+    }
+
+    const nominalizationRegex = /\b(\w+(ung|keit|heit|tion))\b/;
+    const nomMatch = normalized.match(nominalizationRegex)?.[1];
+    if (nomMatch) {
+      analysis.patterns.push("Nominalisierung");
+      analysis.questions.push("Wie würdest du das als VERB ausdrücken? Was GENAU tust du/andere?");
+      analysis.keywords.push(nomMatch);
     }
 
     return analysis;
@@ -475,6 +561,83 @@ export class KModuleAIService {
       type: "welcome",
       message: `Willkommen ${context.name}! Klarheit ist das Fundament für nachhaltige Veränderung. Lass uns gemeinsam deinen inneren Kompass schärfen.`,
       encouragement: "Du bist genau am richtigen Ort zur richtigen Zeit. 🎯",
+    };
+  }
+
+  async analyzeLifeWheel(
+    lifeWheelAreas: Array<{ name: string; currentValue: number; targetValue: number }>,
+    userId?: string,
+  ): Promise<AICoachResponse> {
+    if (!lifeWheelAreas || lifeWheelAreas.length === 0) {
+      return {
+        type: "guidance",
+        message: "Bewerte zunächst dein Lebensrad, damit ich dir personalisierte Insights geben kann.",
+        encouragement: "Sei ehrlich zu dir selbst – das ist der erste Schritt zur Klarheit! 🎯",
+      };
+    }
+
+    // Finde niedrigste und höchste Bereiche
+    const sortedByValue = [...lifeWheelAreas].sort((a, b) => a.currentValue - b.currentValue);
+    const lowestAreas = sortedByValue.slice(0, 2);
+    const highestAreas = sortedByValue.slice(-2).reverse();
+    
+    // Berechne Gaps (Differenz zwischen IST und SOLL)
+    const areasWithGaps = lifeWheelAreas
+      .map(area => ({
+        ...area,
+        gap: area.targetValue - area.currentValue,
+      }))
+      .sort((a, b) => b.gap - a.gap);
+    
+    const biggestGaps = areasWithGaps.slice(0, 2);
+
+    // Generiere personalisierte Insights
+    const lowestAreaNames = lowestAreas.map(a => a.name).join(" und ");
+    const highestAreaNames = highestAreas.map(a => a.name).join(" und ");
+    const gapAreaNames = biggestGaps.map(a => a.name).join(" und ");
+
+    const insights = [
+      `Ich sehe, dass **${lowestAreaNames}** aktuell deine größten Herausforderungen sind.`,
+      `Gleichzeitig läuft es in **${highestAreaNames}** bereits gut – das sind deine Ressourcen-Bereiche.`,
+      `Die größte Diskrepanz zwischen IST und SOLL zeigt sich bei **${gapAreaNames}**.`,
+    ];
+
+    const questions = [
+      `Was GENAU hält dich davon ab, in ${lowestAreas[0].name} heute aktiv zu werden?`,
+      `Welche ganz konkrete Ressource aus ${highestAreas[0].name} überträgst du diese Woche auf ${lowestAreas[0].name}?`,
+      `Welche Ausrede erzählst du dir aktuell bei ${biggestGaps[0].name} – und was ist der kleinste Schritt trotz dieser Ausrede?`,
+    ];
+
+    // Versuche AI-Service zu nutzen, falls userId vorhanden
+    if (userId) {
+      try {
+        await this.ensureSession(userId);
+        const prompt = [
+          "Analysiere das Lebensrad des Nutzers und gib empathische, handlungsorientierte Insights.",
+          `Niedrigste Bereiche: ${lowestAreaNames}`,
+          `Höchste Bereiche: ${highestAreaNames}`,
+          `Größte Gaps: ${gapAreaNames}`,
+          "Stelle 2-3 präzise Meta-Modell-Fragen, die zur Selbstreflexion anregen.",
+        ].join("\n");
+
+        const response = await AIService.sendMessage(userId, this.sessionId!, prompt, "coaching");
+        return this.mapAIResponseToCoach(response, "analysis");
+      } catch (error) {
+        console.warn("[KModuleAIService] LifeWheel analysis fallback genutzt", error);
+      }
+    }
+
+    // Fallback: Heuristische Analyse
+    return {
+      type: "analysis",
+      message: insights.join("\n\n"),
+      exercises: questions,
+      encouragement: "Klarheit über deine IST-Situation ist der erste Schritt zur Veränderung. Du bist auf dem richtigen Weg! 💪",
+      metadata: {
+        lowestAreas: lowestAreas.map(a => a.name),
+        highestAreas: highestAreas.map(a => a.name),
+        biggestGaps: biggestGaps.map(a => ({ name: a.name, gap: a.gap })),
+      },
     };
   }
 

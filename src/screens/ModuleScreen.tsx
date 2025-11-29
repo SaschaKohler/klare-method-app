@@ -1,7 +1,7 @@
 // src/screens/ModuleScreen.tsx
 import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import {
   ActivityIndicator,
   Button,
@@ -24,11 +24,11 @@ import { useProgressionStore } from "../store/useProgressionStore";
 
 // Import module-specific components
 import { LModuleComponent, AModuleComponent } from "../components/modules";
-import KModuleComponent from "../components/modules/KModuleComponent";
 import KModuleComponentNew from "../components/modules/KModuleComponentNew";
 import ModuleContentComponent from "../components/modules/ModuleContent";
 import ModuleExercise from "../components/modules/ModuleExercise";
 import ModuleQuiz from "../components/modules/ModuleQuiz";
+import { KModuleAICoach } from "../components";
 import createModuleScreenStyles from "../constants/moduleScreenStyles";
 import { darkKlareColors, lightKlareColors } from "../constants/theme";
 // import ModuleVideoComponent from "../components/modules/ModuleVideo";
@@ -60,7 +60,9 @@ const ModuleScreen = () => {
 
   // User store
   const user = useUserStore((state) => state.user);
-  const completedModules = useProgressionStore((state) => state.completedModules);
+  const completedModules = useProgressionStore(
+    (state) => state.completedModules,
+  );
   const completeModule = useProgressionStore((state) => state.completeModule);
 
   // Load module content
@@ -118,6 +120,33 @@ const ModuleScreen = () => {
     loadStepModules();
   }, [loadModuleData, loadStepModules]);
 
+  const kFlowSlugs = useMemo(
+    () =>
+      new Set([
+        "k-intro",
+        "k-lifewheel",
+        "k-meta-model",
+        "k-metamodel-level1",
+        "k-metamodel-level2",
+        "k-metamodel-level3",
+        "k-genius-gate",
+        "k-incongruence-finder",
+        "k-clarity-reflection",
+        "k-clarity-journal-setup",
+        "k-completion",
+      ]),
+    [],
+  );
+
+  const visibleModules = useMemo(() => {
+    const currentStep = (stepId || "K").toUpperCase();
+    if (currentStep !== "K") return availableModules;
+    return availableModules.filter((m) => {
+      const ident = (m as any).module_slug || m.module_id;
+      return typeof ident === "string" ? !kFlowSlugs.has(ident) : true;
+    });
+  }, [availableModules, stepId, kFlowSlugs]);
+
   // Module completion handler
   const handleModuleComplete = useCallback(async () => {
     if (!moduleData || !user) return;
@@ -145,7 +174,7 @@ const ModuleScreen = () => {
 
     // Prüfe, ob es ein K-Modul ist (Klarheit)
     // Verwende die neue vollständige K-Module-Komponente
-    if (moduleData.module_id.startsWith("k-")) {
+    if (moduleData.klare_step === "K") {
       return (
         <KModuleComponentNew
           module={moduleData}
@@ -156,7 +185,7 @@ const ModuleScreen = () => {
 
     // Prüfe, ob es ein L-Modul ist
     if (
-      moduleData.module_id.startsWith("l-") &&
+      moduleData.klare_step === "L" &&
       (moduleData.content_type === "exercise" ||
         moduleData.module_id === "l-resource-finder" ||
         moduleData.module_id === "l-energy-blockers" ||
@@ -173,7 +202,7 @@ const ModuleScreen = () => {
 
     // Prüfe, ob es ein A-Modul ist
     if (
-      moduleData.module_id.startsWith("a-") &&
+      moduleData.klare_step === "A" &&
       (moduleData.content_type === "exercise" ||
         moduleData.module_id === "a-values-hierarchy" ||
         moduleData.module_id === "a-life-vision" ||
@@ -280,7 +309,7 @@ const ModuleScreen = () => {
       <Text style={styles.moduleSelectorTitle}>
         Wähle Module für Schritt {(stepId || "K").toUpperCase()}
       </Text>
-      {availableModules.map((module) => (
+      {visibleModules.map((module) => (
         <Button
           key={module.id}
           mode="outlined"
@@ -311,6 +340,16 @@ const ModuleScreen = () => {
         renderModuleSelector()
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* AI-Coach oben nur für Nicht-K-Module anzeigen, da KModuleComponentNew eigene Coach-Karten rendert */}
+          {moduleData?.klare_step !== "K" && moduleData?.module_id && (
+            <KModuleAICoach
+              moduleId={moduleData.module_id}
+              moduleName={moduleData.title}
+              showIntro={moduleData.content_type === "intro"}
+              showInsights={false}
+            />
+          )}
+
           {renderModuleContent()}
         </ScrollView>
       )}

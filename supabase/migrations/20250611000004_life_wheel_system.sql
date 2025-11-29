@@ -23,7 +23,6 @@ CREATE TABLE IF NOT EXISTS life_wheel_areas (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(user_id, name)
 );
-
 -- Life wheel snapshots for progression tracking
 CREATE TABLE IF NOT EXISTS life_wheel_snapshots (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -35,7 +34,6 @@ CREATE TABLE IF NOT EXISTS life_wheel_snapshots (
   ai_analysis JSONB DEFAULT '{}', -- AI insights about changes
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
 -- =======================================
 -- VISION BOARD SYSTEM (Part of Life Wheel)
 -- =======================================
@@ -56,7 +54,6 @@ CREATE TABLE IF NOT EXISTS vision_board_items (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
 -- =======================================
 -- INDEXES FOR LIFE WHEEL SYSTEM
 -- =======================================
@@ -68,7 +65,6 @@ CREATE INDEX IF NOT EXISTS idx_life_wheel_snapshots_trigger ON life_wheel_snapsh
 CREATE INDEX IF NOT EXISTS idx_vision_board_user_category ON vision_board_items(user_id, category);
 CREATE INDEX IF NOT EXISTS idx_vision_board_status ON vision_board_items(status);
 CREATE INDEX IF NOT EXISTS idx_vision_board_target_date ON vision_board_items(target_date) WHERE target_date IS NOT NULL;
-
 -- =======================================
 -- TRIGGERS
 -- =======================================
@@ -77,12 +73,10 @@ DROP TRIGGER IF EXISTS update_life_wheel_areas_updated_at ON life_wheel_areas;
 CREATE TRIGGER update_life_wheel_areas_updated_at 
   BEFORE UPDATE ON life_wheel_areas 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 DROP TRIGGER IF EXISTS update_vision_board_items_updated_at ON vision_board_items;
 CREATE TRIGGER update_vision_board_items_updated_at 
   BEFORE UPDATE ON vision_board_items 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 -- =======================================
 -- LIFE WHEEL HELPER FUNCTIONS
 -- =======================================
@@ -133,7 +127,6 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 -- Apply the snapshot trigger
 DROP TRIGGER IF EXISTS life_wheel_auto_snapshot ON life_wheel_areas;
 CREATE TRIGGER life_wheel_auto_snapshot

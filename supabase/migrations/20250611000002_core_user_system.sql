@@ -20,7 +20,6 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
 -- Enhanced user profiles for AI personalization  
 CREATE TABLE IF NOT EXISTS user_profiles (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -35,7 +34,6 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(user_id)
 );
-
 -- User behavior patterns for AI analysis
 CREATE TABLE IF NOT EXISTS user_patterns (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -46,7 +44,6 @@ CREATE TABLE IF NOT EXISTS user_patterns (
   detected_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
 -- User events for analytics and AI learning
 CREATE TABLE IF NOT EXISTS user_events (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -56,7 +53,6 @@ CREATE TABLE IF NOT EXISTS user_events (
   session_id UUID,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
 -- Personal values (important for TFP logical levels work)
 CREATE TABLE IF NOT EXISTS personal_values (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -69,7 +65,6 @@ CREATE TABLE IF NOT EXISTS personal_values (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(user_id, value_name)
 );
-
 -- =======================================
 -- INDEXES FOR PERFORMANCE
 -- =======================================
@@ -80,7 +75,6 @@ CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_patterns_user_type ON user_patterns(user_id, pattern_type);
 CREATE INDEX IF NOT EXISTS idx_user_events_user_type ON user_events(user_id, event_type);
 CREATE INDEX IF NOT EXISTS idx_personal_values_user_id ON personal_values(user_id);
-
 -- =======================================
 -- TRIGGERS
 -- =======================================
@@ -89,12 +83,10 @@ DROP TRIGGER IF EXISTS update_users_updated_at ON users;
 CREATE TRIGGER update_users_updated_at 
   BEFORE UPDATE ON users 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
 CREATE TRIGGER update_user_profiles_updated_at 
   BEFORE UPDATE ON user_profiles 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 DROP TRIGGER IF EXISTS update_personal_values_updated_at ON personal_values;
 CREATE TRIGGER update_personal_values_updated_at 
   BEFORE UPDATE ON personal_values 

@@ -53,9 +53,7 @@ const createStyles = (theme: MD3Theme, klareColors: any) =>
       color: theme.colors.onSurface,
     },
     progressChip: {
-      position: "absolute",
-      top: -30,
-      right: -10,
+      // Removed absolute positioning to ensure chip is visible
     },
     stageName: {
       fontSize: 16,

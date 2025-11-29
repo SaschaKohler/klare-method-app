@@ -12,27 +12,22 @@
 
 -- personal_values: Has policies but RLS not enabled
 ALTER TABLE personal_values ENABLE ROW LEVEL SECURITY;
-
 -- ai_service_logs: Has policies but RLS not enabled
 ALTER TABLE ai_service_logs ENABLE ROW LEVEL SECURITY;
-
 -- vision_board_items: Has policies but RLS not enabled
 ALTER TABLE vision_board_items ENABLE ROW LEVEL SECURITY;
-
 -- =======================================
 -- 2. ENABLE RLS ON PUBLIC TABLES WITHOUT POLICIES
 -- =======================================
 
 -- legacy_module_mapping: No policies, read-only reference table
 ALTER TABLE legacy_module_mapping ENABLE ROW LEVEL SECURITY;
-
 -- Add read-only policy for authenticated users (reference data)
 DROP POLICY IF EXISTS "Authenticated users can read legacy_module_mapping" ON legacy_module_mapping;
 CREATE POLICY "Authenticated users can read legacy_module_mapping" 
 ON legacy_module_mapping FOR SELECT 
 TO authenticated
 USING (true);
-
 -- =======================================
 -- 3. RECREATE VIEWS WITHOUT SECURITY DEFINER
 -- =======================================
@@ -68,7 +63,6 @@ SELECT
   mc.updated_at AS content_updated_at
 FROM modules m
 LEFT JOIN module_contents mc ON mc.module_id = m.id;
-
 -- module_content_sections_full
 DROP VIEW IF EXISTS module_content_sections_full CASCADE;
 CREATE VIEW module_content_sections_full AS
@@ -86,7 +80,6 @@ SELECT
 FROM modules m
 LEFT JOIN module_contents mc ON mc.module_id = m.id
 LEFT JOIN content_sections cs ON cs.module_id = mc.id;
-
 -- module_exercise_steps_full
 DROP VIEW IF EXISTS module_exercise_steps_full CASCADE;
 CREATE VIEW module_exercise_steps_full AS
@@ -104,7 +97,6 @@ SELECT
 FROM modules m
 LEFT JOIN module_contents mc ON mc.module_id = m.id
 LEFT JOIN excercise_steps es ON es.module_content_id = mc.id;
-
 -- module_quiz_questions_full
 DROP VIEW IF EXISTS module_quiz_questions_full CASCADE;
 CREATE VIEW module_quiz_questions_full AS
@@ -123,7 +115,6 @@ SELECT
 FROM modules m
 LEFT JOIN module_contents mc ON mc.module_id = m.id
 LEFT JOIN quiz_questions qq ON qq.module_content_id = mc.id;
-
 -- =======================================
 -- 4. GRANT PERMISSIONS
 -- =======================================
@@ -133,7 +124,6 @@ GRANT SELECT ON module_content_full TO authenticated;
 GRANT SELECT ON module_content_sections_full TO authenticated;
 GRANT SELECT ON module_exercise_steps_full TO authenticated;
 GRANT SELECT ON module_quiz_questions_full TO authenticated;
-
 -- =======================================
 -- 5. DOCUMENTATION
 -- =======================================
@@ -142,7 +132,6 @@ COMMENT ON TABLE personal_values IS 'User personal values (RLS enabled, user_id 
 COMMENT ON TABLE ai_service_logs IS 'AI service logs for debugging (RLS enabled, user_id scoped)';
 COMMENT ON TABLE vision_board_items IS 'User vision board items (RLS enabled, user_id scoped)';
 COMMENT ON TABLE legacy_module_mapping IS 'Read-only reference table for legacy module mapping (RLS enabled, read-only)';
-
 COMMENT ON VIEW module_content_full IS 'Combined view of modules and content (uses RLS from underlying tables)';
 COMMENT ON VIEW module_content_sections_full IS 'Combined view of modules and content sections (uses RLS from underlying tables)';
 COMMENT ON VIEW module_exercise_steps_full IS 'Combined view of modules and exercise steps (uses RLS from underlying tables)';

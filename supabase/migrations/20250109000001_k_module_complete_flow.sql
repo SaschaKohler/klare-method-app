@@ -89,12 +89,10 @@ ON CONFLICT (slug) DO UPDATE SET
   tags = EXCLUDED.tags,
   metadata = EXCLUDED.metadata,
   updated_at = now();
-
 -- 2) Module Contents für jedes Modul erstellen
 -- Ensure id column has default value
 ALTER TABLE module_contents 
   ALTER COLUMN id SET DEFAULT gen_random_uuid();
-
 DO $$
 DECLARE
   v_module_id uuid;
@@ -145,7 +143,6 @@ Jede Kategorie hat spezifische Fragen, die mehr Klarheit schaffen.',
 
   -- Weitere Contents werden in separaten Inserts hinzugefügt
 END $$;
-
 -- 3) Exercise Steps für praktische Module
 DO $$
 DECLARE
@@ -241,7 +238,6 @@ BEGIN
     ON CONFLICT DO NOTHING;
   END IF;
 END $$;
-
 -- 4) AI Prompt Templates für K-Modul
 -- Note: Using correct column names for ai_prompt_templates table
 -- First, add UNIQUE constraint on template_name if it doesn't exist
@@ -255,7 +251,6 @@ BEGIN
       ADD CONSTRAINT ai_prompt_templates_template_name_key UNIQUE (template_name);
   END IF;
 END $$;
-
 INSERT INTO ai_prompt_templates (module_reference, prompt_type, template_name, prompt_template, variables, is_active)
 VALUES
   ('k-welcome', 'coaching', 'k_welcome_personalized',
@@ -292,7 +287,6 @@ ON CONFLICT (template_name) DO UPDATE SET
   prompt_template = EXCLUDED.prompt_template,
   variables = EXCLUDED.variables,
   updated_at = now();
-
 -- 5) User Progress Tracking für K-Modul
 CREATE TABLE IF NOT EXISTS k_module_progress (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -313,26 +307,20 @@ CREATE TABLE IF NOT EXISTS k_module_progress (
   updated_at timestamptz DEFAULT now(),
   UNIQUE(user_id)
 );
-
 -- RLS Policies für k_module_progress
 ALTER TABLE k_module_progress ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY "Users can view own K-module progress"
   ON k_module_progress FOR SELECT
   USING (auth.uid()::text = user_id::text);
-
 CREATE POLICY "Users can insert own K-module progress"
   ON k_module_progress FOR INSERT
   WITH CHECK (auth.uid()::text = user_id::text);
-
 CREATE POLICY "Users can update own K-module progress"
   ON k_module_progress FOR UPDATE
   USING (auth.uid()::text = user_id::text);
-
 -- Indexes
 CREATE INDEX IF NOT EXISTS k_module_progress_user_id_idx ON k_module_progress(user_id);
 CREATE INDEX IF NOT EXISTS k_module_progress_current_phase_idx ON k_module_progress(current_phase);
-
 -- 6) Function: Update K-Module Progress
 CREATE OR REPLACE FUNCTION update_k_module_progress(
   p_user_id uuid,
@@ -373,6 +361,5 @@ BEGIN
   RETURN v_progress;
 END;
 $$;
-
 COMMENT ON TABLE k_module_progress IS 'Tracks detailed progress through the K (Klarheit/Clarity) module transformation journey';
 COMMENT ON FUNCTION update_k_module_progress IS 'Updates user progress in K-module and returns current state';

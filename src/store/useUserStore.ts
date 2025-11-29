@@ -106,7 +106,7 @@ export const useUserStore = createBaseStore<UserState>(
           setStorageStatus("ready");
 
           const { data: profileData, error: profileError } = await supabase
-            .from("users")
+            .from("profiles")
             .select("*")
             .eq("id", user.id)
             .single();
@@ -183,10 +183,10 @@ export const useUserStore = createBaseStore<UserState>(
     createUserProfileIfNeeded: async (user: User) => {
       const { setError } = get();
       try {
-        const { data, error } = await supabase.from("users").select("id").eq("id", user.id).maybeSingle();
+        const { data, error } = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle();
         if (error && error.code !== 'PGRST116') throw error;
         if (!data) {
-          const { error: insertError } = await supabase.from("users").insert({
+          const { error: insertError } = await supabase.from("profiles").insert({
             id: user.id,
             email: user.email,
             name: user.user_metadata?.name || user.email,
@@ -246,7 +246,7 @@ export const useUserStore = createBaseStore<UserState>(
       const now = new Date().toISOString();
       try {
         const { error } = await supabase
-          .from("users")
+          .from("profiles")
           .update({ last_active: now })
           .eq("id", userId);
         if (error) throw error;
@@ -294,7 +294,7 @@ export const useUserStore = createBaseStore<UserState>(
       const { setError } = get();
       try {
         const { error } = await supabase
-          .from("users")
+          .from("profiles")
           .update({ streak: newStreak })
           .eq("id", userId);
         if (error) throw error;

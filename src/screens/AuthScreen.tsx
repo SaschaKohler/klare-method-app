@@ -178,8 +178,8 @@ export default function AuthScreen() {
         try {
           const now = new Date().toISOString();
 
-          // Erstelle Benutzerprofil in 'users'-Tabelle
-          await supabase.from("users").insert({
+          // Erstelle Benutzerprofil in 'profiles'-Tabelle
+          await supabase.from("profiles").insert({
             id: data.user?.id,
             email,
             name: `${firstName} ${lastName}`,

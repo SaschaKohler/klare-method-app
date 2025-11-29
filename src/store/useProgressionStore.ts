@@ -148,7 +148,7 @@ export const useProgressionStore = createBaseStore<ProgressionState>(
       try {
         const newJoinDate = new Date().toISOString();
         const { error } = await supabase
-          .from("user_profiles")
+          .from("users")
           .update({ join_date: newJoinDate })
           .eq("id", userId);
         if (error) throw error;
@@ -204,16 +204,25 @@ export const useProgressionStore = createBaseStore<ProgressionState>(
       const { getDaysInProgram, completedModules } = get();
       const daysInProgram = getDaysInProgram();
       let currentStage: ProgressionStage | null = null;
+      
       for (const stage of progressionStages) {
         if (stage.requiredDays <= daysInProgram) {
-          const allRequiredCompleted = stage.requiredModules.every((moduleId) =>
-            completedModules.includes(moduleId),
-          );
+          // Wenn requiredModules leer ist (wie bei Stage 1), ist die Bedingung automatisch erfüllt
+          const allRequiredCompleted = stage.requiredModules.length === 0 || 
+            stage.requiredModules.every((moduleId) =>
+              completedModules.includes(moduleId),
+            );
           if (allRequiredCompleted) {
             currentStage = stage;
           }
         }
       }
+      
+      // Fallback: Wenn kein Stage gefunden wurde, aber User im Programm ist, gib Stage 1 zurück
+      if (!currentStage && daysInProgram >= 0 && progressionStages.length > 0) {
+        currentStage = progressionStages[0];
+      }
+      
       return currentStage;
     },
 
@@ -234,9 +243,11 @@ export const useProgressionStore = createBaseStore<ProgressionState>(
       const availableModulesSet = new Set<string>();
       for (const stage of progressionStages) {
         if (stage.requiredDays <= daysInProgram) {
-          const allRequiredCompleted = stage.requiredModules.every((moduleId) =>
-            completedModules.includes(moduleId),
-          );
+          // Wenn requiredModules leer ist (wie bei Stage 1), ist die Bedingung automatisch erfüllt
+          const allRequiredCompleted = stage.requiredModules.length === 0 || 
+            stage.requiredModules.every((moduleId) =>
+              completedModules.includes(moduleId),
+            );
           if (allRequiredCompleted) {
             stage.unlocksModules.forEach((moduleId) =>
               availableModulesSet.add(moduleId),

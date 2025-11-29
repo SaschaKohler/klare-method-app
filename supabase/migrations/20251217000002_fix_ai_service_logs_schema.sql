@@ -20,7 +20,6 @@ BEGIN
     RAISE NOTICE 'request_data column already exists in ai_service_logs';
   END IF;
 END $$;
-
 -- Ensure response_data column exists
 DO $$ 
 BEGIN
@@ -38,7 +37,6 @@ BEGIN
     RAISE NOTICE 'response_data column already exists in ai_service_logs';
   END IF;
 END $$;
-
 -- Ensure tokens_used column exists
 DO $$ 
 BEGIN
@@ -56,7 +54,6 @@ BEGIN
     RAISE NOTICE 'tokens_used column already exists in ai_service_logs';
   END IF;
 END $$;
-
 -- Ensure response_time_ms column exists
 DO $$ 
 BEGIN
@@ -74,7 +71,6 @@ BEGIN
     RAISE NOTICE 'response_time_ms column already exists in ai_service_logs';
   END IF;
 END $$;
-
 -- Ensure error_message column exists
 DO $$ 
 BEGIN
@@ -92,5 +88,4 @@ BEGIN
     RAISE NOTICE 'error_message column already exists in ai_service_logs';
   END IF;
 END $$;
-
 COMMENT ON TABLE ai_service_logs IS 'AI service logs for debugging and analytics (fixed schema)';

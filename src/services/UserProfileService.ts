@@ -4,7 +4,7 @@ import { UserProfile, LearningStyle, ContentPreferences, PersonalityTraits, Moti
 class UserProfileService {
   public static async getProfile(userId: string): Promise<UserProfile | null> {
     try {
-      const { data, error } = await supabase.from("users").select("*").eq("id", userId).single();
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
       if (error) {
         console.error("Error fetching user profile:", error.message);
         return null;

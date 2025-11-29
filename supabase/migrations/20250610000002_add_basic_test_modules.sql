@@ -20,7 +20,6 @@ VALUES
    '{"en":{"title":"Realization - Introduction","content":"Welcome to Realization"}}', 
    null, 'e-intro', 1, now(), now())
 ON CONFLICT (id) DO NOTHING;
-
 -- Insert basic content sections for each module
 INSERT INTO content_sections (id, module_id, title, content, content_type, order_index, translations, created_at, updated_at)
 VALUES 

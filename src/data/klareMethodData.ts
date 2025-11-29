@@ -68,7 +68,7 @@ const stepTemplates: KlareStep[] = [
     "Entfaltung",
     "durch vollständige Kongruenz",
     klareColors.e,
-    "sparkles",
+    "star-four-points",
   ),
 ];
 

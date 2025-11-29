@@ -381,131 +381,142 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         </View>
 
         {/* Zeitliche Progression Card */}
-        <Animated.View
-          style={{
-            opacity,
-            transform: [{ translateY }],
-            marginBottom: 24,
-          }}
-        >
-          <Card
-            style={[styles.progressionCard, { borderLeftColor: klareColors.k }]}
+        {userSummary && (
+          <Animated.View
+            style={{
+              opacity,
+              transform: [{ translateY }],
+              marginBottom: 24,
+            }}
           >
-            <Card.Content>
-              <View style={styles.progressionHeader}>
-                <View style={styles.progressionTitleContainer}>
-                  <Ionicons
-                    name="time-outline"
-                    size={20}
-                    color={klareColors.k}
-                  />
-                  <Text
+            <Card
+              style={[styles.progressionCard, { borderLeftColor: klareColors.k }]}
+            >
+              <Card.Content>
+                <View style={styles.progressionHeader}>
+                  <View style={styles.progressionTitleContainer}>
+                    <Ionicons
+                      name="time-outline"
+                      size={20}
+                      color={klareColors.k}
+                    />
+                    <Text
+                      style={[
+                        styles.progressionTitle,
+                        { color: paperTheme.colors.onSurface },
+                      ]}
+                    >
+                      {t("home:progression.program", {
+                        days: userSummary.daysInProgram || 0,
+                      })}
+                    </Text>
+                  </View>
+                  <Chip
+                    compact
                     style={[
-                      styles.progressionTitle,
-                      { color: paperTheme.colors.onSurface },
+                      styles.progressChip,
+                      { backgroundColor: `${klareColors.k}15` },
                     ]}
                   >
-                    {t("home:progression.program", {
-                      days: userSummary.daysInProgram,
+                    {t("home:progression.phase", {
+                      id: userSummary?.currentStage?.id || "1",
                     })}
-                  </Text>
+                  </Chip>
                 </View>
-                <Chip
-                  compact
-                  style={[
-                    styles.progressChip,
-                    { backgroundColor: `${klareColors.k}15` },
-                  ]}
-                >
-                  {t("home:progression.phase", {
-                    id: userSummary?.currentStage
-                      ? userSummary?.currentStage.id
-                      : "1",
-                  })}
-                </Chip>
-              </View>
 
-              {userSummary?.currentStage && (
-                <>
-                  <Text style={[styles.stageName, { color: klareColors.k }]}>
-                    {/* Hier verwenden wir einen vollständigen Übersetzungsschlüssel statt nur die stage.name */}
-                    {i18n.t(
-                      `modules:progressionStages.${userSummary.currentStage.id}.name`,
-                      {
-                        defaultValue: userSummary.currentStage.name,
-                      },
+                {userSummary?.currentStage ? (
+                  <>
+                    <Text style={[styles.stageName, { color: klareColors.k }]}>
+                      {/* Hier verwenden wir einen vollständigen Übersetzungsschlüssel statt nur die stage.name */}
+                      {i18n.t(
+                        `modules:progressionStages.${userSummary.currentStage.id}.name`,
+                        {
+                          defaultValue: userSummary.currentStage.name,
+                        },
+                      )}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.stageDescription,
+                        { color: paperTheme.colors.onSurface },
+                      ]}
+                    >
+                      {/* Hier verwenden wir einen vollständigen Übersetzungsschlüssel für die Beschreibung */}
+                      {i18n.t(
+                        `modules:progressionStages.${userSummary.currentStage.id}.description`,
+                        {
+                          defaultValue: userSummary.currentStage.description,
+                        },
+                      )}
+                    </Text>
+
+                    {userSummary?.nextStage && (
+                      <View
+                        style={[
+                          styles.nextStagePreview,
+                          {
+                            borderTopColor: isDarkMode
+                              ? paperTheme.colors.backdrop
+                              : "#F1F1F1",
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.nextStageLabel,
+                            { color: paperTheme.colors.onSurface },
+                          ]}
+                        >
+                          {t("home:progression.nextPhase")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.nextStageName,
+                            { color: paperTheme.colors.onSurface },
+                          ]}
+                        >
+                          {/* Auch für die nächste Phase die volle Übersetzung verwenden */}
+                          {i18n.t(
+                            `modules:progressionStages.${userSummary.nextStage.id}.name`,
+                            {
+                              defaultValue: userSummary.nextStage.name,
+                            },
+                          )}
+                        </Text>
+                        {userSummary.nextStage.requiredDays >
+                          userSummary.daysInProgram && (
+                          <Text
+                            style={[
+                              styles.daysUntilText,
+                              { color: klareColors.textSecondary },
+                            ]}
+                          >
+                            {t("home:progression.inDays", {
+                              days:
+                                userSummary.nextStage.requiredDays -
+                                userSummary.daysInProgram,
+                            })}
+                          </Text>
+                        )}
+                      </View>
                     )}
-                  </Text>
+                  </>
+                ) : (
                   <Text
                     style={[
                       styles.stageDescription,
-                      { color: paperTheme.colors.onSurface },
+                      { color: paperTheme.colors.onSurface, textAlign: "center" },
                     ]}
                   >
-                    {/* Hier verwenden wir einen vollständigen Übersetzungsschlüssel für die Beschreibung */}
-                    {i18n.t(
-                      `modules:progressionStages.${userSummary.currentStage.id}.description`,
-                      {
-                        defaultValue: userSummary.currentStage.description,
-                      },
-                    )}
+                    {t("home:progression.noStageYet", {
+                      defaultValue: "Willkommen! Starte deine KLARE-Reise heute.",
+                    })}
                   </Text>
-
-                  {userSummary?.nextStage && (
-                    <View
-                      style={[
-                        styles.nextStagePreview,
-                        {
-                          borderTopColor: isDarkMode
-                            ? paperTheme.colors.backdrop
-                            : "#F1F1F1",
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.nextStageLabel,
-                          { color: paperTheme.colors.onSurface },
-                        ]}
-                      >
-                        {t("home:progression.nextPhase")}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.nextStageName,
-                          { color: paperTheme.colors.onSurface },
-                        ]}
-                      >
-                        {/* Auch für die nächste Phase die volle Übersetzung verwenden */}
-                        {i18n.t(
-                          `modules:progressionStages.${userSummary.nextStage.id}.name`,
-                          {
-                            defaultValue: userSummary.nextStage.name,
-                          },
-                        )}
-                      </Text>
-                      {userSummary.nextStage.requiredDays >
-                        userSummary.daysInProgram && (
-                        <Text
-                          style={[
-                            styles.daysUntilText,
-                            { color: klareColors.textSecondary },
-                          ]}
-                        >
-                          {t("home:progression.inDays", {
-                            days:
-                              userSummary.nextStage.requiredDays -
-                              userSummary.daysInProgram,
-                          })}
-                        </Text>
-                      )}
-                    </View>
-                  )}
-                </>
-              )}
-            </Card.Content>
-          </Card>
-        </Animated.View>
+                )}
+              </Card.Content>
+            </Card>
+          </Animated.View>
+        )}
 
         {/* Fortschrittsübersicht */}
         <Card style={styles.progressCard}>
@@ -698,6 +709,140 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
           klareSteps={translatedKlareSteps}
           stepProgress={stepProgress}
         />
+
+        {/* Verfügbare Module */}
+        <Text
+          style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}
+        >
+          {t("home:sections.availableModules.title", { defaultValue: "Verfügbare Module" })}
+        </Text>
+        {modulesSummary.available.length > 0 ? (
+          modulesSummary.available.slice(0, 3).map((moduleId) => {
+            const module = getModuleById(moduleId);
+            if (!module) return null;
+            
+            const stepInfo = translatedKlareSteps.find(
+              (step) => step.id === module.stepId
+            );
+            const isCompleted = modulesSummary.completed.includes(moduleId);
+
+            return (
+              <Card
+                key={moduleId}
+                style={[
+                  styles.card,
+                  styles.activityCard,
+                  { borderLeftColor: stepInfo?.color || klareColors.k },
+                ]}
+              >
+                <Card.Content>
+                  <View style={styles.activityHeader}>
+                    <View style={styles.activityTypeContainer}>
+                      <Ionicons
+                        name="school-outline"
+                        size={20}
+                        color={stepInfo?.color || klareColors.k}
+                      />
+                      <Text
+                        style={[
+                          styles.activityType,
+                          { color: klareColors.textSecondary },
+                        ]}
+                      >
+                        {t("home:sections.availableModules.moduleType", { defaultValue: "Modul" })}
+                      </Text>
+                    </View>
+
+                    {stepInfo && (
+                      <View
+                        style={[
+                          styles.activityStepBadge,
+                          { backgroundColor: `${stepInfo.color}15` },
+                        ]}
+                      >
+                        <Text style={{ color: stepInfo.color }}>
+                          {stepInfo.id}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <Text variant="titleMedium" style={styles.activityTitle}>
+                    {module.title}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.activityDescription,
+                      { color: klareColors.textSecondary },
+                    ]}
+                  >
+                    {module.description}
+                  </Text>
+
+                  {module.duration && (
+                    <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8 }}>
+                      <Ionicons
+                        name="time-outline"
+                        size={16}
+                        color={klareColors.textSecondary}
+                      />
+                      <Text
+                        style={[
+                          { marginLeft: 4, fontSize: 12 },
+                          { color: klareColors.textSecondary },
+                        ]}
+                      >
+                        {module.duration} {t("common:minutes", { defaultValue: "Min" })}
+                      </Text>
+                    </View>
+                  )}
+                </Card.Content>
+
+                <Card.Actions>
+                  <Button
+                    mode={isCompleted ? "outlined" : "contained"}
+                    style={{
+                      backgroundColor: isCompleted ? "transparent" : (stepInfo?.color || klareColors.k),
+                      borderColor: stepInfo?.color || klareColors.k,
+                      minHeight: 48,
+                    }}
+                    labelStyle={{
+                      color: isCompleted ? (stepInfo?.color || klareColors.k) : "white",
+                      fontSize: 16,
+                      fontWeight: "600",
+                    }}
+                    contentStyle={{
+                      paddingVertical: 8,
+                      paddingHorizontal: 16,
+                    }}
+                    onPress={() => {
+                      navigation.navigate("ModuleScreen", {
+                        stepId: module.stepId,
+                        moduleId: module.id,
+                      });
+                    }}
+                  >
+                    {isCompleted 
+                      ? t("home:sections.availableModules.reviewButton", { defaultValue: "Wiederholen" })
+                      : t("home:sections.availableModules.startButton", { defaultValue: "Starten" })
+                    }
+                  </Button>
+                </Card.Actions>
+              </Card>
+            );
+          })
+        ) : (
+          <Card style={styles.card}>
+            <Card.Content>
+              <Text style={{ color: paperTheme.colors.onSurface, textAlign: "center" }}>
+                {t("home:sections.availableModules.noModules", { 
+                  defaultValue: "Keine Module verfügbar. Komme morgen wieder!" 
+                })}
+              </Text>
+            </Card.Content>
+          </Card>
+        )}
+
         {/* Vision Board Section */}
         <Text
           style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}

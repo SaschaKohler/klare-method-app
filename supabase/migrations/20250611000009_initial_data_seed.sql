@@ -19,7 +19,6 @@ INSERT INTO module_contents (id, title, content, klare_step, order_index, diffic
 ('r-parts-integration', 'Innere Teile Integration', '{"intro_text": "Konflikte lösen, Ganzheit finden", "tfp_focus": "Peace Maker, Visual Squash"}', 'R', 2, 4, 35, true),
 ('e-intro', 'Entfaltung - Einführung', '{"intro_text": "Authentisch leben", "objectives": ["Persönlichkeit entwickeln", "Potentiale entfalten"]}', 'E', 1, 1, 15, true),
 ('e-transformation', 'Transformationsprozess', '{"intro_text": "Nachhaltige Veränderung", "tfp_focus": "Ganzheitliche Integration aller TFP-Techniken"}', 'E', 2, 5, 40, true);
-
 -- =======================================
 -- LIFE WHEEL AREAS (KLARE-OPTIMIZED)
 -- =======================================
@@ -33,7 +32,6 @@ INSERT INTO life_wheel_areas (id, name, description, color_hex, order_index, tra
 ('recreation', 'Freizeit & Hobby', 'Entspannung und persönliche Interessen', '#06B6D4', 6, '{"en": {"name": "Recreation & Hobbies", "description": "Relaxation and personal interests"}}'),
 ('environment', 'Umgebung', 'Wohn- und Arbeitsumfeld', '#84CC16', 7, '{"en": {"name": "Environment", "description": "Living and working environment"}}'),
 ('spirituality', 'Spiritualität', 'Sinn, Werte und spirituelle Praxis', '#A855F7', 8, '{"en": {"name": "Spirituality", "description": "Meaning, values and spiritual practice"}}');
-
 -- =======================================
 -- TFP PROMPT TEMPLATES
 -- =======================================
@@ -64,7 +62,6 @@ INSERT INTO tfp_prompt_templates (id, technique_category, specific_technique, kl
 'Unterstütze den User bei der ganzheitlichen Integration aller TFP-Techniken für nachhaltige Entfaltung. Bewerte Fortschritt in: Meta-Modell ({meta_model_level}/10), Anchoring ({anchoring_level}/10), Timeline ({timeline_level}/10), Parts Integration ({parts_level}/10). Entwickle personalisierten Integrations-Plan.',
 '{"meta_model_level": "integer", "anchoring_level": "integer", "timeline_level": "integer", "parts_level": "integer", "user_goals": "array"}',
 '{"beginner": "Einfache Integration zweier Techniken", "advanced": "Komplexe Multi-Technik-Orchestrierung"}');
-
 -- =======================================
 -- TFP EXERCISE PROGRESSIONS
 -- =======================================
@@ -80,7 +77,6 @@ INSERT INTO tfp_exercise_progressions (technique_name, progression_level, exerci
 ('meta_model', 4, 'Vorannahmen und implizite Botschaften erkennen', '["Level 1-3 abgeschlossen"]', '["Versteckte Annahmen aufdecken", "Kommunikations-Subtext verstehen"]', '["Erkennt 4/6 Vorannahmen", "Hinterfragt höflich aber bestimmt"]', 30, '["Defensive Reaktionen beim Gegenüber", "Komplexität der Sprachmuster"]'),
 
 ('meta_model', 5, 'Meta-Modell in emotionalen Gesprächen anwenden', '["Level 1-4 abgeschlossen"]', '["Unter Stress präzise kommunizieren", "Deeskalation durch Klarstellung"]', '["Wendet Meta-Modell in 8/10 Konflikt-Situationen an", "Verbessert Gesprächsqualität messbar"]', 35, '["Emotionale Überwältigung", "Timing der Interventionen"]');
-
 -- Anchoring progression (Level 1-5)  
 INSERT INTO tfp_exercise_progressions (technique_name, progression_level, exercise_description, prerequisites, learning_objectives, success_indicators, estimated_duration, common_challenges) VALUES 
 ('anchoring', 1, 'Einfachen kinästhetischen Anker installieren', '[]', '["Ressourcenzustand aktivieren", "Anker-Timing verstehen"]', '["Kann Anker 3x erfolgreich aktivieren", "Zustand verstärkt sich um 30%"]', 20, '["Zu schwacher Ausgangszustand", "Falsches Timing beim Ankern"]'),
@@ -92,7 +88,6 @@ INSERT INTO tfp_exercise_progressions (technique_name, progression_level, exerci
 ('anchoring', 4, 'Negative Anker neutralisieren (Kollaps)', '["Level 1-3 abgeschlossen"]', '["Störende Anker identifizieren", "Anker-Kollaps durchführen"]', '["Neutralisiert 2/3 störende Anker", "Kann Kollaps-Technik erklären"]', 35, '["Widerstand gegen Veränderung", "Ökologische Einwände"]'),
 
 ('anchoring', 5, 'Covert (verdecktes) Ankern in Gesprächen', '["Level 1-4 abgeschlossen"]', '["Unbemerkt positive Zustände ankern", "Rapport-Anker installieren"]', '["Installiert 3 verdeckte Anker erfolgreich", "Verbessert Gesprächs-Rapport messbar"]', 40, '["Ethische Bedenken", "Zu offensichtliche Anker-Signale"]');
-
 -- =======================================
 -- JOURNAL TEMPLATE CATEGORIES (KLARE-optimized)
 -- =======================================
@@ -104,7 +99,6 @@ INSERT INTO journal_template_categories (id, name, description, color_hex, icon_
 ('realisierung', 'Realisierung', 'Konkrete Umsetzung und Handlung', '#F59E0B', 'action', 4, '{"en": {"name": "Realization", "description": "Concrete implementation and action"}}'),
 ('entfaltung', 'Entfaltung', 'Persönliche Entwicklung und Wachstum', '#10B981', 'growth', 5, '{"en": {"name": "Evolution", "description": "Personal development and growth"}}'),
 ('tägliche-reflexion', 'Tägliche Reflexion', 'Alltägliche Selbstreflexion', '#06B6D4', 'daily', 6, '{"en": {"name": "Daily Reflection", "description": "Daily self-reflection"}}');
-
 -- =======================================
 -- SAMPLE JOURNAL TEMPLATES
 -- =======================================
@@ -124,7 +118,6 @@ INSERT INTO journal_templates (id, title, description, category_id, questions, e
 '["Welche unpräzise Aussage habe ich heute gemacht oder gehört?", "Welche Annahmen habe ich heute nicht hinterfragt?", "Wo hätte ich präziser nachfragen können?", "Wie kann ich morgen bewusster kommunizieren?"]',
 18, 3, 'K',
 '{"en": {"title": "Meta-Model Reflection", "description": "Developing precise communication", "questions": ["What imprecise statement did I make or hear today?", "Which assumptions did I not question today?", "Where could I have asked more precisely?", "How can I communicate more consciously tomorrow?"]}}');
-
 -- =======================================
 -- AI PROMPT TEMPLATES (General)
 -- =======================================
@@ -169,7 +162,6 @@ Bestimme:
 Antworte im JSON-Format mit: next_action, reasoning, exercise, difficulty_level, tfp_integration.',
 '{"current_step": "text", "progress_percentage": "integer", "last_session_summary": "text", "identified_strengths": "array", "current_challenges": "array", "tfp_mastery_levels": "object"}',
 'ADAPTIVE', 5, 'coaching');
-
 -- =======================================
 -- VERIFICATION QUERIES
 -- =======================================
@@ -197,7 +189,6 @@ BEGIN
         RAISE EXCEPTION 'Data seeding incomplete. Expected: modules>=10, areas>=8, templates>=3, tfp_templates>=5';
     END IF;
 END $$;
-
 -- Create initial admin user insights (for testing)
 INSERT INTO personal_insights (user_id, insight_type, content, confidence_score, source_data) 
 SELECT 
@@ -209,6 +200,5 @@ SELECT
 FROM users 
 WHERE email LIKE '%test%' OR email LIKE '%admin%'
 LIMIT 1;
-
 RAISE NOTICE 'Initial data seed completed successfully! 🚀';
 RAISE NOTICE 'Database is now AI-ready with TFP integration and KLARE content.';

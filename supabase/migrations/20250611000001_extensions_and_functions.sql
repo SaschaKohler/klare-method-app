@@ -6,7 +6,6 @@
 -- Enable required PostgreSQL extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
 -- =======================================
 -- CORE TRIGGER FUNCTIONS
 -- =======================================
@@ -19,7 +18,6 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 -- =======================================
 -- AI SERVICE FUNCTIONS (placeholder)
 -- =======================================
@@ -35,7 +33,6 @@ BEGIN
   RETURN 'AI prompt for: ' || template_name;
 END;
 $$ LANGUAGE plpgsql;
-
 -- Function to process user insights
 CREATE OR REPLACE FUNCTION process_user_insight(
   user_id UUID,

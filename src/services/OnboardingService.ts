@@ -160,9 +160,9 @@ export class OnboardingService {
       await this.savePrivacySettings(userId, onboardingData.privacySettings);
       await this.createLifeWheelSnapshot(userId, onboardingData.lifeWheelAreas);
 
-      // Mark onboarding as completed in the users table
+      // Mark onboarding as completed in the profiles table
       const { error: completionError } = await supabase
-        .from("users")
+        .from("profiles")
         .update({
           updated_at: new Date().toISOString(),
         })

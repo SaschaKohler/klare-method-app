@@ -13,7 +13,6 @@ ADD COLUMN IF NOT EXISTS experience_level TEXT,
 ADD COLUMN IF NOT EXISTS time_commitment TEXT,
 ADD COLUMN IF NOT EXISTS onboarding_completed_at TIMESTAMP WITH TIME ZONE,
 ADD COLUMN IF NOT EXISTS privacy_settings JSONB DEFAULT '{}';
-
 -- Add index for onboarding completion queries
 CREATE INDEX IF NOT EXISTS idx_user_profiles_onboarding_completed 
 ON user_profiles(onboarding_completed_at) 

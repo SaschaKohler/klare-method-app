@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS journal_template_categories (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
 -- Journal templates with TFP enhancement
 CREATE TABLE IF NOT EXISTS journal_templates (
   id TEXT PRIMARY KEY,
@@ -35,7 +34,6 @@ CREATE TABLE IF NOT EXISTS journal_templates (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
 -- User journal entries
 CREATE TABLE IF NOT EXISTS journal_entries (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -51,7 +49,6 @@ CREATE TABLE IF NOT EXISTS journal_entries (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
 -- =======================================
 -- TRANSLATION SYSTEM
 -- =======================================
@@ -70,7 +67,6 @@ CREATE TABLE IF NOT EXISTS translations (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(entity_type, entity_id, language_code, field_name)
 );
-
 -- =======================================
 -- INDEXES FOR JOURNAL AND TRANSLATION
 -- =======================================
@@ -86,7 +82,6 @@ CREATE INDEX IF NOT EXISTS idx_journal_entries_mood_tracking ON journal_entries(
 CREATE INDEX IF NOT EXISTS idx_translations_entity ON translations(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_translations_language ON translations(language_code);
 CREATE INDEX IF NOT EXISTS idx_translations_lookup ON translations(entity_type, entity_id, language_code);
-
 -- =======================================
 -- TRIGGERS
 -- =======================================
@@ -95,22 +90,18 @@ DROP TRIGGER IF EXISTS update_journal_template_categories_updated_at ON journal_
 CREATE TRIGGER update_journal_template_categories_updated_at 
   BEFORE UPDATE ON journal_template_categories 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 DROP TRIGGER IF EXISTS update_journal_templates_updated_at ON journal_templates;
 CREATE TRIGGER update_journal_templates_updated_at 
   BEFORE UPDATE ON journal_templates 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 DROP TRIGGER IF EXISTS update_journal_entries_updated_at ON journal_entries;
 CREATE TRIGGER update_journal_entries_updated_at 
   BEFORE UPDATE ON journal_entries 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 DROP TRIGGER IF EXISTS update_translations_updated_at ON translations;
 CREATE TRIGGER update_translations_updated_at 
   BEFORE UPDATE ON translations 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 -- =======================================
 -- TRANSLATION HELPER FUNCTIONS
 -- =======================================
@@ -148,7 +139,6 @@ BEGIN
   RETURN COALESCE(translated_text, '[Translation missing]');
 END;
 $$ LANGUAGE plpgsql;
-
 -- Function to bulk insert translations
 CREATE OR REPLACE FUNCTION upsert_translation(
   p_entity_type TEXT,

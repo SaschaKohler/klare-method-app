@@ -58,7 +58,8 @@ export interface ContentSection {
 export interface ExerciseStep {
   id: string;
   title: string;
-  description: string;
+  description?: string;
+  instructions?: string;
   step_type: string;
   options: any;
   order_index: number;
@@ -76,6 +77,7 @@ export interface QuizQuestion {
 export interface ModuleContent {
   id: string;
   module_id: string;
+  module_slug?: string | null;
   klare_step: string;
   title: string;
   description?: string | null;
@@ -89,13 +91,17 @@ export interface ModuleContent {
   exercise_steps?: ExerciseStep[];
   quiz_questions?: QuizQuestion[];
   title_localized?: string | null;
+  learning_objectives?: string[] | null;
+  tags?: string[] | null;
+  metadata?: Record<string, any> | null;
   // Additional properties for flexibility
   [key: string]: any;
 }
 
 interface ModuleSectionRaw {
   id: string;
-  module_content_id: string;
+  module_content_id?: string | null;
+  module_id?: string | null;
   title: string;
   content: any;
   section_type?: string | null;
@@ -142,6 +148,20 @@ type RawModuleFetchResult = RawModuleContent & {
   content_sections: ModuleSectionRaw[] | null;
   exercise_steps: ModuleExerciseStepRaw[] | null;
   quiz_questions: ModuleQuizQuestionRaw[] | null;
+  modules?: {
+    id?: string | null;
+    slug?: string | null;
+    klare_step?: string | null;
+    title?: string | null;
+    description?: string | null;
+    content_type?: string | null;
+    order_index?: number | null;
+    difficulty_level?: number | null;
+    estimated_duration?: number | null;
+    learning_objectives?: string[] | null;
+    tags?: string[] | null;
+    metadata?: Record<string, any> | null;
+  } | null;
 };
 
 // =======================================
@@ -698,6 +718,12 @@ function mapExerciseStep(step: ModuleExerciseStepRaw): ExerciseStep {
       typeof step.instructions === 'string'
         ? step.instructions
         : JSON.stringify(step.instructions ?? {}),
+    instructions:
+      typeof step.instructions === 'string'
+        ? step.instructions
+        : step.instructions != null
+          ? JSON.stringify(step.instructions)
+          : undefined,
     step_type: step.step_type,
     options: step.options ?? {},
     order_index: step.order_index,
@@ -739,37 +765,96 @@ function mapQuizQuestion(question: ModuleQuizQuestionRaw): QuizQuestion {
   };
 }
 
-function mapRawModuleContent(raw: RawModuleFetchResult): ModuleContent {
-  const content =
-    raw.content && typeof raw.content === 'object'
-      ? raw.content
-      : raw.content
-        ? { body: raw.content }
-        : {};
+type ModuleMetadata = {
+  id?: string | null;
+  slug?: string | null;
+  klare_step?: string | null;
+  title?: string | null;
+  description?: string | null;
+  content_type?: string | null;
+  order_index?: number | null;
+  difficulty_level?: number | null;
+  estimated_duration?: number | null;
+  learning_objectives?: string[] | null;
+  tags?: string[] | null;
+  metadata?: Record<string, any> | null;
+};
 
-  const sections = normalizeArray<ModuleSectionRaw>(raw.content_sections).map(mapSection);
-  const exerciseSteps = normalizeArray<ModuleExerciseStepRaw>(raw.exercise_steps).map(mapExerciseStep);
-  const quizQuestions = normalizeArray<ModuleQuizQuestionRaw>(raw.quiz_questions).map(mapQuizQuestion);
+function mapRawModuleContent(
+  raw: RawModuleFetchResult,
+  moduleMeta?: ModuleMetadata | null,
+  moduleSlug?: string | null,
+): ModuleContent {
+  let content: any = {};
+
+  if (raw.content == null) {
+    content = {};
+  } else if (typeof raw.content === 'string') {
+    content = {
+      intro_text: raw.content,
+      markdown: raw.content,
+    };
+  } else {
+    content = raw.content;
+  }
+
+  const sectionsSource =
+    raw.content_sections ??
+    ((raw as unknown as { content_sections?: ModuleSectionRaw[] | null }).content_sections ?? []);
+  const exerciseSource =
+    raw.exercise_steps ??
+    ((raw as unknown as { excercise_steps?: ModuleExerciseStepRaw[] | null }).excercise_steps ?? []);
+  const quizSource = raw.quiz_questions ?? [];
+
+  const sections = normalizeArray<ModuleSectionRaw>(sectionsSource as ModuleSectionRaw[])
+    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+    .map(mapSection);
+  const exerciseSteps = normalizeArray<ModuleExerciseStepRaw>(exerciseSource as ModuleExerciseStepRaw[])
+    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+    .map(
+    mapExerciseStep,
+  );
+  const quizQuestions = normalizeArray<ModuleQuizQuestionRaw>(quizSource as ModuleQuizQuestionRaw[])
+    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+    .map(
+    mapQuizQuestion,
+  );
 
   const moduleIdentifier = raw.module_id ?? raw.id;
-  const klareStep = raw.klare_step ?? moduleIdentifier.substring(0, 1).toUpperCase();
+  const resolvedMeta = moduleMeta ?? raw.modules ?? {};
+  const klareStep =
+    resolvedMeta.klare_step ??
+    raw.klare_step ??
+    moduleIdentifier.substring(0, 1).toUpperCase();
+
+  const resolvedDescription = raw.description ?? resolvedMeta.description ?? undefined;
+  const resolvedContentType = raw.content_type ?? resolvedMeta.content_type ?? undefined;
+  const resolvedOrderIndex = raw.order_index ?? resolvedMeta.order_index ?? 0;
+  const resolvedDifficulty = raw.difficulty_level ?? resolvedMeta.difficulty_level ?? undefined;
+  const resolvedDuration = raw.duration ?? (content as any)?.duration_minutes ?? undefined;
+  const resolvedEstimatedDuration =
+    raw.estimated_duration ?? resolvedMeta.estimated_duration ?? (content as any)?.estimated_duration ?? undefined;
 
   return {
     id: raw.id,
     module_id: moduleIdentifier,
+    module_slug: moduleSlug ?? resolvedMeta.slug ?? null,
     klare_step: klareStep,
-    title: raw.title,
-    description: raw.description ?? undefined,
-    content_type: raw.content_type,
+    title: raw.title ?? resolvedMeta.title ?? '',
+    description: resolvedDescription,
+    content_type: resolvedContentType,
     content,
-    order_index: raw.order_index,
-    difficulty_level: raw.difficulty_level ?? undefined,
-    duration: raw.duration ?? (content as any)?.duration_minutes ?? undefined,
-    estimated_duration: raw.estimated_duration ?? undefined,
+    order_index: resolvedOrderIndex,
+    difficulty_level: resolvedDifficulty,
+    duration: resolvedDuration ?? (content as any)?.duration_minutes ?? undefined,
+    estimated_duration: resolvedEstimatedDuration,
     title_localized: raw.title_localized ?? undefined,
     sections,
     exercise_steps: exerciseSteps,
     quiz_questions: quizQuestions,
+    learning_objectives: resolvedMeta.learning_objectives ?? null,
+    tags: resolvedMeta.tags ?? null,
+    metadata: resolvedMeta.metadata ?? null,
   };
 }
 
@@ -786,8 +871,7 @@ const MODULE_SELECT_COLUMNS_LEGACY = `
   duration,
   estimated_duration,
   title_localized,
-  content_sections:content_sections(*),
-  exercise_steps:exercise_steps(*),
+  excercise_steps:excercise_steps(*),
   quiz_questions:quiz_questions(*)
 `;
 
@@ -803,8 +887,7 @@ const MODULE_SELECT_COLUMNS_MODERN = `
   duration,
   estimated_duration,
   title_localized,
-  content_sections:content_sections(*),
-  exercise_steps:exercise_steps(*),
+  excercise_steps:excercise_steps(*),
   quiz_questions:quiz_questions(*)
 `;
 
@@ -824,6 +907,7 @@ type ModuleListRow = {
   estimated_duration?: number | null;
   title_localized?: string | null;
   modules?: {
+    slug?: string | null;
     klare_step?: string | null;
     title?: string | null;
     description?: string | null;
@@ -852,20 +936,69 @@ async function runModuleSelect(
 
 async function fetchModuleFromSupabase(moduleId: string): Promise<ModuleContent | null> {
   try {
+    // Wenn moduleId ein Slug ist (z.B. "k-intro"), müssen wir zuerst die UUID aus der modules Tabelle holen
+    let actualModuleId = moduleId;
+    let moduleRecord: ModuleMetadata | null = null;
+    let resolvedSlug: string | null = null;
+
+    // Prüfe ob es eine UUID ist (enthält Bindestriche in UUID-Format)
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(moduleId);
+
+    if (!isUUID) {
+      // Versuche den Slug in der modules Tabelle zu finden
+      const { data: moduleData, error: moduleError } = await supabase
+        .from('modules')
+        .select(
+          'id, slug, klare_step, title, description, content_type, order_index, difficulty_level, estimated_duration, learning_objectives, tags, metadata',
+        )
+        .eq('slug', moduleId)
+        .maybeSingle();
+
+      if (moduleError && moduleError.code !== 'PGRST116') {
+        console.warn(`Fehler beim Lookup von Modul-Slug ${moduleId}:`, moduleError);
+      }
+
+      if (moduleData?.id) {
+        actualModuleId = moduleData.id;
+        moduleRecord = moduleData;
+        resolvedSlug = moduleData.slug ?? moduleId;
+      } else {
+        console.warn(`Supabase: Modul mit Slug ${moduleId} nicht gefunden.`);
+        return null;
+      }
+    } else {
+      const { data: moduleData, error: moduleError } = await supabase
+        .from('modules')
+        .select(
+          'id, slug, klare_step, title, description, content_type, order_index, difficulty_level, estimated_duration, learning_objectives, tags, metadata',
+        )
+        .eq('id', actualModuleId)
+        .maybeSingle();
+
+      if (moduleError && moduleError.code !== 'PGRST116') {
+        console.warn(`Fehler beim Laden der Modulmetadaten ${moduleId}:`, moduleError);
+      }
+
+      if (moduleData) {
+        moduleRecord = moduleData;
+        resolvedSlug = moduleData.slug ?? moduleId;
+      }
+    }
+
     let useLegacyColumns = true;
-    let response = await runModuleSelect(moduleId, 'module_id', MODULE_SELECT_COLUMNS_LEGACY);
+    let response = await runModuleSelect(actualModuleId, 'module_id', MODULE_SELECT_COLUMNS_LEGACY);
 
     if (response.error) {
       if ((response.error as PostgrestError).code === '42703') {
         useLegacyColumns = false;
-        response = await runModuleSelect(moduleId, 'module_id', MODULE_SELECT_COLUMNS_MODERN);
+        response = await runModuleSelect(actualModuleId, 'module_id', MODULE_SELECT_COLUMNS_MODERN);
       } else if ((response.error as PostgrestError).code !== 'PGRST116') {
         throw response.error;
       }
     }
 
     if ((!response.data || (response.error as PostgrestError | null)?.code === 'PGRST116') && useLegacyColumns) {
-      response = await runModuleSelect(moduleId, 'id', MODULE_SELECT_COLUMNS_LEGACY);
+      response = await runModuleSelect(actualModuleId, 'id', MODULE_SELECT_COLUMNS_LEGACY);
       if (
         response.error &&
         (response.error as PostgrestError).code !== 'PGRST116' &&
@@ -877,7 +1010,7 @@ async function fetchModuleFromSupabase(moduleId: string): Promise<ModuleContent 
 
     if (!response.data) {
       if (useLegacyColumns) {
-        const fallback = await runModuleSelect(moduleId, 'id', MODULE_SELECT_COLUMNS_MODERN);
+        const fallback = await runModuleSelect(actualModuleId, 'id', MODULE_SELECT_COLUMNS_MODERN);
         if (
           fallback.error &&
           (fallback.error as PostgrestError).code !== 'PGRST116' &&
@@ -896,10 +1029,47 @@ async function fetchModuleFromSupabase(moduleId: string): Promise<ModuleContent 
       return null;
     }
 
-    return mapRawModuleContent(response.data);
+    const mapped = mapRawModuleContent(response.data, moduleRecord, resolvedSlug);
+
+    if (moduleRecord?.klare_step && mapped.klare_step !== moduleRecord.klare_step) {
+      mapped.klare_step = moduleRecord.klare_step;
+    }
+
+    // Versuche Content Sections separat zu laden, da sie modules.id referenzieren
+    const sections = await fetchContentSections(actualModuleId);
+    if (sections.length > 0) {
+      mapped.sections = sections;
+    }
+
+    LOCAL_MODULE_CACHE[moduleId] = mapped;
+    LOCAL_MODULE_CACHE[mapped.module_id] = mapped;
+
+    return mapped;
   } catch (error) {
     console.error('Failed to load module content from Supabase:', error);
     return null;
+  }
+}
+
+async function fetchContentSections(moduleId: string): Promise<ContentSection[]> {
+  try {
+    const { data, error } = await supabase
+      .from('content_sections')
+      .select('*')
+      .eq('module_id', moduleId)
+      .order('order_index');
+
+    if (error) {
+      if (error.code !== 'PGRST116') {
+        console.warn('Fehler beim Laden der Content Sections:', error);
+      }
+      return [];
+    }
+
+    return normalizeArray<ModuleSectionRaw>((data ?? []) as ModuleSectionRaw[]).map(mapSection);
+  } catch (error) {
+    console.warn('Content Sections konnten nicht geladen werden:', error);
+    return [];
   }
 }
 
@@ -1154,7 +1324,7 @@ const MODULE_LIST_COLUMNS_MODERN = `
 async function selectModulesByStep(step: string, columns: string): Promise<PostgrestResponse<ModuleListRow>> {
   const response = await supabase
     .from('module_contents')
-    .select(`${columns}, modules!inner(klare_step, title, description, content_type, order_index, duration, estimated_duration, title_localized)`)
+    .select(`${columns}, modules!inner(slug, klare_step, title, description, content_type, order_index, estimated_duration)`)
     .eq('modules.klare_step', step)
     .order('order_index');
 
@@ -1185,34 +1355,44 @@ export async function loadModulesByStep(step: string): Promise<ModuleContent[]> 
       return [];
     }
 
-    return data.map((module) => {
-      const moduleIdentifier = module.module_id ?? module.id;
-      const moduleMetadata = module.modules ?? null;
-      const klareStep = module.klare_step
+    // Dedupliziere: nur ein Eintrag pro Module (module_id) zurückgeben
+    const byModuleId = new Map<string, ModuleContent>();
+
+    for (const row of data) {
+      const moduleIdentifier = row.module_id ?? row.id;
+      const moduleMetadata = row.modules ?? null;
+      const klareStep = row.klare_step
         ?? moduleMetadata?.klare_step
         ?? moduleIdentifier.substring(0, 1).toUpperCase();
 
-      const mapped: ModuleContent = {
-        id: module.id,
+      const candidate: ModuleContent = {
+        id: row.id,
         module_id: moduleIdentifier,
+        module_slug: moduleMetadata?.slug ?? null,
         klare_step: klareStep,
-        title: module.title ?? moduleMetadata?.title ?? "",
-        description: module.description ?? moduleMetadata?.description ?? undefined,
-        content_type: module.content_type ?? moduleMetadata?.content_type ?? "intro",
-        content: module.content ?? {},
-        order_index: module.order_index ?? moduleMetadata?.order_index ?? 0,
-        difficulty_level: module.difficulty_level ?? moduleMetadata?.difficulty_level ?? undefined,
-        duration: module.duration ?? moduleMetadata?.duration ?? undefined,
-        estimated_duration: module.estimated_duration ?? moduleMetadata?.estimated_duration ?? undefined,
-        title_localized: module.title_localized ?? moduleMetadata?.title_localized ?? undefined,
+        title: row.title ?? moduleMetadata?.title ?? "",
+        description: row.description ?? moduleMetadata?.description ?? undefined,
+        content_type: row.content_type ?? moduleMetadata?.content_type ?? "intro",
+        content: row.content ?? {},
+        order_index: row.order_index ?? moduleMetadata?.order_index ?? 0,
+        difficulty_level: row.difficulty_level ?? moduleMetadata?.difficulty_level ?? undefined,
+        duration: row.duration ?? undefined,
+        estimated_duration: row.estimated_duration ?? moduleMetadata?.estimated_duration ?? undefined,
+        title_localized: row.title_localized ?? undefined,
         sections: [],
         exercise_steps: [],
         quiz_questions: [],
       };
 
-      LOCAL_MODULE_CACHE[moduleIdentifier] = mapped;
-      return mapped;
-    });
+      const existing = byModuleId.get(moduleIdentifier);
+      // Behalte den "frühesten" (kleinsten) order_index als Repräsentant
+      if (!existing || candidate.order_index < existing.order_index) {
+        byModuleId.set(moduleIdentifier, candidate);
+        LOCAL_MODULE_CACHE[moduleIdentifier] = candidate;
+      }
+    }
+
+    return Array.from(byModuleId.values()).sort((a, b) => a.order_index - b.order_index);
   } catch (error) {
     console.error('Failed to load modules by step:', error);
     return [];

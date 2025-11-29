@@ -108,7 +108,7 @@ export const PrivacySettingsScreen: React.FC = () => {
       },
       {
         key: 'ai_enabled' as const,
-        icon: 'sparkles',
+        icon: 'star-four-points',
         title: t('privacy.data.dataLevels.aiEnabled.title', {
           defaultValue: t('privacy.dataLevels.aiEnabled.title'),
         }),

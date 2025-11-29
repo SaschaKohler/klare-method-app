@@ -26,7 +26,6 @@ SELECT
   title as title_en,
   content as content_en
 FROM module_contents;
-
 CREATE OR REPLACE VIEW translated_content_sections AS  
 SELECT
   id,
@@ -41,7 +40,6 @@ SELECT
   title as title_en,
   content as content_en
 FROM content_sections;
-
 CREATE OR REPLACE VIEW translated_exercise_steps AS
 SELECT
   id,
@@ -57,7 +55,6 @@ SELECT
   title as title_en,
   description as description_en
 FROM exercise_steps;
-
 CREATE OR REPLACE VIEW translated_quiz_questions AS
 SELECT
   id,
@@ -74,17 +71,18 @@ SELECT
   question_text as question_text_en,
   explanation as explanation_en
 FROM quiz_questions;
-
 -- =======================================
 -- BACKUP EXISTING DATA (if any)
 -- =======================================
 
 -- Create backup tables for existing data
 CREATE TABLE IF NOT EXISTS backup_life_wheel_areas AS 
-SELECT * FROM life_wheel_areas WHERE 1=0; -- Structure only
+SELECT * FROM life_wheel_areas WHERE 1=0;
+-- Structure only
 
 CREATE TABLE IF NOT EXISTS backup_journal_templates AS
-SELECT * FROM journal_templates WHERE 1=0; -- Structure only
+SELECT * FROM journal_templates WHERE 1=0;
+-- Structure only
 
 -- Only backup if tables exist and have data
 DO $$
@@ -99,7 +97,6 @@ BEGIN
     RAISE NOTICE 'Backed up % journal templates', (SELECT COUNT(*) FROM backup_journal_templates);
   END IF;
 END $$;
-
 -- =======================================
 -- SAFE MIGRATION FLAGS
 -- =======================================
@@ -113,14 +110,12 @@ CREATE TABLE IF NOT EXISTS migration_status (
   completed_at TIMESTAMP WITH TIME ZONE,
   notes TEXT
 );
-
 INSERT INTO migration_status (migration_name, status, notes) VALUES 
 ('compatibility_layer', 'completed', 'Views created to maintain app functionality during AI migration')
 ON CONFLICT (migration_name) DO UPDATE SET 
   status = 'completed',
   completed_at = NOW(),
   notes = 'Views updated to maintain app functionality';
-
 RAISE NOTICE '✅ Compatibility layer installed!';
 RAISE NOTICE '🛡️ Your app should continue working normally.';
 RAISE NOTICE '📋 Next: Test app functionality before proceeding with AI migrations.';

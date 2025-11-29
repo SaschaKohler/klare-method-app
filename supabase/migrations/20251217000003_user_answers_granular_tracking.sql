@@ -61,7 +61,6 @@ BEGIN
     ALTER TABLE user_answers ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
   END IF;
 END $$;
-
 -- =====================================================
 -- 2. EXERCISE_RESULTS - Detaillierte Übungsergebnisse
 -- =====================================================
@@ -91,7 +90,6 @@ CREATE TABLE IF NOT EXISTS exercise_results (
   completed_at TIMESTAMP WITH TIME ZONE,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
 -- =====================================================
 -- 3. USER_PATTERNS - Erkannte Verhaltensmuster
 -- =====================================================
@@ -114,7 +112,6 @@ BEGIN
     ALTER TABLE user_patterns ADD COLUMN confidence_score NUMERIC(3,2);
   END IF;
 END $$;
-
 -- =====================================================
 -- 4. INDEXES für Performance
 -- =====================================================
@@ -125,33 +122,28 @@ CREATE INDEX IF NOT EXISTS idx_user_answers_question_type ON user_answers(questi
 CREATE INDEX IF NOT EXISTS idx_user_answers_answered_at ON user_answers(answered_at DESC);
 CREATE INDEX IF NOT EXISTS idx_user_answers_key_themes ON user_answers USING GIN(key_themes);
 CREATE INDEX IF NOT EXISTS idx_user_answers_emotion_tags ON user_answers USING GIN(emotion_tags);
-
 CREATE INDEX IF NOT EXISTS idx_exercise_results_user_id ON exercise_results(user_id);
 CREATE INDEX IF NOT EXISTS idx_exercise_results_module_id ON exercise_results(module_id);
 CREATE INDEX IF NOT EXISTS idx_exercise_results_exercise_type ON exercise_results(exercise_type);
 CREATE INDEX IF NOT EXISTS idx_exercise_results_completed ON exercise_results(completed_at);
-
 -- =====================================================
 -- 5. RLS POLICIES
 -- =====================================================
 
 ALTER TABLE user_answers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE exercise_results ENABLE ROW LEVEL SECURITY;
-
 -- User Answers Policies
 DROP POLICY IF EXISTS "Users can manage their own user_answers" ON user_answers;
 CREATE POLICY "Users can manage their own user_answers" 
 ON user_answers FOR ALL 
 USING (auth.uid()::uuid = user_id::uuid) 
 WITH CHECK (auth.uid()::uuid = user_id::uuid);
-
 -- Exercise Results Policies
 DROP POLICY IF EXISTS "Users can manage their own exercise_results" ON exercise_results;
 CREATE POLICY "Users can manage their own exercise_results" 
 ON exercise_results FOR ALL 
 USING (auth.uid()::uuid = user_id::uuid) 
 WITH CHECK (auth.uid()::uuid = user_id::uuid);
-
 -- =====================================================
 -- 6. TRIGGERS für updated_at
 -- =====================================================
@@ -160,12 +152,10 @@ DROP TRIGGER IF EXISTS update_user_answers_updated_at ON user_answers;
 CREATE TRIGGER update_user_answers_updated_at 
   BEFORE UPDATE ON user_answers 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 DROP TRIGGER IF EXISTS update_exercise_results_updated_at ON exercise_results;
 CREATE TRIGGER update_exercise_results_updated_at 
   BEFORE UPDATE ON exercise_results 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 -- =====================================================
 -- 7. HELPER FUNCTIONS für AI-Context Building
 -- =====================================================
@@ -198,7 +188,6 @@ BEGIN
   LIMIT p_limit;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- Funktion: Hole User-Kontext für AI (umfassend)
 CREATE OR REPLACE FUNCTION get_comprehensive_user_context(p_user_id UUID)
 RETURNS JSONB AS $$
@@ -261,7 +250,6 @@ BEGIN
   RETURN COALESCE(v_context, '{}'::jsonb);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- =====================================================
 -- 8. VIEWS für einfachen Zugriff
 -- =====================================================
@@ -275,7 +263,6 @@ SELECT
   m.tags as module_tags
 FROM user_answers ua
 LEFT JOIN modules m ON m.id = ua.module_id;
-
 -- View: Exercise Results mit Module Info
 CREATE OR REPLACE VIEW exercise_results_enriched AS
 SELECT 
@@ -287,11 +274,9 @@ SELECT
 FROM exercise_results er
 LEFT JOIN modules m ON m.id = er.module_id
 LEFT JOIN excercise_steps es ON es.id = er.exercise_step_id;
-
 -- Grant permissions
 GRANT SELECT ON user_answers_enriched TO authenticated;
 GRANT SELECT ON exercise_results_enriched TO authenticated;
-
 -- =====================================================
 -- 9. DOCUMENTATION
 -- =====================================================

@@ -41,7 +41,6 @@ CREATE TABLE IF NOT EXISTS user_privacy_preferences (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
 -- =======================================
 -- CONTENT SENSITIVITY CLASSIFICATION
 -- =======================================
@@ -65,7 +64,6 @@ CREATE TABLE IF NOT EXISTS content_sensitivity (
   
   UNIQUE(content_type, content_id)
 );
-
 -- =======================================
 -- PRIVACY-AWARE JOURNAL RESPONSES  
 -- =======================================
@@ -97,7 +95,6 @@ CREATE TABLE IF NOT EXISTS journal_responses (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
 -- =======================================
 -- AI INTERACTION AUDIT LOG
 -- =======================================
@@ -125,7 +122,6 @@ CREATE TABLE IF NOT EXISTS ai_interaction_log (
   
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
 -- =======================================
 -- ENHANCED JOURNAL TEMPLATES WITH PRIVACY
 -- =======================================
@@ -133,32 +129,25 @@ CREATE TABLE IF NOT EXISTS ai_interaction_log (
 -- Add privacy fields to existing journal templates
 ALTER TABLE journal_templates 
 ADD COLUMN IF NOT EXISTS default_sensitivity_level TEXT DEFAULT 'sensitive' CHECK (default_sensitivity_level IN ('public', 'sensitive', 'intimate'));
-
 ALTER TABLE journal_templates
 ADD COLUMN IF NOT EXISTS requires_local_storage BOOLEAN DEFAULT false;
-
 ALTER TABLE journal_templates  
 ADD COLUMN IF NOT EXISTS ai_analysis_safe BOOLEAN DEFAULT false;
-
 -- =======================================
 -- PRIVACY-AWARE INDEXES
 -- =======================================
 
 -- No separate index needed for PK/FK 'id' on user_privacy_preferences
 CREATE INDEX IF NOT EXISTS idx_user_privacy_preferences_ai_enabled ON user_privacy_preferences(ai_enabled);
-
 CREATE INDEX IF NOT EXISTS idx_content_sensitivity_type_id ON content_sensitivity(content_type, content_id);
 CREATE INDEX IF NOT EXISTS idx_content_sensitivity_level ON content_sensitivity(sensitivity_level);
-
 CREATE INDEX IF NOT EXISTS idx_journal_responses_user ON journal_responses(user_id);
 CREATE INDEX IF NOT EXISTS idx_journal_responses_sensitivity ON journal_responses(sensitivity_level);
 CREATE INDEX IF NOT EXISTS idx_journal_responses_local_only ON journal_responses(local_only);
 CREATE INDEX IF NOT EXISTS idx_journal_responses_ai_allowed ON journal_responses(allow_ai_analysis);
-
 CREATE INDEX IF NOT EXISTS idx_ai_interaction_log_user ON ai_interaction_log(user_id);
 CREATE INDEX IF NOT EXISTS idx_ai_interaction_log_type ON ai_interaction_log(interaction_type);
 CREATE INDEX IF NOT EXISTS idx_ai_interaction_log_created ON ai_interaction_log(created_at);
-
 -- =======================================
 -- RLS POLICIES FOR PRIVACY
 -- =======================================
@@ -167,34 +156,29 @@ ALTER TABLE user_privacy_preferences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE content_sensitivity ENABLE ROW LEVEL SECURITY;
 ALTER TABLE journal_responses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_interaction_log ENABLE ROW LEVEL SECURITY;
-
 -- User privacy preferences policies
 DROP POLICY IF EXISTS "Users can manage their own privacy preferences" ON user_privacy_preferences;
 CREATE POLICY "Users can manage their own privacy preferences" 
 ON user_privacy_preferences FOR ALL 
 USING (auth.uid() = id) 
 WITH CHECK (auth.uid() = id);
-
 -- Content sensitivity is readable by all authenticated users (for proper classification)
 DROP POLICY IF EXISTS "Authenticated users can read content sensitivity" ON content_sensitivity;
 CREATE POLICY "Authenticated users can read content sensitivity" 
 ON content_sensitivity FOR SELECT 
 TO authenticated 
 USING (true);
-
 -- Journal responses are strictly user-private
 DROP POLICY IF EXISTS "Users can manage their own journal responses" ON journal_responses;
 CREATE POLICY "Users can manage their own journal responses" 
 ON journal_responses FOR ALL 
 USING (auth.uid() = user_id) 
 WITH CHECK (auth.uid() = user_id);
-
 -- AI interaction log is user-private for transparency
 DROP POLICY IF EXISTS "Users can view their own AI interactions" ON ai_interaction_log;
 CREATE POLICY "Users can view their own AI interactions" 
 ON ai_interaction_log FOR SELECT 
 USING (auth.uid() = user_id);
-
 -- =======================================
 -- PRIVACY HELPER FUNCTIONS
 -- =======================================
@@ -235,7 +219,6 @@ BEGIN
   END CASE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- Function to get appropriate storage location for content
 CREATE OR REPLACE FUNCTION get_storage_location_for_user(
   p_user_id UUID,
@@ -267,7 +250,6 @@ BEGIN
   END CASE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- =======================================
 -- INITIAL PRIVACY CLASSIFICATION
 -- =======================================
@@ -288,7 +270,6 @@ INSERT INTO content_sensitivity (content_type, content_id, sensitivity_level, re
 ('journal_template', (SELECT id FROM journal_templates WHERE title LIKE '%Meta-Modell%'), 'sensitive', 'ai_enabled', 'TFP technique practice, suitable for AI enhancement', '["tfp", "communication", "practice"]')
 
 ON CONFLICT (content_type, content_id) DO NOTHING;
-
 -- =======================================
 -- TRIGGERS FOR PRIVACY SYSTEM
 -- =======================================
@@ -297,17 +278,14 @@ DROP TRIGGER IF EXISTS update_user_privacy_preferences_updated_at ON user_privac
 CREATE TRIGGER update_user_privacy_preferences_updated_at 
   BEFORE UPDATE ON user_privacy_preferences 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 DROP TRIGGER IF EXISTS update_content_sensitivity_updated_at ON content_sensitivity;
 CREATE TRIGGER update_content_sensitivity_updated_at 
   BEFORE UPDATE ON content_sensitivity 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 DROP TRIGGER IF EXISTS update_journal_responses_updated_at ON journal_responses;
 CREATE TRIGGER update_journal_responses_updated_at 
   BEFORE UPDATE ON journal_responses 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 RAISE NOTICE '🛡️ Privacy-First architecture implemented!';
 RAISE NOTICE '📱 Local-first storage for sensitive data enabled.';
 RAISE NOTICE '🤖 AI integration is now opt-in with granular controls.';
